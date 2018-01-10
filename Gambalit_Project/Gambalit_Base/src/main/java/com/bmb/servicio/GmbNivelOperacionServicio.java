@@ -52,7 +52,7 @@ public class GmbNivelOperacionServicio implements IGmbNivelOperacionEAO {
 	
 	
 	public GmbNivelOperacionEAO getGmbNivelOperacionEAO() {
-		return gmbNivelOperacionEAO;
+  		return gmbNivelOperacionEAO;
 	}
 
 	public void setGmbNivelOperacionEAO(GmbNivelOperacionEAO gmbNivelOperacionEAO) {
