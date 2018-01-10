@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{iBPMarcaBean}">
+					<as2:buttonEliminar bean="#{iBPMarcaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{iBPMarcaBean.ibpMarca.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{iBPMarcaBean.ibpMarca.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{iBPMarcaBean}" tabla=":form:tablaIBPMarca" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_ibpMarca_panel}" rendered="#{iBPMarcaBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{iBPMarcaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo_ibp}:" />
+							<p:inputMask styleClass="input-text" value="#{iBPMarcaBean.ibpMarca.codigo}" id="txtCodigo" mask="999999" required="true">
+								<f:validateBean />
+							</p:inputMask>
+							
+							<p:outputLabel for="txtCodigoIce" value="#{msgs.lbl_codigo_ice}:" />
+							<p:inputMask styleClass="input-text" value="#{iBPMarcaBean.ibpMarca.codigoIce}" id="txtCodigoIce" mask="999999" required="true">
+								<f:validateBean />
+							</p:inputMask>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{iBPMarcaBean.ibpMarca.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboIBPClasificacion" value="#{msgs.lbl_ibp_clasificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{iBPMarcaBean.ibpMarca.ibpClasificacion}" id="cboIBPClasificacion" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{iBPMarcaBean.listaIBPClasificacion}" var="_clasif" itemValue="#{_clasif}"
+									itemLabel="#{_clasif.codigo} - #{_clasif.nombre}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox id="ckActivo" value="#{iBPMarcaBean.ibpMarca.activo}" />
+
+							<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox id="ckPredeterminado" value="#{iBPMarcaBean.ibpMarca.predeterminado}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea id="txtDescripcion" styleClass="input-text" value="#{iBPMarcaBean.ibpMarca.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_ibpMarca_panel}" rendered="#{!iBPMarcaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaIBPMarca" rowIndexVar="secuencialIBPMarca"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{iBPMarcaBean.listaIBPMarca}" var="ibpMarca" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{iBPMarcaBean.dataTableIBPMarca}" rows="#{iBPMarcaBean.numeroFilas}"
+							rowsPerPageTemplate="#{iBPMarcaBean.numeroFilasPorPagina}" selection="#{iBPMarcaBean.ibpMarca}" selectionMode="single" rowKey="#{ibpMarca.id}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialIBPMarca+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{ibpMarca.codigo}" sortBy="#{ibpMarca.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_ibp}" />
+								</f:facet>
+								<h:outputText value="#{ibpMarca.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{ibpMarca.codigoIce}" sortBy="#{ibpMarca.codigoIce}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_ice}" />
+								</f:facet>
+								<h:outputText value="#{ibpMarca.codigoIce}" />
+							</p:column>
+
+							<p:column filterBy="#{ibpMarca.nombre}" sortBy="#{ibpMarca.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{ibpMarca.nombre}" />
+							</p:column>
+							
+							<p:column filterBy="#{ibpMarca.ibpClasificacion.nombre}" sortBy="#{ibpMarca.ibpClasificacion.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ibp_clasificacion}" />
+								</f:facet>
+								<h:outputText value="#{ibpMarca.ibpClasificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{ibpMarca.activo}">
+								<p:selectBooleanCheckbox value="#{ibpMarca.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{ibpMarca.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{ibpMarca.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{iBPMarcaBean.ibpMarca.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{iBPMarcaBean.ibpMarca.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{iBPMarcaBean.ibpMarca.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{iBPMarcaBean.ibpMarca.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

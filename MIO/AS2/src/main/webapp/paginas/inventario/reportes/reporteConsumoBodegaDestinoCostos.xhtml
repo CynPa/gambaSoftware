@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_consumo_bodega}">
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{reporteConsumoBodegaDestinoCostosBean}" />
+					<ui:param name="objetoActualizar" value=":form:lblProducto" />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+				</ui:include>
+
+
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteConsumoBodegaDestinoCostosBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+						
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu value="#{reporteConsumoBodegaDestinoCostosBean.documento}" required="false">
+								<f:selectItems value="#{reporteConsumoBodegaDestinoCostosBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento}" id="cboDocumento" />
+								<p:ajax process="@this" event="change" partialSubmit="true" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputLabel value="#{msgs.lbl_tipo} #{msgs.lbl_reporte}:" for="cboTipoReporte" />
+							<p:selectOneMenu value="#{reporteConsumoBodegaDestinoCostosBean.tipoReporte}" required="true" id="cboTipoReporte">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteConsumoBodegaDestinoCostosBean.listaTipoReporte}" var="_tipoReporte"
+									itemLabel="#{_tipoReporte.label}" itemValue="#{_tipoReporte.value}">
+								</f:selectItems>
+								<p:ajax event="change" update="panelFiltros" process="@this" partialSubmit="true" global="false"/>
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteConsumoBodegaDestinoCostosBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteConsumoBodegaDestinoCostosBean.fechaDesde}" id="calFechaDesde">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaHasta"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaHasta"></p:ajax>-->
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteConsumoBodegaDestinoCostosBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteConsumoBodegaDestinoCostosBean.fechaHasta}" id="calFechaHasta">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaDesde"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaDesde"></p:ajax>-->
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_sucursal}" />
+							<p:selectOneMenu value="#{reporteConsumoBodegaDestinoCostosBean.sucursal}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteConsumoBodegaDestinoCostosBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" id="cboSucursal" />
+								<p:ajax process="@this" event="change" partialSubmit="true" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}"/>
+							<p:outputPanel id="panelCategoriaProductosSeleccionada">
+								<p:selectOneMenu value="#{reporteConsumoBodegaDestinoCostosBean.categoriaProductoSeleccionado}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{reporteConsumoBodegaDestinoCostosBean.listaCategoriaProductos}" var="_categoriaProducto"
+										itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+									<p:ajax process="@this" listener="#{reporteConsumoBodegaDestinoCostosBean.cargarListaSubcategoriaProducto}" update="cboSubcategoriaProducto,:form:panelCategoriaProductosSeleccionada" />
+								</p:selectOneMenu>
+
+								<h:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{reporteConsumoBodegaDestinoCostosBean.listaCategoriaProductosSeleccionada}" id="tablaCategorias"
+									rowIndexVar="secuencial" rowKey="#{_categoria.rowKey}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_categoria" style="width:100%"
+									lazy="true">
+									<p:column styleClass="columnaDTFecha tableCell">
+										<h:outputText value="#{_categoria.codigo}" />
+									</p:column>
+									<p:column styleClass="columnaDTFecha tableCell">
+										<h:outputText value="#{_categoria.nombre}" />
+									</p:column>
+									<p:column>
+										<p:commandButton action="#{reporteConsumoBodegaDestinoCostosBean.eliminarCategoria(_categoria)}" title="#{msgs.lbl_eliminar}"
+											update=":form:cboSubcategoriaProducto,:form:panelCategoriaProductosSeleccionada" process="@this" icon="ui-icon-closethick">
+										</p:commandButton>
+									</p:column>
+								</h:dataTable>
+							</p:outputPanel>
+
+							<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteConsumoBodegaDestinoCostosBean.subcategoriaProducto}" disabled="#{reporteConsumoBodegaDestinoCostosBean.listaCategoriaProductosSeleccionada.size()>1}"
+								id="cboSubcategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteConsumoBodegaDestinoCostosBean.listaSubcategoriaProducto}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}" />
+							<h:panelGroup>
+								<p:commandButton value="..." onclick="dglModalProducto.show();" type="button" />
+								<h:outputText id="lblProducto"
+									value="#{reporteConsumoBodegaDestinoCostosBean.producto.codigo} #{reporteConsumoBodegaDestinoCostosBean.producto.nombreComercial}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_destino_costo}" />
+							<p:column headerText="#{msgs.lbl_destino_costo}" styleClass="tableCell">
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acDestinoCosto" styleClass="input-text"
+									value="#{reporteConsumoBodegaDestinoCostosBean.destinoCosto}"
+									completeMethod="#{consumoBodegaBean.autocompletarDestinoCosto}" var="_destinoCosto"
+									itemLabel="#{_destinoCosto.nombre}" itemValue="#{_destinoCosto}" forceSelection="true" dropdown="false"
+									minQueryLength="1">
+
+									<p:column headerText="Nombre">#{_destinoCosto.nombre}</p:column>
+									<p:column headerText="Nombre">#{_destinoCosto.codigo}</p:column>
+									<p:ajax event="itemSelect" process="@this" />
+								</p:autoComplete>
+							</p:column>
+
+							<h:outputText value="#{msgs.lbl_resumen}:"
+								rendered="#{reporteConsumoBodegaDestinoCostosBean.tipoReporte == 'NORMAL'}" />
+							<p:selectBooleanCheckbox value="#{reporteConsumoBodegaDestinoCostosBean.indicadorResumen}"
+								rendered="#{reporteConsumoBodegaDestinoCostosBean.tipoReporte == 'NORMAL'}" />
+								
+							<p:outputLabel for="autoProyecto" rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_proyecto}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoProyecto"
+								value="#{reporteConsumoBodegaDestinoCostosBean.proyecto}" completeMethod="#{sesionControler.autocompletarProyectosActivos}" var="_proyecto"
+								itemLabel="#{_proyecto.nombre}" itemValue="#{_proyecto}" forceSelection="true" dropdown="true" minQueryLength="2"
+								rendered="#{sesionControler.manejaProyectos}">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_proyecto.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_proyecto.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" />
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this"
+							oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

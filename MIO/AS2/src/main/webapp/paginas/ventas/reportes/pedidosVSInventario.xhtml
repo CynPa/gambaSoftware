@@ -1,0 +1,108 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:panel header="#{msgs.lbl_pedido} VS #{msgs.lbl_inventario}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reportePedidoVSInventarioBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle" columns="#{reportePedidoVSInventarioBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_bodega}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reportePedidoVSInventarioBean.bodega}" id="cboBodega">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePedidoVSInventarioBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reportePedidoVSInventarioBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reportePedidoVSInventarioBean.fechaHasta}" id="calFechaHasta" required="true" />
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}" />
+							<p:selectOneMenu value="#{reportePedidoVSInventarioBean.categoriaProductoSeleccionado}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePedidoVSInventarioBean.listaCategoriaProductos}" var="_categoriaProducto"
+									itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+								<p:ajax process="@this" listener="#{reportePedidoVSInventarioBean.cargarListaSubcategoriaProducto}" update=":form:cboSubcategoriaProducto" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}" />
+							<p:selectOneMenu value="#{reportePedidoVSInventarioBean.subcategoriaProductoSeleccionado}" id="cboSubcategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePedidoVSInventarioBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_unidad_panel}" />
+							<p:selectOneRadio id="options" value="#{reportePedidoVSInventarioBean.unidad}" required="true">
+								<f:selectItems value="#{reportePedidoVSInventarioBean.listaUnidad}"></f:selectItems>
+							</p:selectOneRadio>
+
+							<h:outputText value="Por #{msgs.lbl_atributo}:" />
+							<p:selectBooleanCheckbox id="chkAtributo" value="#{reportePedidoVSInventarioBean.indicadorAtributo}">
+								<p:ajax process="@this" global="false" event="change" listener="#{reportePedidoVSInventarioBean.actualizarAtributo}"
+									update=":form:panelAtributos" />
+							</p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+
+						<p:outputPanel id="panelAtributos">
+							<h:panelGrid columns="#{reportePedidoVSInventarioBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor" rendered="#{reportePedidoVSInventarioBean.indicadorAtributo}">
+
+								<h:outputText value="#{msgs.lbl_atributo} 1:" />
+								<p:selectOneMenu styleClass="input-text" value="#{reportePedidoVSInventarioBean.atributo1}" id="cboAtributo1">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="#{reportePedidoVSInventarioBean.atributo1}" />
+									<f:selectItems value="#{reportePedidoVSInventarioBean.listaAtributo}" var="_atributo" itemLabel="#{_atributo.nombre}"
+										itemValue="#{_atributo}" />
+									<p:ajax process="@this" update=":form:cboValorAtributo1" global="false" event="change"
+										listener="#{reportePedidoVSInventarioBean.cargarListaValorAtributo1}"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_valor_atributo} 1:" />
+								<p:selectOneMenu styleClass="input-text" value="#{reportePedidoVSInventarioBean.valorAtributo1}" id="cboValorAtributo1">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{reportePedidoVSInventarioBean.listaValorAtributo1}" />
+									<p:ajax process="@this" global="false" event="change"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_atributo} 2:" />
+								<p:selectOneMenu styleClass="input-text" value="#{reportePedidoVSInventarioBean.atributo2}" id="cboAtributo2">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{reportePedidoVSInventarioBean.listaAtributo}" var="_atributo" itemLabel="#{_atributo.nombre}"
+										itemValue="#{_atributo}" />
+									<p:ajax process="@this" update=":form:cboValorAtributo2" global="false" event="change"
+										listener="#{reportePedidoVSInventarioBean.cargarListaValorAtributo2}"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_valor_atributo} 2:" />
+								<p:selectOneMenu styleClass="input-text" value="#{reportePedidoVSInventarioBean.valorAtributo2}" id="cboValorAtributo2">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{reportePedidoVSInventarioBean.listaValorAtributo2}" />
+									<p:ajax process="@this" global="false" event="change"></p:ajax>
+								</p:selectOneMenu>
+
+							</h:panelGrid>
+
+						</p:outputPanel>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+					</p:fieldset>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

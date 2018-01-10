@@ -1,0 +1,193 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+				
+			<p:panel header="#{msgs.lbl_titulo_reporte_estado_cuenta}">
+
+				<p:outputPanel id="panelFiltros">
+	
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{reporteEstadoCuentaProveedorFacturaBean}" />
+					<ui:param name="btnImprimir" value="false" />
+					<ui:param name="tabla" value="tablaEstadoCuenta" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+				</ui:include>
+								
+					<p:fieldset>
+						<h:panelGrid columns="4"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboProveedor"
+								value="#{reporteEstadoCuentaProveedorFacturaBean.empresa}"
+								completeMethod="#{reporteEstadoCuentaProveedorFacturaBean.autocompletarProveedores}"
+								var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+								itemValue="#{_proveedor}" forceSelection="true" dropdown="true"
+								minQueryLength="2" size="50">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+								<p:ajax process="@this" event="itemSelect"
+									listener="#{reporteEstadoCuentaProveedorFacturaBean.encerarDatos}"
+									update="panelConsulta #{p:component('txtTotalDebito')}" />
+
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_factura}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoFactura"
+								value="#{reporteEstadoCuentaProveedorFacturaBean.facturaProveedor}"
+								completeMethod="#{reporteEstadoCuentaProveedorFacturaBean.autocompletarFacturas}"
+								var="_factura"
+								itemLabel="#{_factura.facturaProveedorSRI.establecimiento} - #{_factura.facturaProveedorSRI.puntoEmision} - #{_factura.facturaProveedorSRI.numero}"
+								itemValue="#{_factura}" forceSelection="true" dropdown="true"
+								minQueryLength="2" required="true">
+
+								<p:ajax event="itemSelect" process="@this"
+									listener="#{reporteEstadoCuentaProveedorFacturaBean.actualizaFactura}"
+									update="panelConsulta #{p:component('txtTotalDebito')}" />
+
+								<p:column>
+									<h:outputText
+										value="#{_factura.facturaProveedorSRI.establecimiento}" />
+								</p:column>
+								<p:column>
+									<h:outputText
+										value="#{_factura.facturaProveedorSRI.puntoEmision}" />
+								</p:column>
+								<p:column>
+									<h:outputText value="#{_factura.facturaProveedorSRI.numero}" />
+								</p:column>
+
+								<p:message for="autoFactura" />
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelConsulta">
+					<p:panel header="#{msgs.lbl_titulo_reporte_estado_cuenta}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEstadoCuenta" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{reporteEstadoCuentaProveedorFacturaBean.listaReporte}"
+							var="_reporte"
+							binding="#{reporteEstadoCuentaProveedorFacturaBean.dtListaReporte}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{reporteEstadoCuentaProveedorFacturaBean.numeroFilas}"
+							sortBy="#{_reporte.fechaDocumento}" sortOrder="ASCENDING">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_reporte.fechaDocumento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_documento}" />
+								</f:facet>
+								<h:outputText value="#{_reporte.fechaDocumento}">
+									<f:convertDateTime
+										pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_reporte.numeroDocumento}"
+								filterBy="#{_reporte.numeroDocumento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_documento}" />
+								</f:facet>
+								<h:outputText value="#{_reporte.numeroDocumento}" />
+							</p:column>
+
+							<p:column sortBy="#{_reporte.fechaVencimiento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_vencimiento}" />
+								</f:facet>
+								<h:outputText value="#{_reporte.fechaVencimiento}">
+									<f:convertDateTime
+										pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_reporte.debito}" styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_debito}" />
+								</f:facet>
+								<h:outputText value="#{_reporte.debito}"
+									style="text-align:right" >
+									<f:convertNumber pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoDinero}" />
+									</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_reporte.credito}" styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_credito}" />
+								</f:facet>
+								<h:outputText value="#{_reporte.credito}"
+									style="text-align:right" >
+									<f:convertNumber pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoDinero}" />
+									</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_saldo}" />
+								</f:facet>
+								<h:outputText value="#{_reporte.saldo}" style="text-align:right" >
+									<f:convertNumber pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:columnGroup type="footer" id="panelTotal">
+								<p:row>
+									<p:column colspan="4" footerText="#{msgs.lbl_total}:	"
+										style="text-align:right">
+									</p:column>
+									
+									<p:column>
+										<f:facet name="footer"  >
+											<h:outputText value="#{reporteEstadoCuentaProveedorFacturaBean.reporteEstadoCuentaFactura.totalDebito}" style="text-align:right" id="txtTotalDebito" >
+												<f:convertNumber pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoDinero}"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+									<p:column>
+										<f:facet name="footer"  >
+											<h:outputText value="#{reporteEstadoCuentaProveedorFacturaBean.reporteEstadoCuentaFactura.totalCredito}" style="text-align:right" id="txtTotalCredito" >
+												<f:convertNumber pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoDinero}"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+									<p:column>
+										<f:facet name="footer"  >
+											<h:outputText value="#{reporteEstadoCuentaProveedorFacturaBean.reporteEstadoCuentaFactura.totalSaldo}" style="text-align:right" id="txtTotalSaldo" >
+												<f:convertNumber pattern="#{reporteEstadoCuentaProveedorFacturaBean.formatoDinero}"/>
+											</h:outputText>
+										</f:facet>
+									</p:column>
+								</p:row>
+							</p:columnGroup>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

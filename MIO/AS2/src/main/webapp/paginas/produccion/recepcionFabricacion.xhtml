@@ -1,0 +1,110 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_recepcion_fabricacion})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRecepcionFabricacion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{recepcionFabricacionBean.listaDetalleAjusteInventario}" var="_detalle" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{recepcionFabricacionBean.dtListaAjuste}"
+							rows="#{recepcionFabricacionBean.numeroFilas}" selectionMode="single" rowKey="#{_detalle.id}" sortBy="#{_detalle.fechaCreacion}"
+							sortOrder="ASCENDING" lazy="false" filteredValue="#{recepcionFabricacionBean.listaDetalleAjusteInventarioFiltrados}">
+
+							<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_detalle.fechaCreacion}">
+								<h:outputText value="#{_detalle.fechaCreacion}">
+									<f:convertDateTime pattern="#{recepcionFabricacionBean.formatoFecha} HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}" filterBy="#{_detalle.producto.codigo}"
+								filterMatchMode="contains" sortBy="#{_detalle.producto.codigo}">
+								<h:outputText value="#{_detalle.producto.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="tableCell" filterBy="#{_detalle.producto.nombre}" filterMatchMode="contains"
+								sortBy="#{_detalle.producto.nombre}">
+								<h:outputText value="#{_detalle.producto.nombre}">
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_detalle.bodegaOrigen.nombre}" filterBy="#{_detalle.bodegaOrigen.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_bodega}" />
+								</f:facet>
+								<h:outputText value="#{_detalle.bodegaOrigen.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_detalle.lote.codigo}" filterBy="#{_detalle.lote.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_lote}" />
+								</f:facet>
+								<h:outputText value="#{_detalle.lote.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}"
+								rendered="#{!recepcionFabricacionBean.digitaCantidadAlRecibir}">
+								<h:outputText value="#{_detalle.cantidadOrigen}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad}">
+								<h:outputText value="#{_detalle.unidadConversion.nombre}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_total_unidades}"
+								rendered="#{!recepcionFabricacionBean.digitaCantidadAlRecibir}">
+								<h:outputText value="#{_detalle.cantidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_informativa}">
+								<h:outputText value="#{_detalle.producto.unidadInformativa.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad_informativa}"
+								rendered="#{!recepcionFabricacionBean.digitaCantidadAlRecibir}">
+								<h:outputText value="#{_detalle.cantidadUnidadInformativa}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_detalle.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion} 2">
+								<h:outputText value="#{_detalle.descripcion2}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad_recibida}"
+								rendered="#{recepcionFabricacionBean.digitaCantidadAlRecibir}">
+								<p:inputText styleClass="input-text" id="txtCantidadARecibir" value="#{_detalle.traCantidadADevolver}">
+									<p:ajax process="@this" event="change" global="false" update="@this" />
+									<f:validateBean for="txtCantidadARecibir" />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<center>
+									<p:commandLink action="#{recepcionFabricacionBean.recibir}" process="@this" update="@this :form:panelListado" title="#{msgs.lbl_recibir}">
+										<f:setPropertyActionListener value="#{_detalle}" target="#{recepcionFabricacionBean.detalleSeleccionado}" />
+										<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

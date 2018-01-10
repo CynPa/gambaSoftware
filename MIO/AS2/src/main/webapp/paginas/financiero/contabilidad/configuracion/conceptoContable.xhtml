@@ -1,0 +1,189 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{conceptoContableBean}">
+					<as2:buttonEliminar bean="#{conceptoContableBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{conceptoContableBean.conceptoContable.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{conceptoContableBean.conceptoContable.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{conceptoContableBean}" tabla=":form:tablaConceptoContable"/>
+				</as2:toolBar>
+
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_concepto_contable_panel}"
+						rendered="#{conceptoContableBean.editado}">
+
+						<h:panelGrid columns="1">
+
+							<p:fieldset>
+								<h:panelGrid id="panelDetalle"
+									columns="#{conceptoContableBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text"
+										value="#{conceptoContableBean.conceptoContable.codigo}"
+										id="txtCodigo" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text"
+										value="#{conceptoContableBean.conceptoContable.nombre}"
+										id="txtNombre" required="true">
+										<f:validateBean />
+									</p:inputText>								
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox
+										value="#{conceptoContableBean.conceptoContable.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox
+										value="#{conceptoContableBean.conceptoContable.predeterminado}" />
+										
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text"
+										value="#{conceptoContableBean.conceptoContable.descripcion}"
+										id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:panel id="pnlVeamos">
+								<h:panelGrid columns="4">
+									<h:outputText value="#{msgs.lbl_cuenta_contable_debe}:" />
+									<h:panelGroup>
+										<p:commandButton value="..." process="@this" partialSubmit="true" action="#{conceptoContableBean.actualizarCuentaContableDebe}" actionListener="#{conceptoContableBean.listaCuentaContableBean.listarCuentaContable}">
+											<p:ajax event="dialogReturn" listener="#{conceptoContableBean.seleccionarCuentaContable}"
+												update=":form:pnlVeamos"/>
+										</p:commandButton>
+										
+										<p:outputPanel id="txtCuentaContableDebe">
+											<as2:outputTextCuentaContable
+												cuentaContable="#{conceptoContableBean.conceptoContable.cuentaContableDebe}" />
+										</p:outputPanel>
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_cuenta_contable_haber}:" />
+									<h:panelGroup>										
+										<p:commandButton value="..." process="@this" partialSubmit="true" action="#{conceptoContableBean.actualizarCuentaContableHaber}" actionListener="#{conceptoContableBean.listaCuentaContableBean.listarCuentaContable}">
+											<p:ajax event="dialogReturn" listener="#{conceptoContableBean.seleccionarCuentaContable}"
+												update=":form:pnlVeamos"/>
+										</p:commandButton>
+										
+										<p:outputPanel id="txtCuentaContableHaber">
+											<as2:outputTextCuentaContable
+												cuentaContable="#{conceptoContableBean.conceptoContable.cuentaContableHaber}" />
+										</p:outputPanel>
+									</h:panelGroup>
+								</h:panelGrid>
+							</p:panel>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_concepto_contable_panel}"
+						rendered="#{!conceptoContableBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaConceptoContable"
+							rowIndexVar="secuencialConceptoContable"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{conceptoContableBean.listaConceptoContable}"
+							var="_conceptoContable"
+							binding="#{conceptoContableBean.dtConceptoContable}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{conceptoContableBean.numeroFilas}"
+							rowsPerPageTemplate="#{conceptoContableBean.numeroFilasPorPagina}"
+							selection="#{conceptoContableBean.conceptoContable}"
+							selectionMode="single" rowKey="#{_conceptoContable.id}"
+							sortBy="#{_conceptoContable.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialConceptoContable+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigoCuenta" sortBy="#{_conceptoContable.codigo}"
+								filterBy="#{_conceptoContable.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_conceptoContable.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_conceptoContable.nombre}"
+								filterBy="#{_conceptoContable.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_conceptoContable.nombre}" />
+							</p:column>							
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_conceptoContable.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_conceptoContable.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_conceptoContable.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell" sortBy="#{_conceptoContable.descripcion}"
+								filterBy="#{_conceptoContable.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_conceptoContable.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{conceptoContableBean.conceptoContable.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{conceptoContableBean.conceptoContable.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{conceptoContableBean.conceptoContable.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{conceptoContableBean.conceptoContable.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tareaProgramadaBean}">
+
+					<as2:buttonEliminar bean="#{tareaProgramadaBean}">
+						<h:outputText value="#{msgs.lbl_tarea}:" />
+						<h:outputText value="#{tareaProgramadaBean.tareaProgramada.tareaProgramadaEnum.nombre}" />
+
+						<h:outputText value="#{msgs.lbl_expresion_tiempo}:" />
+						<h:outputText value="#{tareaProgramadaBean.tareaProgramada.expresionTiempo}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tareaProgramadaBean}" tabla=":form:tablaTareaProgramadas" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{tareaProgramadaBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_tareaProgramada})">
+
+						<h:panelGrid id="panelDetalle" columns="#{tareaProgramadaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboTarea" value="#{msgs.lbl_tarea}:" />
+							<p:selectOneMenu value="#{tareaProgramadaBean.tareaProgramada.tareaProgramadaEnum}" id="cboTarea">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tareaProgramadaBean.listaTareaProgramadaEnum}" />
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtExpresion" value="#{msgs.lbl_expresion_tiempo}:" />
+							<p:inputText styleClass="input-text" value="#{tareaProgramadaBean.tareaProgramada.expresionTiempo}" id="txtExpresion" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="chAct" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{tareaProgramadaBean.tareaProgramada.activo}" id="chAct" />
+
+							<p:outputLabel for="chPred" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{tareaProgramadaBean.tareaProgramada.predeterminado}" id="chPred" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tareaProgramadaBean.tareaProgramada.descripcion}" id="txtDescripcion">
+							</p:inputTextarea>
+							
+							<p:outputLabel value="#{msgs.lbl_formato} #{msgs.lbl_expresion_tiempo}:" />
+							<h:outputFormat value="#{msgs.lbl_formato_expresion_tiempo}" />
+							
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!tareaProgramadaBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_tareaProgramada})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTareaProgramadas" rowIndexVar="secuencialTareaProgramada"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tareaProgramadaBean.listaTareaProgramada}" var="tareaProgramada"
+							binding="#{tareaProgramadaBean.dtTareaProgramada}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tareaProgramadaBean.numeroFilas}" rowsPerPageTemplate="#{tareaProgramadaBean.numeroFilasPorPagina}"
+							selection="#{tareaProgramadaBean.tareaProgramada}" selectionMode="single" rowKey="#{tareaProgramada.id}"
+							sortBy="#{tareaProgramada.tareaProgramadaEnum}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialTareaProgramada+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{tareaProgramada.tareaProgramadaEnum}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tarea}" />
+								</f:facet>
+								<h:outputText value="#{tareaProgramada.tareaProgramadaEnum.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{tareaProgramada.expresionTiempo}" filterBy="#{tareaProgramada.expresionTiempo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_expresion_tiempo}" />
+								</f:facet>
+								<h:outputText value="#{tareaProgramada.expresionTiempo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{tareaProgramada.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{tareaProgramada.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{tareaProgramada.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{tareaProgramada.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{tareaProgramada.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tareaProgramadaBean.tareaProgramada.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tareaProgramadaBean.tareaProgramada.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{tareaProgramadaBean.tareaProgramada.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tareaProgramadaBean.tareaProgramada.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

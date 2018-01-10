@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{tipoDiscapacidadBean}">
+					<as2:buttonEliminar bean="#{tipoDiscapacidadBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoDiscapacidadBean.tipoDiscapacidad.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoDiscapacidadBean.tipoDiscapacidad.nombre}" />
+					</as2:buttonEliminar>
+					<as2:buttonExportaExcel bean="#{tipoDiscapacidadBean}" tabla=":form:tablaTipoDiscapacidad"/>
+				</as2:toolBar>			
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_tipo_discapacidad} )"
+						rendered="#{tipoDiscapacidadBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera"
+								columns="#{tipoDiscapacidadBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoDiscapacidadBean.tipoDiscapacidad.codigo}"
+									id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoDiscapacidadBean.tipoDiscapacidad.nombre}"
+									id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>							
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox
+									value="#{tipoDiscapacidadBean.tipoDiscapacidad.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox
+									value="#{tipoDiscapacidadBean.tipoDiscapacidad.predeterminado}" />
+									
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text"
+									value="#{tipoDiscapacidadBean.tipoDiscapacidad.descripcion}"
+									id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_tipo_discapacidad} )"
+						rendered="#{!tipoDiscapacidadBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoDiscapacidad" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tipoDiscapacidadBean.listaTipoDiscapacidad}"
+							var="_tipoDiscapacidad"
+							binding="#{tipoDiscapacidadBean.dtTipoDiscapacidad}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoDiscapacidadBean.numeroFilas}"
+							rowsPerPageTemplate="#{tipoDiscapacidadBean.numeroFilasPorPagina}"
+							selection="#{tipoDiscapacidadBean.tipoDiscapacidad}"
+							selectionMode="single" rowKey="#{_tipoDiscapacidad.id}"
+							sortBy="#{_tipoDiscapacidad.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_tipoDiscapacidad.codigo}"
+								filterBy="#{_tipoDiscapacidad.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipoDiscapacidad.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_tipoDiscapacidad.nombre}"
+								filterBy="#{_tipoDiscapacidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoDiscapacidad.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_tipoDiscapacidad.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_tipoDiscapacidad.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_tipoDiscapacidad.predeterminado}"
+									disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_tipoDiscapacidad.descripcion}" />
+							</p:column>			
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{tipoDiscapacidadBean.tipoDiscapacidad.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{tipoDiscapacidadBean.tipoDiscapacidad.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{tipoDiscapacidadBean.tipoDiscapacidad.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{tipoDiscapacidadBean.tipoDiscapacidad.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

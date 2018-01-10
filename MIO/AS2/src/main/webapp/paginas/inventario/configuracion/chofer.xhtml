@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{choferBean}">
+
+					<as2:buttonEliminar bean="#{choferBean}">
+						<h:outputText value="#{msgs.lbl_licencia}:" />
+						<h:outputText value="#{choferBean.chofer.licencia}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{choferBean.chofer.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{choferBean}" tabla=":form:tablaChofer" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{choferBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_chofer_panel}">
+
+						<h:panelGrid id="panelCabecera" columns="#{choferBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtLicencia" value="#{msgs.lbl_licencia}:" />
+							<p:inputMask mask="9999999999" value="#{choferBean.chofer.licencia}" styleClass="input-text" id="txtLicencia" required="true">
+								<f:validateBean />
+							</p:inputMask>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{choferBean.chofer.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{choferBean.chofer.transportista}" id="cboTransportista" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{choferBean.listaTransportistaCombo}" var="_trasnportista" itemLabel="#{_trasnportista.nombre}"
+									itemValue="#{_trasnportista}" />
+								<p:ajax process="@this" global="false"></p:ajax>
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{choferBean.chofer.activo}" />
+
+							<p:outputLabel value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{choferBean.chofer.predeterminado}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{choferBean.chofer.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!choferBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_chofer_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaChofer" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{choferBean.listaChofer}" var="chofer" binding="#{choferBean.dtChofer}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{choferBean.numeroFilas}" rowsPerPageTemplate="#{choferBean.numeroFilasPorPagina}" selection="#{choferBean.chofer}"
+							selectionMode="single" rowKey="#{chofer.id}" sortBy="#{chofer.licencia}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTIdentificacion" sortBy="#{chofer.licencia}" filterBy="#{chofer.licencia}" headerText="#{msgs.lbl_licencia}">
+								<h:outputText value="#{chofer.licencia}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{chofer.nombre}" filterBy="#{chofer.nombre}" headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{chofer.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{chofer.transportista.nombre}" filterBy="#{chofer.transportista.nombre}"
+								headerText="#{msgs.lbl_titulo_transportista}">
+								<h:outputText value="#{chofer.transportista.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{chofer.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{chofer.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{chofer.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{chofer.descripcion}" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{chofer.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{choferBean.chofer.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{choferBean.chofer.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{choferBean.chofer.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{choferBean.chofer.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{frecuenciaBean}">
+
+					<as2:buttonEliminar bean="#{frecuenciaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{frecuenciaBean.frecuencia.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{frecuenciaBean.frecuencia.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{frecuenciaBean}" tabla=":form:tablaFrecuencia" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{frecuenciaBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_frecuencia})">
+
+						<h:panelGrid id="panelDetalle" columns="#{frecuenciaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{frecuenciaBean.frecuencia.codigo}" id="txtCodigo" required="true">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{frecuenciaBean.frecuencia.nombre}" id="txtNombre" required="true">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboTipoFrecuencia" value="#{msgs.lbl_tipo_frecuencia}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboTipoFrecuencia" value="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum}" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{frecuenciaBean.listaTipoFrecuencia}" />
+								<p:ajax process="@this" global="false" update=":form:panelNuevo" listener="#{frecuenciaBean.actualizarTipoFrecuencia}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:spacer rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum != 'FECHA'}" />
+							<p:spacer rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum != 'FECHA'}" />
+
+							<p:outputLabel for="cboFrecuenciaFecha" value="#{msgs.lbl_frecuencia_fecha}:"
+								rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum == 'FECHA'}" />
+							<p:selectOneMenu styleClass="input-text" id="cboFrecuenciaFecha" value="#{frecuenciaBean.frecuencia.frecuenciaFechaEnum}"
+								rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum == 'FECHA'}" required="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum == 'FECHA'}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{frecuenciaBean.listaFrecuenciaFecha}" />
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:spacer rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum == 'FECHA'}" />
+							<p:spacer rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum == 'FECHA'}" />
+
+							<p:outputLabel value="#{msgs.lbl_acumulativo}:" rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum != 'FECHA'}" />
+							<p:selectBooleanCheckbox value="#{frecuenciaBean.frecuencia.indicadorAcumulativo}"
+								rendered="#{frecuenciaBean.frecuencia.tipoFrecuenciaEnum != 'FECHA'}">
+								<p:ajax process="@this" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputLabel value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{frecuenciaBean.frecuencia.activo}">
+								<p:ajax process="@this" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputLabel value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{frecuenciaBean.frecuencia.predeterminado}">
+								<p:ajax process="@this" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputLabel value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{frecuenciaBean.frecuencia.descripcion}" id="txtDescripcion">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!frecuenciaBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_frecuencia})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFrecuencia" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{frecuenciaBean.listaFrecuencia}" var="_frecuencia" binding="#{frecuenciaBean.dtFrecuencia}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{frecuenciaBean.numeroFilas}"
+							rowsPerPageTemplate="#{frecuenciaBean.numeroFilasPorPagina}" selection="#{frecuenciaBean.frecuencia}" selectionMode="single"
+							rowKey="#{_frecuencia.rowKey}" sortBy="#{_frecuencia.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_frecuencia.codigo}" filterBy="#{_frecuencia.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_frecuencia.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_frecuencia.nombre}" filterBy="#{_frecuencia.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_frecuencia.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_frecuencia.tipoFrecuenciaEnum}" filterBy="#{_frecuencia.tipoFrecuenciaEnum}"
+								filterOptions="#{frecuenciaBean.listaTipoFrecuenciaItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_frecuencia}" />
+								</f:facet>
+								<h:outputText value="#{_frecuencia.tipoFrecuenciaEnum.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_frecuencia.frecuenciaFechaEnum}" filterBy="#{_frecuencia.frecuenciaFechaEnum}"
+								filterOptions="#{frecuenciaBean.listaFrecuenciaFechaItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_frecuencia_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_frecuencia.frecuenciaFechaEnum.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{_frecuencia.indicadorAcumulativo}" headerText="#{msgs.lbl_acumulativo}">
+								<p:selectBooleanCheckbox value="#{_frecuencia.indicadorAcumulativo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{_frecuencia.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_frecuencia.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_frecuencia.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_frecuencia.descripcion}" filterBy="#{_frecuencia.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_frecuencia.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{frecuenciaBean.frecuencia.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{frecuenciaBean.frecuencia.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{frecuenciaBean.frecuencia.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{frecuenciaBean.frecuencia.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

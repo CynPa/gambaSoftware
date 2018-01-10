@@ -1,0 +1,99 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+			<p:panel header="Reporte #{msgs.lbl_cheque_posfechado_panel}">
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteChequePosfechadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteChequePosfechadoBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteChequePosfechadoBean.fechaDesdePosfechado}"
+								id="calFechaDesde" required="true">
+								<p:ajax event="dateSelect" process="@this" update=":form:panelListado" global="false" />
+								<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+							</p:calendar>
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteChequePosfechadoBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteChequePosfechadoBean.fechaHastaPosfechado}"
+								id="calFechaHasta" required="true">
+								<p:ajax event="dateSelect" process="@this" update=":form:panelListado" global="false" />
+								<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+							</p:calendar>
+
+						</h:panelGrid>
+					</p:fieldset>
+				</p:outputPanel>
+				<p:spacer />
+				<p:outputPanel id="panelListado">
+					<p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+						<p:dataExporter type="xls" target="tablaChequesPosfechados" fileName="tablaChequesPosfechados" postProcessor="true"
+							pageOnly="false" />
+					</p:commandButton>
+					<p:panel header="#{msgs.lbl_reporte}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaChequesPosfechados" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{reporteChequePosfechadoBean.listaChequesPosfechadosPagos}" var="cheques" binding="#{reporteChequePosfechadoBean.dtChequesPosfechados}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{reporteChequePosfechadoBean.numeroFilas}"
+							rowsPerPageTemplate="#{reporteChequePosfechadoBean.numeroFilasPorPagina}" rowKey="#{cheques.id}" sortOrder="DESCENDING" lazy="true"
+							rowIndexVar="secuencial" sortBy="#{cheques.fechaPosfechado}">
+
+							<p:column styleClass="columnaDTAccion tableCell0">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell0" sortBy="#{cheques.fechaPosfechado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{cheques.fechaPosfechado}">
+									<f:convertDateTime pattern="#{reporteChequePosfechadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column filterBy="#{cheques.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}"
+								sortBy="#{cheques.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" styleClass="columnaDTNombre tableCell" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_banco}" />
+								</f:facet>
+								<h:outputText value="#{cheques.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" />
+							</p:column>
+
+							<p:column filterBy="#{cheques.cuentaBancariaOrganizacion.cuentaBancaria.numero}"
+								sortBy="#{cheques.cuentaBancariaOrganizacion.cuentaBancaria.numero}" styleClass="columnaDTNombreCorto tableCell" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_cuenta_bancaria}" />
+								</f:facet>
+								<h:outputText value="#{cheques.cuentaBancariaOrganizacion.cuentaBancaria.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_documento_referencia}" filterMatchMode="contains"
+								filterBy="#{cheques.identificacion}">
+								<h:outputText value="#{cheques.documentoReferencia}" />
+							</p:column>
+
+							<p:column sortBy="#{cheques.beneficiario}" filterBy="#{cheques.beneficiario}" styleClass="columnaDTNombre tableCell" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_beneficiario}" />
+								</f:facet>
+								<h:outputText value="#{cheques.beneficiario}" />
+							</p:column>
+							<p:column sortBy="#{cheques.detalleAsiento.haber}" styleClass="columnaDTValorGrande input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_pagado}" />
+								</f:facet>
+								<h:outputText value="#{cheques.detalleAsiento.haber}" rendered="#{cheques.detalleAsiento.haber>0}">
+									<f:convertNumber pattern="#{reporteChequePosfechadoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

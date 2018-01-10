@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{pagoEmpleadoBean}">
+					<as2:buttonEliminar bean="#{pagoEmpleadoBean}" titulo="#{msgs.btn_anular}">
+
+						<h:outputText value="#{msgs.lbl_fecha}" />
+						<h:outputText value="#{pagoEmpleadoBean.pagoEmpleado.fecha}">
+							<f:convertDateTime pattern="#{pagoEmpleadoBean.formatoFecha}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_valor}" />
+						<h:outputText value="#{pagoEmpleadoBean.pagoEmpleado.valor}">
+							<f:convertNumber pattern="#{pagoEmpleadoBean.formatoDinero}" />
+						</h:outputText>
+
+					</as2:buttonEliminar>
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{pagoEmpleadoBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{pagoEmpleadoBean.pagoEmpleado.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>	
+					<as2:buttonImprimir beanReporte="#{reporteChequeAsientoBean}" bean="#{pagoEmpleadoBean}" target="#{reporteChequeAsientoBean.asiento}"
+						value="#{pagoEmpleadoBean.pagoEmpleado.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_cheque}" />
+						
+					<as2:buttonExportaExcel bean="#{pagoEmpleadoBean}" tabla=":form:tablaPagoEmpleado" />
+				</as2:toolBar>
+
+				<!-- Inicio Detalle Pago Cash a Contabilizar Dialog -->
+				<p:outputPanel id="panelContabilizar">
+					<p:dialog header="#{msgs.lbl_contabilizar} #{msgs.lbl_pago_empleado}" widgetVar="pagosAContabilizarDialog" modal="true" height="400" width="700"
+						showEffect="slide" hideEffect="slide">
+
+
+						<h:panelGrid id="panelPagoEmpleadoContabilizar" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+
+							<center>
+								<h:panelGroup>
+									<h:outputText value="#{msgs.lbl_fecha_contabilizacion}:" />
+									<p:calendar pattern="#{pagoEmpleadoBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoEmpleadoBean.fechaContabilizacion}"
+										id="calFechaContabilizacion" required="true">
+									</p:calendar>
+									<p:message for="calFecha" />
+								</h:panelGroup>
+							</center>
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pagoEmpleadoBean.pagoEmpleado.listaPagoRolEmpleado}" id="tablaPagosAContabilizar" rowIndexVar="secuencial"
+								emptyMessage="#{msgs.msg_no_hay_datos}" var="_pagoRolEmpleado" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{pagoEmpleadoBean.numeroFilas}" rowKey="#{_pagoRolEmpleado.id}">
+
+								<p:column headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_rol}">
+									<h:outputText value="#{_pagoRolEmpleado.pagoEmpleado.pagoRol.fecha}">
+										<f:convertDateTime pattern="#{pagoEmpleadoBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+
+
+								<p:column headerText="#{msgs.lbl_empleado}">
+									<h:outputText value="#{_pagoRolEmpleado.empleado.nombres} #{_pagoRolEmpleado.empleado.apellidos}">
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor}" styleClass="input-text-number">
+									<h:outputText value="#{_pagoRolEmpleado.valorAPagar}">
+										<f:convertNumber pattern="#{pagoEmpleadoBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_documento_referencia}">
+									<p:inputText styleClass="input-text" id="txtDocumento" value="#{_pagoRolEmpleado.documentoReferencia}">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+									<p:message for="txtDocumento" />
+								</p:column>
+
+								<p:column>
+									<f:facet name="header">
+										<p:selectBooleanCheckbox value="#{pagoEmpleadoBean.seleccionTodos}">
+											<p:ajax listener="#{pagoEmpleadoBean.seleccionarTodos}" process="@this" update=":form:panelPagoEmpleadoContabilizar" global="false" />
+										</p:selectBooleanCheckbox>
+									</f:facet>
+
+									<center>
+										<p:selectBooleanCheckbox value="#{_pagoRolEmpleado.traSeleccionado}" id="cboCheck">
+											<p:ajax process="@this" global="false" listener="#{pagoEmpleadoBean.calcularValorAPagar}" update=":form:panelPagoEmpleadoContabilizar"/>
+										</p:selectBooleanCheckbox>
+									</center>
+								</p:column>
+
+
+								<p:columnGroup type="footer">
+
+									<p:row>
+										<p:column colspan="3" footerText="Total" style="text-align:right" />
+										<p:column styleClass="input-text-number">
+											<f:facet name="footer">
+												<h:outputText value="#{pagoEmpleadoBean.pagoEmpleado.valor}" id="txtValorTotal">
+													<f:convertNumber pattern="#{pagoEmpleadoBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+										<p:column />
+										<p:column />
+										<p:column />
+									</p:row>
+
+								</p:columnGroup>
+
+							</p:dataTable>
+
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.lbl_contabilizar}" action="#{pagoEmpleadoBean.contabilizar}" process="@this panelPagoEmpleadoContabilizar"
+									oncomplete="validacionesModal(xhr, status, args, pagosAContabilizarDialog)" update=":form:panelListado" icon="ui-icon-plus" />
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+				<!-- Fin Detalle Pago Cash a Contabilizar Dialog -->
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_pago_empleado} )" rendered="#{pagoEmpleadoBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{pagoEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{pagoEmpleadoBean.pagoEmpleado.documento}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoEmpleadoBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+									<p:ajax process="@this" />
+									<f:validateBean />
+
+								</p:selectOneMenu>
+								<!-- <p:message for="cboDocumento" /> -->
+							</h:panelGroup>
+
+							<p:outputLabel for="cboCuentaBancariaOrganizacion" value="#{msgs.lbl_pagar_de}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+									value="#{pagoEmpleadoBean.pagoEmpleado.cuentaBancariaOrganizacion}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoEmpleadoBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+										itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+									<p:ajax process="@this" update="cboFormaPago" listener="#{pagoEmpleadoBean.actualizarCuentaBancariaOrganizacion}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<!--<p:message for="cboCuentaBancariaOrganizacion" />-->
+							</h:panelGroup>
+
+							<p:outputLabel for="cboFormaPago" value="#{msgs.lbl_forma_pago}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{pagoEmpleadoBean.pagoEmpleado.formaPago}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoEmpleadoBean.pagoEmpleado.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPago"
+										itemLabel="#{_formaPago.formaPago.nombre}" itemValue="#{_formaPago.formaPago}" />
+									<p:ajax process="@this" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<!--<p:message for="cboFormaPago" />-->
+							</h:panelGroup>
+
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:panelGroup>
+								<p:calendar pattern="#{pagoEmpleadoBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoEmpleadoBean.pagoEmpleado.fecha}"
+									id="calFecha" required="true">
+									<f:validateBean />
+								</p:calendar>
+								<p:message for="calFecha" />
+							</h:panelGroup>
+
+							<p:outputLabel for="cboPagoRol" value="#{msgs.lbl_pago_rol}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" value="#{pagoEmpleadoBean.pagoEmpleado.pagoRol}" id="cboPagoRol" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoEmpleadoBean.listaPagoRol}" var="_pagoRol"
+										itemLabel="#{_pagoRol.fecha} | #{_pagoRol.nombreMes} #{_pagoRol.anio} " itemValue="#{_pagoRol}" />
+									<p:ajax process="@this" partialSubmit="true" global="false" />
+								</p:selectOneMenu>
+								<!--<p:message for="cboPagoRol" />-->
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<h:outputText styleClass="input-text" id="txtValorPagoEmpleado" value="#{pagoEmpleadoBean.pagoEmpleado.valor}">
+								<f:convertNumber pattern="#{pagoEmpleadoBean.formatoDinero}" />
+							</h:outputText>
+
+						</h:panelGrid>
+
+						<h:panelGrid columns="1" id="panelGridEmpleados" width="100%">
+							<p:outputPanel id="panelEmpleado">
+								<p:commandButton process="@this" value="#{msgs.btn_cargar_valores}" update="tablaEmpelados"
+									action="#{pagoEmpleadoBean.cargarEmpleadosPendientes}" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpelados" rowIndexVar="secuencialEmpelados" emptyMessage="#{msgs.msg_no_hay_datos}"
+									value="#{pagoEmpleadoBean.pagoEmpleado.listaPagoRolEmpleado}" var="_empleado" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{pagoEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{pagoEmpleadoBean.numeroFilasPorPagina}" rowKey="#{_empleado.id}">
+
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_empleado}" />
+									</f:facet>
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencialEmpelados+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" sortBy="#{_empleado.empleado.nombres}" filterBy="#{_empleado.empleado.nombres}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nombres}" />
+										</f:facet>
+										<h:outputText value="#{_empleado.empleado.nombres}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" sortBy="#{_empleado.empleado.apellidos}" filterBy="#{_empleado.empleado.apellidos}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_apellidos}" />
+										</f:facet>
+										<h:outputText value="#{_empleado.empleado.apellidos}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor}">
+										<h:outputText value="#{_empleado.valorAPagar}">
+											<f:convertNumber pattern="#{pagoEmpleadoBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<f:facet name="header">
+											<p:selectBooleanCheckbox value="#{pagoEmpleadoBean.seleccionTodos}">
+												<p:ajax listener="#{pagoEmpleadoBean.seleccionarTodos}" process="@this" update=":form:txtValorPagoEmpleado :form:panelEmpleado" />
+											</p:selectBooleanCheckbox>
+										</f:facet>
+
+										<center>
+											<p:selectBooleanCheckbox value="#{_empleado.traSeleccionado}" id="cboCheck">
+												<p:ajax process="@this :form:panelGridEmpleados" listener="#{pagoEmpleadoBean.calcularValorAPagar}" update=":form:txtValorPagoEmpleado :form:panelEmpleado" />
+											</p:selectBooleanCheckbox>
+										</center>
+									</p:column>
+									
+									<p:columnGroup type="footer">
+
+										<p:row>
+											<p:column colspan="3" footerText="Total" style="text-align:right" />
+											<p:column styleClass="input-text-number">
+												<f:facet name="footer">
+													<h:outputText value="#{pagoEmpleadoBean.pagoEmpleado.valor}" id="txtValorTotal">
+														<f:convertNumber pattern="#{pagoEmpleadoBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column />
+										</p:row>
+
+									</p:columnGroup>
+
+								</p:dataTable>
+							</p:outputPanel>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+				
+				
+						<p:outputPanel id="panelErrores">
+							<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pagoEmpleadoBean.exContabilizacion.mensajes}" var="_mensaje"
+									rowIndexVar="secuencial">
+
+									<p:column headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="Error">
+										<h:outputText value="#{_mensaje}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:dialog>
+						</p:outputPanel>
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_pago_empleado} )" rendered="#{!pagoEmpleadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagoEmpleado" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{pagoEmpleadoBean.listaPagoEmpleado}" var="_pagoEmpleado" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{pagoEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{pagoEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{pagoEmpleadoBean.pagoEmpleado}" selectionMode="single" rowKey="#{_pagoEmpleado.id}" lazy="true" sortBy="#{_pagoEmpleado.fecha}"
+							sortOrder="DESCENDING" binding="#{pagoEmpleadoBean.dtPagoEmpleado}">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_pagoEmpleado.documento.nombre}" filterBy="#{_pagoEmpleado.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.documento.nombre}" />
+							</p:column>
+
+
+							<p:column sortBy="#{_pagoEmpleado.identificacion}" filterBy="#{_pagoEmpleado.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.identificacion}" />
+							</p:column>
+
+							<p:column sortBy="#{_pagoEmpleado.nombres}" filterBy="#{_pagoEmpleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.nombres}" />
+							</p:column>
+
+							<p:column sortBy="#{_pagoEmpleado.apellidos}" filterBy="#{_pagoEmpleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.apellidos}" />
+							</p:column>
+
+							<!-- 
+							<p:column sortBy="#{_pagoEmpleado.numero}" filterBy="#{_pagoEmpleado.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.numero}" />
+							</p:column>
+ 							-->
+ 
+							<p:column styleClass="columnaDTFecha" sortBy="#{_pagoEmpleado.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.fecha}">
+									<f:convertDateTime pattern="#{pagoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" sortBy="#{_pagoEmpleado.valor}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.valor}">
+									<f:convertNumber pattern="#{pagoEmpleadoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link  rendered="#{not empty _pagoEmpleado.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_pagoEmpleado.asiento}">
+									<f:param name="idAsiento" value="#{_pagoEmpleado.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado" sortBy="#{_pagoEmpleado.estado}" filterBy="#{_pagoEmpleado.estado}"
+								filterOptions="#{pagoEmpleadoBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_contabilizar}" exportable="false">
+								<p:commandButton icon="ui-icon-gear" process="@this" oncomplete="pagosAContabilizarDialog.show()" update=":form:panelContabilizar"
+									disabled="#{_pagoEmpleado.estado != 'APROBADO'}" action="#{pagoEmpleadoBean.cargarSecuencia}">
+									<f:setPropertyActionListener target="#{pagoEmpleadoBean.pagoEmpleado}" value="#{_pagoEmpleado}" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{pagoEmpleadoBean.pagoEmpleado}" value="#{_pagoEmpleado}" bean="#{pagoEmpleadoBean}"
+									formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado" visible="#{_pagoEmpleado.pdf!=null}" />
+
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{pagoEmpleadoBean.pagoEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{pagoEmpleadoBean.pagoEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{pagoEmpleadoBean.pagoEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{pagoEmpleadoBean.pagoEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

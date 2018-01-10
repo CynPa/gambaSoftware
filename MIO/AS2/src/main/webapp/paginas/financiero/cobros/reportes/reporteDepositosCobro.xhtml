@@ -1,0 +1,75 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_cobro_titulo}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteDepositosCobroBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle" columns="#{reporteDepositosCobroBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteDepositosCobroBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteDepositosCobroBean.fechaDesde}" id="calFechaDesde" />
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteDepositosCobroBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteDepositosCobroBean.fechaHasta}" id="calFechaHasta" />
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{reporteDepositosCobroBean.empresa}"
+								completeMethod="#{reporteDepositosCobroBean.autocompletarClientes}" var="_empresa" itemLabel="#{_empresa.nombreFiscal}"
+								itemValue="#{_empresa}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+								<p:column>#{_empresa.identificacion}</p:column>
+								<p:column>#{_empresa.nombreFiscal}</p:column>
+								<p:column>#{_empresa.nombreComercial}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_cuenta_pago}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" value="#{reporteDepositosCobroBean.cuentaBancariaOrganizacion}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteDepositosCobroBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+								<p:ajax listener="#{reporteDepositosCobroBean.actualizarFormaPago}" process="@this" update=":form:cboFormaPago" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboFormaPago" value="#{reporteDepositosCobroBean.formaPago}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteDepositosCobroBean.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+									itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_pendiente_deposito}:" />
+							<p:selectBooleanCheckbox value="#{reporteDepositosCobroBean.indicadorPendienteDeposito}">
+								<p:ajax process="@this" global="false"></p:ajax>
+							</p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+
+					</p:fieldset>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{revalorizacionBean}">
+					<as2:buttonEliminar bean="#{revalorizacionBean}" />
+					<as2:buttonExportaExcel bean="#{revalorizacionBean}" tabla=":form:tablaDepreciacion" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaActivoFijo.xhtml">
+					<ui:param name="bean" value="#{revalorizacionBean}" />
+					<ui:param name="objetoActualizar" value="txtActivoFijo txtValorADepreciar" />
+				</ui:include>
+
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_revalorizacion_panel}" rendered="#{revalorizacionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{revalorizacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text" value="#{revalorizacionBean.depreciacion.documentoRevalorizacion.idDocumento}" id="cboDocumento"
+										required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{revalorizacionBean.listaDocumentoCombo}" var="_documento" itemLabel="#{_documento.nombre}"
+											itemValue="#{_documento.idDocumento}" />
+										<p:ajax process="@this" update="@this" listener="#{revalorizacionBean.actualizarDocumento}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_activo_fijo}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalActivoFijo.show();" update=":form:panelListaActivoFijo">
+									</p:commandButton>
+									<h:outputText id="txtActivoFijo" value="#{revalorizacionBean.depreciacion.activoFijo.nombre}" />
+								</h:panelGroup>
+
+
+								<p:outputLabel for="calFechaInicio" value="#{msgs.lbl_fecha_inicio}:" />
+								<p:calendar pattern="#{revalorizacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{revalorizacionBean.depreciacion.fechaInicioDepreciacion}" id="calFechaInicio" required="true">
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_valor_activo}:" />
+								<p:inputText styleClass="input-text" value="#{revalorizacionBean.depreciacion.valorActivo}" id="txtValorActivo" required="true">
+									<f:validateBean />
+									<p:ajax update=":form:txtValorADepreciar" process="@this :form:txtValorDepreciado :form:txtValorResidual" event="change"
+										listener="#{revalorizacionBean.actualizaAValorDepreciar}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_depreciado}:" />
+								<p:inputText styleClass="input-text" value="#{revalorizacionBean.depreciacion.valorDepreciado}" id="txtValorDepreciado" required="true"
+									disabled="true">
+									<f:validateBean />
+									<p:ajax update=":form:txtValorADepreciar" process="@this :form:txtValorActivo :form:txtValorResidual" event="change"
+										listener="#{revalorizacionBean.actualizaAValorDepreciar}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_residual}:" />
+								<p:inputText styleClass="input-text" value="#{revalorizacionBean.depreciacion.valorResidual}" id="txtValorResidual" required="true">
+									<f:validateBean />
+									<p:ajax update=":form:txtValorADepreciar" process="@this :form:txtValorActivo :form:txtValorDepreciado" event="change"
+										listener="#{revalorizacionBean.actualizaAValorDepreciar}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_a_depreciar}:" />
+								<h:outputText styleClass="input-text" value="#{revalorizacionBean.depreciacion.valorADepreciar}" id="txtValorADepreciar">
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_vida_util} (#{msgs.lbl_meses}):" />
+								<p:inputText styleClass="input-text" value="#{revalorizacionBean.depreciacion.vidaUtil}" id="txtVidaUtil" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{revalorizacionBean.depreciacion.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.lbl_listar_producto}" id="btnGenerarListaDepreciacion" icon="ui-icon-arrowrefresh-1-e"
+										action="#{revalorizacionBean.generarListaDepreciacion}" update="panelDetalle,mensajes" process="@this,panelCabecera" />
+								</h:panelGroup>
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{revalorizacionBean.listaDetalleDepreciacion}" id="tablaDetalleDepreciacion" rowIndexVar="secuencial"
+									binding="#{revalorizacionBean.dtDetalleDepreciacion}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleDepreciacion" paginator="true"
+									paginatorPosition="bottom" style="width:100%" rowKey="#{_detalleDepreciacion.id}" rows="#{revalorizacionBean.numeroFilas}"
+									rowsPerPageTemplate="#{revalorizacionBean.numeroFilasPorPagina}">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_detalleDepreciacion.mes}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_mes}" />
+										</f:facet>
+										<h:outputText value="#{_detalleDepreciacion.traCadenaMes}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_detalleDepreciacion.anio}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_anio}" />
+										</f:facet>
+										<h:outputText value="#{_detalleDepreciacion.anio}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValorGrande tableCell" sortBy="#{_detalleDepreciacion.valor}">
+										<h:outputText styleClass="input-text" value="#{_detalleDepreciacion.valor}" id="txtValorDepreciacion" size="10" maxlength="10">
+										</h:outputText>
+									</p:column>
+
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="3" footerText="#{msgs.lbl_total}:" style="text-align:right">
+											</p:column>
+											<p:column>
+												<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotal">
+													<h:outputText value="#{revalorizacionBean.depreciacion.valorADepreciar}">
+														<f:convertNumber pattern="#{revalorizacionBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_revalorizacion_panel}" rendered="#{!revalorizacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDepreciacion" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{revalorizacionBean.listaDepreciacion}" var="_depreciacion" binding="#{revalorizacionBean.dtDepreciacion}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{revalorizacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{revalorizacionBean.numeroFilasPorPagina}" selection="#{revalorizacionBean.depreciacion}" selectionMode="single"
+							rowKey="#{_depreciacion.id}" lazy="true">
+
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_depreciacion.activoFijo.codigo}" filterBy="#{_depreciacion.activoFijo.codigo}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_depreciacion.activoFijo.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_depreciacion.activoFijo.nombre}" filterBy="#{_depreciacion.activoFijo.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo_fijo}" />
+								</f:facet>
+								<h:outputText value="#{_depreciacion.activoFijo.nombre}" />
+							</p:column>
+
+
+							<p:column sortBy="#{_depreciacion.fechaInicioDepreciacion}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_inicio}" />
+								</f:facet>
+								<h:outputText value="#{_depreciacion.fechaInicioDepreciacion}" />
+							</p:column>
+
+							<p:column sortBy="#{_depreciacion.valorADepreciar}" styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_a_depreciar}" />
+								</f:facet>
+								<h:outputText value="#{_depreciacion.valorADepreciar}">
+									<f:convertNumber pattern="#{revalorizacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+
+							<p:column sortBy="#{_depreciacion.valorResidual}" styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_residual}" />
+								</f:facet>
+								<h:outputText value="#{_depreciacion.valorResidual}">
+									<f:convertNumber pattern="#{revalorizacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_depreciacion.indicadorDepreciacionFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_depreciacion_fiscal}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_depreciacion.indicadorDepreciacionFiscal}" disabled="true" />
+								</center>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_activo}" sortBy="#{_depreciacion.activo}" styleClass="columnaDTActivo tableCell">
+								<p:selectBooleanCheckbox value="#{_depreciacion.activo}" disabled="true" />
+							</p:column>
+						</p:dataTable>
+
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{revalorizacionBean.depreciacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{revalorizacionBean.depreciacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{revalorizacionBean.depreciacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{revalorizacionBean.depreciacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

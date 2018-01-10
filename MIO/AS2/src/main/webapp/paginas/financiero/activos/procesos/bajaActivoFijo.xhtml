@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{bajaActivoFijoBean}">
+					<as2:buttonEliminar bean="#{bajaActivoFijoBean}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{bajaActivoFijoBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{bajaActivoFijoBean.activoFijoBaja.asientoBajaActivoFiscal}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento_depreciacion}"/>
+					<as2:buttonImprimir beanReporte="#{reporteAsientoSecundarioBean}" bean="#{bajaActivoFijoBean}" target="#{reporteAsientoSecundarioBean.asiento}"
+						value="#{bajaActivoFijoBean.activoFijoBaja.asientoBajaActivoNIIF}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento_ajuste}"/>																																		
+					<as2:buttonExportaExcel bean="#{bajaActivoFijoBean}" tabla=":form:tablaBajaActivoFijo" />
+				</as2:toolBar>
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{bajaActivoFijoBean.exContabilizacion.mensajes}" var="_mensaje"
+							rowIndexVar="secuencial" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+				<ui:include src="/template/listaActivoFijo.xhtml">
+					<ui:param name="bean" value="#{bajaActivoFijoBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelNuevo" />
+				</ui:include>
+
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_baja_activo_fijo_panel}" rendered="#{bajaActivoFijoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{bajaActivoFijoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_activo_fijo}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalActivoFijo.show();" update=":form:panelListaActivoFijo">
+									</p:commandButton>
+									<h:outputText id="txtActivoFijo" value="#{bajaActivoFijoBean.activoFijoBaja.nombre}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_fecha_baja}:" />
+								<h:panelGroup>
+									<p:calendar pattern="#{asientoBean.formatoFecha}" showOn="button" navigator="true" value="#{bajaActivoFijoBean.activoFijoBaja.fechaBaja}"
+										id="calFechaBaja">
+										<p:ajax process="@this" update="@this" />
+									</p:calendar>
+								</h:panelGroup>
+
+								<p:outputLabel for="cboMotivoBajaActivo" value="#{msgs.lbl_motivo_baja}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{bajaActivoFijoBean.activoFijoBaja.motivoBajaActivo}" id="cboMotivoBajaActivo"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{bajaActivoFijoBean.listaMotivoBajaActivoCombo}" var="_motivoBajaActivo" itemLabel="#{_motivoBajaActivo.nombre}"
+										itemValue="#{_motivoBajaActivo}" />
+									<p:ajax process="@this" update="@this" listener="#{bajaActivoFijoBean.actualizaMotivoBaja}" />
+								</p:selectOneMenu>
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header=" #{msgs.lbl_panel_listado} #{msgs.lbl_baja_activo_fijo_panel}" rendered="#{!bajaActivoFijoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaBajaActivoFijo" rowIndexVar="secuencialActivoFijo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{bajaActivoFijoBean.listaActivoFijo}" var="_activoFijoBaja"
+							binding="#{bajaActivoFijoBean.dtActivoFijo}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{bajaActivoFijoBean.numeroFilas}" rowsPerPageTemplate="#{bajaActivoFijoBean.numeroFilasPorPagina}"
+							selection="#{bajaActivoFijoBean.activoFijoBaja}" selectionMode="single" rowKey="#{_activoFijoBaja.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialActivoFijo+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.codigo}" filterBy="#{_activoFijoBaja.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.nombre}" filterBy="#{_activoFijoBaja.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.categoriaActivo.nombre}" filterBy="#{_activoFijoBaja.categoriaActivo.nombre}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_categoria_activo}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.categoriaActivo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.numeroSerie}" filterBy="#{_activoFijoBaja.numeroSerie}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_serie}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.numeroSerie}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.numeroFacturaProveedor}" filterBy="#{_activoFijoBaja.numeroFacturaProveedor}"
+								styleClass="columnaDTNumeroFactura tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.numeroFacturaProveedor}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.fechaBaja}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.fechaBaja}">
+									<f:convertDateTime pattern="#{bajaActivoFijoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.asientoBajaActivoFiscal.numero}" filterBy="#{_activoFijoBaja.asientoBajaActivoFiscal.numero}"
+								styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento} #{msgs.lbl_depreciacion}" />
+								</f:facet>
+								<h:link rendered="#{not empty _activoFijoBaja.asientoBajaActivoFiscal}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_activoFijoBaja.asientoBajaActivoFiscal.numero}">
+									<f:param name="idAsiento" value="#{_activoFijoBaja.asientoBajaActivoFiscal.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.asientoBajaActivoNIIF.numero}" filterBy="#{_activoFijoBaja.asientoBajaActivoNIIF.numero}"
+								styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento} #{msgs.lbl_ajuste}" />
+								</f:facet>
+								<h:link rendered="#{not empty _activoFijoBaja.asientoBajaActivoNIIF}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_activoFijoBaja.asientoBajaActivoNIIF.numero}">
+									<f:param name="idAsiento" value="#{_activoFijoBaja.asientoBajaActivoNIIF.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.valorActivo}" styleClass="columnaDTValorGrande input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_activo}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.valorActivo}">
+									<f:convertNumber pattern="#{bajaActivoFijoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.valorDepreciado}" styleClass="columnaDTValorGrande input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_depreciado}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijoBaja.valorDepreciado}">
+									<f:convertNumber pattern="#{bajaActivoFijoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_activoFijoBaja.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" styleClass="input-text" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_activoFijoBaja.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+								<h:outputText value="#{_activoFijoBaja.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{bajaActivoFijoBean.activoFijoBaja.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{bajaActivoFijoBean.activoFijoBaja.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{bajaActivoFijoBean.activoFijoBaja.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{bajaActivoFijoBean.activoFijoBaja.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

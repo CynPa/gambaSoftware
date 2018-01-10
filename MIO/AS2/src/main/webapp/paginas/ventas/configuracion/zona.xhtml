@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{zonaBean}">
+
+					<as2:buttonEliminar bean="#{zonaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{zonaBean.zona.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{zonaBean.zona.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{zonaBean}" tabla=":form:tablaZona" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_zona} )" rendered="#{zonaBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{zonaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{zonaBean.zona.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{zonaBean.zona.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtPorcentajeDescuentoMaximo" value="#{msgs.lbl_porcentaje_descuento_maximo}:" />
+								<p:inputText styleClass="input-text" value="#{zonaBean.zona.porcentajeDescuentoMaximo}" id="txtPorcentajeDescuentoMaximo" required="true">
+									<f:validateBean />
+									<p:ajax process="@this" global="false"></p:ajax>
+								</p:inputText>
+
+								<p:outputLabel value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{zonaBean.zona.activo}" />
+
+								<p:outputLabel value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{zonaBean.zona.predeterminado}" />
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{zonaBean.zona.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+
+
+
+							<p:outputPanel id="panelDetalleZona">
+								<h:panelGroup>
+
+								</h:panelGroup>
+								<p:tabView dynamic="false" id="tabDetalleProducto" cache="false">
+
+									<p:tab title="#{msgs.lbl_lista_sector}">
+
+										<p:commandButton value="#{msgs.lbl_agregar_sector}" icon="ui-icon-plus" actionListener="#{zonaBean.agregarDetalle}"
+											update=":form:tabDetalleProducto:tablaSector" />
+
+
+										<h:panelGrid id="panelInventario" columns="#{zonaBean.numeroColumnasPanelNuevo}"
+											columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSector" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}" value="#{zonaBean.listaSectorNoEliminados}" var="_sector" paginator="true"
+												paginatorPosition="bottom" style="width:100%" rows="#{zonaBean.numeroFilas}" rowsPerPageTemplate="#{zonaBean.numeroFilasPorPagina}"
+												selectionMode="single" rowKey="#{_sector.idSector}" lazy="true" binding="#{zonaBean.dtSector}">
+
+												<p:column styleClass="columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_sector.codigo}" filterBy="#{_sector.codigo}">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_codigo}" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_sector.codigo}">
+														<p:ajax process="@this" global="false"></p:ajax>
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" sortBy="#{_sector.nombre}" filterBy="#{_sector.nombre}">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_nombre}" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_sector.nombre}">
+														<p:ajax process="@this" global="false"></p:ajax>
+													</p:inputText>
+
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_zona.activo}">
+													<p:selectBooleanCheckbox value="#{_sector.activo}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+													<p:selectBooleanCheckbox value="#{_sector.predeterminado}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion">
+													<p:commandButton id="btnEliminarDetalle" action="#{zonaBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabDetalleProducto:tablaSector" process="@this" />
+												</p:column>
+
+
+											</p:dataTable>
+										</h:panelGrid>
+									</p:tab>
+								</p:tabView>
+							</p:outputPanel>
+
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_zona} )" rendered="#{!zonaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaZona" rowIndexVar="secuencialZona" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{zonaBean.listaZona}" var="_zona" binding="#{zonaBean.dtZona}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{zonaBean.numeroFilas}" selection="#{zonaBean.zona}" rowsPerPageTemplate="#{zonaBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_zona.id}" sortBy="#{_zona.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialZona+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}" sortBy="#{_zona.codigo}" filterBy="#{_zona.codigo}">
+								<h:outputText value="#{_zona.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" headerText="#{msgs.lbl_nombre}" sortBy="#{_zona.nombre}" filterBy="#{_zona.nombre}">
+								<h:outputText value="#{_zona.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_porcentaje_descuento_maximo}" sortBy="#{_zona.porcentajeDescuentoMaximo}">
+								<h:outputText value="#{_zona.porcentajeDescuentoMaximo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_zona.activo}">
+								<p:selectBooleanCheckbox value="#{_zona.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_zona.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_zona.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{zonaBean.zona.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{zonaBean.zona.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{zonaBean.zona.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{zonaBean.zona.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

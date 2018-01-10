@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteEstadoFinancieroMensualBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+				<p:panel header="#{msgs.lbl_titulo_estado_financiero}">
+
+					<p:outputPanel id="panelFiltros">
+
+						<h:panelGrid columns="#{reporteEstadoFinancieroMensualBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_anio_desde}:" />
+							<p:inputMask id="txtAnioHasta1" mask="9999" value="#{reporteEstadoFinancieroMensualBean.anioDesde}" />
+
+							<h:outputText value="#{msgs.lbl_mes_desde}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoFinancieroMensualBean.mesDesde}" id="cboMesHasta1">
+								<f:selectItems value="#{reporteEstadoFinancieroMensualBean.listaMes}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_anio_hasta}:" />
+							<p:inputMask id="txtAnioHasta2" mask="9999" value="#{reporteEstadoFinancieroMensualBean.anioHasta}" />
+
+							<h:outputText value="#{msgs.lbl_mes_hasta}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoFinancieroMensualBean.mesHasta}" id="cboMesHasta2">
+								<f:selectItems value="#{reporteEstadoFinancieroMensualBean.listaMes}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_estado_financiero}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoFinancieroMensualBean.tipoEstadoFinanciero}" id="cboTipoEstadoFinanciero">
+								<f:selectItems value="#{reporteEstadoFinancieroMensualBean.listaTipoEstadoFinanciero}">
+								</f:selectItems>
+								<p:ajax process="@this" global="false" event="change" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoFinancieroMensualBean.sucursal}" id="cboSucursal" required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteEstadoFinancieroMensualBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_nivel}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoFinancieroMensualBean.nivel}" id="cboNivelCuentaContable">
+								<f:selectItem itemValue="#{reporteEstadoFinancieroMensualBean.nivelPorDefecto}" itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteEstadoFinancieroMensualBean.listaNivelCuentaCombo}" var="_nivel" itemLabel="#{_nivel.nombre}"
+									itemValue="#{_nivel.codigo}" />
+							</p:selectOneMenu>
+
+
+							<!-- <h:outputText  rendered="false"  value="#{msgs.lbl_centro_costo}:" /> 
+							<ui:include src="/template/listaCentroCosto.xhtml">
+								<ui:param name="bean" value="#{reporteEstadoFinancieroMensualBean}" />
+								<ui:param name="value" value="centroCosto" />
+								<ui:param name="modoSeleccion" value="single" />
+								<ui:param name="indicadorSeleccionarTodo" value="true" />
+							</ui:include> -->
+							
+							
+							<h:outputText value="#{msgs.lbl_dimension}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoFinancieroMensualBean.listaDimensionContableBean.numeroDimension}" id="cboDimension">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{estadoFinancieroBean.listaDimension}" />
+								<p:ajax process="@this" global="false" update=":form">
+									<f:setPropertyActionListener target="#{reporteEstadoFinancieroMensualBean.listaDimensionContableBean.numeroDimension}" value="" />
+								</p:ajax>
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_valor_dimension}:" />
+							<!--<p:commandButton id="btnDimension" icon="ui-icon-gear" process="@this"
+								value="#{estadoFinancieroBean.valorDimension} #{estadoFinancieroBean.nombreDimension}" update="@this"
+								oncomplete="dimensionContableDialog.show();">
+							</p:commandButton>  -->
+
+							<p:commandButton id="btnDimension"
+								value="#{empty reporteEstadoFinancieroMensualBean.valorDimension ? msgs.lbl_seleccione : reporteEstadoFinancieroMensualBean.valorDimension} #{reporteEstadoFinancieroMensualBean.nombreDimension}"
+								process="@this" partialSubmit="true"
+								actionListener="#{reporteEstadoFinancieroMensualBean.listaDimensionContableBean.listarDimensionContableListener(reporteEstadoFinancieroMensualBean.listaDimensionContableBean.numeroDimension, true)}">
+								<p:ajax event="dialogReturn" listener="#{reporteEstadoFinancieroMensualBean.cargarDimensionContableListener}" update=":form:btnDimension" />
+							</p:commandButton>
+
+
+							<h:outputText value="#{msgs.lbl_indicador_NIIF}:" />
+							<p:selectBooleanCheckbox value="#{reporteEstadoFinancieroMensualBean.indicadorNIIF}" id="chkNIIF">
+								<p:ajax process="@this" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="Flujo de Caja Economico:" />
+							<p:selectBooleanCheckbox value="#{reporteEstadoFinancieroMensualBean.flujoCajaEconomico}" id="chkFlujoCajaEconomico">
+								<p:ajax process="@this"  />
+							</p:selectBooleanCheckbox>
+
+
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="panelFiltros" oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+					</p:outputPanel>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

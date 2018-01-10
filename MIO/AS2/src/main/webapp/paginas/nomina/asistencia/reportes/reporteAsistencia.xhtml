@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_asistencia}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteAsistenciaBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteAsistenciaBean}"
+					entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera"
+							columns="#{reporteAsistenciaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteAsistenciaBean.formatoFecha}"
+								required="true" showOn="button" navigator="true"
+								value="#{reporteAsistenciaBean.fechaDesde}" id="calFechaDesde">
+								
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteAsistenciaBean.formatoFecha}"
+								required="true" showOn="button" navigator="true"
+								value="#{reporteAsistenciaBean.fechaHasta}" id="calFechaHasta">
+								
+							</p:calendar>
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteAsistenciaBean.departamento}"
+								id="cboDepartamento">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems
+									value="#{reporteAsistenciaBean.listaDepartamento}"
+									var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento}" />
+									<p:ajax process="@this" global="false" update="@this" partialSubmit="true"></p:ajax>
+							</p:selectOneMenu>
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this"
+									oncomplete="dglModalEmpleado.show();"
+									update=":form:panelListaEmpleado">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado"
+									value="#{reporteAsistenciaBean.empleado.apellidos} #{reporteAsistenciaBean.empleado.nombres}" />
+							</h:panelGroup>
+							<h:outputText value="#{msgs.lbl_reporte_agrupado}:" rendered="#{reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_DIA' and reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_SEMANA'}"/>
+							<p:selectBooleanCheckbox rendered="#{reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_DIA' and reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_SEMANA'}"
+								value="#{reporteAsistenciaBean.indicadorAgrupado}">
+								<p:ajax process="@this" global="false" ></p:ajax>
+							</p:selectBooleanCheckbox>
+
+							<h:outputLabel for="items" value="#{msgs.lbl_tipo}:" />
+							<p:selectOneMenu value="#{reporteAsistenciaBean.opcion}" id="items">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteAsistenciaBean.listaOpciones}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+								<p:ajax process="@this" update=":form:panelFiltros @this" event="change" global="false" partialSubmit="true"></p:ajax>
+							</p:selectOneMenu>
+							<h:outputText value="#{msgs.lbl_mostrar_dias_descanso}:" rendered="#{reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_DIA' and reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_SEMANA'}"/>
+							<p:selectBooleanCheckbox rendered="#{reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_DIA' and reporteAsistenciaBean.opcion!='HORAS_EXTRA_X_SEMANA'}"
+								value="#{reporteAsistenciaBean.indicadorMostrarDiasDescanso}">
+								<p:ajax process="@this" global="false" ></p:ajax>
+							</p:selectBooleanCheckbox>
+							<!-- 							<p:outputPanel id="pnlTxtresponsable"> -->
+							<!-- 								<p:outputLabel value="#{msgs.lbl_responsable}:" rendered="#{reporteAsistenciaBean.opcion=='CONTROL_ASISTENCIA_SOBRETIEMPOS' and not empty reporteAsistenciaBean.listaEmpleado}" -->
+							<!-- 									for="cboEmpleado" id="txtResponsable" /> -->
+							<!-- 							</p:outputPanel> -->
+							<!-- 							<p:outputPanel id="pnlCboEmpleado"> -->
+							<!-- 								<p:selectOneMenu styleClass="input-text" value="#{reporteAsistenciaBean.supervisor}" id="cboEmpleado" -->
+							<!-- 									rendered="#{reporteAsistenciaBean.opcion=='CONTROL_ASISTENCIA_SOBRETIEMPOS' and not empty reporteAsistenciaBean.listaEmpleado}" required="true"> -->
+							<!-- 									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" /> -->
+							<!-- 									<f:selectItems value="#{reporteAsistenciaBean.listaEmpleado}" var="_responsable" -->
+							<!-- 										itemLabel="#{_responsable.apellidos} #{_responsable.nombres}" itemValue="#{_responsable}" /> -->
+							<!-- 										<p:ajax process="@this" update="@this" event="change" global="false" partialSubmit="true"></p:ajax> -->
+							<!-- 								</p:selectOneMenu> -->
+							<!-- 							</p:outputPanel> -->
+						</h:panelGrid>
+					</p:fieldset>
+					<p:separator />
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+							process="@this" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

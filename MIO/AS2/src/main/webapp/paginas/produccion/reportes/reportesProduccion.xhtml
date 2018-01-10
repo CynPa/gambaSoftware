@@ -1,0 +1,115 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_rendimiento_materiales}">
+
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reportesProduccionBean}" entidadOrigen=""></tnt:panelImprimir>
+				<p:outputPanel id="panelFiltros">
+
+
+					<ui:include src="/template/listaProductoMultiple.xhtml">
+						<ui:param name="bean" value="#{reportesProduccionBean}" />
+						<ui:param name="objetoActualizar" value=":form" />
+						<ui:param name="renderedBotonLimpiar" value="true" />
+					</ui:include>
+
+
+
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+
+							<h:outputText value="Tipo Reporte" />
+							<p:selectOneMenu id="tipoReporte" value="#{reportesProduccionBean.tipoReporte}" required="true">
+								<f:selectItems value="#{reportesProduccionBean.listaTipoReporte}" />
+								<p:ajax process="@this" update="panelFiltros" partialSubmit="true" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="" />
+							<h:outputText value="" />
+
+
+							<h:outputText value="#{msgs.lbl_fecha}:" rendered="#{reportesProduccionBean.tipoReporte == 'ORDEN_FABRICACION_DIA'}" />
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" rendered="#{reportesProduccionBean.tipoReporte == 'RENDIMIENTO_MATERIALES'}" />
+							<p:calendar value="#{reportesProduccionBean.fecha}" pattern="#{reportesProduccionBean.formatoFecha}" showButtonPanel="true" locale="es"
+								showOn="button" required="true"
+								rendered="#{reportesProduccionBean.tipoReporte == 'ORDEN_FABRICACION_DIA' or reportesProduccionBean.tipoReporte == 'RENDIMIENTO_MATERIALES'}">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								<f:validateBean />
+							</p:calendar>
+
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" rendered="#{reportesProduccionBean.tipoReporte == 'RENDIMIENTO_MATERIALES'}" />
+							<p:calendar value="#{reportesProduccionBean.fechaHasta}" pattern="#{reportesProduccionBean.formatoFecha}" showButtonPanel="true" locale="es"
+								showOn="button" required="true" rendered="#{reportesProduccionBean.tipoReporte == 'RENDIMIENTO_MATERIALES'}">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								<f:validateBean />
+							</p:calendar>
+
+
+							<h:outputText rendered="#{reportesProduccionBean.tipoReporte == 'ORDEN_FABRICACION_DIA'}" value="" />
+							<h:outputText rendered="#{reportesProduccionBean.tipoReporte == 'ORDEN_FABRICACION_DIA'}" value="" />
+
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}:" rendered="#{reportesProduccionBean.tipoReporte == 'RENDIMIENTO_MATERIALES'}" />
+							<h:panelGroup rendered="#{reportesProduccionBean.tipoReporte == 'RENDIMIENTO_MATERIALES'}">
+								<p:commandButton id="btnProduc"  value="..." onclick="dglModalProducto.show();" type="button" />
+								<h:outputText id="lblProducto" value="#{reportesProduccionBean.producto.codigo} #{reportesProduccionBean.producto.nombreComercial}" />
+							</h:panelGroup>
+
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}:" />
+							<p:selectOneMenu  value="#{reportesProduccionBean.categoriaProductoSeleccionado}" id="cboCategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reportesProduccionBean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+									itemValue="#{_categoriaProducto}" />
+								<p:ajax process="@this" listener="#{reportesProduccionBean.cargarListaSubcategoriaProducto}" update="cboSubcategoriaProducto :form:btnProduc" />
+							</p:selectOneMenu>
+
+
+							<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}:" />
+							<p:selectOneMenu  value="#{reportesProduccionBean.subcategoriaProductoSeleccionado}" id="cboSubcategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportesProduccionBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{reportesProduccionBean.tipoReporte == 'MATERIAS_PRIMAS'}" value="#{msgs.lbl_plan_produccion}:" />
+							<p:selectOneMenu required="true" rendered="#{reportesProduccionBean.tipoReporte == 'MATERIAS_PRIMAS'}"
+								value="#{reportesProduccionBean.planProduccion}" id="cboPlanProduccion">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportesProduccionBean.listaPlanProduccion}" var="_planProduccion"
+									itemLabel="Semana: #{_planProduccion.semanaAnio} Fecha Inicio: #{_planProduccion.fechaInicio} Fecha Fin: #{_planProduccion.fechaFin} #{_planProduccion.descripcion}"
+									itemValue="#{_planProduccion}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_mostrar_producido}:" rendered="#{reportesProduccionBean.tipoReporte == 'ORDEN_FABRICACION_DIA'}" />
+							<p:selectBooleanCheckbox id="chkProducido" value="#{reportesProduccionBean.indicadorProducido}" rendered="#{reportesProduccionBean.tipoReporte == 'ORDEN_FABRICACION_DIA'}">
+								<p:ajax process="@this" />
+							</p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print" />
+						</h:panelGrid>
+					</p:fieldset>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

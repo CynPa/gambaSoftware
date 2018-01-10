@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{causaSalidaEmpleadoBean}">
+					<as2:buttonEliminar bean="#{causaSalidaEmpleadoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.nombre}" />
+					</as2:buttonEliminar>
+					<as2:buttonExportaExcel bean="#{causaSalidaEmpleadoBean}" tabla=":form:tablaCausaSalidaEmpleado"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_causa_salida_empleado} )"
+						rendered="#{causaSalidaEmpleadoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera"
+								columns="#{causaSalidaEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text"
+									value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.codigo}"
+									id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text"
+									value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.nombre}"
+									id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>							
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox
+									value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox
+									value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.predeterminado}" />
+									
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text"
+									value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.descripcion}"
+									id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_causa_salida_empleado} )"
+						rendered="#{!causaSalidaEmpleadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCausaSalidaEmpleado"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{causaSalidaEmpleadoBean.listaCausaSalidaEmpleado}"
+							var="_causaSalidaEmpleado"
+							binding="#{causaSalidaEmpleadoBean.dtCausaSalidaEmpleado}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{causaSalidaEmpleadoBean.numeroFilas}"
+							rowsPerPageTemplate="#{causaSalidaEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{causaSalidaEmpleadoBean.causaSalidaEmpleado}"
+							selectionMode="single"
+							rowKey="#{_causaSalidaEmpleado.idCausaSalidaEmpleado}"
+							sortBy="#{_causaSalidaEmpleado.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_causaSalidaEmpleado.codigo}"
+								filterBy="#{_causaSalidaEmpleado.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_causaSalidaEmpleado.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_causaSalidaEmpleado.nombre}"
+								filterBy="#{_causaSalidaEmpleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_causaSalidaEmpleado.nombre}" />
+							</p:column>						
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_causaSalidaEmpleado.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_causaSalidaEmpleado.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_causaSalidaEmpleado.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_causaSalidaEmpleado.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{causaSalidaEmpleadoBean.causaSalidaEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

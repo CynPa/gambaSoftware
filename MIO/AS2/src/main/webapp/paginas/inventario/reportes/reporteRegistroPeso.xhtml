@@ -1,0 +1,112 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{lbl_titulo_reporte_registro_peso}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteRegistroDePesoBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+
+					<ui:include src="/template/listaProductoMultiple.xhtml">
+						<ui:param name="bean" value="#{reporteRegistroDePesoBean}" />
+						<ui:param name="objetoActualizar" value=":form:panelFiltros" />
+						<ui:param name="renderedBotonLimpiar" value="true" />
+					</ui:include>
+
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboTipo" value="#{msgs.lbl_tipo}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboTipo" required="true" value="#{reporteRegistroDePesoBean.tipoRegistroPeso}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteRegistroDePesoBean.listaTipoRegistroPeso}" var="_tipo" itemLabel="#{_tipo.nombre}" itemValue="#{_tipo}" />
+								<p:ajax event="change" update=":form:panelFiltros" process="@this" partialSubmit="true" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value=" " />
+							<h:outputText value=" " />
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteRegistroDePesoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteRegistroDePesoBean.fechaDesde}" id="calFechaDesde" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteRegistroDePesoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteRegistroDePesoBean.fechaHasta}" id="calFechaHasta" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteRegistroDePesoBean.documento}" id="cboDocumento">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteRegistroDePesoBean.listaDocumento}" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_proveedor}:" rendered="#{reporteRegistroDePesoBean.tipoRegistroPeso == 'INGRESO_MATERIA_PRIMA'}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboProveedor"
+								rendered="#{reporteRegistroDePesoBean.tipoRegistroPeso == 'INGRESO_MATERIA_PRIMA'}" value="#{reporteRegistroDePesoBean.empresa}"
+								completeMethod="#{reporteRegistroDePesoBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+								itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}:" />
+							<h:panelGroup id="groupProducto">
+								<p:commandButton value="..." onclick="dglModalProducto.show();" type="button" process="@this" />
+								<h:outputText id="lblProducto" value="#{reporteRegistroDePesoBean.producto.codigo} #{reporteRegistroDePesoBean.producto.nombreComercial}" />
+								<p:commandButton action="#{reporteRegistroDePesoBean.eliminarProducto}" title="#{msgs.lbl_eliminar}" update=":form:panelFiltros"
+									process="@this" icon="ui-icon-closethick" rendered="#{reporteRegistroDePesoBean.producto.codigo != null}">
+								</p:commandButton>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_transferencia}:"
+								rendered="#{reporteRegistroDePesoBean.tipoRegistroPeso == 'TRANSFERENCIA_ENTRE_BODEGAS' or reporteRegistroDePesoBean.tipoRegistroPeso == 'RECEPCION_TRANSFERENCIA'}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboTransferencia"
+								rendered="#{reporteRegistroDePesoBean.tipoRegistroPeso == 'TRANSFERENCIA_ENTRE_BODEGAS' or reporteRegistroDePesoBean.tipoRegistroPeso == 'RECEPCION_TRANSFERENCIA'}"
+								value="#{reporteRegistroDePesoBean.transferencia}" completeMethod="#{reporteRegistroDePesoBean.autocompletarTransferencia}"
+								var="_transferencia" itemLabel="#{_transferencia.numero}" itemValue="#{_transferencia}" forceSelection="true" dropdown="true"
+								minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_numero} #{msgs.lbl_transferencia}">#{_transferencia.numero}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_lote}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboLote" value="#{reporteRegistroDePesoBean.lote}"
+								completeMethod="#{reporteRegistroDePesoBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+								forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+								<p:column headerText="#{msgs.lbl_lote}">#{_lote.codigo}</p:column>
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

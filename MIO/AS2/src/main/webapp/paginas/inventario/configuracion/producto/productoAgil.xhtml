@@ -1,0 +1,161 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form enctype="multipart/form-data" prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{productoAgilBean}">
+					<as2:buttonEliminar bean="#{productoAgilBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{productoAgilBean.producto.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{productoAgilBean.producto.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{productoAgilBean}" tabla=":form:tablaProductos" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_producto_panel}" rendered="#{productoAgilBean.editado}">
+
+						<h:panelGrid columns="1">
+
+							<h:panelGrid id="panelDetalle" columns="#{productoAgilBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_codigo}:" />
+								<h:panelGroup layout="">
+									<p:inputText styleClass="input-text" value="#{productoAgilBean.producto.codigo}" id="txtCodigo">
+										<f:validateBean />
+										<p:ajax process="@this"></p:ajax>
+									</p:inputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{productoAgilBean.producto.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_producto_tipo_producto}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{productoAgilBean.producto.tipoProducto}" id="cboTipoProducto" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{productoAgilBean.listaTipoProducto}" />
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_venta}:" />
+								<p:selectBooleanCheckbox value="#{productoAgilBean.producto.indicadorVenta}">
+									<p:ajax process="@this" global="false" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_compra}:" />
+								<p:selectBooleanCheckbox value="#{productoAgilBean.producto.indicadorCompra}">
+									<p:ajax process="@this" global="false" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_producto_indicador_impuestos}:" />
+								<p:selectBooleanCheckbox value="#{productoAgilBean.producto.indicadorImpuestos}">
+									<p:ajax process="@this" update=":form:cboCategoriaImpuesto" event="change" listener="#{productoAgilBean.actualizarIndicadorImpuestos}" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_producto_categoria_impuesto}:" />
+								<p:outputPanel autoUpdate="true">
+									<p:selectOneMenu styleClass="input-text" value="#{productoAgilBean.producto.categoriaImpuesto}" id="cboCategoriaImpuesto"
+										disabled="#{!productoAgilBean.producto.indicadorImpuestos}" required="#{productoAgilBean.producto.indicadorImpuestos}">
+
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{productoAgilBean.listaCategoriaImpuesto}" var="_categoriaImpuesto" itemLabel="#{_categoriaImpuesto.nombre}"
+											itemValue="#{_categoriaImpuesto}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+								</p:outputPanel>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea value="#{productoAgilBean.producto.descripcion}" styleClass="input-text">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:dialog header="#{msgs.lbl_imagen}" widgetVar="imagenDialog" resizable="false" showEffect="fade" hideEffect="explode" modal="true">
+						<p:outputPanel id="panelImagen" autoUpdate="true">
+							<h:panelGrid columns="2">
+								<f:facet name="header">
+									<h:graphicImage value="/images/dynamic/?file=#{productoAgilBean.producto.imagen}" width="400" height="300" />
+								</f:facet>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:dialog>
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_producto_panel}" rendered="#{!productoAgilBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProductos" rowIndexVar="secuencialProducto" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{productoAgilBean.listaProducto}"
+							var="producto" paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{productoAgilBean.dtProducto}"
+							rows="#{productoAgilBean.numeroFilas}" rowsPerPageTemplate="#{productoAgilBean.numeroFilasPorPagina}" selection="#{productoAgilBean.producto}"
+							selectionMode="single" rowKey="#{producto.id}" styleClass="tablaProducto" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialProducto+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto" sortBy="#{producto.codigo}" filterBy="#{producto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{producto.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{producto.nombre}" filterBy="#{producto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{producto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{producto.tipoProducto}" filterBy="#{producto.tipoProducto}"
+								filterOptions="#{productoAgilBean.listaTipoProductoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_tipo_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.tipoProducto.nombre}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{productoAgilBean.producto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{productoAgilBean.producto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{productoAgilBean.producto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{productoAgilBean.producto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

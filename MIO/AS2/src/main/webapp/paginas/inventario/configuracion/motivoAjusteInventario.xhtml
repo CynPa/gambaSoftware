@@ -1,0 +1,130 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{motivoAjusteInventarioBean}">
+					<as2:buttonEliminar bean="#{motivoAjusteInventarioBean}" titulo="#{msg.btn_eliminar}">
+						<h:outputText value="#{msgs.lbl_codigo}:#" />
+						<h:outputText value="#{motivoAjusteInventarioBean.motivoAjusteInventario.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{motivoAjusteInventarioBean.motivoAjusteInventario.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{motivoAjusteInventarioBean}" tabla=":form:tablaMotivoAjusteInventario" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_motivo} #{msgs.lbl_ajuste} #{msgs.lbl_inventario} )"
+						rendered="#{motivoAjusteInventarioBean.editado}">
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{motivoAjusteInventarioBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{motivoAjusteInventarioBean.motivoAjusteInventario.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{motivoAjusteInventarioBean.motivoAjusteInventario.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{motivoAjusteInventarioBean.motivoAjusteInventario.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{motivoAjusteInventarioBean.motivoAjusteInventario.predeterminado}" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{motivoAjusteInventarioBean.motivoAjusteInventario.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_motivo} #{msgs.lbl_ajuste} #{msgs.lbl_inventario} )"
+						rendered="#{!motivoAjusteInventarioBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMotivoAjusteInventario" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{motivoAjusteInventarioBean.listaMotivoAjusteInventario}" var="_motivo"
+							binding="#{motivoAjusteInventarioBean.dtMotivoAjusteInventario}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{motivoAjusteInventarioBean.numeroFilas}" rowsPerPageTemplate="#{motivoAjusteInventarioBean.numeroFilasPorPagina}"
+							selection="#{motivoAjusteInventarioBean.motivoAjusteInventario}" selectionMode="single" rowKey="#{_motivo.idMotivoAjusteInventario}"
+							lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column sortBy="#{_motivo.codigo}" filterBy="#{_motivo.codigo}" styleClass="columnaDTCodigo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_motivo.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_motivo.nombre}" filterBy="#{_motivo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_motivo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_motivo.activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_motivo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_predeterminado}" styleClass="columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_motivo.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_motivo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{motivoAjusteInventarioBean.motivoAjusteInventario.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{motivoAjusteInventarioBean.motivoAjusteInventario.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{motivoAjusteInventarioBean.motivoAjusteInventario.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{motivoAjusteInventarioBean.motivoAjusteInventario.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

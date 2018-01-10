@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tarjetaCreditoBean}">
+					<as2:buttonExportaExcel bean="#{tarjetaCreditoBean}" tabla=":form:tablaTarjetasCredito" />
+				</as2:toolBar>
+				<p:outputPanel id="pgPanelCrearVersion">
+					<p:dialog header="#{msgs.lbl_version_comision}" widgetVar="crearVersionComision" modal="true" height="100" width="600" showEffect="slide"
+						hideEffect="slide" closable="false">
+
+						<h:panelGrid id="panelCabeceraOtrosDespachos" columns="#{tarjetaCreditoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tarjetaCreditoBean.versionComision.codigo}" id="txtCodigoDg" required="true" size="50"
+								maxlength="50">
+								<f:validateBean />
+								<p:ajax process="@this" global="false"></p:ajax>
+							</p:inputText>
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tarjetaCreditoBean.versionComision.nombre}" id="txtNombreDg" required="true" size="50"
+								maxlength="50">
+								<f:validateBean />
+								<p:ajax process="@this" global="false"></p:ajax>
+							</p:inputText>
+
+							<p:outputLabel styleClass="columnaDTNombre tableCell" value="#{msgs.lbl_fecha_desde}" />
+							<p:calendar value="#{tarjetaCreditoBean.versionComision.fechaDesde}" pattern="#{tarjetaCreditoBean.formatoFecha}" showButtonPanel="true"
+								locale="es" showOn="button">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel styleClass="columnaDTNombre tableCell" value="#{msgs.lbl_fecha_hasta}" />
+							<p:calendar value="#{tarjetaCreditoBean.versionComision.fechaHasta}" pattern="#{tarjetaCreditoBean.formatoFecha}" showButtonPanel="true"
+								locale="es" showOn="button">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								<f:validateBean />
+							</p:calendar>
+
+
+
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnAdicionarVersionComision" action="#{tarjetaCreditoBean.agregarVersionComision}" value="Guardar"
+									oncomplete="validacionesModal(xhr, status, args, crearVersionComision)" process="@this :form:pgPanelCrearVersion"
+									update=":form:panelNuevo :form:pgPanelCrearVersion">
+								</p:commandButton>
+								<p:commandButton id="btnCancelarVersionComision" value="#{msgs.btn_cancelar}" onclick="crearVersionComision.hide();" process="@this"
+									update="@none">
+								</p:commandButton>
+							</center>
+						</f:facet>
+
+
+
+					</p:dialog>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tarjeta_credito}" rendered="#{tarjetaCreditoBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{empresaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tarjetaCreditoBean.tarjetaCredito.nombre}" id="txtNombre" required="true" size="50"
+								maxlength="50" disabled="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboTipoTarjetaCredito" value="#{msgs.lbl_tipo_tarjeta_credito}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{tarjetaCreditoBean.tarjetaCredito.tipoTarjetaCredito}" id="cboTipoTarjetaCredito"
+								required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tarjetaCreditoBean.listaTipoTarjetaCredito}" var="_tipoTarjetaCredito" itemLabel="#{_tipoTarjetaCredito.nombre}"
+									itemValue="#{_tipoTarjetaCredito}" />
+								<p:ajax process="@this" listener="#{tarjetaCreditoBean.nombreTarjetaCredito}" update=":form:txtNombre"></p:ajax>
+							</p:selectOneMenu>
+
+
+							<p:outputLabel for="cboBanco" value="#{msgs.lbl_banco_emisor}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{tarjetaCreditoBean.tarjetaCredito.banco}" id="cboBanco" required="true" filter="true"
+								filterMatchMode="contains">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tarjetaCreditoBean.listaBanco}" var="_banco" itemLabel="#{_banco.codigo} | #{_banco.nombre}" itemValue="#{_banco}" />
+								<p:ajax process="@this" listener="#{tarjetaCreditoBean.nombreTarjetaCredito}" update=":form:txtNombre"></p:ajax>
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboCuentaPago" value="#{msgs.lbl_cuenta_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{tarjetaCreditoBean.tarjetaCredito.cuentaBancariaOrganizacion}" id="cboCuentaPago"
+								required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tarjetaCreditoBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+								<p:ajax process="@this" partialSubmit="@true" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{tarjetaCreditoBean.tarjetaCredito.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{tarjetaCreditoBean.tarjetaCredito.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tarjetaCreditoBean.tarjetaCredito.descripcion}" id="txtDescripcion" size="100"
+								maxlength="200">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<p:spacer />
+							<p:spacer />
+
+							<h:outputText value="#{msgs.lbl_version}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{tarjetaCreditoBean.codigo}" id="cboVersion">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tarjetaCreditoBean.listaVersionesComision}" />
+								<p:ajax process="@this" update=":form:tabView:tablaComisionTarjeta" event="change"></p:ajax>
+							</p:selectOneMenu>
+
+
+							<h:panelGrid columns="4">
+								<p:commandButton id="btnNuevaVersion" action="#{tarjetaCreditoBean.nuevaVersion()}" oncomplete="crearVersionComision.show();"
+									icon="ui-icon-document" title="#{msgs.lbl_crear}" update=":form:pgPanelCrearVersion" process="@this" />
+								<p:commandButton id="btnCopiarVersion" action="#{tarjetaCreditoBean.copiarVersion()}" oncomplete="crearVersionComision.show();"
+									icon="ui-icon-copy" title="#{msgs.lbl_copiar}" update=":form:pgPanelCrearVersion" process="@this" />
+								<p:commandButton id="btnEditarVersion" action="#{tarjetaCreditoBean.editarVersion()}" oncomplete="crearVersionComision.show();"
+									icon="ui-icon-pencil" title="#{msgs.lbl_editar}" update=":form:pgPanelCrearVersion" process="@this" />
+								<p:commandButton id="btnEliminarVersion" action="#{tarjetaCreditoBean.eliminarVersion()}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+									update="@form" process="@this" />
+							</h:panelGrid>
+						</h:panelGrid>
+
+						<p:tabView dynamic="false" cache="true" id="tabView">
+							<!-- Inicio Tab Detalle Movimiento Bancario  -->
+							<p:tab title="#{msgs.lbl_comision}">
+							
+							<h:panelGrid columns="1"  style="width:100%">
+							
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.lbl_agregar_detalle}" id="btnAgregarDetalle" action="#{tarjetaCreditoBean.agregarDetalle}"
+										update=":form:tabView:tablaComisionTarjeta" process="@this :form:tabView:tablaComisionTarjeta" icon="ui-icon-plus" />
+									<p:commandButton value="#{msgs.lbl_cargar_planes}" id="btnCargarPlanes" action="#{tarjetaCreditoBean.cargarPlanes}"
+										update=":form:tabView:tablaComisionTarjeta" process="@this :form:tabView:tablaComisionTarjeta" icon="ui-icon-plus"/>
+								</h:panelGroup>
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{tarjetaCreditoBean.listaComisionTarjeta}" id="tablaComisionTarjeta"
+									rowIndexVar="secuencial" binding="#{tarjetaCreditoBean.dtComisionTarjeta}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_comisionTarjeta"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{tarjetaCreditoBean.numeroFilas}"
+									rowsPerPageTemplate="#{tarjetaCreditoBean.numeroFilasPorPagina}" rowKey="#{_comisionTarjeta.rowKey}" lazy="true">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_plan_tarjeta_credito}" styleClass="tableCell">
+										<p:selectOneMenu styleClass="input-text" value="#{_comisionTarjeta.planTarjetaCredito}" id="cboConceptoRetencion" required="false">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{tarjetaCreditoBean.listaPlanTarjetaCredito}" var="_planTarjetaCredito"
+												itemLabel="#{_planTarjetaCredito.codigo} | #{_planTarjetaCredito.nombre}" itemValue="#{_planTarjetaCredito}" />
+											<p:ajax process="@this" listener="#{tarjetaCreditoBean.validarPlanTarjetaCredito}" update="@this" event="change" />
+										</p:selectOneMenu>
+									</p:column>
+
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_porcentaje}">
+										<p:inputText value="#{_comisionTarjeta.porcentaje}" id="txtPorcentajeDescuento" size="10">
+											<p:ajax process="@this" />
+										</p:inputText>
+									</p:column>
+
+
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_iva_comision}">
+										<p:selectBooleanCheckbox value="#{_comisionTarjeta.indicadorIvaSobreComision}">
+											<p:ajax process="@this" />
+										</p:selectBooleanCheckbox>
+									</p:column>
+
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarDetalle" action="#{tarjetaCreditoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:tabView:tablaComisionTarjeta" process="@this" />
+									</p:column>
+
+								</p:dataTable>
+							</h:panelGrid>
+
+							
+							</p:tab>
+							<p:tab title="#{msgs.lbl_contabilidad}">
+								<p:outputPanel id="panelContabilidad">
+									<h:panelGrid columns="2">
+										<h:panelGrid columns="2" columnClasses="columna40,columna60">
+											<h:outputText value="#{msgs.lbl_cuenta_contable} (#{msgs.lbl_formaPago_indicador_retencion_fuente}):" />
+											<h:panelGroup>
+												<p:commandButton value="..." actionListener="#{tarjetaCreditoBean.listaCuentaContableBean.listarCuentaContable}"
+													process="@this" propartialSubmit="true">
+													<p:ajax event="dialogReturn" listener="#{tarjetaCreditoBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+													<f:setPropertyActionListener target="#{tarjetaCreditoBean.cuentaContableEditada}" value="CUENTA_CONTABLE_RETENCION_FUENTE" />
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{tarjetaCreditoBean.tarjetaCredito.cuentaContableRetencionFuente}" />
+											</h:panelGroup>
+											<h:outputText value="#{msgs.lbl_cuenta_contable} (#{msgs.lbl_formaPago_indicador_retencion_iva}):" />
+											<h:panelGroup>
+												<p:commandButton value="..." actionListener="#{tarjetaCreditoBean.listaCuentaContableBean.listarCuentaContable}"
+													process="@this" propartialSubmit="true">
+													<p:ajax event="dialogReturn" listener="#{tarjetaCreditoBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+													<f:setPropertyActionListener target="#{tarjetaCreditoBean.cuentaContableEditada}" value="CUENTA_CONTABLE_RETENCION_IVA" />
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{tarjetaCreditoBean.tarjetaCredito.cuentaContableRetencionIva}" />
+											</h:panelGroup>
+										</h:panelGrid>
+										<h:panelGrid columns="2" columnClasses="columna40,columna60">
+											<h:outputText value="#{msgs.lbl_cuenta_contable} (IVA #{msgs.lbl_comision}):" />
+											<h:panelGroup>
+												<p:commandButton value="..." actionListener="#{tarjetaCreditoBean.listaCuentaContableBean.listarCuentaContable}"
+													process="@this" propartialSubmit="true">
+													<p:ajax event="dialogReturn" listener="#{tarjetaCreditoBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+													<f:setPropertyActionListener target="#{tarjetaCreditoBean.cuentaContableEditada}" value="CUENTA_CONTABLE_COMISION" />
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{tarjetaCreditoBean.tarjetaCredito.cuentaContableIvaComision}" />
+											</h:panelGroup>
+										</h:panelGrid>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_tarjeta_credito}" rendered="#{!tarjetaCreditoBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlan" rowIndexVar="secuencialPlan" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tarjetaCreditoBean.listaTarjetaCredito}" var="_tarjetaCredito" binding="#{tarjetaCreditoBean.dataTableTarjetaCredito}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{tarjetaCreditoBean.numeroFilas}"
+							rowsPerPageTemplate="#{tarjetaCreditoBean.numeroFilasPorPagina}" selection="#{tarjetaCreditoBean.tarjetaCredito}" selectionMode="single"
+							rowKey="#{_tarjetaCredito.id}" sortBy="#{_tarjetaCredito.nombre}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialPlan+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{tarjetaCredito.nombre}" filterBy="#{tarjetaCredito.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tarjetaCredito.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{tarjetaCredito.activo}">
+								<p:selectBooleanCheckbox value="#{_tarjetaCredito.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_tarjetaCredito.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tarjetaCredito.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tarjetaCreditoBean.tarjetaCredito.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tarjetaCreditoBean.tarjetaCredito.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{tarjetaCreditoBean.tarjetaCredito.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tarjetaCreditoBean.tarjetaCredito.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

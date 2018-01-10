@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{costeoBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtProducto" />
+					<ui:param name="listadoFiltrado" value="true" />
+					<ui:param name="mostrarCantidad" value="false" />
+					<!--  <ui:param name="mostrarBotonAgregar" value="true" />-->
+				</ui:include>
+
+				<p:panel header="#{msgs.lbl_panel_costeo}">
+
+					<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+						<p:calendar pattern="#{costeoBean.formatoFecha}" showOn="button" navigator="true" value="#{costeoBean.fechaDesde}" id="calFechaDesde"
+							required="true" disabled="true" />
+
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<p:calendar pattern="#{costeoBean.formatoFecha}" showOn="button" navigator="true" value="#{costeoBean.fechaHasta}" id="calFechaHasta"
+							required="true" disabled="true" />
+
+						<h:outputText value="#{msgs.lbl_bodega}" rendered="#{costeoBean.costeoPorBodega}" />
+						<p:selectOneMenu styleClass="input-text" value="#{costeoBean.bodega}" id="cboBodega" rendered="#{costeoBean.costeoPorBodega}">
+							<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="0" />
+							<f:selectItems value="#{costeoBean.listaBodegas}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_producto}:" />
+						<h:panelGroup>
+							<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+							<p:outputPanel id="txtProducto">
+								<h:outputText value="#{empty costeoBean.productoSeleccionado ? '' : costeoBean.productoSeleccionado.nombre}" />
+							</p:outputPanel>
+						</h:panelGroup>
+
+					</h:panelGrid>
+
+
+					<f:facet name="footer">
+						<center>
+
+							<p:commandButton id="btnrevisarNegativos" value="#{msgs.lbl_revisarNegativos}" action="#{costeoBean.revisarNegativos}" icon="ejecutar"
+								process="@this,:form:calFechaDesde,:form:calFechaHasta,:form:cboBodega" update="tablaSaldosNegativos" />
+
+							<p:commandButton id="btnGenerarcostos" value="#{msgs.lbl_generar}" action="#{costeoBean.generarCostos}" icon="ejecutar"
+								process="@this,:form:calFechaDesde,:form:calFechaHasta,:form:cboBodega" update="tablaSaldosNegativos" />
+
+							<p:commandButton id="btnGenerarAsientos" value="#{msgs.lbl_generar_asientos}" action="#{costeoBean.contabilizarAjustes}" icon="ejecutar"
+								process="@this,:form:calFechaDesde,:form:calFechaHasta" update="tablaErrores" />
+						</center>
+					</f:facet>
+
+				</p:panel>
+				<p:panel>
+					<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSaldosNegativos" value="#{costeoBean.listaNegativoProducto}"
+						var="_saldoNegativo" emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20"
+						rowsPerPageTemplate="#{costeoBean.numeroFilasPorPagina}">
+						<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+							<h:outputText value="#{secuencia+1}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo} #{msgs.lbl_producto}">
+							<h:outputText value="#{_saldoNegativo.codigoProducto}" />
+						</p:column>
+
+						<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre} #{msgs.lbl_producto}">
+							<h:outputText value="#{_saldoNegativo.nombreProducto}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo} #{msgs.lbl_bodega}">
+							<h:outputText value="#{_saldoNegativo.codigoBodega}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTBodega tableCell" headerText="#{msgs.lbl_nombre} #{msgs.lbl_bodega}">
+							<h:outputText value="#{_saldoNegativo.nombreBodega}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha} ">
+							<h:outputText value="#{_saldoNegativo.fecha}">
+								<f:convertDateTime pattern="#{costeoBean.formatoFecha}" />
+							</h:outputText>
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_saldo} ">
+							<h:outputText value="#{_saldoNegativo.saldo}" />
+						</p:column>
+
+					</p:dataTable>
+				</p:panel>
+				<p:panel>
+					<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaErrores" value="#{costeoBean.errores}" var="_errors"
+						emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20">
+						<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+							<h:outputText value="#{secuencia+1}" />
+						</p:column>
+
+						<p:column styleClass="tableCell" headerText="Error">
+							<h:outputText value="#{_errors.error}" />
+						</p:column>
+					</p:dataTable>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

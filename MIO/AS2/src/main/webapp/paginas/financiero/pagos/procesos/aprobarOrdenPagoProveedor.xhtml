@@ -1,0 +1,1023 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{aprobarOrdenPagoProveedorBean}">
+					<as2:buttonImprimir id="btnImprimirOrdenPagoProveedor" beanReporte="#{reporteOrdenPagoProveedorBean}" bean="#{aprobarOrdenPagoProveedorBean}"
+						target="#{reporteOrdenPagoProveedorBean.ordenPagoProveedor}" value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor}" />
+
+					<as2:buttonExportaExcel bean="#{aprobarOrdenPagoProveedorBean}" tabla=":form:tablaOrdenPagoProveedor" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_orden_pago_proveedor} )" rendered="#{aprobarOrdenPagoProveedorBean.editado}">
+
+						<!-- Inicio Anticipo Pago Cash Dialog -->
+						<p:dialog header="#{msgs.lbl_generar} #{msgs.lbl_anticipo_cliente_abreviatura}" widgetVar="anticipoManagementDialog"
+							id="anticipoManagementDialog" modal="true" height="180" width="600" showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelAnticipoManagement">
+
+								<h:panelGrid id="panelGridAnticipoCashManagement" columns="2" columnClasses="columnaEtiqueta,columnaValor"
+									rendered="#{aprobarOrdenPagoProveedorBean.indicadorRenderedAnticipo}">
+
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+										value="#{aprobarOrdenPagoProveedorBean.empresaAnticipo}" completeMethod="#{aprobarOrdenPagoProveedorBean.autocompletarProveedores}"
+										var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2"
+										id="autProveedor">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+										<p:ajax process="@this" event="itemSelect" />
+									</p:autoComplete>
+
+									<h:outputText value="#{msgs.lbl_responsable}:" rendered="#{aprobarOrdenPagoProveedorBean.indicadorOrdenCompraConPersonaResponsable}" />
+									<p:selectOneMenu styleClass="input-text" value="#{aprobarOrdenPagoProveedorBean.personaResponsable}" id="cboPersonaResponsable"
+										rendered="#{aprobarOrdenPagoProveedorBean.indicadorOrdenCompraConPersonaResponsable}"
+										required="#{aprobarOrdenPagoProveedorBean.indicadorOrdenCompraConPersonaResponsable}">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{aprobarOrdenPagoProveedorBean.listaPersonaResponsable}" var="_personaResponsable"
+											itemLabel="#{_personaResponsable.nombres} #{_personaResponsable.apellidos}" itemValue="#{_personaResponsable}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_anticipo_cliente_valor}:" />
+									<p:inputText styleClass="input-text" value="#{aprobarOrdenPagoProveedorBean.valorAnticipo}" id="txtValorPagoAnticipo">
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+									<p:inputTextarea value="#{aprobarOrdenPagoProveedorBean.descripcionAnticipo}" id="txtDescripcionAnticipo" styleClass="input-text" />
+
+								</h:panelGrid>
+							</p:outputPanel>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_generar} #{msgs.lbl_anticipo_cliente_abreviatura}"
+										action="#{aprobarOrdenPagoProveedorBean.agregarAnticipo}" process="@this, panelGridAnticipoCashManagement"
+										oncomplete="anticipoManagementDialog.hide()"
+										update="@this :form:panelAnticipoManagement :form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+										icon="ui-icon-plus" />
+									<p:commandButton value="#{msgs.btn_cancelar}" process="@this" oncomplete="anticipoManagementDialog.hide()" icon="ui-icon-cancel">
+										<f:setPropertyActionListener value="false" target="#{aprobarOrdenPagoProveedorBean.indicadorRenderedAnticipo}"></f:setPropertyActionListener>
+									</p:commandButton>
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- Fin Anticipo Pago Cash Dialog -->
+
+						<!-- Inicio Lista Facturas no Vencidas Dialog -->
+						<p:dialog header="#{msgs.lbl_lista_facturas_no_vencidas}" widgetVar="listaFacturasDialog" id="listaFacturasDialog" modal="true" height="500"
+							width="1000" showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelListaFacturasDialog">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobarOrdenPagoProveedorBean.listaFacturasPendientesNoVencidas}"
+									id="tablaDetalleFacturas" rowIndexVar="secuencial" binding="#{aprobarOrdenPagoProveedorBean.dtDetalleFacturasPendientesNoVencidas}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_factura" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}" rowsPerPageTemplate="#{aprobarOrdenPagoProveedorBean.numeroFilasPorPagina}"
+									rowKey="#{_detalleOrdenPagoProveedor.rowKey}" filteredValue="#{aprobarOrdenPagoProveedorBean.listaFacturasPendientesNoVencidasFilters}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_proveedor}" filterBy="#{_factura.facturaProveedor.empresa.nombreFiscal}"
+										sortBy="#{_factura.facturaProveedor.empresa.nombreFiscal}" filterMatchMode="contains">
+										<h:outputText value="#{_factura.facturaProveedor.empresa.nombreFiscal}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_forma_pago}"
+										filterBy="#{_factura.facturaProveedor.empresa.proveedor.formaPago.nombre}"
+										sortBy="#{_factura.facturaProveedor.empresa.proveedor.formaPago.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_factura.facturaProveedor.empresa.proveedor.formaPago.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_numero}" filterBy="#{_factura.facturaProveedor.numero}"
+										sortBy="#{_factura.facturaProveedor.numero}" filterMatchMode="contains">
+										<h:link rendered="#{not empty _factura.facturaProveedor}" target="_blank" outcome="/paginas/compras/procesos/facturaProveedor"
+											includeViewParams="true" value="#{_factura.facturaProveedor.numero}">
+											<f:param name="numero" value="#{_factura.facturaProveedor.numero}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_pago_numero_factura}"
+										filterBy="#{_factura.facturaProveedor.facturaProveedorSRI.numero}" sortBy="#{_factura.facturaProveedor.facturaProveedorSRI.numero}"
+										filterMatchMode="contains">
+										<h:outputText rendered="#{not empty _factura.facturaProveedor}"
+											value="#{_factura.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_factura.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_factura.facturaProveedor.facturaProveedorSRI.numero}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_emision_factura}"
+										sortBy="#{_factura.facturaProveedor.fecha}">
+										<h:outputText value="#{_factura.facturaProveedor.fecha}">
+											<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}" sortBy="#{_factura.fechaVencimiento}">
+										<h:outputText value="#{_factura.fechaVencimiento}">
+											<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_numero_cuota}">
+										<h:outputText value="#{_factura.numeroCuota}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_pendiente}">
+										<h:outputText value="#{_factura.saldo}">
+											<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion centrado">
+										<p:commandButton title="#{msgs.btn_agregar}" action="#{aprobarOrdenPagoProveedorBean.agregarFactura(_factura)}"
+											process="@this, :form:panelListaFacturasDialog"
+											update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor :form:panelListaFacturasDialog"
+											icon="ui-icon-plus" />
+									</p:column>
+								</p:dataTable>
+							</p:outputPanel>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_cerrar}" process="@this" oncomplete="listaFacturasDialog.hide()" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- Fin Lista Facturas no Vencidas Dialog -->
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{aprobarOrdenPagoProveedorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true"
+									value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.documento.idDocumento}" disabled="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{aprobarOrdenPagoProveedorBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+
+									<p:ajax process="@this" update="txtNumero" global="false" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumero" value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.numero}"
+									mask="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.documento.secuencia.patron}" disabled="true">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha_corte}:" />
+								<p:calendar pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.fechaCorte}" id="calFecha" required="true" disabled="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+									<f:validateBean />
+								</p:calendar>
+
+								<p:outputLabel for="cboDocumentoAnticipo" value="#{msgs.lbl_documento} #{msgs.lbl_anticipo}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboDocumentoAnticipo"
+									value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.documentoAnticipo}" disabled="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{aprobarOrdenPagoProveedorBean.listaDocumentoAnticipo}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:fieldset>
+							<h:panelGroup>
+								<p:commandButton id="btnGenerarAnticipo"
+									process="@this :form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+									icon="ui-icon-plus" update=":form:panelAnticipoManagement :form:panelOrdenPagoProveedor"
+									value="#{msgs.lbl_generar} #{msgs.lbl_anticipo_cliente_abreviatura}" oncomplete="anticipoManagementDialog.show()">
+									<f:setPropertyActionListener value="true" target="#{aprobarOrdenPagoProveedorBean.indicadorRenderedAnticipo}"></f:setPropertyActionListener>
+								</p:commandButton>
+							</h:panelGroup>
+
+							<h:panelGroup>
+								<p:commandButton id="btnListarFacturas" actionListener="#{aprobarOrdenPagoProveedorBean.cargarFacturasPendientesNoVencidas}"
+									process="@this :form:calFecha" icon="ui-icon-plus" update=":form:panelListaFacturasDialog" value="#{msgs.lbl_listar_facturas}"
+									oncomplete="listaFacturasDialog.show()">
+								</p:commandButton>
+							</h:panelGroup>
+
+							<!-- INICIO DETALLE PAGO CASH -->
+
+							<p:outputPanel id="panelOrdenPagoProveedor">
+								<p:tabView cache="true" dynamic="true" id="tvDetalleFacturaProveedor">
+									<p:tab title="#{msgs.lbl_detallado}">
+										<h:panelGrid columns="1" id="panelDetalleCuentaPorPagar" style="width:100%">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobarOrdenPagoProveedorBean.listaDetalleOrdenPagoProveedor}"
+												id="tablaDetalleOrdenPagoProveedor" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleOrdenPagoProveedor"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}"
+												binding="#{aprobarOrdenPagoProveedorBean.dtDetalleOrdenPagoProveedor}"
+												rowsPerPageTemplate="#{aprobarOrdenPagoProveedorBean.numeroFilasPorPagina}" rowKey="#{_detalleOrdenPagoProveedor.rowKey}"
+												filteredValue="#{aprobarOrdenPagoProveedorBean.listaDetalleOrdenPagoProveedorFilters}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_categoria} #{msgs.lbl_proveedor}"
+													filterBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.categoriaEmpresa.nombre}" filterMatchMode="contains"
+													sortBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.categoriaEmpresa.nombre}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.proveedor.empresa.categoriaEmpresa.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_proveedor}"
+													filterBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.nombreFiscal}"
+													sortBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.nombreFiscal}" filterMatchMode="contains">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.proveedor.empresa.nombreFiscal}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_forma_pago}"
+													filterBy="#{_detalleOrdenPagoProveedor.proveedor.formaPago.nombre}" sortBy="#{_detalleOrdenPagoProveedor.proveedor.formaPago.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.proveedor.formaPago.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_cash}"
+													sortBy="#{_detalleOrdenPagoProveedor.proveedor.indicadorPagoCash}">
+													<center>
+														<p:selectBooleanCheckbox value="#{_detalleOrdenPagoProveedor.proveedor.indicadorPagoCash}" disabled="true" />
+													</center>
+												</p:column>
+
+												<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_numero}"
+													filterBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}" filterMatchMode="contains">
+													<h:link rendered="#{not empty _detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor}" target="_blank"
+														outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true"
+														value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}">
+														<f:param name="numero" value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}" />
+													</h:link>
+												</p:column>
+
+												<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_pago_numero_factura}"
+													filterBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" filterMatchMode="contains">
+													<h:outputText rendered="#{not empty _detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor}"
+														value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_emision_factura}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.fecha}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.fecha}">
+														<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.fechaVencimiento}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.fechaVencimiento}">
+														<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_dias_vencidos}" sortBy="#{_detalleOrdenPagoProveedor.diasVencidos}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.diasVencidos}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_numero_cuota}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.numeroCuota}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_pendiente}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.saldo}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.saldo}">
+														<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_solicitado_a_liquidar}"
+													sortBy="#{_detalleOrdenPagoProveedor.valor}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.valor}">
+														<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}"
+													sortBy="#{_detalleOrdenPagoProveedor.valorAprobado}">
+													<p:inputText styleClass="input-text" id="txtValor" value="#{_detalleOrdenPagoProveedor.valorAprobado}">
+														<f:validateBean />
+														<p:ajax process="@this"
+															update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+															listener="#{aprobarOrdenPagoProveedorBean.calculoTotales}" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText value="#{_detalleOrdenPagoProveedor.descripcion}" styleClass="input-text">
+														<p:ajax process="@this" global="false" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell">
+													<f:facet name="header">
+														<p:commandLink id="btnPagarGlobal" process="@this" global="false" title="#{msgs.lbl_pagar}"
+															update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+															action="#{aprobarOrdenPagoProveedorBean.cargarValorCuotaGlobal}">
+															<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+														</p:commandLink>
+														<p:commandLink id="btnLimpiarGlobal" process="@this" global="false" title="#{msgs.lbl_limpiar}"
+															update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+															action="#{aprobarOrdenPagoProveedorBean.limpiarValorCuotaGlobal}">
+															<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														</p:commandLink>
+													</f:facet>
+
+													<center>
+														<p:commandLink id="btnPagar" process="@this" global="false" title="#{msgs.lbl_pagar}"
+															update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+															action="#{aprobarOrdenPagoProveedorBean.cargarValorCuota}" rendered="#{!_detalleOrdenPagoProveedor.indicadorAprobacionManual}">
+															<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+														</p:commandLink>
+														<p:commandLink id="btnLimpiar" process="@this" global="false" title="#{msgs.lbl_limpiar}"
+															update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+															action="#{aprobarOrdenPagoProveedorBean.limpiarValorCuota}">
+															<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														</p:commandLink>
+													</center>
+												</p:column>
+												<p:columnGroup type="footer">
+													<p:row>
+														<p:column colspan="12" footerText="#{msgs.lbl_valor_solicitado_a_liquidar}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.valorPago}">
+																	<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column colspan="2" />
+													</p:row>
+
+													<p:row>
+														<p:column colspan="12" footerText="#{msgs.lbl_valor_aprobado_liquidar}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.valorAprobado}">
+																	<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column colspan="2" />
+													</p:row>
+													<p:row>
+														<p:column colspan="12" footerText="#{msgs.lbl_diferencia}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.valorDiferenciaAprobado}">
+																	<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column colspan="2" />
+													</p:row>
+												</p:columnGroup>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:tab>
+									<p:tab title="#{msgs.lbl_agrupado}">
+										<h:panelGrid columns="1" id="panelDetalleAgrupadoProveedor" style="width:100%">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobarOrdenPagoProveedorBean.listaCategoriaProveedor}"
+												id="tablaDetalleCategoriaProveedor" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_categoria" paginator="true"
+												paginatorPosition="bottom" style="width:100%" rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}"
+												binding="#{aprobarOrdenPagoProveedorBean.dtDetalleCategoriaProveedor}"
+												rowsPerPageTemplate="#{aprobarOrdenPagoProveedorBean.numeroFilasPorPagina}" rowKey="#{_categoria.rowKey}"
+												rowStyleClass="ui-widget-header ui-panel-titlebar" expandedRow="false">
+
+												<p:column styleClass="columnaDTAccion">
+													<f:facet name="header">
+														<p:selectBooleanCheckbox value="#{aprobarOrdenPagoProveedorBean.dtDetalleCategoriaProveedor.expandedRow}">
+															<p:ajax process="@this" global="false" listener="#{aprobarOrdenPagoProveedorBean.dtDetalleCategoriaProveedor.reset()}"
+																update=":form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor" />
+														</p:selectBooleanCheckbox>
+													</f:facet>
+													<p:rowToggler />
+												</p:column>
+
+												<p:column styleClass="columnaDTValorCorto tableCell" headerText="#{msgs.lbl_cantidad}" sortBy="#{_categoria.listaProveedor.size()}">
+													<h:outputText value="#{_categoria.listaProveedor.size()}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_categoria} #{msgs.lbl_proveedor}" filterBy="#{_categoria.nombre}" filterMatchMode="contains">
+													<h:outputText value="#{_categoria.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_solicitado_a_liquidar}"
+													sortBy="#{_categoria.valorSolicitadoPago}">
+													<h:outputText value="#{_categoria.valorSolicitadoPago}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}" sortBy="#{_categoria.valorAprobadoPago}">
+													<h:outputText value="#{_categoria.valorAprobadoPago}" />
+												</p:column>
+
+												<p:rowExpansion>
+													<p:dataTable var="_proveedor" value="#{_categoria.listaProveedor}" binding="#{aprobarOrdenPagoProveedorBean.dtDetalleProveedor}"
+														id="tablaDetalleProveedor" rowIndexVar="secuencialProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+														rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}" rowsPerPageTemplate="#{aprobarOrdenPagoProveedorBean.numeroFilasPorPagina}"
+														filteredValue="#{_categoria.listaProveedorFiltrado}">
+
+														<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+															<h:outputText value="#{secuencialProveedor+1}" />
+														</p:column>
+
+														<p:column styleClass="tableCell" headerText="#{msgs.lbl_proveedor}" filterBy="#{_proveedor.empresa.nombreFiscal}"
+															sortBy="#{_proveedor.empresa.nombreFiscal}" filterMatchMode="contains">
+															<h:outputText value="#{_proveedor.empresa.nombreFiscal}" />
+														</p:column>
+
+														<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_forma_pago}" filterBy="#{_proveedor.formaPago.nombre}"
+															sortBy="#{_proveedor.formaPago.nombre}" filterMatchMode="contains">
+															<h:outputText value="#{_proveedor.formaPago.nombre}" />
+														</p:column>
+
+														<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_cash}" sortBy="#{_proveedor.indicadorPagoCash}">
+															<center>
+																<p:selectBooleanCheckbox value="#{_proveedor.indicadorPagoCash}" disabled="true" />
+															</center>
+														</p:column>
+
+														<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_solicitado_a_liquidar}"
+															sortBy="#{_proveedor.valorSolicitadoPago}">
+															<h:outputText value="#{_proveedor.valorSolicitadoPago}" />
+														</p:column>
+
+														<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}"
+															sortBy="#{_proveedor.valorAprobadoPago}">
+															<h:outputText value="#{_proveedor.valorAprobadoPago}" />
+														</p:column>
+
+														<p:column styleClass="columnaDTActivo tableCell">
+															<f:facet name="header">
+																<p:commandLink id="btnPagarGlobalProveedor" process="@this" global="false" title="#{msgs.lbl_pagar}"
+																	update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+																	action="#{aprobarOrdenPagoProveedorBean.cargarValorCuotaGlobalProveedor(_categoria)}">
+																	<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+																</p:commandLink>
+																<p:commandLink id="btnLimpiarGlobalProveedor" process="@this" global="false" title="#{msgs.lbl_limpiar}"
+																	update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+																	action="#{aprobarOrdenPagoProveedorBean.limpiarValorCuotaGlobalProveedor(_categoria)}">
+																	<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+																</p:commandLink>
+															</f:facet>
+															<center>
+																<p:commandLink id="btnPagarProveedor" process="@this" global="false" title="#{msgs.lbl_pagar}"
+																	update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+																	action="#{aprobarOrdenPagoProveedorBean.cargarValorCuotaProveedor}">
+																	<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+																</p:commandLink>
+																<p:commandLink id="btnLimpiarProveedor" process="@this" global="false" title="#{msgs.lbl_limpiar}"
+																	update=":form:tvDetalleFacturaProveedor:panelDetalleCuentaPorPagar :form:tvDetalleFacturaProveedor:panelDetalleAgrupadoProveedor"
+																	action="#{aprobarOrdenPagoProveedorBean.limpiarValorCuotaProveedor}">
+																	<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+																</p:commandLink>
+															</center>
+														</p:column>
+
+														<p:columnGroup type="footer">
+															<p:row>
+																<p:column colspan="4" footerText="#{msgs.lbl_valor_solicitado_a_liquidar}" style="text-align:right" />
+																<p:column style="text-align:right" colspan="3">
+																	<f:facet name="footer">
+																		<h:outputText value="#{_categoria.valorSolicitadoPago}">
+																			<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																		</h:outputText>
+																	</f:facet>
+																</p:column>
+															</p:row>
+
+															<p:row>
+																<p:column colspan="4" footerText="#{msgs.lbl_valor_aprobado_liquidar}" style="text-align:right" />
+																<p:column style="text-align:right" colspan="3">
+																	<f:facet name="footer">
+																		<h:outputText value="#{_categoria.valorAprobadoPago}">
+																			<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																		</h:outputText>
+																	</f:facet>
+																</p:column>
+															</p:row>
+															<p:row>
+																<p:column colspan="4" footerText="#{msgs.lbl_diferencia}" style="text-align:right" />
+																<p:column style="text-align:right" colspan="3">
+																	<f:facet name="footer">
+																		<h:outputText value="#{_categoria.diferenciaAprobado}">
+																			<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																		</h:outputText>
+																	</f:facet>
+																</p:column>
+															</p:row>
+														</p:columnGroup>
+
+													</p:dataTable>
+												</p:rowExpansion>
+
+												<p:columnGroup type="footer">
+													<p:row>
+														<p:column colspan="3" footerText="#{msgs.lbl_valor_solicitado_a_liquidar}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.valorPago}">
+																	<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+													<p:row>
+														<p:column colspan="3" footerText="#{msgs.lbl_valor_aprobado_liquidar}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.valorAprobado}">
+																	<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+													<p:row>
+														<p:column colspan="3" footerText="#{msgs.lbl_diferencia}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.valorDiferenciaAprobado}">
+																	<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+												</p:columnGroup>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:tab>
+									<p:tab title="#{msgs.lbl_facturas_aprobadas}">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_actualizar}" actionListener="#{aprobarOrdenPagoProveedorBean.cargarDetallesAprobados}"
+												update=":form:tvDetalleFacturaProveedor:tablaDetallesAprobados" process="@this" icon="ui-icon-arrowrefresh-1-e" />
+										</h:panelGroup>
+										<h:panelGrid columns="1" id="panelDetallesAprobadas" style="width:100%">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{aprobarOrdenPagoProveedorBean.listaDetalleOrdenPagoProveedorAprobadas}" id="tablaDetallesAprobados" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleOrdenPagoProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}" rowsPerPageTemplate="#{aprobarOrdenPagoProveedorBean.numeroFilasPorPagina}"
+												rowKey="#{_detalleOrdenPagoProveedor.rowKey}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_categoria} #{msgs.lbl_proveedor}"
+													filterBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.categoriaEmpresa.nombre}" filterMatchMode="contains"
+													sortBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.categoriaEmpresa.nombre}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.proveedor.empresa.categoriaEmpresa.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_proveedor}"
+													filterBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.nombreFiscal}"
+													sortBy="#{_detalleOrdenPagoProveedor.proveedor.empresa.nombreFiscal}" filterMatchMode="contains">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.proveedor.empresa.nombreFiscal}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_forma_pago}"
+													filterBy="#{_detalleOrdenPagoProveedor.proveedor.formaPago.nombre}" sortBy="#{_detalleOrdenPagoProveedor.proveedor.formaPago.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.proveedor.formaPago.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_cash}"
+													sortBy="#{_detalleOrdenPagoProveedor.proveedor.indicadorPagoCash}">
+													<center>
+														<p:selectBooleanCheckbox value="#{_detalleOrdenPagoProveedor.proveedor.indicadorPagoCash}" disabled="true" />
+													</center>
+												</p:column>
+
+												<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_numero}"
+													filterBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}" filterMatchMode="contains">
+													<h:link rendered="#{not empty _detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor}" target="_blank"
+														outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true"
+														value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}">
+														<f:param name="numero" value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}" />
+													</h:link>
+												</p:column>
+
+												<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_pago_numero_factura}"
+													filterBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" filterMatchMode="contains">
+													<h:outputText rendered="#{not empty _detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor}"
+														value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_emision_factura}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.fecha}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.fecha}">
+														<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.fechaVencimiento}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.fechaVencimiento}">
+														<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_dias_vencidos}" sortBy="#{_detalleOrdenPagoProveedor.diasVencidos}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.diasVencidos}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_numero_cuota}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.numeroCuota}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_pendiente}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.saldo}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.saldo}">
+														<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}"
+													sortBy="#{_detalleOrdenPagoProveedor.valor}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.valor}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.descripcion}" />
+												</p:column>
+
+												<!-- <p:columnGroup type="footer">
+													<p:row>
+														<p:column colspan="11" footerText="#{msgs.lbl_pago_valor_pendiente}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{ordenPagoProveedorBean.ordenPagoProveedor.valorPendiente}">
+																	<f:convertNumber pattern="#{ordenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column colspan="2" />
+													</p:row>
+
+													<p:row>
+														<p:column colspan="11" footerText="#{msgs.lbl_pago_valor_factura_a_liquidar}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{ordenPagoProveedorBean.ordenPagoProveedor.valorPago}">
+																	<f:convertNumber pattern="#{ordenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column colspan="2" />
+													</p:row>
+													<p:row>
+														<p:column colspan="11" footerText="#{msgs.lbl_diferencia}" style="text-align:right" />
+														<p:column style="text-align:right" colspan="2">
+															<f:facet name="footer">
+																<h:outputText value="#{ordenPagoProveedorBean.ordenPagoProveedor.valorDiferencia}">
+																	<f:convertNumber pattern="#{ordenPagoProveedorBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column colspan="2" />
+													</p:row>
+												</p:columnGroup> -->
+											</p:dataTable>
+										</h:panelGrid>
+									</p:tab>
+								</p:tabView>
+							</p:outputPanel>
+
+							<!-- FIN DETALLE PAGO CASH -->
+
+
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<!-- inicio dialogo cerrar OrdenPagoProveedor -->
+					<p:dialog header="#{msgs.lbl_cerrar} #{msgs.lbl_orden_pago_proveedor}" id="dlgCerrarOrdenPagoProveedor" widgetVar="dlgCerrarOrdenPagoProveedor"
+						height="30" width="400" closable="true">
+						<h:outputText value="#{msgs.lbl_mensaje_cerrar_orden_pago_proveedor}" />
+						<f:facet name="footer">
+							<center>
+								<p:commandButton process="@this" value="#{msgs.lbl_cerrar}" update=":form:panelListado"
+									actionListener="#{aprobarOrdenPagoProveedorBean.cerrarOrdenPagoProveedor}" oncomplete="PF('dlgCerrarOrdenPagoProveedor').hide();">
+								</p:commandButton>
+								<p:commandButton value="#{msgs.btn_cancelar}" process="@this" update="@none" oncomplete="PF('dlgCerrarOrdenPagoProveedor').hide();" />
+							</center>
+						</f:facet>
+					</p:dialog>
+					<!-- fin dialogo cerrar OrdenPagoProveedor -->
+					<!-- inicio dialogo Aprobar OrdenPagoProveedor -->
+					<p:dialog header="#{msgs.lbl_aprobar}" id="dlgAprobarOrdenPagoProveedor" widgetVar="dlgAprobarOrdenPagoProveedor" height="auto" width="1200"
+						closable="true">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<p:outputLabel value="#{msgs.lbl_orden_pago_proveedor}:" />
+							<p:outputLabel value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.numero}" />
+						</h:panelGrid>
+						<p:spacer />
+						<center>
+							<p:commandButton process="@this" value="#{msgs.lbl_aprobar}" update=":form:panelListado"
+								actionListener="#{aprobarOrdenPagoProveedorBean.aprobarOrdenPagoProveedor}" oncomplete="PF('dlgAprobarOrdenPagoProveedor').hide();">
+							</p:commandButton>
+							<p:commandButton value="#{msgs.btn_cancelar}" process="@this" update="@none" oncomplete="PF('dlgAprobarOrdenPagoProveedor').hide();" />
+						</center>
+						<p:spacer />
+						<p:panel header="#{msgs.lbl_detalle}">
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetallesAprobar" rowIndexVar="secuencialD"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobarOrdenPagoProveedorBean.listaDetalleOrdenPagoAprobar}" var="_detalleOrden"
+								paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}"
+								rowsPerPageTemplate="#{aprobarOrdenPagoProveedorBean.numeroFilasPorPagina}" sortBy="#{_detalleOrden.id}" sortOrder="ASCENDING">
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencialD+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_numero}" filterMatchMode="contains"
+									sortBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}" filterBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}">
+									<h:link rendered="#{not empty _detalleOrden.cuentaPorPagar.facturaProveedor}" target="_blank"
+										outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true"
+										value="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}">
+										<f:param name="numero" value="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}" />
+									</h:link>
+								</p:column>
+
+								<p:column styleClass="columnaDTNumeroFactura tableCell" sortBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+									filterBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_factura}" />
+									</f:facet>
+									<h:outputText rendered="#{not empty _detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI}"
+										value="#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_proveedor}">
+									<h:outputText
+										value="#{_detalleOrden.proveedor!=null?_detalleOrden.proveedor.empresa.nombreComercial:_detalleOrden.cuentaPorPagar.facturaProveedor.empresa.nombreComercial}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_cash}" sortBy="#{_detalleOrden.proveedor.indicadorPagoCash}">
+									<center>
+										<p:selectBooleanCheckbox value="#{_detalleOrden.proveedor.indicadorPagoCash}" disabled="true" />
+									</center>
+								</p:column>
+
+								<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleOrden.cuentaPorPagar.fechaVencimiento}"
+									headerText="#{msgs.lbl_fecha_vencimiento}">
+									<h:outputText value="#{_detalleOrden.cuentaPorPagar.fechaVencimiento}">
+										<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_valor_solicitado_a_liquidar}">
+									<h:outputText value="#{_detalleOrden.valor}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}">
+									<h:outputText value="#{_detalleOrden.valorAprobado}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_saldo}">
+									<h:outputText value="#{_detalleOrden.cuentaPorPagar.saldo}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+									<h:outputText styleClass="input-text" value="#{_detalleOrden.descripcion}" />
+								</p:column>
+
+							</p:dataTable>
+						</p:panel>
+					</p:dialog>
+					<!-- fin dialogo Aprobar OrdenPagoProveedor -->
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_orden_pago_proveedor} )" rendered="#{!aprobarOrdenPagoProveedorBean.editado}">
+						<h:panelGrid id="panelFiltro" columns="#{aprobarOrdenPagoProveedorBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_factura}:" />
+							<p:inputText value="#{aprobarOrdenPagoProveedorBean.numeroFiltro}">
+								<p:ajax process="@this" update=":form:panelListado" global="true" event="change" />
+								<f:validateBean />
+							</p:inputText>
+							<p:spacer />
+							<p:spacer />
+						</h:panelGrid>
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOrdenPagoProveedor" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobarOrdenPagoProveedorBean.listaOrdenPagoProveedor}" var="_ordenPagoProveedor"
+							binding="#{aprobarOrdenPagoProveedorBean.dtOrdenPagoProveedor}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}" rowsPerPageTemplate="#{aprobarOrdenPagoProveedorBean.numeroFilasPorPagina}"
+							selection="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor}" selectionMode="single" rowKey="#{_ordenPagoProveedor.idOrdenPagoProveedor}"
+							lazy="true" sortBy="#{_ordenPagoProveedor.numero}" sortOrder="DESCENDING">
+
+							<p:ajax process="@this" partialSubmit="true" global="true" event="rowToggle" listener="#{aprobarOrdenPagoProveedorBean.cargarDetalleOrdenPago}"
+								update=":form:tablaOrdenPagoProveedor:listaDetalleOrdenPago" />
+
+							<p:column style="width:16px">
+								<p:rowToggler />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_ordenPagoProveedor.numero}" filterBy="#{_ordenPagoProveedor.numero}"
+								headerText="#{msgs.lbl_numero}">
+								<h:outputText value="#{_ordenPagoProveedor.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_documento}" sortBy="#{_ordenPagoProveedor.documento.nombre}"
+								filterBy="#{_ordenPagoProveedor.documento.nombre}">
+								<h:outputText value="#{_ordenPagoProveedor.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_ordenPagoProveedor.fechaCorte}" headerText="#{msgs.lbl_fecha_corte}">
+								<h:outputText value="#{_ordenPagoProveedor.fechaCorte}">
+									<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_solicitado_a_liquidar}">
+								<h:outputText value="#{_ordenPagoProveedor.valorPago}">
+									<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}">
+								<h:outputText value="#{_ordenPagoProveedor.valorAprobado}">
+									<f:convertNumber pattern="#{aprobarOrdenPagoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_ordenPagoProveedor.estado}" filterBy="#{_ordenPagoProveedor.estado}"
+								filterOptions="#{aprobarOrdenPagoProveedorBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ordenPagoProveedor.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_ordenPagoProveedor.descripcion}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_ordenPagoProveedor.usuarioRevisor}"
+								filterBy="#{_ordenPagoProveedor.usuarioRevisor}" headerText="#{msgs.lbl_usuario_revisor}">
+								<h:outputText value="#{_ordenPagoProveedor.usuarioRevisor}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_ordenPagoProveedor.fechaRevision}" headerText="#{msgs.lbl_fecha_revision}">
+								<h:outputText value="#{_ordenPagoProveedor.fechaRevision}">
+									<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_ordenPagoProveedor.usuarioCierre}"
+								filterBy="#{_ordenPagoProveedor.usuarioCierre}" headerText="#{msgs.lbl_usuario_cierre}">
+								<h:outputText value="#{_ordenPagoProveedor.usuarioCierre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_ordenPagoProveedor.fechaCierre}" headerText="#{msgs.lbl_fecha_cierre}">
+								<h:outputText value="#{_ordenPagoProveedor.fechaCierre}">
+									<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton process="@this" update=":form:dlgAprobarOrdenPagoProveedor" title="#{msgs.lbl_aprobar}"
+									oncomplete="dlgAprobarOrdenPagoProveedor.show();" icon="ui-icon-check" disabled="#{_ordenPagoProveedor.estado=='CERRADO'}"
+									action="#{aprobarOrdenPagoProveedorBean.seleccionarOrdenPagoProveedor}" global="true">
+									<f:setPropertyActionListener target="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor}" value="#{_ordenPagoProveedor}"></f:setPropertyActionListener>
+								</p:commandButton>
+							</p:column>
+
+							<!-- <p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton process="@this" title="#{msgs.lbl_cerrar}" oncomplete="dlgCerrarOrdenPagoProveedor.show();" icon="ui-icon-close"
+									disabled="#{_ordenPagoProveedor.estado=='APROBADO' or _ordenPagoProveedor.estado=='CERRADO'}">
+									<f:setPropertyActionListener target="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor}" value="#{_ordenPagoProveedor}"></f:setPropertyActionListener>
+								</p:commandButton>
+							</p:column> -->
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor}" value="#{_ordenPagoProveedor}"
+									bean="#{aprobarOrdenPagoProveedorBean}" formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado"
+									visible="#{_ordenPagoProveedor.pdf!=null}" />
+
+							</p:column>
+
+							<p:rowExpansion>
+
+								<p:outputPanel id="listaDetalleOrdenPago">
+
+									<p:panel header="#{msgs.lbl_detalle}">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetallesSolicitudCompra" rowIndexVar="secuencialD"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobarOrdenPagoProveedorBean.listaDetalleOrdenPagoSeleccionado}" var="_detalleOrden"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{aprobarOrdenPagoProveedorBean.numeroFilas}"
+											sortBy="#{_detalleOrden.id}" sortOrder="ASCENDING">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencialD+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_numero}" filterMatchMode="contains"
+												sortBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}" filterBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}">
+												<h:link rendered="#{not empty _detalleOrden.cuentaPorPagar.facturaProveedor}" target="_blank"
+													outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true"
+													value="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}">
+													<f:param name="numero" value="#{_detalleOrden.cuentaPorPagar.facturaProveedor.numero}" />
+												</h:link>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroFactura tableCell"
+												sortBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+												filterBy="#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_factura}" />
+												</f:facet>
+												<h:outputText rendered="#{not empty _detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI}"
+													value="#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_detalleOrden.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_proveedor}">
+												<h:outputText
+													value="#{_detalleOrden.proveedor!=null?_detalleOrden.proveedor.empresa.nombreComercial:_detalleOrden.cuentaPorPagar.facturaProveedor.empresa.nombreComercial}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_cash}" sortBy="#{_detalleOrden.proveedor.indicadorPagoCash}">
+												<center>
+													<p:selectBooleanCheckbox value="#{_detalleOrden.proveedor.indicadorPagoCash}" disabled="true" />
+												</center>
+											</p:column>
+
+											<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleOrden.cuentaPorPagar.fechaVencimiento}"
+												headerText="#{msgs.lbl_fecha_vencimiento}">
+												<h:outputText value="#{_detalleOrden.cuentaPorPagar.fechaVencimiento}">
+													<f:convertDateTime pattern="#{aprobarOrdenPagoProveedorBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_valor_solicitado_a_liquidar}">
+												<h:outputText value="#{_detalleOrden.valor}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}">
+												<h:outputText value="#{_detalleOrden.valorAprobado}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_saldo}">
+												<h:outputText value="#{_detalleOrden.cuentaPorPagar.saldo}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_descripcion}">
+												<h:outputText styleClass="input-text" value="#{_detalleOrden.descripcion}" />
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+
+							</p:rowExpansion>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{aprobarOrdenPagoProveedorBean.ordenPagoProveedor.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

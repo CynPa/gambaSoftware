@@ -1,0 +1,867 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<as2:toolBar bean="#{cuentaBancariaOrganizacionBean}">
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{cuentaBancariaOrganizacionBean}" />
+					<ui:param name="objetoActualizar" value=":form:tabView:txtProducto" />
+					<ui:param name="mostrarCantidad" value="false" />
+				</ui:include>
+
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{cuentaBancariaOrganizacionBean.exContabilizacion.mensajes}" var="_mensaje"
+							rowIndexVar="secuencial" lazy="true">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+
+				<!-- Inicio Dialog Detalle Movimiento Bancario  -->
+				<p:dialog header="#{msgs.lbl_titulo_movimiento_bancario}" widgetVar="movimientoBancarioDialog" id="movimientoBancarioDialog" modal="true"
+					height="300" width="950" showEffect="slide" hideEffect="slide">
+
+					<div style="float: left; width: 100%">
+
+						<p:panel header="#{msgs.lbl_panel_edicion}">
+							<p:outputPanel id="panelMovimientoBancario">
+
+								<h:panelGrid id="panelGridMovimientoBancario" columns="#{cuentaBancariaOrganizacionBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_tipo}" />
+									<p:selectOneMenu style="width: 100%;" id="cboDocumento" value="#{cuentaBancariaOrganizacionBean.movimientoBancario.documento.idDocumento}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaDocumentos}" var="_documento" itemLabel="#{_documento.nombre}"
+											itemValue="#{_documento.idDocumento}" />
+										<f:validateBean />
+										<p:ajax listener="#{cuentaBancariaOrganizacionBean.actualizarConseptoContable}" process="@this autoCompleteConceptocontable" event="change"
+											update="autoCompleteConceptocontable txtValorCobrado" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_concepto_contable}" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCompleteConceptocontable"
+										disabled="#{cuentaBancariaOrganizacionBean.indicador}" value="#{cuentaBancariaOrganizacionBean.movimientoBancario.conceptoContable}"
+										completeMethod="#{cuentaBancariaOrganizacionBean.conceptoContableBean.autocompletarConceptoContable}" var="_conceptoContable"
+										itemLabel="#{_conceptoContable.nombre}" itemValue="#{_conceptoContable}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+										<p:column>#{_conceptoContable.codigo}</p:column>
+										<p:column>#{_conceptoContable.nombre}</p:column>
+									</p:autoComplete>
+
+									<h:outputText value="#{msgs.lbl_documento_referencia}:" />
+									<p:inputText styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.movimientoBancario.documentoReferencia}"
+										id="txtDocumentoReferencia">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{cuentaBancariaOrganizacionBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{cuentaBancariaOrganizacionBean.movimientoBancario.fecha}" id="calFecha" required="true" />
+
+									<h:outputText value="#{msgs.lbl_valor_pagado}:" />
+									<p:inputText styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.movimientoBancario.valorPagado}" id="txtValorPagado"
+										readonly="#{cuentaBancariaOrganizacionBean.movimientoBancario.valorCobrado>0}">
+										<p:ajax update="txtValorPagado txtValorCobrado" process="@this" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_valor_cobrado}:" />
+									<p:inputText styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.movimientoBancario.valorCobrado}" id="txtValorCobrado"
+										disabled="#{cuentaBancariaOrganizacionBean.indicador}" readonly="#{cuentaBancariaOrganizacionBean.movimientoBancario.valorPagado>0}">
+										<p:ajax update="txtValorPagado txtValorCobrado" process="@this" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_beneficiario}:" />
+									<p:inputText styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.movimientoBancario.beneficiario}" id="txtBeneficiario">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_forma_pago}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true"
+										value="#{cuentaBancariaOrganizacionBean.movimientoBancario.formaPago}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{cuentaBancariaOrganizacionBean.movimientoBancario.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+											itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.movimientoBancario.descripcion}"
+										id="txtDescripcionMovimientoBancario">
+									</p:inputTextarea>
+
+								</h:panelGrid>
+
+							</p:outputPanel>
+						</p:panel>
+					</div>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_guardar}" action="#{cuentaBancariaOrganizacionBean.guardarMovimientoBancario}"
+								process="@this, panelMovimientoBancario" oncomplete="movimientoBancarioDialog.hide()" update=":form:tabView:panelTransacciones"
+								icon="ui-icon-plus" />
+						</center>
+					</f:facet>
+
+				</p:dialog>
+				<!-- Fin Dialog Detalle Movimiento Bancario  -->
+
+
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200" modal="true" showEffect="explode" hideEffect="explode" severity="alert"
+					widgetVar="confirmacionEliminar">
+
+					<p:commandButton value="#{msgs.confirmacion_si}" process="@this" actionListener="#{cuentaBancariaOrganizacionBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200" modal="true" showEffect="explode" hideEffect="explode" severity="alert"
+					widgetVar="confirmacionAnular">
+
+					<p:commandButton value="#{msgs.confirmacion_si}" update=":form:tabView:panelTransacciones" process="@this"
+						actionListener="#{cuentaBancariaOrganizacionBean.anularMovimientoBancario}" oncomplete="confirmacionAnular.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionAnular.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{cuentaBancariaOrganizacionBean.editado}" header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_cuenta_bancaria} )">
+
+						<h:panelGrid>
+							<h:panelGrid id="panelDetalle" columns="#{cuentaBancariaOrganizacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboTipoCuentaBancaria" value="#{msgs.lbl_tipo_cuenta_bancaria}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboTipoCuentaBancaria"
+									value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaBancaria.tipoCuentaBancaria.idTipoCuentaBancaria}" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaTipoCuentaBancaria}" var="_tipoCuentaBancaria"
+										itemLabel="#{_tipoCuentaBancaria.nombre}" itemValue="#{_tipoCuentaBancaria.idTipoCuentaBancaria}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboTipoCuentaBancariaOrganizacion" value="#{msgs.lbl_cuenta_bancaria_organizacion_tipo}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboTipoCuentaBancariaOrganizacion"
+									value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.tipoCuentaBancariaOrganizacion}" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaTipoCuentaBancariaOrganizacion}" />
+									<p:ajax process="@this" global="@false" partialSubmit="true" update=":form:tabView:btnAgregarBancoAcreedor" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboPais" value="#{msgs.lbl_pais}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboPais"
+									value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaBancaria.pais.idPais}" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaPais}" var="_pais" itemLabel="#{_pais.nombre}" itemValue="#{_pais.idPais}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboBanco" value="#{msgs.lbl_banco}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboBanco"
+									value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaBancaria.banco.idBanco}" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaBancoCombo}" var="_banco" itemLabel="#{_banco.nombre}"
+										itemValue="#{_banco.idBanco}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumeroCuenta" value="#{msgs.lbl_numero_cuenta_bancaria}:" />
+								<p:inputText styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaBancaria.numero}"
+									id="txtNumeroCuenta" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtContacto" value="#{msgs.lbl_cuenta_bancaria_organizacion_contacto}:" />
+								<p:inputText styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaBancaria.contacto}"
+									id="txtContacto" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtTelefonoContacto" value="#{msgs.lbl_cuenta_bancaria_organizacion_telefono_contacto}:" />
+								<p:inputText styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaBancaria.telefonoContacto}"
+									id="txtTelefonoContacto" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtReporte" value="#{msgs.lbl_reporte}:" />
+								<p:inputText value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.reporte}" id="txtReporte" styleClass="input-text"
+									required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_protesto}:" />
+								<p:inputText value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.valorProtesto}" id="txtValorProtesto" styleClass="input-text">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<h:panelGroup>
+									<p:inputTextarea styleClass="input-text" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.descripcion}" id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+								</h:panelGroup>
+
+								<h:outputText value="Localidad:" />
+								<p:selectOneMenu value="#{cuentaBancariaOrganizacionBean.tipoLocalidad}" required="true">
+									<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaTipooLocalidad}" />
+									<p:ajax process="@this" global="true" partialSubmit="true" listener="#{cuentaBancariaOrganizacionBean.cargarLocalidad}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_motivo}:" />
+								<p:inputMask mask="999" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaBancaria.motivo}" id="txtValorMotivo"
+									styleClass="input-text">
+									<f:validateBean />
+								</p:inputMask>
+
+
+
+								<h:outputText value="#{msgs.lbl_cruce}:" />
+								<h:panelGroup>
+									<p:selectBooleanCheckbox value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.indicadorCruce}">
+										<p:ajax update=":form:tabView:panelCuentaContableCruce" event="change" process="@this"
+											listener="#{cuentaBancariaOrganizacionBean.indicadorCruce}" />
+									</p:selectBooleanCheckbox>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_indicadorTrasferenciaInterbancariaPagoRol}:" />
+								<h:panelGroup>
+									<p:selectBooleanCheckbox value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.indicadorTransferenciaInterbancariaPagoRol}" />
+								</h:panelGroup>
+
+								<!-- Por ahora unicamente está habilitado el pago cash interbancario opcional en pago cash empleados 
+									<h:outputText value="#{msgs.lbl_indicadorTrasferenciaInterbancariaPagoProveedor}:" />
+									<h:panelGroup>
+										<p:selectBooleanCheckbox
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.indicadorTransferenciaInterbancariaPagoProveedor}" />
+									</h:panelGroup>
+								-->
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.predeterminado}" />
+								</h:panelGrid>
+
+							</h:panelGrid>
+
+							<p:tabView dynamic="false" cache="true" id="tabView">
+
+
+
+								<!-- Inicio Tab Detalle Movimiento Bancario  -->
+								<p:tab title="#{msgs.lbl_cuenta_bancaria_organizacion_transacciones}"
+									rendered="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion > 0}">
+									<p:outputPanel id="panelTransacciones">
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_movimiento_bancario}" id="btnAgregarMovimientoBancario"
+												action="#{cuentaBancariaOrganizacionBean.crearMovimientoBancario}" update=":form:panelMovimientoBancario" process="@this"
+												oncomplete="movimientoBancarioDialog.show();" icon="ui-icon-plus" />
+										</h:panelGroup>
+										<br />
+										<p:panel rendered="#{cuentaBancariaOrganizacionBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_titulo_movimiento_bancario}">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{cuentaBancariaOrganizacionBean.listaMovimientoBancario}"
+												id="tablaMovimientoBancario" rowIndexVar="secuencial" binding="#{cuentaBancariaOrganizacionBean.dtMovimientoBancario}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_movimientoBancario" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowsPerPageTemplate="#{cuentaBancariaOrganizacionBean.numeroFilasPorPagina}" rows="#{cuentaBancariaOrganizacionBean.numeroFilas}"
+												rowKey="#{_movimientoBancario.id}" sortBy="#{_movimientoBancario.fecha}" sortOrder="DESCENDING" lazy="true">
+
+												<p:column headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column sortBy="#{_movimientoBancario.documentoReferencia}" filterBy="#{_movimientoBancario.documentoReferencia}">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_documento_referencia}" />
+													</f:facet>
+													<h:outputText value="#{_movimientoBancario.documentoReferencia}" />
+												</p:column>
+
+												<p:column sortBy="#{_movimientoBancario.fecha}">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_fecha}" />
+													</f:facet>
+													<h:outputText value="#{_movimientoBancario.fecha}">
+														<f:convertDateTime pattern="#{cuentaBancariaOrganizacionBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column sortBy="#{_movimientoBancario.documento.nombre}" filterBy="#{_movimientoBancario.documento.nombre}">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_documento}" />
+													</f:facet>
+													<h:outputText value="#{_movimientoBancario.documento.nombre}" />
+												</p:column>
+
+												<p:column sortBy="#{_movimientoBancario.beneficiario}" filterBy="#{_movimientoBancario.beneficiario}">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_beneficiario}" />
+													</f:facet>
+													<h:outputText value="#{_movimientoBancario.beneficiario}" />
+												</p:column>
+
+												<p:column styleClass="input-text-number">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_pagado}" />
+													</f:facet>
+													<h:outputText rendered="#{_movimientoBancario.valorPagado>0}" value="#{_movimientoBancario.valorPagado}">
+														<f:convertNumber pattern="#{cuentaBancariaOrganizacionBean.formatoDinero}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="input-text-number">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_cobrado}" />
+													</f:facet>
+													<h:outputText rendered="#{_movimientoBancario.valorCobrado>0}" value="#{_movimientoBancario.valorCobrado}">
+														<f:convertNumber pattern="#{cuentaBancariaOrganizacionBean.formatoDinero}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column>
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_estado}" />
+													</f:facet>
+													<h:outputText value="#{_movimientoBancario.estado.nombre}" />
+												</p:column>
+
+												<p:column>
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_tipo_asiento}" />
+													</f:facet>
+													<h:outputText value="#{_movimientoBancario.detalleAsiento.asiento.tipoAsiento.nombre}" />
+												</p:column>
+
+												<p:column sortBy="#{_movimientoBancario.detalleAsiento.asiento.numero}" filterBy="#{_movimientoBancario.detalleAsiento.asiento.numero}">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_asiento}" />
+													</f:facet>
+
+													<h:link rendered="#{not empty _movimientoBancario.detalleAsiento}" target="_blank"
+														outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+														value="#{_movimientoBancario.detalleAsiento.asiento.numero}">
+														<f:param name="idAsiento" value="#{_movimientoBancario.detalleAsiento.asiento.idAsiento}" />
+													</h:link>
+
+												</p:column>
+
+												<p:column>
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_editar}" />
+													</f:facet>
+													<p:commandLink action="#{cuentaBancariaOrganizacionBean.editarMovimientoBancario}" title="#{msgs.lbl_editar}" process="@this"
+														oncomplete="movimientoBancarioDialog.show();" update=":form:panelMovimientoBancario" icon="ui-icon-plus"
+														disabled="#{_movimientoBancario.esEditable}">
+														<h:graphicImage library="images" name="edit.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+												</p:column>
+
+												<p:column>
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_anular}" />
+													</f:facet>
+													<p:commandButton action="#{cuentaBancariaOrganizacionBean.recuperarMovimientoSeleccionado}" title="#{msgs.lbl_anular}" process="@this"
+														oncomplete="confirmacionAnular.show();" update=":form:panelMovimientoBancario" icon="ui-icon-trash"
+														disabled="#{_movimientoBancario.esEditable}">
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+										</p:panel>
+									</p:outputPanel>
+
+
+
+								</p:tab>
+								<!-- Fin Tab Detalle Movimiento Bancario  -->
+
+								<!-- Inicio Tab Contabilidad  -->
+								<p:tab title="#{msgs.lbl_contabilidad}">
+
+									<p:outputPanel id="panelContabilidad">
+
+										<h:panelGrid columns="2">
+											<h:panelGrid columns="2" columnClasses="columna40,columna60">
+
+												<h:outputText value="#{msgs.lbl_cuenta_bancaria_organizacion_cuenta_contable}:" />
+												<h:panelGroup>
+													<!--<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update="panelListaCuentaContable"
+														action="#{cuentaBancariaOrganizacionBean.actualizarCuentaContableBanco}">
+													</p:commandButton>  -->
+
+													<p:commandButton value="..." actionListener="#{cuentaBancariaOrganizacionBean.listaCuentaContableBean.listarCuentaContable}"
+														process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{cuentaBancariaOrganizacionBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+														<f:setPropertyActionListener target="#{cuentaBancariaOrganizacionBean.cuentaContableEditada}" value="CUENTA_CONTABLE_BANCO" />
+													</p:commandButton>
+
+													<as2:outputTextCuentaContable cuentaContable="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaContableBanco}" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_cuenta_bancaria_organizacion_cuenta_contable_gastos_bancarios}:" />
+												<h:panelGroup>
+													<p:commandButton value="..." actionListener="#{cuentaBancariaOrganizacionBean.listaCuentaContableBean.listarCuentaContable}"
+														process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{cuentaBancariaOrganizacionBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+														<f:setPropertyActionListener target="#{cuentaBancariaOrganizacionBean.cuentaContableEditada}" value="CUENTA_CONTABLE_GASTO_BANCARIO" />
+													</p:commandButton>
+													<as2:outputTextCuentaContable cuentaContable="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaContableGastosBancarios}" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_gastos_protesto}:" />
+												<h:panelGroup>
+													<p:commandButton value="..." actionListener="#{cuentaBancariaOrganizacionBean.listaCuentaContableBean.listarCuentaContable}"
+														process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{cuentaBancariaOrganizacionBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+														<f:setPropertyActionListener target="#{cuentaBancariaOrganizacionBean.cuentaContableEditada}" value="CUENTA_CONTABLE_GASTO_PROTESTO" />
+													</p:commandButton>
+													<as2:outputTextCuentaContable cuentaContable="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaContableGastosProtesto}" />
+												</h:panelGroup>
+
+												<h:outputText value="Cuenta Contable (Bancos Pago Cash)" />
+												<h:panelGroup>
+
+													<p:commandButton value="..." actionListener="#{cuentaBancariaOrganizacionBean.listaCuentaContableBean.listarCuentaContable}"
+														process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{cuentaBancariaOrganizacionBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+														<f:setPropertyActionListener target="#{cuentaBancariaOrganizacionBean.cuentaContableEditada}" value="CUENTA_CONTABLE_BANCO_PAGO_CASH" />
+													</p:commandButton>
+
+													<as2:outputTextCuentaContable cuentaContable="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaContableBancoPagoCash}" />
+												</h:panelGroup>
+
+											</h:panelGrid>
+
+											<h:panelGrid columns="2" columnClasses="columna40,columna60">
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_diferecnias}:" />
+												<h:panelGroup>
+													<p:commandButton value="..." actionListener="#{cuentaBancariaOrganizacionBean.listaCuentaContableBean.listarCuentaContable}"
+														process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{cuentaBancariaOrganizacionBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+														<f:setPropertyActionListener target="#{cuentaBancariaOrganizacionBean.cuentaContableEditada}" value="CUENTA_CONTABLE_DIFERENCIAS" />
+													</p:commandButton>
+													<as2:outputTextCuentaContable cuentaContable="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaContableDiferencias}" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_transitoria}:" />
+												<h:panelGroup>
+													<p:commandButton value="..." actionListener="#{cuentaBancariaOrganizacionBean.listaCuentaContableBean.listarCuentaContable}"
+														process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{cuentaBancariaOrganizacionBean.cargarCuentaContable}" update=":form:tabView:panelContabilidad" />
+														<f:setPropertyActionListener target="#{cuentaBancariaOrganizacionBean.cuentaContableEditada}" value="CUENTA_CONTABLE_TRANSITORIA" />
+													</p:commandButton>
+													<as2:outputTextCuentaContable cuentaContable="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaContableTransitoria}" />
+												</h:panelGroup>
+
+												<p:spacer />
+												<p:spacer />
+												<p:spacer />
+												<p:spacer />
+											</h:panelGrid>
+
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+								<!-- Fin Tab Contabilidad  -->
+
+								<!-- Inicio Tab Forma Pago -->
+								<p:tab title="#{msgs.lbl_forma_pago}" id="tabFormaPago">
+
+									<h:panelGrid columns="1">
+
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarFormaPagoCuenta"
+											action="#{cuentaBancariaOrganizacionBean.agregarFormaPagoCuenta}" process="@this,:form:tabView:panelFormaPago"
+											update=":form:tabView:panelFormaPago" icon="ui-icon-plus" />
+
+										<p:outputPanel id="panelFormaPago">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{cuentaBancariaOrganizacionBean.listaFormaPagoCuenta}"
+												id="tablaFormaPago" rowIndexVar="secuencial" binding="#{cuentaBancariaOrganizacionBean.dtFormaPagoCuenta}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_formaPagoCuenta" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowsPerPageTemplate="#{cuentaBancariaOrganizacionBean.numeroFilasPorPagina}" rows="#{cuentaBancariaOrganizacionBean.numeroFilas}"
+												rowKey="#{_formaPagoCuenta.id}" lazy="true">
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_forma_pago}">
+													<p:selectOneMenu value="#{_formaPagoCuenta.formaPago}" id="cboFormaPago" required="true">
+
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaFormaPago}" var="_formaPago" itemLabel="#{_formaPago.nombre}"
+															itemValue="#{_formaPago}" />
+														<p:ajax process="@this"></p:ajax>
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_secuencia}">
+													<p:selectOneMenu value="#{_formaPagoCuenta.secuencia}" id="cboSecuencia">
+
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaSecuencia}" var="_secuencia" itemLabel="#{_secuencia.nombre}"
+															itemValue="#{_secuencia}" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_indicador_debito_bancario}">
+													<p:selectBooleanCheckbox value="#{_formaPagoCuenta.indicadorDebitoBancario}" id="chkIndicadorDebitoBancario" />
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_empresa_indicador_cliente}">
+													<p:selectBooleanCheckbox value="#{_formaPagoCuenta.indicadorCliente}">
+														<p:ajax process="@this" global="false" />
+													</p:selectBooleanCheckbox>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_empresa_indicador_proveedor}">
+													<p:selectBooleanCheckbox value="#{_formaPagoCuenta.indicadorProveedor}">
+														<p:ajax process="@this" global="false" />
+													</p:selectBooleanCheckbox>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarFormaPagoCuenta" action="#{cuentaBancariaOrganizacionBean.eliminarFormaPagoCuenta}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabView:panelFormaPago" process="@this" />
+												</p:column>
+											</p:dataTable>
+										</p:outputPanel>
+
+									</h:panelGrid>
+
+								</p:tab>
+
+								<!-- Fin Tab Forma Pago -->
+
+								<!-- Inicio Tab Tarjeta de credito  -->
+								<p:tab title="#{msgs.lbl_tarjeta_credito}">
+									<p:outputPanel id="panelTarjetaCredito">
+
+										<h:panelGrid columns="2">
+											<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+
+												<h:outputText value="#{msgs.lbl_proveedor}:" />
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+													value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.empresa}"
+													completeMethod="#{cuentaBancariaOrganizacionBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+													itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" id="autProveedor">
+
+													<p:column>#{_proveedor.identificacion}</p:column>
+													<p:column>#{_proveedor.nombreFiscal}</p:column>
+													<p:column>#{_proveedor.nombreComercial}</p:column>
+
+												</p:autoComplete>
+
+												<h:outputText value="#{msgs.lbl_producto}:" />
+												<h:panelGroup>
+													<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+													<p:outputPanel id="txtProducto">
+														<h:outputText
+															value="#{empty cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.producto ? '' : cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.producto.nombre}" />
+
+													</p:outputPanel>
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_retencion}:" />
+												<h:panelGroup>
+													<p:commandButton value="..." actionListener="#{cuentaBancariaOrganizacionBean.listaCuentaContableBean.listarCuentaContable}"
+														process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{cuentaBancariaOrganizacionBean.cargarCuentaContable}"
+															update=":form:tabView:panelTarjetaCredito" />
+														<f:setPropertyActionListener target="#{cuentaBancariaOrganizacionBean.cuentaContableEditada}" value="CUENTA_CONTABLE_RETENCION" />
+													</p:commandButton>
+													<as2:outputTextCuentaContable cuentaContable="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.cuentaContableRetencion}" />
+												</h:panelGroup>
+
+											</h:panelGrid>
+
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+								<!-- Fin Tab Tarjeta Credito -->
+
+								<!-- Inicio Tab Cuentas Contables Cruce  -->
+								<p:tab title="#{msgs.lbl_cuenta_contable_cruce}">
+
+									<p:outputPanel id="panelCuentaContableCruce">
+
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregar"
+											action="#{cuentaBancariaOrganizacionBean.agregarCuentaContableCruceCuentaBancariaOrganizacion}"
+											update=":form:tabView:panelCuentaContableCruce" process="@this"
+											disabled="#{!cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.indicadorCruce}" global="false" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+											value="#{cuentaBancariaOrganizacionBean.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+											id="tablaCuentaContableCruceCuentaBancariaOrganizacion" rowIndexVar="secuencial"
+											binding="#{cuentaBancariaOrganizacionBean.dfCuentaContableCruceCuentaBancariaOrganizacion}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_cuentaContableCruceCuentaBancariaOrganizacion" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowsPerPageTemplate="#{cuentaBancariaOrganizacionBean.numeroFilasPorPagina}" rows="#{cuentaBancariaOrganizacionBean.numeroFilas}"
+											rowKey="#{_cuentaContableCruceCuentaBancariaOrganizacion.id}" lazy="true">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoCuenta tableCell" headerText="#{msgs.lbl_codigo}">
+												<p:inputText styleClass="input-text" value="#{_cuentaContableCruceCuentaBancariaOrganizacion.cuentaContable.codigo}" id="txtCodigoCuenta"
+													required="true">
+													<p:ajax listener="#{cuentaBancariaOrganizacionBean.buscarCuentaContable}" process="@this" update=":form:tabView:panelCuentaContableCruce"
+														event="change" global="false" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_cuenta_contable}">
+												<h:outputText id="txtNombreCuenta" value="#{_cuentaContableCruceCuentaBancariaOrganizacion.cuentaContable.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarCuentaContableCruce" action="#{cuentaBancariaOrganizacionBean.eliminarCuentaContableCruce}"
+													icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tabView:panelCuentaContableCruce" process="@this" />
+											</p:column>
+
+										</p:dataTable>
+
+									</p:outputPanel>
+
+								</p:tab>
+								<!-- Fin Tab Cuentas Contables Cruce  -->
+
+
+
+
+								<!-- Inicio Tab Banco Acreedor -->
+								<p:tab title="Bancos Acreedores" id="tabBancoAcreedor">
+
+									<h:panelGrid columns="1">
+
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarBancoAcreedor"
+											action="#{cuentaBancariaOrganizacionBean.agregarBancoAcreedor}" process="@this,:form:tabView:panelBancoAcreedor"
+											update=":form:tabView:panelBancoAcreedor" icon="ui-icon-plus"
+											disabled="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.tipoCuentaBancariaOrganizacion != 'BANCO'}" />
+
+										<p:outputPanel id="panelBancoAcreedor">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{cuentaBancariaOrganizacionBean.listaBancoAcreedor}"
+												id="tablaBancoAcreedor" rowIndexVar="secuencial" binding="#{cuentaBancariaOrganizacionBean.dtBancoAcreedor}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_bancoAcreedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowsPerPageTemplate="#{cuentaBancariaOrganizacionBean.numeroFilasPorPagina}" rows="#{cuentaBancariaOrganizacionBean.numeroFilas}"
+												rowKey="#{_bancoAcreedor.id}" lazy="true">
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_banco}">
+													<p:selectOneMenu styleClass="input-text" id="cboBancoAcreedor" value="#{_bancoAcreedor.banco}" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{cuentaBancariaOrganizacionBean.listaBancoCombo}" var="_banco" itemLabel="#{_banco.nombre}" itemValue="#{_banco}" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarBancoAcreedor" action="#{cuentaBancariaOrganizacionBean.eliminarBancoAcreedor}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabView:panelBancoAcreedor" process="@this" />
+												</p:column>
+											</p:dataTable>
+										</p:outputPanel>
+
+									</h:panelGrid>
+
+								</p:tab>
+								<!-- Fin Tab Banco Acreedor -->
+
+								<!-- CONFIGURACION CONCILIACION BANCARIA -->
+								<p:tab title="Configuracion Conciliación Bancaria" id="tabConciliacionBancaria">
+									<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+										<p:outputLabel for="txtColumnaOperacion" value="#{msgs.lbl_columna_operacion}" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.columnaOperacion}"
+											id="txtColumnaOperacion">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="txtNemonicoDebito" value="#{msgs.lbl_nemonico_debito}" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.nemonicoDebito}"
+											id="txtNemonicoDebito">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="txtNemonicoCredito" value="#{msgs.lbl_nemonico_credito}" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.nemonicoCredito}"
+											id="txtNemonicoCredito">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="txtColumnaMonto" value="#{msgs.lbl_columna_monto}" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.columnaMonto}" id="txtColumnaMonto">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="txtColumnaFecha" value="#{msgs.lbl_columna_fecha}" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.columnaFecha}" id="txtColumnaFecha">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="txtColumnaFormatoFecha" value="#{msgs.lbl_columna_fecha} (Formato)" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.formatoFecha}"
+											id="txtColumnaFormatoFecha">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="txtColumnaDocumento" value="#{msgs.lbl_columna_documento}" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.columnaDocumento}"
+											id="txtColumnaDocumento">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="txtColumnaFilaInicial" value="#{msgs.lbl_fila_inicial}" />
+										<p:inputText styleClass="input-text100"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.filaInicial}"
+											id="txtColumnaFilaInicial">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+										<p:selectBooleanCheckbox id="ckActivo"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.activo}" />
+
+										<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+										<p:selectBooleanCheckbox id="ckPredeterminado"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.predeterminado}" />
+
+										<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+										<p:inputTextarea id="txtDescripcion" styleClass="input-text"
+											value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.configuracionConciliacionBancaria.descripcion}" rows="1">
+											<f:validateBean />
+										</p:inputTextarea>
+									</h:panelGrid>
+								</p:tab>
+							</p:tabView>
+
+						</h:panelGrid>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!cuentaBancariaOrganizacionBean.editado}" header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_cuenta_bancaria} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCuentaBancariaOrganizacion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cuentaBancariaOrganizacionBean.listaCuentaBancariaOrganizacion}"
+							var="_cuentaBancariaOrganizacion" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{cuentaBancariaOrganizacionBean.dtCuentaBancariaOrganizacion}" rows="#{cuentaBancariaOrganizacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{cuentaBancariaOrganizacionBean.numeroFilasPorPagina}"
+							selection="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion}" selectionMode="single" rowKey="#{_cuentaBancariaOrganizacion.id}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.pais.nombre}"
+								sortBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.pais.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pais}" />
+								</f:facet>
+								<h:outputText value="#{_cuentaBancariaOrganizacion.cuentaBancaria.pais.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.tipoCuentaBancaria.nombre}"
+								sortBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.tipoCuentaBancaria.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_cuenta_bancaria}" />
+								</f:facet>
+								<h:outputText value="#{_cuentaBancariaOrganizacion.cuentaBancaria.tipoCuentaBancaria.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}"
+								sortBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_banco}" />
+								</f:facet>
+								<h:outputText value="#{_cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.numero}"
+								sortBy="#{_cuentaBancariaOrganizacion.cuentaBancaria.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_cuenta_bancaria}" />
+								</f:facet>
+								<h:outputText value="#{_cuentaBancariaOrganizacion.cuentaBancaria.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_cuentaBancariaOrganizacion.tipoCuentaBancariaOrganizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cuenta_bancaria_organizacion_tipo}" />
+								</f:facet>
+								<h:outputText value="#{_cuentaBancariaOrganizacion.tipoCuentaBancariaOrganizacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number columnaDTNombreCorto">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_conciliacion_bancaria}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/conciliacionBancaria" includeViewParams="true"
+									value="#{_cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}">
+
+									<f:param name="idCuentaBancariaOrganizacion" value="#{_cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" />
+								</h:link>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{cuentaBancariaOrganizacionBean.cuentaBancariaOrganizacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

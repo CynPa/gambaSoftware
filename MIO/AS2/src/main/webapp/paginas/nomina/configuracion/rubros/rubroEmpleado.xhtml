@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{rubroEmpleadoBean}">
+					<as2:buttonExportaExcel bean="#{rubroEmpleadoBean}" tabla=":form:tablaEmpleado"/>
+				</as2:toolBar>
+				
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{rubroEmpleadoBean.editado}" header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_rubro_empleado} )">
+						<p:fieldset>
+							<p:fieldset>
+								<h:panelGrid columns="#{rubroEmpleadoBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_empleado}:" />
+									<h:outputText value="#{rubroEmpleadoBean.empleadoSeleccionado.apellidos} #{rubroEmpleadoBean.empleadoSeleccionado.nombres}" />
+
+								</h:panelGrid>
+							</p:fieldset>
+							<h:panelGrid columns="2">
+								<p:outputPanel id="panelListadoRubroEmpleado">
+									<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_rubro}">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRubroEmpleado" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+											value="#{rubroEmpleadoBean.listaRubroEmpleado}" var="_rubroEmpleado" binding="#{rubroEmpleadoBean.dtRubroEmpleado}" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rows="#{rubroEmpleadoBean.numeroFilas}" selection="#{rubroEmpleadoBean.rubroEmpleado}" selectionMode="single"
+											rowKey="#{_rubroEmpleado.idRubroEmpleado}"   rowsPerPageTemplate="#{rubroEmpleadoBean.numeroFilasPorPagina}"  sortBy="#{_rubroEmpleado.rubro.nombre}" sortOrder="ASCENDING" lazy="true">
+
+											<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_rubroEmpleado.rubro.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_valor}">
+												<h:inputText value="#{_rubroEmpleado.valor}" disabled="#{_rubroEmpleado.rubro.tipoRubro.nombre != 'Fijo'}">
+													<p:ajax process="@this" />
+												</h:inputText>
+											</p:column>
+											
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandLink action="#{rubroEmpleadoBean.eliminarRubroEmpleado}" title="#{msgs.lbl_eliminar}"
+													update=":form:panelListadoRubroEmpleado, :form:panelListadoRubro" process="@this, :form:panelListadoRubroEmpleado">
+													<h:graphicImage library="images" name="retirar.png" style="height : 16px; width : 16px;" />
+												</p:commandLink>
+											</p:column>
+
+										</p:dataTable>
+
+									</p:panel>
+								</p:outputPanel>
+								<p:outputPanel id="panelListadoRubro">
+									<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_rubro}">
+
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRubro" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rubroEmpleadoBean.listaRubro}"
+											var="_rubro" binding="#{rubroEmpleadoBean.dtRubro}" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{rubroEmpleadoBean.numeroFilas}"
+											selection="#{rubroEmpleadoBean.rubro}" selectionMode="single" rowKey="#{_rubro.idRubro}" sortBy="#{_rubro.codigo}" sortOrder="ASCENDING"
+											rowsPerPageTemplate="#{empresaBean.numeroFilasPorPagina}" lazy="true" >
+											
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandLink process="@this, :form:panelListadoRubro" title="#{msgs.lbl_asignar_rubro}" update=":form:panelListadoRubroEmpleado, :form:panelListadoRubro"
+													action="#{rubroEmpleadoBean.asignaRubroEmpleado}">
+													<h:graphicImage library="images" name="asignar.png" style="height : 16px; width : 16px;" />
+												</p:commandLink>
+											</p:column>
+											<p:column  styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_rubro.codigo}" />
+											</p:column>
+											<p:column   styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_rubro.nombre}" />
+											</p:column>
+											<p:column  styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_tipo}">
+												<h:outputText value="#{_rubro.tipoRubro.nombre}" />
+											</p:column>
+
+										</p:dataTable>
+
+									</p:panel>
+
+								</p:outputPanel>
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+				
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_empleado} )" rendered="#{!rubroEmpleadoBean.editado}">
+						<p:fieldset>
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpleado" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rubroEmpleadoBean.listaEmpleado}"
+								var="_empleado" binding="#{rubroEmpleadoBean.dtEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{rubroEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{rubroEmpleadoBean.numeroFilasPorPagina}"
+								selection="#{rubroEmpleadoBean.empleadoSeleccionado}" selectionMode="single" rowKey="#{_empleado.idEmpleado}" sortBy="#{_empleado.empresa.codigo}" lazy="true">
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_empleado.empresa.codigo}" filterBy="#{_empleado.empresa.codigo}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_empleado.empresa.codigo}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_empleado.empresa.tipoIdentificacion.nombre}" filterBy="#{_empleado.empresa.tipoIdentificacion.nombre}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}" />
+									</f:facet>
+									<h:outputText value="#{_empleado.empresa.tipoIdentificacion.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_empleado.empresa.identificacion}" filterBy="#{_empleado.empresa.identificacion}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+									</f:facet>
+									<h:outputText value="#{_empleado.empresa.identificacion}" />
+								</p:column>
+
+
+								<p:column styleClass="tableCell" filterBy="#{_empleado.apellidos}" sortBy="#{_empleado.apellidos}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_apellidos}" />
+									</f:facet>
+									<h:outputText value="#{_empleado.apellidos}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" filterBy="#{_empleado.nombres}" sortBy="#{_empleado.nombres}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_empleado.nombres}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTActivo tableCell" filterBy="#{_empleado.activo}" filterOptions="#{rubroEmpleadoBean.listaActivoItem}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_activo}" />
+									</f:facet>
+									<h:selectBooleanCheckbox disabled="true" value="#{_empleado.activo}" />
+								</p:column>
+							</p:dataTable>
+						</p:fieldset>
+					</p:panel>
+					
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{rubroEmpleadoBean.empleadoSeleccionado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{rubroEmpleadoBean.empleadoSeleccionado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{rubroEmpleadoBean.empleadoSeleccionado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{rubroEmpleadoBean.empleadoSeleccionado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+				
+				
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

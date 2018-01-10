@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{recepcionDevolucionClienteBean}" />
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_recepcion_devolucion_cliente_panel}" rendered="#{recepcionDevolucionClienteBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{recepcionDevolucionClienteBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar disabled="true" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.fecha}" />
+
+								<p:outputLabel value="#{msgs.lbl_cliente}:" />
+								<p:inputText styleClass="input-text" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.empresa.nombreFiscal}" disabled="true" />
+
+								<p:outputLabel value="#{msgs.lbl_subcliente}:" />
+								<p:inputText styleClass="input-text" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.subempresa.empresaFinal}" disabled="true" />
+
+								<p:outputLabel value="#{msgs.lbl_titulo_transportista}:" />
+								<p:inputText styleClass="input-text" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.transportista.nombreUsuario}"
+									disabled="true" />
+
+								<p:outputLabel value="#{msgs.lbl_motivo_devolucion}:" />
+								<p:inputText styleClass="input-text" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.motivoNotaCreditoCliente.nombre}"
+									disabled="true" />
+
+								<h:outputText value="#{msgs.lbl_nota} #{msgs.lbl_titulo_transportista}:" />
+								<p:inputTextarea disabled="true" styleClass="input-text" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.notaTransportista}"
+									size="100" />
+
+								<p:outputLabel for="calFechaRecepcion" value="#{msgs.lbl_fecha} #{msgs.lbl_recepcion}:" />
+								<p:calendar id="calFechaRecepcion" pattern="#{recepcionDevolucionClienteBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{recepcionDevolucionClienteBean.preDevolucionCliente.fechaRecepcion}" required="true" />
+
+								<p:outputLabel for="txtNota" value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea id="txtNota" styleClass="input-text" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.nota}" size="100"
+									maxlength="500">
+									<f:validateBean />
+								</p:inputTextarea>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:outputPanel id="panelDetalleDevolucion">
+							<h:panelGrid columns="1" id="panelDetalle" style="width:100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+									value="#{recepcionDevolucionClienteBean.preDevolucionCliente.listaDetallePreDevolucionCliente}" id="tablaDetalleDevolucionCLiente"
+									rowIndexVar="secuencial" binding="#{recepcionDevolucionClienteBean.dtDetallePreDevolucionCliente}" emptyMessage="#{msgs.msg_no_hay_datos}"
+									var="_detalleDevolucion" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{recepcionDevolucionClienteBean.numeroFilas}"
+									rowsPerPageTemplate="#{recepcionDevolucionClienteBean.numeroFilasPorPagina}" rowKey="#{_detalleDevolucion.id}" lazy="true">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="NÂº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_codigo}">
+										<p:inputText value="#{_detalleDevolucion.producto.codigo}" disabled="true" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+										<p:inputText value="#{_detalleDevolucion.producto.nombre}" disabled="true" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTUnidad" headerText="#{msgs.lbl_unidad_producto}">
+										<p:inputText value="#{_detalleDevolucion.unidad.nombre}" disabled="true" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_cantidad}" styleClass="tableCell columnaDTCantidad">
+										<p:inputText value="#{_detalleDevolucion.cantidad}" disabled="true" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_cantidad_recibida}" styleClass="tableCell columnaDTCantidad">
+										<p:inputText value="#{_detalleDevolucion.cantidadRecibida}">
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTBodega tableCell" headerText="#{msgs.lbl_bodega}">
+										<p:selectOneMenu value="#{_detalleDevolucion.bodega}" id="cboBodega" required="true">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{recepcionDevolucionClienteBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+											<p:ajax process="@this" global="false" />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTLote" headerText="#{msgs.lbl_lote}">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" value="#{_detalleDevolucion.lote}"
+											completeMethod="#{recepcionDevolucionClienteBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+											forceSelection="true" dropdown="false" minQueryLength="2" required="#{_detalleDevolucion.producto.indicadorLote}"
+											rendered="#{_detalleDevolucion.producto.indicadorLote}">
+											<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+										</p:autoComplete>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValorGrande" headerText="#{msgs.lbl_precio_unitario}">
+										<p:inputText value="#{_detalleDevolucion.precio}" id="txtPrecio" style="text-align:right" disabled="true">
+											<f:convertNumber pattern="#{recepcionDevolucionClienteBean.formatoDinero}" />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_precio_linea}">
+										<p:inputText value="#{_detalleDevolucion.precioLinea}" style="text-align:right" disabled="true">
+											<f:convertNumber pattern="#{recepcionDevolucionClienteBean.formatoDinero}" />
+										</p:inputText>
+									</p:column>
+
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="7" footerText="#{msgs.lbl_total}:" style="text-align:right">
+											</p:column>
+											<p:column>
+												<f:facet name="footer" style="text-align:right" id="txtTotal">
+													<h:outputText value="#{recepcionDevolucionClienteBean.preDevolucionCliente.total}">
+														<f:convertNumber pattern="#{recepcionDevolucionClienteBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+
+				</p:outputPanel>
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_recepcion_devolucion_cliente_panel}" rendered="#{!recepcionDevolucionClienteBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDevolucion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{recepcionDevolucionClienteBean.listaPreDevolucionCliente}" var="_devolucionCliente"
+							paginator="true" binding="#{recepcionDevolucionClienteBean.dtPreDevolucionCliente}" rows="#{recepcionDevolucionClienteBean.numeroFilas}"
+							paginatorPosition="bottom" style="width:100%" rowsPerPageTemplate="#{recepcionDevolucionClienteBean.numeroFilasPorPagina}"
+							selection="#{recepcionDevolucionClienteBean.preDevolucionCliente}" selectionMode="single" rowKey="#{_devolucionCliente.id}"
+							sortBy="#{_devolucionCliente.fechaCreacion}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="NÂº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_devolucionCliente.transportista.nombreUsuario}"
+								filterBy="#{_devolucionCliente.transportista.nombreUsuario}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_titulo_transportista}:" />
+								</f:facet>
+								<h:outputText value="#{_devolucionCliente.transportista.nombreUsuario}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_devolucionCliente.empresa.nombreFiscal}"
+								filterBy="#{_devolucionCliente.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_devolucionCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_devolucionCliente.subempresa.empresaFinal}"
+								filterBy="#{_devolucionCliente.subempresa.empresaFinal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subcliente}" />
+								</f:facet>
+								<h:outputText value="#{_devolucionCliente.subempresa.empresaFinal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_devolucionCliente.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_devolucionCliente.fecha}">
+									<f:convertDateTime pattern="#{recepcionDevolucionClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_devolucionCliente.fechaRecepcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_recepcion}" />
+								</f:facet>
+								<h:outputText value="#{_devolucionCliente.fechaRecepcion}">
+									<f:convertDateTime pattern="#{recepcionDevolucionClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValorGrande" sortBy="#{_devolucionCliente.total}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{_devolucionCliente.total}">
+									<f:convertNumber pattern="#{recepcionDevolucionClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_devolucionCliente.estado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_devolucionCliente.estado.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell0" headerText="#{msgs.lbl_codigo} Movil" sortBy="#{_devolucionCliente.codigoMovil}"
+								filterBy="#{_devolucionCliente.codigoMovil}">
+								<h:outputText value="#{_devolucionCliente.codigoMovil}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_recibir}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="action" id="btnRecibir" action="#{recepcionDevolucionClienteBean.recibirPreDevolucion}" update=":form:panelListado"
+										process="@this" disabled="#{_devolucionCliente.estado != 'ELABORADO'}">
+										<f:setPropertyActionListener value="#{_devolucionCliente}" target="#{recepcionDevolucionClienteBean.preDevolucionCliente}" />
+									</p:commandButton>
+								</center>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{recepcionDevolucionClienteBean.preDevolucionCliente.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

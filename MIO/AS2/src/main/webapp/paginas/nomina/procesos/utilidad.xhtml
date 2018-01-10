@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{utilidadBean}">
+
+					<as2:buttonEliminar bean="#{utilidadBean}">
+						<h:outputText value="#{msgs.lbl_utilidad}:" />
+						<h:outputText value="#{utilidadBean.utilidad.anio}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{utilidadBean}" tabla=":form:tablaUtilidad" />
+
+					<as2:buttonImprimir beanReporte="#{reporteUtilidadEmpleadoBean}" bean="#{utilidadBean}" target="#{reporteUtilidadEmpleadoBean.utilidad}"
+						value="#{utilidadBean.utilidad}" />
+
+
+
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_utilidad} )" rendered="#{utilidadBean.editado}">
+
+						<h:panelGrid cellpadding="0" cellspacing="0">
+
+							<h:panelGrid columns="#{utilidadBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_anio}:" />
+								<p:inputMask styleClass="input-text" mask="9999" value="#{utilidadBean.utilidad.anio}" id="txtAnio">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" listener="#{utilidadBean.verificarAnioFechaUtilidad}" update="@this calFecha"   ></p:ajax>
+								</p:inputMask>
+
+								<p:outputLabel for="txtValor" value="#{msgs.lbl_valor}" />
+								<p:inputText styleClass="input-text" value="#{utilidadBean.utilidad.valor}" id="txtValor" required="true">
+									<p:ajax process="@this" update=":form:pnBotonUtilidad" global="false"></p:ajax>
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar required="true" pattern="#{utilidadBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{utilidadBean.utilidad.fechaPagoUtilidad}" id="calFecha">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								</p:calendar>
+
+
+
+							</h:panelGrid>
+
+							<p:outputPanel id="pnBotonUtilidad" >
+								<p:commandButton  value="Procesar" id="btnProcesar" actionListener="#{utilidadBean.procesarUtilidad}"
+									process="@this :form:tvDetalle:tablaDetalleUtilidad :form:tvDetalle:tablaDetalleUtilidadEmpleado" icon="ui-icon-plus"
+									rendered="#{utilidadBean.utilidad.valor != 0}" update=":form:tvDetalle:tablaDetalleUtilidadEmpleado :form:tvDetalle:tablaDetalleUtilidad" />
+							</p:outputPanel>
+
+							<p:spacer />
+
+							<p:tabView id="tvDetalle">
+
+
+
+								<p:tab title="Personal">
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{utilidadBean.listaDetalleUtilidadEmpleadosConRDEP}"
+										id="tablaDetalleUtilidadEmpleado" rowIndexVar="secuencial" binding="#{utilidadBean.dtDetalleUtilidades}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleUtilidadConRDEP" paginator="true" paginatorPosition="bottom"
+										rows="#{utilidadBean.numeroFilas}" rowsPerPageTemplate="#{utilidadBean.numeroFilasPorPagina}" selectionMode="single"
+										rowKey="#{_detalleUtilidadConRDEP.rowKey}" filteredValue="#{utilidadBean.listaDetalleUtilidadEmpleadosConRDEPFilter}"
+										sortBy="#{_detalleUtilidadConRDEP.empleado.apellidos}">
+
+										<p:column styleClass="columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTIdentificacion tableCell" headerText="#{msgs.lbl_identificacion}"
+											sortBy="#{_detalleUtilidadConRDEP.empleado.empresa.identificacion}" filterBy="#{_detalleUtilidadConRDEP.empleado.empresa.identificacion}"
+											filterMatchMode="contains">
+											<h:outputText value="#{_detalleUtilidadConRDEP.empleado.empresa.identificacion}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_apellidos}" sortBy="#{_detalleUtilidadConRDEP.empleado.apellidos}"
+											filterBy="#{_detalleUtilidadConRDEP.empleado.apellidos}" filterMatchMode="contains">
+											<h:outputText value="#{_detalleUtilidadConRDEP.empleado.apellidos}" />
+										</p:column>
+
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombres}" sortBy="#{_detalleUtilidadConRDEP.empleado.nombres}"
+											filterBy="#{_detalleUtilidadConRDEP.empleado.nombres}" filterMatchMode="contains">
+											<h:outputText value="#{_detalleUtilidadConRDEP.empleado.nombres}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_dias_trabajados}">
+											<h:outputText value="#{_detalleUtilidadConRDEP.diasRealesTrabajados}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell" headerText="# #{msgs.lbl_carga_carga_empleado}">
+											<h:outputText value="#{_detalleUtilidadConRDEP.cargasFamiliares}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell" headerText="# #{msgs.lbl_valor}">
+											<h:outputText value="#{_detalleUtilidadConRDEP.valor5 + _detalleUtilidadConRDEP.valor10 }">
+												<f:convertNumber pattern="#{utilidadBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_retencion_judicial}">
+											<p:inputText value="#{_detalleUtilidadConRDEP.retencionJudicial}">
+												<p:ajax process="@this" global="flase"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+
+
+									</p:dataTable>
+								</p:tab>
+
+
+
+								<p:tab title="#{msgs.lbl_empleados_sin_relacion_de_dependencia}">
+									<p:commandButton value="#{msgs.lbl_agregar_detalle}" actionListener="#{utilidadBean.agregarEmpleadoListener()}"
+										process="@this :form:tvDetalle:tablaDetalleUtilidad" update=":form:tvDetalle:tablaDetalleUtilidad" partialSubmit="true" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaDetalleUtilidad" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{utilidadBean.listaDetalleUtilidad}" var="_detalleUtilidadSinRDEP" paginator="true"
+										paginatorPosition="bottom" rows="#{utilidadBean.numeroFilas}" rowsPerPageTemplate="#{utilidadBean.numeroFilasPorPagina}"
+										selectionMode="single" rowKey="#{_detalleUtilidadSinRDEP.rowKey}" binding="#{utilidadBean.dtRelacionDependencia}">
+
+										<p:column styleClass="columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTIdentificacion tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_identificacion}" />
+											</f:facet>
+											<p:inputMask mask="9999999999" styleClass="input-text100" value="#{_detalleUtilidadSinRDEP.identificacion}">
+												<f:validateBean />
+											</p:inputMask>
+										</p:column>
+
+										<p:column styleClass="tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_apellidos}" />
+											</f:facet>
+											<p:inputText styleClass="input-text100" value="#{_detalleUtilidadSinRDEP.apellidos}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_nombres}" />
+											</f:facet>
+											<p:inputText styleClass="input-text100" value="#{_detalleUtilidadSinRDEP.nombres}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_dias_trabajados}" />
+											</f:facet>
+											<p:inputText value="#{_detalleUtilidadSinRDEP.diasRealesTrabajados}">
+												<f:validateBean />
+												<p:ajax process="@this" global="false" listener="#{utilidadBean.verificarDiasTrabajados}" update="@this" />
+											</p:inputText>
+
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell">
+											<f:facet name="header">
+												<h:outputText value="# #{msgs.lbl_carga_carga_empleado}" />
+											</f:facet>
+											<p:inputText value="#{_detalleUtilidadSinRDEP.cargasFamiliares}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell" headerText="# #{msgs.lbl_valor}">
+											<h:outputText value="#{_detalleUtilidadSinRDEP.valor5 + _detalleUtilidadSinRDEP.valor10 }">
+												<f:convertNumber pattern="#{utilidadBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_retencion_judicial}">
+											<p:inputText value="#{_detalleUtilidadSinRDEP.retencionJudicial}">
+												<p:ajax process="@this" global="flase"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTIdentificacion tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_rucEmpresaComplementaria}" />
+											</f:facet>
+											<p:inputMask mask="9999999999999" styleClass="input-text100" value="#{_detalleUtilidadSinRDEP.rucEmpresaComplementaria}">
+												<p:ajax event="change" listener="#{utilidadBean.buscarEmpresaEvent}" process="@this" />
+												<f:validateBean />
+											</p:inputMask>
+										</p:column>
+
+
+										<p:column styleClass="columnaDTIdentificacion tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_codigo} #{msgs.lbl_sectorial}" />
+											</f:facet>
+											<p:inputText required="true" styleClass="input-text" id="txtCodigoSectorial" value="#{_detalleUtilidadSinRDEP.codigoSectorial}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion">
+											<p:commandButton id="btnEliminarDetalle" action="#{utilidadBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+												update=":form:tvDetalle:tablaDetalleUtilidad" process="@this" />
+										</p:column>
+
+
+
+
+									</p:dataTable>
+								</p:tab>
+							</p:tabView>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_utilidad} )" rendered="#{!utilidadBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaUtilidad" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{utilidadBean.listaUtilidad}" var="_utilidad" binding="#{utilidadBean.dtUtilidad}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{utilidadBean.numeroFilas}"
+							rowsPerPageTemplate="#{utilidadBean.numeroFilasPorPagina}" selection="#{utilidadBean.utilidad}" selectionMode="single"
+							rowKey="#{_utilidad.rowKey}">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_anio}" sortBy="#{_utilidad.anio}" filterBy="#{_utilidad.anio}">
+								<h:outputText value="#{_utilidad.anio}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_valor}" sortBy="#{_utilidad.valor}">
+								<h:outputText value="#{_utilidad.valor}">
+									<f:convertNumber pattern="#{utilidadBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}">
+								<h:outputText value="#{_utilidad.fechaPagoUtilidad}">
+									<f:convertDateTime pattern="#{utilidadBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="estado" filterBy="estado" filterOptions="#{facturaClienteBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_utilidad.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion" headerText="Cerrar">
+								<p:commandButton id="btnCerrar" process="@this" icon="action" actionListener="#{utilidadBean.cerrar}" update=":form:panelListado" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{utilidadBean.utilidad.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{utilidadBean.utilidad.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{utilidadBean.utilidad.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{utilidadBean.utilidad.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

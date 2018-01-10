@@ -1,0 +1,294 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{cargaExtractoBancarioBean}">
+					<as2:buttonEliminar bean="#{cargaExtractoBancarioBean}" titulo="#{msgs.btn_anular}">
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{cargaExtractoBancarioBean}" tabla=":form:tablaInterfazContableProceso" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{cargaExtractoBancarioBean.exContabilizacion.mensajes}" var="_mensaje"
+							rowIndexVar="secuencial" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_interfaz_contable_venta_proceso}" rendered="#{cargaExtractoBancarioBean.editado}">
+						<p:fieldset>
+
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{cargaExtractoBancarioBean.interfazContableProceso.documento}" id="cboDocumento"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{cargaExtractoBancarioBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboCuentaPago" value="#{msgs.lbl_cuenta_pago}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{cargaExtractoBancarioBean.interfazContableProceso.cuentaBancariaOrganizacion}"
+									id="cboCuentaPago" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{cargaExtractoBancarioBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+										itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+									<p:ajax process="@this" partialSubmit="@true" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{cargaExtractoBancarioBean.interfazContableProceso.observacion}" id="txtObservacion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<p:spacer />
+								<p:outputPanel id="panelMigracion">
+									<p:panel header="#{msgs.lbl_migracion} #{msgs.lbl_cargar}">
+										<p:fileUpload fileUploadListener="#{cargaExtractoBancarioBean.cargarExtractoBancarioListener}" mode="advanced"
+											update=":form:panelMigracion :form:panelExtracto" auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/"
+											label="#{msgs.btn_cargar_excel}" process="@this" />
+									</p:panel>
+								</p:outputPanel>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+
+							<p:outputPanel id="panelExtracto">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{cargaExtractoBancarioBean.listaDetalleExtracto}" id="tablaExtracto"
+									rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleExtracto" paginator="true" paginatorPosition="bottom"
+									style="width:100%;padding: 0px !important;" rowKey="#{_extracto.rowKey}" rows="#{cargaExtractoBancarioBean.numeroFilas}"
+									rowsPerPageTemplate="#{cargaExtractoBancarioBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="tableCell0 columnaDTNombreCorto" filterBy="#{_detalleExtracto.criterioDeBusqueda}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_criterio} 1" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleExtracto.criterioDeBusqueda}" />
+									</p:column>
+
+									<p:column styleClass="tableCell0 columnaDTNombreCorto" filterBy="#{_detalleExtracto.criterioDeBusqueda2}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_criterio} 2" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleExtracto.criterioDeBusqueda2}" />
+									</p:column>
+
+									<p:column styleClass="tableCell0 columnaDTAccion">
+										<p:commandButton value="..." actionListener="#{cargaExtractoBancarioBean.listaCuentaContableBean.listarCuentaContable}" process="@this"
+											propartialSubmit="true" rendered="#{empty _detalleExtracto.cuentaContable or !_detalleExtracto.indicadorModificaCuentaContable}">
+											<p:ajax event="dialogReturn" listener="#{cargaExtractoBancarioBean.cargarCuentaContable}"
+												update=":form:tablaExtracto:panelCodigoCuenta :form:tablaExtracto:panelNombreCuenta" />
+
+											<f:setPropertyActionListener target="#{cargaExtractoBancarioBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+											<f:setPropertyActionListener target="#{cargaExtractoBancarioBean.lineaDetalleExtractoSelected}" value="#{_detalleExtracto}" />
+										</p:commandButton>
+									</p:column>
+
+									<p:column styleClass="tableCell0 columnaDTCodigoCuenta" filterBy="#{_detalleExtracto.cuentaContable.codigo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+
+										<p:outputPanel id="panelCodigoCuenta">
+											<p:inputText rendered="#{not empty _detalleExtracto.cuentaContable}" styleClass="input-text"
+												value="#{_detalleExtracto.cuentaContable.codigo}"
+												disabled="#{not empty _detalleExtracto.cuentaContable and _detalleExtracto.indicadorModificaCuentaContable}">
+												<p:ajax listener="#{cargaExtractoBancarioBean.buscarCuentaContable(_detalleExtracto)}" process="@this" update="@this" event="change"
+													global="false" oncomplete="nextFocus('#{p:component('txtDescripcion')}')" />
+											</p:inputText>
+										</p:outputPanel>
+									</p:column>
+
+									<p:column styleClass="tableCell0" filterBy="#{_detalleExtracto.cuentaContable.nombre}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_cuenta_contable}" />
+										</f:facet>
+
+										<p:outputPanel id="panelNombreCuenta">
+											<h:outputText rendered="#{not empty _detalleExtracto.cuentaContable}" value="#{_detalleExtracto.cuentaContable.nombre}" />
+										</p:outputPanel>
+									</p:column>
+
+									<p:column styleClass="tableCell0" filterBy="#{_detalleExtracto.descripcion}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_descripcion}1" />
+										</f:facet>
+
+										<p:inputText styleClass="input-text100" value="#{_detalleExtracto.descripcion}" id="txtDescripcion">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell0" filterBy="#{_detalleExtracto.descripcion2CuentaBanco}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_descripcion}2" />
+										</f:facet>
+
+										<p:inputText styleClass="input-text100" value="#{_detalleExtracto.descripcion2CuentaBanco}">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell0" filterBy="#{_detalleExtracto.descripcion2CuentaContrapartida}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_descripcion}3" />
+										</f:facet>
+
+										<p:inputText styleClass="input-text100" value="#{_detalleExtracto.descripcion2CuentaContrapartida}">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell0 columnaDTValor">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_valor}" />
+										</f:facet>
+										<h:outputText value="#{_detalleExtracto.monto}" id="txtDebe">
+											<f:convertNumber pattern="#{cargaExtractoBancarioBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:columnGroup type="footer">
+										<p:row>
+											<p:column colspan="8" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+											<p:column>
+												<f:facet name="footer">
+
+
+												</f:facet>
+											</p:column>
+
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+
+							</p:outputPanel>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_interfaz_contable_venta_proceso}" rendered="#{!cargaExtractoBancarioBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaInterfazContableProceso" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cargaExtractoBancarioBean.listaInterfazContableProceso}" var="_interfazContableProceso"
+							paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{cargaExtractoBancarioBean.dtInterfazContableProceso}"
+							rows="#{cargaExtractoBancarioBean.numeroFilas}" rowsPerPageTemplate="#{cargaExtractoBancarioBean.numeroFilasPorPagina}"
+							selection="#{cargaExtractoBancarioBean.interfazContableProceso}" selectionMode="single" rowKey="#{_interfazContableProceso.id}"
+							sortBy="#{_interfazContableProceso.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_voucher.numero}" filterBy="#{_voucher.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaDesde}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_registro}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaDesde}">
+									<f:convertDateTime pattern="#{cargaExtractoBancarioBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cuenta_pago}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.cuentaBancariaOrganizacion.nombreCompleto}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTEstado" sortBy="#{_interfazContableProceso.estado}" filterBy="#{_interfazContableProceso.estado}"
+								filterOptions="#{cargaExtractoBancarioBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nota}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.observacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0 columnaDTAccion">
+								<p:commandButton id="btnContabilizar" process="@this" icon="action" title="#{msgs.lbl_contabilizar}"
+									actionListener="#{cargaExtractoBancarioBean.contabilizarListener(_interfazContableProceso)}"
+									disabled="#{_interfazContableProceso.estado != 'ELABORADO'}" update=":form:panelListado" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{cargaExtractoBancarioBean.interfazContableProceso.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{cargaExtractoBancarioBean.interfazContableProceso.usuarioCreacion}" />
+					<ui:param name="fechaModificacion" value="#{cargaExtractoBancarioBean.interfazContableProceso.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{cargaExtractoBancarioBean.interfazContableProceso.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

@@ -1,0 +1,88 @@
+<p:outputPanel id="panelListaCuentaContable" xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes" >
+
+
+	<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_plan_contable}" widgetVar="cuentaContableDialog" id="cuentaContableDialog" modal="true"
+		height="350" width="700" showEffect="slide" hideEffect="slide" resizable="false">
+
+		<p:fieldset>
+
+			<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCuentaContable" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+				value="#{empty listadoFiltrado ? listaCuentaContableBean.listaCuentaContable : bean.listaCuentaContableBean.listaCuentaContable}"
+				var="_cuentaContable" binding="#{bean.dtCuentaContable}" paginator="true" paginatorPosition="bottom" style="width:100%"
+				rowsPerPageTemplate="#{listaCuentaContableBean.numeroFilasPorPagina}" rows="10" rowKey="#{_cuentaContable.id}" selection="#{bean.cuentaContable}"
+				selectionMode="single" lazy="true">
+
+				<p:column styleClass="columnaDTAccion" headerText="No">
+					<h:outputText value="#{secuencia+1}" />
+				</p:column>
+
+				<p:column styleClass="columnaDTCodigo" sortBy="#{_cuentaContable.codigo}" filterBy="#{_cuentaContable.codigo}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_codigo}" />
+					</f:facet>
+
+					<p:commandLink action="#{bean.cargarCuentaContable}" title="#{msgs.lbl_seleccionar}" process="@this" oncomplete="cuentaContableDialog.hide()"
+						update="#{empty objetoActualizar ? ':form:tabView:panelContabilidad' : objetoActualizar}" icon="ui-icon-plus"
+						rendered="#{_cuentaContable.indicadorMovimiento or !(empty indicadorSeleccionarTodo ? true : !indicadorSeleccionarTodo)}">
+
+						<h:outputText value="#{_cuentaContable.codigo}" />
+					</p:commandLink>
+
+					<h:outputText value="#{_cuentaContable.codigo}"
+						rendered="#{!_cuentaContable.indicadorMovimiento and (empty indicadorSeleccionarTodo ? true : !indicadorSeleccionarTodo)}" />
+
+				</p:column>
+
+				<p:column sortBy="#{_cuentaContable.nombre}" filterBy="#{_cuentaContable.nombre}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_cuenta_contable}" />
+					</f:facet>
+
+					<h:outputText value="#{_cuentaContable.nombre}" title="#{_cuentaContable.nombre}">
+						<f:attribute name="limit" value="40" />
+						<f:converter converterId="stringLimitConverter" />
+					</h:outputText>
+				</p:column>
+
+				<p:column styleClass="columnaDTNombreCorto">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_grupo}" />
+					</f:facet>
+					<h:outputText value="#{_cuentaContable.grupoCuenta.nombre}" />
+				</p:column>
+
+				<p:column styleClass="columnaDTNombreCorto" sortBy="#{_cuentaContable.nivelCuenta.nombre}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_nivel}" />
+					</f:facet>
+					<h:outputText value="#{_cuentaContable.nivelCuenta.nombre}" />
+				</p:column>
+
+				<p:column styleClass="columnaDTActivo tableCell" filterBy="#{_cuentaContable.activo}"  filterOptions="#{listaCuentaContableBean.listaActivoItem}"   >
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_activo}" />
+					</f:facet>
+					<p:selectBooleanCheckbox disabled="true" value="#{_cuentaContable.activo}" />
+				</p:column>
+
+				<p:column>
+					<p:commandLink action="#{bean.cargarCuentaContable}" title="#{msgs.lbl_seleccionar}" process="@this" oncomplete="cuentaContableDialog.hide()"
+						update="#{empty objetoActualizar ? ':form:tabView:panelContabilidad' : objetoActualizar}" icon="ui-icon-plus"
+						disabled="#{!_cuentaContable.indicadorMovimiento and (empty indicadorSeleccionarTodo ? true : !indicadorSeleccionarTodo)}">
+						<h:graphicImage library="images" name="seleccion.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+				</p:column>
+			</p:dataTable>
+		</p:fieldset>
+
+		<f:facet name="footer">
+			<center>
+				<p:commandButton value="#{msgs.btn_cancelar}" oncomplete="cuentaContableDialog.hide()" />
+			</center>
+		</f:facet>
+
+	</p:dialog>
+
+</p:outputPanel>

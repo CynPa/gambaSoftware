@@ -1,0 +1,443 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{documentoBean}">
+
+					<as2:buttonEliminar bean="#{documentoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{documentoBean.documento.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{documentoBean.documento.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{documentoBean}" tabla=":form:tablaDocumento" />
+
+				</as2:toolBar>
+
+				<p:dialog header="#{msgs.lbl_gasto_importacion}" widgetVar="dialogoGastoImportacion" modal="true" height="350" width="600" showEffect="slide"
+					hideEffect="slide">
+
+					<p:outputPanel id="panelGastoImportacionNoAsignado">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGastosImportacionNoAsignado" rowIndexVar="secuencialGastoImportacionNoAsignado" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{documentoBean.listaGastoImportacionNoAsignado}" var="_gastoImportacionNoAsignado" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="10" rowKey="#{_gastoImportacionNoAsignado.id}" selection="#{documentoBean.listaGastoImportacionSelecciando}"
+							lazy="true" >
+
+							<p:column styleClass="columnaDTAccion" selectionMode="multiple" />
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialGastoImportacionNoAsignado+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_gastoImportacionNoAsignado.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_gastoImportacionNoAsignado.nombre}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_cargar_detalles}" oncomplete="dialogoGastoImportacion.hide()"
+								action="#{documentoBean.agregarGastoImportacion}" process="@this panelGastoImportacionNoAsignado" update=":form:panelDocumentoGastoImportacion" />
+						</center>
+					</f:facet>
+
+				</p:dialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_documento_panel}" rendered="#{documentoBean.editado}">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+
+								<h:panelGrid id="panelDetalle" columns="#{documentoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{documentoBean.documento.codigo}" id="txtCodigo" required="true" />
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{documentoBean.documento.nombre}" id="txtNombre" required="true"/>
+
+									<p:outputLabel for="cboDocumentoBase" value="#{msgs.lbl_documento_documentoBase}:" />
+									<p:selectOneMenu styleClass="input-text" value="#{documentoBean.documento.documentoBase}" id="cboDocumentoBase" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{documentoBean.listaDocumentoBase}" />
+
+										<f:validateBean for="cboDocumentoBase" />
+
+										<p:ajax process="@this" event="change" update="cboOperacion" listener="#{documentoBean.actualizarDocumentoBase}" />
+
+									</p:selectOneMenu>
+
+									<p:outputLabel for="cmbSecuencia" value="#{msgs.lbl_documento_secuencia}:" />
+									<p:selectOneMenu styleClass="input-text" id="cmbSecuencia" value="#{documentoBean.secuenciaSeleccionada}"
+										disabled="#{(documentoBean.documento.indicadorDocumentoTributario) and (documentoBean.documento.documentoBase.tipoDocumentoBase!='PROVEEDOR')}"
+										required="#{(!documentoBean.documento.indicadorDocumentoTributario) or (documentoBean.documento.documentoBase.tipoDocumentoBase=='PROVEEDOR')}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{documentoBean.listaSecuencia}" var="_secuencia" itemLabel="#{_secuencia.nombre}"
+											itemValue="#{_secuencia.idSecuencia}" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_documento_tipoAsiento}:" />
+									<p:selectOneMenu styleClass="input-text" id="cmbTipoAsiento" value="#{documentoBean.documento.tipoAsiento}" required="#{documentoBean.documento.documentoBase.documentoContabilidad}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{documentoBean.listaTipoAsiento}" var="_tipoAsiento" itemLabel="#{_tipoAsiento.nombre}"
+											itemValue="#{_tipoAsiento}" />
+									</p:selectOneMenu>
+
+									<p:outputPanel autoUpdate="true">
+										<h:outputText value="#{msgs.lbl_operacion}:" rendered="#{documentoBean.documento.documentoBase.tipoDocumentoBase=='INVENTARIO'}" />
+
+										<h:outputText value="#{msgs.lbl_indicador_documento_tributario}:"
+											rendered="#{(documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE') or (documentoBean.documento.documentoBase.tipoDocumentoBase=='PROVEEDOR')}" />
+									</p:outputPanel>
+									<p:outputPanel autoUpdate="true">
+										<p:selectOneMenu styleClass="input-text" id="cboOperacion" value="#{documentoBean.documento.operacion}" required="true"
+											rendered="#{documentoBean.documento.documentoBase.tipoDocumentoBase=='INVENTARIO'}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{documentoBean.listaOperaciones}" />
+										</p:selectOneMenu>
+
+										<p:selectBooleanCheckbox id="chkIndicadorDocumentoTributario" value="#{documentoBean.documento.indicadorDocumentoTributario}"
+											rendered="#{(documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE') or (documentoBean.documento.documentoBase.tipoDocumentoBase=='PROVEEDOR')}">
+
+											<p:ajax process="@this" update="@this,:form:panelAutorizacionDocumentoSRI,cmbSecuencia" event="change"
+												listener="#{documentoBean.actualizarIndicadorDocumentoTributario}" />
+										</p:selectBooleanCheckbox>
+									</p:outputPanel>
+
+									<p:outputPanel autoUpdate="true">
+										<h:outputText value="#{msgs.lbl_indicador_genera_costo}:"
+											rendered="#{documentoBean.documento.documentoBase.tipoDocumentoBase=='INVENTARIO'}" />
+									</p:outputPanel>
+									<p:outputPanel autoUpdate="true">
+										<p:selectBooleanCheckbox id="chkIndicadorGeneraCosto" value="#{documentoBean.documento.indicadorGeneraCosto}"
+											rendered="#{documentoBean.documento.documentoBase.tipoDocumentoBase=='INVENTARIO'}" />
+									</p:outputPanel>
+
+									<p:outputPanel autoUpdate="true">
+										<h:outputText value="#{msgs.lbl_produccion}:" rendered="#{documentoBean.documento.documentoBase.tipoDocumentoBase=='INVENTARIO'}" />
+
+										<h:outputText value="#{msgs.lbl_documento_electronico}:"
+											rendered="#{(documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE') and (documentoBean.documento.indicadorDocumentoTributario)}" />
+									</p:outputPanel>
+									<p:outputPanel autoUpdate="true">
+										<p:selectBooleanCheckbox id="chkIndicadorCostoEstandar" value="#{documentoBean.documento.indicadorCostoEstandar}"
+											rendered="#{documentoBean.documento.documentoBase.tipoDocumentoBase=='INVENTARIO'}" />
+
+										<p:selectBooleanCheckbox id="chkIndicadorDocumentoElectronico" value="#{documentoBean.documento.indicadorDocumentoElectronico}"
+											rendered="#{(documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE') and (documentoBean.documento.indicadorDocumentoTributario)}">
+
+											<p:ajax process="@this" update="@this,:form:panelAutorizacionDocumentoSRI" event="change" />
+
+										</p:selectBooleanCheckbox>
+									</p:outputPanel>
+
+									<p:outputPanel autoUpdate="true">
+										<h:outputText value="#{msgs.lbl_documento_SRI}:" rendered="#{documentoBean.documento.indicadorDocumentoTributario}" />
+									</p:outputPanel>
+
+									<p:outputPanel autoUpdate="true">
+										<h:panelGroup rendered="#{documentoBean.documento.indicadorDocumentoTributario}">
+											<p:selectOneMenu styleClass="input-text" value="#{documentoBean.tipoComprobanteSRISeleccionado}" id="cboTipoComprobante" required="true">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:validateBean />
+												<f:selectItems value="#{documentoBean.listaTipoComprobanteSRI}" var="_tipoComprobante"
+													itemLabel="#{_tipoComprobante.codigo} #{_tipoComprobante.nombre}" itemValue="#{_tipoComprobante.idTipoComprobanteSRI}" />
+												<p:ajax process="@this" event="change" update="@this" global="false" />
+											</p:selectOneMenu>
+										</h:panelGroup>
+									</p:outputPanel>
+
+									<p:outputLabel for="txtReporte" value="#{msgs.lbl_reporte}:" />
+									<p:inputText value="#{documentoBean.documento.reporte}" id="txtReporte" styleClass="input-text" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputPanel autoUpdate="true">
+										<h:outputText value="#{msgs.lbl_documento_exterior}:"
+											rendered="#{(documentoBean.documento.documentoBase.tipoDocumentoBase=='PROVEEDOR') or 
+											(documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE')}" />
+									</p:outputPanel>
+									<p:outputPanel autoUpdate="true">
+										<p:selectBooleanCheckbox value="#{documentoBean.documento.indicadorDocumentoExterior}"
+											rendered="#{(documentoBean.documento.documentoBase.tipoDocumentoBase=='PROVEEDOR') or 
+											(documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE')}">
+											<p:ajax process="@this" update="@this,:form:panelDocumentoGastoImportacion" event="change"
+												listener="#{documentoBean.eliminaTodoDocumentoGastoImportacion}" />
+										</p:selectBooleanCheckbox>
+									</p:outputPanel>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{documentoBean.documento.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{documentoBean.documento.predeterminado}" />
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{documentoBean.documento.descripcion}" id="txtDescripcion" />
+
+									<h:outputText value="#{msgs.lbl_indicador_contabilizar}:" />
+									<p:selectBooleanCheckbox value="#{documentoBean.documento.indicadorContabilizar}" />
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer />
+
+							<p:outputPanel id="panelAutorizacionDocumentoSRI">
+								<p:fieldset legend="#{msgs.lbl_SRI}"
+									rendered="#{(documentoBean.documento.indicadorDocumentoTributario) and (documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE')}">
+
+									<h:panelGrid id="panelGridAutorizacionDocumentoSRI" cellpadding="0" cellspacing="0">
+
+										<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarAutorizacionDocumentoSRI"
+											rendered="#{(documentoBean.documento.indicadorDocumentoTributario) and (documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE')}"
+											process="@this,tablaAutorizacionDocumentoSRI" update=":form:tablaAutorizacionDocumentoSRI" actionListener="#{documentoBean.agregarAutorizacion}" />
+
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAutorizacionDocumentoSRI"
+											rendered="#{(documentoBean.documento.indicadorDocumentoTributario) and (documentoBean.documento.documentoBase.tipoDocumentoBase=='CLIENTE')}"
+											rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{documentoBean.listaAutorizacionDocumentoSRI}"
+											var="_autorizacionDocumentoSRI" binding="#{documentoBean.dtTablaAutorizacionDocumentoSRI}" paginator="true" paginatorPosition="bottom"
+											style="width:100%" rows="#{documentoBean.numeroFilas}" selectionMode="single" rowKey="#{_autorizacionDocumentoSRI.id}">
+
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencia+1}" />
+											</p:column>
+
+											<p:column rendered="#{!documentoBean.documento.indicadorDocumentoElectronico}" headerText="#{msgs.lbl_documento_SRI_autorizacion}"
+												sortBy="#{_autorizacionDocumentoSRI.autorizacion}" filterBy="#{_autorizacionDocumentoSRI.autorizacion}">
+												<p:inputMask value="#{_autorizacionDocumentoSRI.autorizacion}" mask="9999999999" id="txtAutorizacionDocumentoSRI">
+													<f:validateBean />
+												</p:inputMask>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_punto_de_venta}">
+												<p:selectOneMenu id="cboPuntoDeVenta" value="#{_autorizacionDocumentoSRI.puntoDeVenta.idPuntoDeVenta}" required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{documentoBean.listaPuntoDeVenta}" var="_puntoDeVenta" itemValue="#{_puntoDeVenta.idPuntoDeVenta}"
+														itemLabel="#{_puntoDeVenta.sucursal.codigo}-#{_puntoDeVenta.codigo} - #{_puntoDeVenta.nombre}" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_secuencia}">
+												<p:selectOneMenu id="cboSecuenciaAutorizacionDocumentoSRI" value="#{_autorizacionDocumentoSRI.secuencia.idSecuencia}" required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{documentoBean.listaSecuencia}" var="_secuencia" itemLabel="#{_secuencia.nombre}"
+														itemValue="#{_secuencia.idSecuencia}" />
+
+													<p:ajax listener="#{documentoBean.actualizarSecuencia}" update=":form:panelAutorizacionDocumentoSRI"
+														process="@this,cboPuntoDeVenta,txtAutorizacionDocumentoSRI" />
+
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_desde}">
+												<h:outputText id="lblDesde" value="#{_autorizacionDocumentoSRI.secuencia.desde}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_hasta}">
+												<h:outputText id="lblHasta" value="#{_autorizacionDocumentoSRI.secuencia.hasta}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTFecha" headerText="#{msgs.lbl_fecha_desde}">
+												<h:outputText id="lblFechaDesde" value="#{_autorizacionDocumentoSRI.secuencia.fechaDesde}">
+													<f:convertDateTime pattern="#{documentoBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTFecha" headerText="#{msgs.lbl_fecha_hasta}">
+												<h:outputText id="lblFechaHasta" value="#{_autorizacionDocumentoSRI.secuencia.fechaHasta}">
+													<f:convertDateTime pattern="#{documentoBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_activo}">
+												<p:selectBooleanCheckbox value="#{_autorizacionDocumentoSRI.activo}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" rendered="#{!documentoBean.indicadorAutoimpresor}">
+												<p:commandButton id="btnEliminarAutorizacion" actionListener="#{documentoBean.eliminarAutorizacion}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:panelAutorizacionDocumentoSRI" process="@this" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:fieldset>
+							</p:outputPanel>
+
+							<p:outputPanel id="panelDocumentoGastoImportacion" autoUpdate="true">
+								<p:fieldset legend="#{msgs.lbl_gasto_importacion}"
+									rendered="#{(documentoBean.documento.indicadorDocumentoExterior) and (documentoBean.documento.documentoBase.tipoDocumentoBase=='PROVEEDOR')}">
+									<h:panelGrid id="panelGridDocumentoGastoImportacion">
+
+										<p:commandButton value="#{msgs.btn_agregar}" oncomplete="dialogoGastoImportacion.show()" id="btnAgregarDocumentoGastoImportacion"
+											process="@this" action="#{documentoBean.cargaGastoImportacionNoAsignado}" update=":form:panelGastoImportacionNoAsignado" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDocumentoGastoImportacion" rowIndexVar="secuenciaDocumentoGastoImportacion" emptyMessage="#{msgs.msg_no_hay_datos}"
+											value="#{documentoBean.listaDocumentoGastoImportacion}" var="_documentoGastoImportacion" paginator="true" paginatorPosition="bottom"
+											style="width:100%" binding="#{documentoBean.dtDocumentoGastoImportacion}" rows="#{documentoBean.numeroFilas}"
+											rowKey="#{_documentoGastoImportacion.id}">
+
+											<p:column headerText="Nº">
+												<h:outputText value="#{secuenciaDocumentoGastoImportacion+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_documentoGastoImportacion.gastoImportacion.codigo}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_documentoGastoImportacion.gastoImportacion.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_gasto_importacion_obligatorio}">
+												<center>
+													<p:selectBooleanCheckbox value="#{_documentoGastoImportacion.indicadorGastoObligatorio}" />
+												</center>
+											</p:column>
+
+											<p:column>
+												<p:commandButton id="btnEliminarDocumentoGastoImportacion" action="#{documentoBean.eliminarDocumentoGastoImportacion}"
+													icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:panelDocumentoGastoImportacion" process="@this" />
+											</p:column>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+								</p:fieldset>
+							</p:outputPanel>
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_documento_panel}" rendered="#{!documentoBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDocumento" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{documentoBean.listaDocumento}"
+							var="documento" binding="#{documentoBean.dtDocumento}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{documentoBean.numeroFilas}" rowsPerPageTemplate="#{documentoBean.numeroFilasPorPagina}" selection="#{documentoBean.documento}"
+							selectionMode="single" rowKey="#{documento.id}" lazy="true">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{documento.codigo}" sortBy="#{documento.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{documento.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{documento.nombre}" sortBy="#{documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{documento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{documento.documentoBase}" filterBy="#{documento.documentoBase}" filterOptions="#{documentoBean.listaDocumentoBaseItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_documentoBase}" />
+								</f:facet>
+								<h:outputText value="#{documento.documentoBase.nombre}" />
+							</p:column>
+
+							<p:column filterBy="#{documento.secuencia.nombre}" sortBy="#{documento.secuencia.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_secuencia}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty documento.secuencia}" target="_blank" outcome="/paginas/datosBase/secuencia" includeViewParams="true" value="#{documento.secuencia.nombre}">
+									<f:param name="idSecuencia" value="#{documento.secuencia.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column filterBy="#{documento.tipoAsiento.nombre}" sortBy="#{documento.tipoAsiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty documento.tipoAsiento}"  target="_blank" outcome="/paginas/financiero/contabilidad/configuracion/tipoAsiento" includeViewParams="true"
+									value="#{documento.tipoAsiento.nombre}">
+									<f:param name="idTipoAsiento" value="#{documento.tipoAsiento.id}" />
+								</h:link>
+
+							</p:column>
+
+							<p:column sortBy="#{documento.operacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_operacion}" />
+								</f:facet>
+								<h:outputText value="#{documento.operacion==1 ? msgs.lbl_ingreso_inventario : msgs.lbl_egreso_inventario}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_indicador_genera_costo}" sortBy="#{documento.indicadorGeneraCosto}">
+								<p:selectBooleanCheckbox value="#{documento.indicadorGeneraCosto}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_indicador_documento_tributario}" sortBy="#{documento.indicadorDocumentoTributario}">
+								<p:selectBooleanCheckbox value="#{documento.indicadorDocumentoTributario}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_SRI}" />
+								</f:facet>
+								<h:outputText value="#{documento.tipoComprobanteSRI.codigo} #{documento.tipoComprobanteSRI.nombre}"
+									title="#{documento.tipoComprobanteSRI.codigo} #{documento.tipoComprobanteSRI.nombre}">
+									<f:attribute name="limit" value="20" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{documento.activo}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{documento.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{documentoBean.documento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{documentoBean.documento.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{documentoBean.documento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{documentoBean.documento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

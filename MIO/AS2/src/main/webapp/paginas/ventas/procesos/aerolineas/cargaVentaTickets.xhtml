@@ -1,0 +1,908 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel id="panelMigracion">
+
+
+					<as2:toolBar bean="#{cargaVentaTicketBean}">
+						<as2:buttonEliminar bean="#{cargaVentaTicketBean}">
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<h:outputText value="#{cargaVentaTicketBean.bsp.numero}" />
+						</as2:buttonEliminar>
+					</as2:toolBar>
+
+
+					<p:outputPanel id="panelNuevo">
+						<p:panel rendered="#{cargaVentaTicketBean.editado}" header="#{msgs.lbl_panel_edicion} BSP">
+
+							<h:panelGrid id="panelDetalle" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor" style="width: 50%;">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu value="#{cargaVentaTicketBean.bsp.documento}" id="cboDocumento" required="true" style="width:100%">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{cargaVentaTicketBean.listaDocumentoAerolinea}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax process="@this" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel value="#{msgs.lbl_fecha}" />
+								<p:calendar value="#{cargaVentaTicketBean.bsp.fecha}" pattern="#{cargaVentaTicketBean.formatoFecha}" showButtonPanel="true" locale="es"
+									showOn="button">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="Tipo de carga:" />
+								<p:selectOneMenu value="#{cargaVentaTicketBean.tipoCarga}">
+									<f:selectItems value="#{cargaVentaTicketBean.listaTipoCarga}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+									<p:ajax process="@this" update="@form" event="change" listener="#{cargaVentaTicketBean.indicadorRespaldo}"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="Respaldo:" />
+								<p:selectBooleanCheckbox value="#{cargaVentaTicketBean.respaldo}">
+									<p:ajax process="@this" global="false" update=":form:accTablas"></p:ajax>
+								</p:selectBooleanCheckbox>
+
+
+
+							</h:panelGrid>
+
+
+							<p:panel header="Carga Archivo BSP" rendered="#{cargaVentaTicketBean.render}" id="panelBSP">
+								<p:fileUpload fileUploadListener="#{cargaVentaTicketBean.migrarBSP}" mode="advanced" update="panelMigracion" auto="true"
+									sizeLimit="10000000" allowTypes="/(\.|\/)(DAT)$/" label="Cargar Bsp" process="@this" />
+
+								<p:accordionPanel id="accTablas" multiple="true">
+
+									<p:tab title="TICKETS">
+										<as2:buttonExportaExcel bean="#{consultaCassBean}" tabla=":form:accTablas:tablaTickets" />
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTickets" value="#{cargaVentaTicketBean.bsp.listaTicket}" var="_bsp"
+											emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:3000px" paginator="true" rows="20" paginatorPosition="bottom"
+											rowsPerPageTemplate="#{cargaVentaTicketBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencia+1}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Ticket" sortBy="#{_bsp.numero}">
+												<h:outputText value="#{_bsp.numero}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Agencia">
+												<h:outputText value="#{_bsp.aerolinea}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Perido">
+												<h:outputText value="#{_bsp.periodo}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tipo">
+												<h:outputText value="#{_bsp.tipo}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Moneda">
+												<h:outputText value="#{_bsp.moneda}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Operacion">
+												<h:outputText value="#{_bsp.operacion}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha">
+												<h:outputText value="#{_bsp.fecha}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Bruto">
+												<h:outputText value="#{_bsp.bruto}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Credito">
+												<h:outputText value="0" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Por Comision">
+												<h:outputText value="#{_bsp.porComision}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Comision">
+												<h:outputText value="#{_bsp.comision}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Iva">
+												<h:outputText value="#{_bsp.iva}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Neto">
+												<h:outputText value="#{_bsp.neto}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tarifa Moneda">
+												<h:outputText value="#{_bsp.tarifaMoneda}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tarifa">
+												<h:outputText value="#{_bsp.tarifa}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Emisor">
+												<h:outputText value=" " />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tarjeta">
+												<h:outputText value="#{_bsp.tarjeta}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Usuario">
+												<h:outputText value="#{_bsp.usuario}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha Computador">
+												<h:outputText value="#{_bsp.fechaComputador}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Ticket Cnj">
+												<h:outputText value="#{_bsp.ticketCnj}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Penalty">
+												<h:outputText value="#{_bsp.penalty}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Referencia">
+												<h:outputText value="#{_bsp.referencia}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Impuesto Extranjero">
+												<h:outputText value="#{_bsp.impuestoExtranjero}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Pasajero">
+												<h:outputText value="#{_bsp.pasajero}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="Ruta">
+												<h:outputText value="#{_bsp.ruta}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Valex">
+												<h:outputText value="#{_bsp.valex}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Vale">
+												<h:outputText value="0" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Iva Comision">
+												<h:outputText value="#{_bsp.ivaComision}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Retencion Ica">
+												<h:outputText value="#{_bsp.retencionIca}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Retencion Iva Com ">
+												<h:outputText value="#{_bsp.retencionIvaCom}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Retencion Fte ">
+												<h:outputText value="#{_bsp.retencionFte}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="WT">
+												<h:outputText value="#{_bsp.wt}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="ED">
+												<h:outputText value="#{_bsp.ed}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="YQ">
+												<h:outputText value="#{_bsp.yq}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="QB">
+												<h:outputText value="#{_bsp.qb}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="QI">
+												<h:outputText value="#{_bsp.qi}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="YR">
+												<h:outputText value="#{_bsp.yr}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="E2">
+												<h:outputText value="#{_bsp.e2}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha Viaje">
+												<h:outputText value="#{_bsp.fechaViaje}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Codigo Dsgn">
+												<h:outputText style="width: 50px;" value="#{_bsp.codigoDisenioTicket}">
+												</h:outputText>
+											</p:column>
+
+
+
+											<p:columnGroup type="footer" id="panelTotal">
+												<p:row>
+													<p:column colspan="11" footerText="Totales " style="text-align:right">
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalComision}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalIVA}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="3" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalTarifa}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="6" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalPenalty}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="2" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalImpuestoExtranjero}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="5" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalIvaComision}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalRetencionFuente}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalWT}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalED}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalYQ}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalQB}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalQI}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalYR}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalE2}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+											</p:columnGroup>
+
+
+
+
+										</p:dataTable>
+
+									</p:tab>
+
+
+									<p:tab title="PAGOS">
+
+										<as2:buttonExportaExcel bean="#{consultaCassBean}" tabla=":form:accTablas:tablaPagos" />
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagos" value="#{cargaVentaTicketBean.listaTicketCreditos}" var="_bsp"
+											emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:3000px" paginator="true" rows="20" paginatorPosition="bottom"
+											rowsPerPageTemplate="#{cargaVentaTicketBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencia+1}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Ticket" sortBy="#{_bsp.numero}">
+												<h:outputText value="#{_bsp.numero}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Agencia">
+												<h:outputText value="#{_bsp.aerolinea}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Perido">
+												<h:outputText value="#{_bsp.periodo}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tipo">
+												<h:outputText value="#{_bsp.tipo}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Moneda">
+												<h:outputText value="#{_bsp.moneda}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Operacion">
+												<h:outputText value="#{_bsp.operacion}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha">
+												<h:outputText value="#{_bsp.fecha}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Bruto">
+												<h:outputText value="#{_bsp.bruto}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Credito">
+												<h:outputText value="#{_bsp.credito}" />
+												<p:inputText style="width: 50px;" rendered="#{cargaVentaTicketBean.respaldo}" value="#{_bsp.credito}">
+													<p:ajax process="@this" global="false"></p:ajax>
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Por Comision">
+												<h:outputText value="#{_bsp.porComision}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Comision">
+												<h:outputText value="0" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Iva">
+												<h:outputText value="0" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Neto">
+												<h:outputText value="#{_bsp.neto}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tarifa Moneda">
+												<h:outputText value="#{_bsp.tarifaMoneda}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tarifa">
+												<h:outputText value="0" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Emisor">
+												<h:outputText value="#{_bsp.emisor}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Tarjeta">
+												<h:outputText value="#{_bsp.tarjeta}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Usuario">
+												<h:outputText value="#{_bsp.usuario}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha Computador">
+												<h:outputText value="#{_bsp.fechaComputador}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Ticket Cnj">
+												<h:outputText value="#{_bsp.ticketCnj}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Penalty">
+												<h:outputText value="0" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Referencia">
+												<h:outputText value="#{_bsp.referencia}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Impuesto Extranjero">
+												<h:outputText value="0" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Pasajero">
+												<h:outputText value="" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="Ruta">
+												<h:outputText value="#{_bsp.ruta}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Valex">
+												<h:outputText value="#{_bsp.valex}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Vale">
+												<h:outputText value="#{_bsp.vale}" />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Iva Comision">
+												<h:outputText value="0" />
+											</p:column>
+
+
+											<p:columnGroup type="footer" id="panelTotal">
+												<p:row>
+													<p:column colspan="9" footerText="Totales " style="text-align:right">
+													</p:column>
+													<p:column colspan="1" style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{cargaVentaTicketBean.totalCredito}">
+																<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+											</p:columnGroup>
+										</p:dataTable>
+									</p:tab>
+								</p:accordionPanel>
+							</p:panel>
+							<p:panel header="Cargar Tickets" rendered="#{!cargaVentaTicketBean.render}" id="panelTickets">
+								<p:outputPanel id="panelCargaTickets">
+									<p:outputPanel id="panelMigracionTickets">
+										<p:panel header="#{msgs.lbl_migracion} #{msgs.lbl_carga_tickets} ">
+											<p:fileUpload fileUploadListener="#{cargaVentaTicketBean.migrarCargaTickets}" mode="advanced" update=":form:panelListadoTickets"
+												auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_cargar_excel}" process="@this" />
+										</p:panel>
+									</p:outputPanel>
+								</p:outputPanel>
+								<p:outputPanel id="panelListadoTickets">
+									<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_ticket}">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTickets" rowIndexVar="secuencialPlan"
+											rendered="#{cargaVentaTicketBean.listTickets.size()>0}" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cargaVentaTicketBean.listTickets}"
+											var="_ticket" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{cargaVentaTicketBean.numeroFilas}"
+											rowsPerPageTemplate="#{cargaVentaTicketBean.numeroFilasPorPagina}" rowKey="#{_ticket.id}">
+											<p:column style="width:16px">
+												<p:rowToggler />
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencialPlan+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_moneda}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.moneda}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo_estacion}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.puntoDeVenta!=null?_ticket.puntoDeVenta.codigoAlterno.substring(0,3):''}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo_agente}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.codigoAgente}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha_reporte}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.periodo}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha_emision}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.fecha}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_record}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.record}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_numero_documento}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.numero}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_original_conjuncion}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.originalConjuncion}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_n_documento_relacionado}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.numeroDocumentoRelacionado}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tipo_emision}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.operacion}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tipo_documento}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.tipoDeDocumento}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tipo_transaccion}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.tipoTransaccion}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_pasajero}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.pasajero}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_identificacion_tributaria}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.identificacionTributaria}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell" style="white-space: nowrap">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_ruta}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.ruta}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha_viaje}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.fechaViaje}">
+													<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_credito}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.isCredito? 'YES':'No'}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_forma_pago}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.formaPago}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_efectivo}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.formaPago=='CA'? _ticket.valorFormaPago:0}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tarjeta_credito}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.formaPago=='CC'? _ticket.valorFormaPago:0}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tipo_tarjeta_credito}" />
+												</f:facet>
+												<h:outputText value="" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_cuentas_corporativas}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.formaPago=='RV'? _ticket.valorFormaPago:0}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_valor_total_preliminar}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.valorTotalPreliminar}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_valor_total}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.valorTotal}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_exceso_faltante}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.diferencia}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell" style="white-space: nowrap">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_observaciones}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.observaciones}" />
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tarifa_preliminar}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.tarifaPreliminar}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tarifa}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.tarifa}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tarifa_12}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.tarifaDiferenteCero}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tarifa_0}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.tarifaCero}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_yq}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.yq}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_yq_12}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.yqDiferenteCero}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_yq_0}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.yqCero}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_anticipo}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.anticipo}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_descuento}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.descuento}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_penalidades_sercicios}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.penalty}">
+													<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo_servicio}" />
+												</f:facet>
+												<h:outputText value="#{_ticket.codigoDeServicio}" />
+											</p:column>
+											<p:rowExpansion>
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaImpuestos" rowIndexVar="secuencialPlan"
+													emptyMessage="#{msgs.msg_no_hay_datos}" value="#{_ticket.listaDetalleTicket}" var="_detalleTicket" style="width:60px"
+													rows="#{cargaVentaTicketBean.numeroFilas}" rowsPerPageTemplate="#{cargaVentaTicketBean.numeroFilasPorPagina}"
+													rowKey="#{_detalleTicket.id}">
+													<p:column styleClass="columnaDTNombre tableCell">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre_impuesto}" />
+														</f:facet>
+														<h:outputText value="#{_detalleTicket.taxMiscFeeType1}" />
+													</p:column>
+													<p:column styleClass="columnaDTNombre tableCell">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_valor_impuesto}" />
+														</f:facet>
+														<h:outputText value="#{_detalleTicket.taxMiscFeeAmt1}">
+															<f:convertNumber pattern="#{cargaVentaTicketBean.formatoDinero}" />
+														</h:outputText>
+													</p:column>
+												</p:dataTable>
+											</p:rowExpansion>
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+							</p:panel>
+						</p:panel>
+
+					</p:outputPanel>
+
+
+					<p:outputPanel id="panelListado">
+						<p:panel rendered="#{!cargaVentaTicketBean.editado}" header="#{msgs.lbl_panel_listado} BSP">
+
+							<h:panelGroup id="pgPanelDialogoAsiento">
+
+								<p:dialog header="#{msgs.lbl_ticket_no_editados}" widgetVar="edicionTickets" modal="true" height="400" width="450" showEffect="slide"
+									hideEffect="slide" id="dlgAsien">
+
+									<h:outputText value="Archivo :"></h:outputText>
+									<h:outputText value="#{cargaVentaTicketBean.bspParaEdicion.numero}"></h:outputText>
+
+
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAsiento" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cargaVentaTicketBean.listaTicketNoEditados}" var="_ticket" paginator="true"
+										paginatorPosition="bottom" rows="#{recepcionProveedorBean.numeroFilas}" rowKey="#{_detalleAsiento.hashCode}"
+										rowsPerPageTemplate="#{cargaVentaTicketBean.numeroFilasPorPagina}">
+
+										<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+											<h:outputText value="#{secuencial + 1}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_ticket}" styleClass="columnaDTCodigo tableCell">
+											<h:outputText value="#{_ticket.numero}" />
+										</p:column>
+
+									</p:dataTable>
+									<f:facet name="footer">
+										<center>
+											<p:commandButton id="btnGuardarBSPParaEdicion" action="#{cargaVentaTicketBean.actualizaCargaArchivo(cargaVentaTicketBean.bspParaEdicion)}"
+												value="#{msgs.btn_guardar}" oncomplete="edicionTickets.hide();" process="@this" update=":form:panelListado">
+											</p:commandButton>
+											<p:commandButton id="btnCancelarRecepcionProveedor" value="#{msgs.btn_cancelar}" oncomplete="edicionTickets.hide();"
+												process="@this" update=":form:panelListado">
+											</p:commandButton>
+										</center>
+									</f:facet>
+
+
+
+								</p:dialog>
+							</h:panelGroup>
+
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCass" rowIndexVar="secuencialCass" emptyMessage="#{msgs.msg_no_hay_datos}"
+								value="#{cargaVentaTicketBean.listaBSP}" var="_bsp" binding="#{cargaVentaTicketBean.dtBSP}" paginator="true" paginatorPosition="bottom"
+								style="width:100%" rows="#{cargaVentaTicketBean.numeroFilas}" rowsPerPageTemplate="#{cargaVentaTicketBean.numeroFilasPorPagina}"
+								selection="#{cargaVentaTicketBean.bsp}" selectionMode="single" rowKey="#{_bsp.id}" sortBy="#{_bsp.numero}" lazy="true">
+
+								<p:column styleClass="columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencialCass+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_numero}" filterBy="#{_bsp.numero}" sortBy="#{_bsp.numero}">
+									<h:outputText value="#{_bsp.numero}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_bsp.estado}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_estado}" />
+									</f:facet>
+									<h:outputText value="#{_bsp.estado.nombre}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_bsp.fecha}" >
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_fecha}" />
+									</f:facet>
+									<h:outputText value="#{_bsp.fecha}">
+										<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_bsp.periodo}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_fecha_reporte}" />
+									</f:facet>
+									<h:outputText value="#{_bsp.periodo}">
+										<f:convertDateTime pattern="#{cargaVentaTicketBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTEstado tableCell" filterBy="#{_bsp.tipo}" sortBy="#{_bsp.tipo}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_tipo}" />
+									</f:facet>
+									<h:outputText value="#{_bsp.tipo}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_bsp.indicadorRespaldo}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_respaldo}" />
+									</f:facet>
+									<p:selectBooleanCheckbox value="#{_bsp.indicadorRespaldo}" disabled="true" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTAccion">
+									<h:panelGroup
+										rendered="#{(!_bsp.indicadorRespaldo and _bsp.tipo == 'BSP Actualizado' and _bsp.estado == 'ELABORADO') or (_bsp.tipo == 'Ventas locales' and _bsp.estado == 'ELABORADO')}">
+										<p:commandButton value="Generar Facturas" actionListener="#{cargaVentaTicketBean.facturarListener(_bsp)}" process="@this"
+											update=":form:panelListado" />
+									</h:panelGroup>
+
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTAccion">
+									<h:panelGroup
+										rendered="#{(!_bsp.indicadorRespaldo and _bsp.estado == 'ELABORADO') and (_bsp.tipo == 'BSP Actualizado' or _bsp.tipo == 'BSP')}">
+										<p:fileUpload fileUploadListener="#{cargaVentaTicketBean.edicionBSP}" mode="advanced" update=":form:tablaCass" auto="true"
+											sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_cargar_excel}" process="@this">
+										</p:fileUpload>
+									</h:panelGroup>
+								</p:column>
+
+							</p:dataTable>
+						</p:panel>
+					</p:outputPanel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{despachoClienteBean.despachoCliente.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{despachoClienteBean.despachoCliente.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{despachoClienteBean.despachoCliente.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{despachoClienteBean.despachoCliente.usuarioModificacion}" />
+
+					</ui:include>
+
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{aprobarPagoEmpleadoBean}">
+					<as2:buttonEliminar bean="#{aprobarPagoEmpleadoBean}">
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{aprobarPagoEmpleadoBean}" tabla=":form:tablaPagoEmpleado" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo" />
+
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_aprobar_pago_empleado}" rendered="#{!aprobarPagoEmpleadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagoEmpleado" rowIndexVar="secuencialNivelCuenta" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{aprobarPagoEmpleadoBean.listaPagoEmpleado}" var="_pagoEmpleado" binding="#{aprobarPagoEmpleadoBean.dtPagoEmpleado}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{aprobarPagoEmpleadoBean.numeroFilas}" selection="#{aprobarPagoEmpleadoBean.pagoEmpleado}"
+							rowsPerPageTemplate="#{aprobarPagoEmpleadoBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_pagoEmpleado.id}"
+							sortBy="#{_pagoEmpleado.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialNivelCuenta+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_pagoEmpleado.documento.nombre}" filterBy="#{_pagoEmpleado.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento" sortBy="#{_pagoEmpleado.numero}" filterBy="#{_pagoEmpleado.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_pagoEmpleado.identificacion}" filterBy="#{_pagoEmpleado.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.identificacion}" />
+							</p:column>
+
+							<p:column sortBy="#{_pagoEmpleado.nombres}" filterBy="#{_pagoEmpleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.nombres}" />
+							</p:column>
+
+							<p:column sortBy="#{_pagoEmpleado.apellidos}" filterBy="#{_pagoEmpleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha" sortBy="#{_pagoEmpleado.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.fecha}">
+									<f:convertDateTime pattern="#{pagoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" sortBy="#{_pagoEmpleado.valor}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.valor}">
+									<f:convertNumber pattern="#{aprobarPagoEmpleadoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_pagoEmpleado.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.btn_aprobar}" exportable="false">
+								<p:commandButton icon="action" action="#{aprobarPagoEmpleadoBean.aprobarPagoEmpleado}" process="@this" update=":form:panelListado"
+									disabled="#{_pagoEmpleado.estado != 'ELABORADO'}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{aprobarPagoEmpleadoBean.pagoEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{aprobarPagoEmpleadoBean.pagoEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{aprobarPagoEmpleadoBean.pagoEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{aprobarPagoEmpleadoBean.pagoEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

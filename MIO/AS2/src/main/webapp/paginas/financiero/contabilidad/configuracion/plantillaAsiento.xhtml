@@ -1,0 +1,382 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{plantillaAsientoBean}">
+					<as2:buttonEliminar bean="#{plantillaAsientoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{plantillaAsientoBean.plantillaAsiento.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{plantillaAsientoBean.plantillaAsiento.nombre}" />
+					</as2:buttonEliminar>
+					
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{plantillaAsientoBean.copiar}" update=":form:panelContenedor" disabled="#{plantillaAsientoBean.editado}">
+					</p:commandButton>
+					
+					<as2:buttonExportaExcel bean="#{plantillaAsientoBean}" tabla=":form:tablaPlantillaAsiento"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{plantillaAsientoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_plantilla_asiento_panel}">
+
+						<h:panelGrid columns="1">
+
+							<h:panelGrid id="panelDetalle"
+								columns="#{plantillaAsientoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" required="true"
+									value="#{plantillaAsientoBean.plantillaAsiento.codigo}" id="txtCodigo">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" required="true"
+									value="#{plantillaAsientoBean.plantillaAsiento.nombre}" id="txtNombre">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_indicadorPorcentaje}:" />
+								<p:selectBooleanCheckbox
+									value="#{plantillaAsientoBean.plantillaAsiento.indicadorPorcentaje}" />
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox
+									value="#{plantillaAsientoBean.plantillaAsiento.activo}" />
+								
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text"
+									value="#{plantillaAsientoBean.plantillaAsiento.descripcion}">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+							<p:spacer width="2px" />
+
+							<p:tabView id="tabView">
+
+								<p:tab title="#{msgs.lbl_detalle_plantilla}"
+									id="tabDetalleAsiento">
+
+									<p:outputPanel id="panelDetallePlantillaAsiento">
+										<h:panelGrid columns="1">
+
+											<p:commandButton value="#{msgs.btn_agregar_detalle}"
+												id="btnAgregar"
+												action="#{plantillaAsientoBean.agregarDetalle}"
+												update=":form:tabView:panelDetallePlantillaAsiento"
+												process="@this" global="false" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{plantillaAsientoBean.detallePlantillaAsiento}"
+												id="tablaDetalleAsientos" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_detallePlantilla" paginator="true"
+												paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detallePlantilla.id}"
+												rows="#{plantillaAsientoBean.numeroFilas}"
+												rowsPerPageTemplate="#{plantillaAsientoBean.numeroFilasPorPagina}" lazy="true">
+
+												<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre"
+													headerText="#{msgs.lbl_codigo}">
+													<h:panelGroup>
+														<p:commandButton icon="ui-icon-gear" process="@this" partialSubmit="true" actionListener="#{plantillaAsientoBean.listaCuentaContableBean.listarCuentaContable}">
+															<p:ajax event="dialogReturn" listener="#{plantillaAsientoBean.seleccionarCuentaContable}"
+																update=":form:tabView:panelDetallePlantillaAsiento"/>
+															<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.detallePlantillaAsientoSeleccionada}"
+																value="#{_detallePlantilla}" />
+														</p:commandButton>
+
+														<p:inputText style="width: 80%;"
+															value="#{_detallePlantilla.cuentaContable.codigo}"
+															id="txtCodigoCuenta">
+															<p:ajax
+																listener="#{plantillaAsientoBean.buscarCuentaContable(_detallePlantilla)}"
+																process="@this"
+																update=":form:tabView:panelDetallePlantillaAsiento"
+																event="change" global="false"
+																oncomplete="nextFocus(':form:txtDebe')" />
+														</p:inputText>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre"
+													headerText="#{msgs.lbl_cuenta_contable}">
+													<h:outputText id="txtNombreCuenta"
+														value="#{_detallePlantilla.cuentaContable.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor"
+													headerText="#{msgs.lbl_asiento_debe}">
+													<p:inputText styleClass="input-text-col"
+														value="#{_detallePlantilla.debe}"
+														readonly="#{_detallePlantilla.haber>0}" id="txtDebe">
+														<f:validateBean />
+														<p:ajax
+															update=":form:tabView:panelDetallePlantillaAsiento"
+															process="@this" event="change" global="flase"
+															listener="#{plantillaAsientoBean.calcularTotalesListener}"
+															oncomplete="nextFocus(:form:txtHaber')" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor"
+													headerText="#{msgs.lbl_asiento_haber}">
+													<p:inputText styleClass="input-text-col"
+														value="#{_detallePlantilla.haber}"
+														readonly="#{_detallePlantilla.debe>0}" id="txtHaber">
+														<f:validateBean />
+														<p:ajax
+															update=":form:tabView:panelDetallePlantillaAsiento"
+															event="change" global="flase"
+															listener="#{plantillaAsientoBean.calcularTotalesListener()}"
+															process="@this"
+															oncomplete="nextFocus(':form:txtCodigoCuenta')" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor"
+													rendered="#{not empty plantillaAsientoBean.nombreDimension1}"
+													headerText="#{plantillaAsientoBean.nombreDimension1}">
+													<h:panelGroup
+														rendered="#{_detallePlantilla.cuentaContable.indicadorValidarDimension1}">														
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelDetallePlantillaAsiento" partialSubmit="true" actionListener="#{plantillaAsientoBean.listaDimensionContableBean.listarDimensionContableListener('1')}">
+															<p:ajax event="dialogReturn" listener="#{plantillaAsientoBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelDetallePlantillaAsiento"/>
+															<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.detallePlantillaAsientoSeleccionada}"
+																value="#{_detallePlantilla}" />
+																<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.listaDimensionContableBean.numeroDimension}"
+																value="1" />
+														</p:commandButton>
+														
+														
+														<h:outputText
+															value="#{_detallePlantilla.dimensionContable1.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor"
+													rendered="#{not empty plantillaAsientoBean.nombreDimension2}"
+													headerText="#{plantillaAsientoBean.nombreDimension2}">
+													<h:panelGroup
+														rendered="#{_detallePlantilla.cuentaContable.indicadorValidarDimension2}">
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelDetallePlantillaAsiento" partialSubmit="true" actionListener="#{plantillaAsientoBean.listaDimensionContableBean.listarDimensionContableListener('2')}">
+															<p:ajax event="dialogReturn" listener="#{plantillaAsientoBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelDetallePlantillaAsiento"/>
+															<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.detallePlantillaAsientoSeleccionada}"
+																value="#{_detallePlantilla}" />
+																<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.listaDimensionContableBean.numeroDimension}"
+																value="2" />
+														</p:commandButton>
+														<h:outputText
+															value="#{_detallePlantilla.dimensionContable2.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor"
+													rendered="#{not empty plantillaAsientoBean.nombreDimension3}"
+													headerText="#{plantillaAsientoBean.nombreDimension3}">
+													<h:panelGroup
+														rendered="#{_detallePlantilla.cuentaContable.indicadorValidarDimension3}">
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelDetallePlantillaAsiento" partialSubmit="true" actionListener="#{plantillaAsientoBean.listaDimensionContableBean.listarDimensionContableListener('3')}">
+															<p:ajax event="dialogReturn" listener="#{plantillaAsientoBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelDetallePlantillaAsiento"/>
+															<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.detallePlantillaAsientoSeleccionada}"
+																value="#{_detallePlantilla}" />
+																<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.listaDimensionContableBean.numeroDimension}"
+																value="3" />
+														</p:commandButton>
+														<h:outputText
+															value="#{_detallePlantilla.dimensionContable3.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor"
+													rendered="#{not empty plantillaAsientoBean.nombreDimension4}"
+													headerText="#{plantillaAsientoBean.nombreDimension4}">
+													<h:panelGroup
+														rendered="#{_detallePlantilla.cuentaContable.indicadorValidarDimension4}">
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelDetallePlantillaAsiento" partialSubmit="true" actionListener="#{plantillaAsientoBean.listaDimensionContableBean.listarDimensionContableListener('4')}">
+															<p:ajax event="dialogReturn" listener="#{plantillaAsientoBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelDetallePlantillaAsiento"/>
+															<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.detallePlantillaAsientoSeleccionada}"
+																value="#{_detallePlantilla}" />
+																<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.listaDimensionContableBean.numeroDimension}"
+																value="4" />
+														</p:commandButton>
+														<h:outputText
+															value="#{_detallePlantilla.dimensionContable4.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor"
+													rendered="#{not empty plantillaAsientoBean.nombreDimension5}"
+													headerText="#{plantillaAsientoBean.nombreDimension5}">
+													<h:panelGroup
+														rendered="#{_detallePlantilla.cuentaContable.indicadorValidarDimension5}">
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelDetallePlantillaAsiento" partialSubmit="true" actionListener="#{plantillaAsientoBean.listaDimensionContableBean.listarDimensionContableListener('5')}">
+															<p:ajax event="dialogReturn" listener="#{plantillaAsientoBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelDetallePlantillaAsiento"/>
+															<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.detallePlantillaAsientoSeleccionada}"
+																value="#{_detallePlantilla}" />
+																<f:setPropertyActionListener
+																target="#{plantillaAsientoBean.listaDimensionContableBean.numeroDimension}"
+																value="5" />
+														</p:commandButton>
+														<h:outputText
+															value="#{_detallePlantilla.dimensionContable5.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion">
+													<p:commandButton id="btnEliminarDetalle"
+														action="#{plantillaAsientoBean.eliminarDetalle(_detallePlantilla)}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelDetallePlantillaAsiento"
+														process="@this" />
+												</p:column>
+
+												<p:columnGroup type="footer">
+													<p:row>
+														<p:column colspan="3" footerText="#{msgs.lbl_total}:"
+															style="text-align:right" />
+														<p:column
+															footerText="#{plantillaAsientoBean.plantillaAsiento.totalDebe}"
+															style="text-align:right" />
+														<p:column
+															footerText="#{plantillaAsientoBean.plantillaAsiento.totalHaber}"
+															style="text-align:right" />
+
+													</p:row>
+
+													<p:row>
+														<p:column colspan="3" footerText="#{msgs.lbl_diferencia}:"
+															style="text-align:right" />
+														<p:column
+															footerText="#{plantillaAsientoBean.plantillaAsiento.totalDebe-plantillaAsientoBean.plantillaAsiento.totalHaber}"
+															style="text-align:right" />
+														<p:column />
+
+													</p:row>
+
+												</p:columnGroup>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+
+						</h:panelGrid>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!plantillaAsientoBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_plantilla_asiento_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlantillaAsiento" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{plantillaAsientoBean.listaPlantillaAsiento}"
+							var="_plantilla" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{plantillaAsientoBean.numeroFilas}"
+							rowsPerPageTemplate="#{plantillaAsientoBean.numeroFilasPorPagina}"
+							selection="#{plantillaAsientoBean.plantillaAsiento}"
+							selectionMode="single" rowKey="#{_plantilla.id}"
+							sortBy="#{_plantilla.codigo}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" filterBy="#{_plantilla.codigo}" sortBy="#{_plantilla.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_plantilla.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" filterBy="#{_plantilla.nombre}" sortBy="#{_plantilla.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_plantilla.nombre}" />
+							</p:column>						
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_plantilla.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_plantilla.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_plantilla.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell" sortBy="#{_plantilla.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_plantilla.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{plantillaAsientoBean.plantillaAsiento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{plantillaAsientoBean.plantillaAsiento.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{plantillaAsientoBean.plantillaAsiento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{plantillaAsientoBean.plantillaAsiento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

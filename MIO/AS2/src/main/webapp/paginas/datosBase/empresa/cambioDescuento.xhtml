@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="Cambio Descuento">
+
+				<h:panelGrid columns="2" columnClasses="columnaBoton,columnaValor">
+
+					<h:outputText value="Lista de Descuentos" />
+					<p:autoComplete styleClass="input-text" id="acListaDescuento" value="#{cambioDescuentoBean.listadoListaDescuentoSeleccionados}" required="true"
+						completeMethod="#{cambioDescuentoBean.autocompletarListaDescuento}" multiple="true" minQueryLength="1" var="_listaDescuento"
+						itemLabel="#{_listaDescuento.nombre}" itemValue="#{_listaDescuento}" converter="listaDescuentoConverter">
+						<h:outputText value="#{_listaDescuento.nombre}" />
+						<p:ajax process="@this" global="false" event="change" />
+						<p:ajax process="@this" global="false" event="itemSelect" />
+					</p:autoComplete>
+
+					<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}" />
+					<p:selectOneMenu id="categoriaProducto" value="#{cambioDescuentoBean.categoriaProductoSeleccionado}">
+						<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+						<f:selectItems value="#{cambioDescuentoBean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+							itemValue="#{_categoriaProducto}" />
+						<p:ajax process="@this" listener="#{cambioDescuentoBean.cargarListaSubcategoriaProducto}" update="cboSubcategoriaProducto" />
+					</p:selectOneMenu>
+
+					<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}" />
+					<p:selectOneMenu value="#{cambioDescuentoBean.subcategoriaProductoSeleccionado}" id="cboSubcategoriaProducto">
+						<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+						<f:selectItems value="#{cambioDescuentoBean.listaSubcategoriaProductos}" var="_subcategoriaProducto" itemLabel="#{_subcategoriaProducto.nombre}"
+							itemValue="#{_subcategoriaProducto}" />
+						<p:ajax process="@this" />
+					</p:selectOneMenu>
+
+					<h:outputText value="#{msgs.lbl_producto}" />
+					<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="acProducto" value="#{cambioDescuentoBean.producto}"
+						completeMethod="#{cambioDescuentoBean.autocompletarProductos}" var="_producto" itemLabel="#{_producto.codigo}" itemValue="#{_producto}"
+						forceSelection="true" dropdown="true" minQueryLength="2">
+
+						<p:column headerText="#{msgs.lbl_codigo}">#{_producto.codigo}</p:column>
+						<p:column headerText="#{msgs.lbl_nombre}">#{_producto.nombreComercial}</p:column>
+						<p:ajax process="@this" global="false" event="change" listener="#{cambioDescuentoBean.actualizarCategoriaYSubcategoria}"
+							update=":form:categoriaProducto :form:cboSubcategoriaProducto" />
+						<p:ajax process="@this" global="false" event="itemSelect" listener="#{cambioDescuentoBean.actualizarCategoriaYSubcategoria}" />
+					</p:autoComplete>
+
+					<h:outputText value="% #{msgs.lbl_descuento}" />
+					<p:inputText styleClass="input-text" value="#{cambioDescuentoBean.porcentajeDescuento}" id="txtPorcentajeDescuento" required="true">
+						<f:validateBean />
+						<p:ajax process="@this" global="false" event="change" />
+					</p:inputText>
+
+				</h:panelGrid>
+
+				<h:panelGrid columns="1" style="text-align:center;">
+					<h:panelGroup>
+						<p:commandButton value="#{msgs.btn_actualizar}" process="@this  :form:acListaDescuento :form:txtPorcentajeDescuento"
+							actionListener="#{cambioDescuentoBean.cambioMasivoDescuento}">
+						</p:commandButton>
+
+						<p:commandButton value="#{msgs.btn_agregar}" process="@this  :form:acListaDescuento :form:txtPorcentajeDescuento"
+							actionListener="#{cambioDescuentoBean.asignarProductoNoAsignadosListener}">
+						</p:commandButton>
+					</h:panelGroup>
+				</h:panelGrid>
+
+			</p:panel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

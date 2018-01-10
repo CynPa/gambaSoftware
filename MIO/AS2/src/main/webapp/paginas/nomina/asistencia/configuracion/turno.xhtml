@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{turnoBean}">
+
+					<as2:buttonEliminar bean="#{turnoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{turnoBean.turno.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{turnoBean.turno.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{turnoBean}" tabla=":form:tablaTurnos" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{turnoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_turno})">
+
+						<h:panelGrid id="panelDetalle" columns="#{turnoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{turnoBean.turno.codigo}" id="txtCodigo" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{turnoBean.turno.nombre}" id="txtNombre" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="chAct" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{turnoBean.turno.activo}" id="chAct" />
+
+							<p:outputLabel for="chPred" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{turnoBean.turno.predeterminado}" id="chPred" />
+
+							<p:outputLabel for="horaEntrada" value="#{msgs.lbl_hora_entrada}:" />
+							<p:calendar id="horaEntrada" value="#{turnoBean.turno.horaEntrada}" pattern="HH:mm" timeOnly="true" required="true" />
+
+							<p:outputLabel for="horaSalidaReceso" value="#{msgs.lbl_hora_receso_salida}:" />
+							<p:calendar id="horaSalidaReceso" value="#{turnoBean.turno.horaRecesoSalida}" pattern="HH:mm" timeOnly="true" />
+
+							<p:outputLabel for="horaEntradaReceso" value="#{msgs.lbl_hora_receso_entrada}:" />
+							<p:calendar id="horaEntradaReceso" value="#{turnoBean.turno.horaRecesoEntrada}" pattern="HH:mm" timeOnly="true" />
+
+							<p:outputLabel for="horaSalida" value="#{msgs.lbl_hora_salida}:" />
+							<p:calendar id="horaSalida" value="#{turnoBean.turno.horaSalida}" pattern="HH:mm" timeOnly="true" required="true" />
+
+							<p:outputLabel for="chSuple" value="#{msgs.lbl_pago_horas_suplementarias}:" />
+							<p:selectBooleanCheckbox value="#{turnoBean.turno.indicadorPagoHorasSuplementarias}" id="chSuple" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{turnoBean.turno.descripcion}" id="txtDescripcion">
+							</p:inputTextarea>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!turnoBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_turno})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTurnos" rowIndexVar="secuencialTurno"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{turnoBean.listaTurno}" var="turno" binding="#{turnoBean.dtTurno}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{turnoBean.numeroFilas}" rowsPerPageTemplate="#{turnoBean.numeroFilasPorPagina}"
+							selection="#{turnoBean.turno}" selectionMode="single" rowKey="#{turno.id}" sortBy="#{turno.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialTurno+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{turno.codigo}" filterBy="#{turno.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{turno.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{turno.nombre}" filterBy="#{turno.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{turno.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{turno.horaEntrada}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_hora_entrada}" />
+								</f:facet>
+								<h:outputText value="#{turno.horaEntrada}">
+									<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{turno.horaRecesoSalida}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_hora_receso_salida}" />
+								</f:facet>
+								<h:outputText value="#{turno.horaRecesoSalida}">
+									<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{turno.horaRecesoEntrada}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_hora_receso_entrada}" />
+								</f:facet>
+								<h:outputText value="#{turno.horaRecesoEntrada}">
+									<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{turno.horaSalida}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_hora_salida}" />
+								</f:facet>
+								<h:outputText value="#{turno.horaSalida}">
+									<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{turno.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{turno.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{turno.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{turno.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{turno.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{turnoBean.turno.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{turnoBean.turno.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{turnoBean.turno.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{turnoBean.turno.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

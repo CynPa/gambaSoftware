@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{interfazContableContratoVentaBean}">
+					<as2:buttonEliminar bean="#{interfazContableContratoVentaBean}" titulo="#{msgs.btn_anular}">						
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<h:outputText
+							value="#{interfazContableContratoVentaBean.interfazContableProceso.fechaHasta}" />
+					</as2:buttonEliminar>
+					<as2:buttonImprimir id="btnImprimirContratoVentaDevengado" beanReporte="#{reporteContratoVentaDevengadoBean}" bean="#{interfazContableContratoVentaBean}"
+						target="#{reporteContratoVentaDevengadoBean.interfazContableProceso}" value="#{interfazContableContratoVentaBean.interfazContableProceso}" />
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{interfazContableContratoVentaBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{interfazContableContratoVentaBean.interfazContableProceso.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>							
+						
+				</as2:toolBar>
+
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores"
+						modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+							value="#{interfazContableContratoVentaBean.exContabilizacion.mensajes}"
+							var="_mensaje" rowIndexVar="secuencial" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_contrato_venta}"
+						rendered="#{interfazContableContratoVentaBean.editado}">
+						<p:fieldset>
+
+							<h:panelGrid columns="4"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento_documentoBase}:" />
+								<p:selectOneMenu styleClass="input-text"
+									value="#{interfazContableContratoVentaBean.interfazContableProceso.filtroDocumentoBase}"
+									id="cboDocumentoBase">
+									<f:selectItems
+										value="#{interfazContableContratoVentaBean.listaDocumentoBase}" />
+									<f:validateBean for="cboDocumentoBase" />
+									<p:ajax process="@this" event="change"
+										listener="#{interfazContableContratoVentaBean.cargarListaDocumento}" />
+								</p:selectOneMenu>								
+
+								<!-- <h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text"
+									value="#{interfazContableContratoVentaBean.interfazContableProceso.filtroDocumento}"
+									id="cboDocumento">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems
+										value="#{interfazContableContratoVentaBean.listaDocumento}"
+										var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+								</p:selectOneMenu>
+								-->
+
+								<h:outputText value="#{msgs.lbl_anio}:" />
+								<p:inputMask id="txtAnioHasta" mask="9999" value="#{interfazContableContratoVentaBean.anioHasta}">
+									<p:ajax process="@this" event="change" global="false" />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_mes}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{interfazContableContratoVentaBean.mesHasta}" id="cboMesHasta">
+									<f:selectItems value="#{interfazContableContratoVentaBean.listaMes}" />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+								
+								<h:outputText value="#{msgs.lbl_agrupado}:" />
+								<p:selectBooleanCheckbox value="#{interfazContableContratoVentaBean.interfazContableProceso.indicadorAgrupaMovimientos}">
+									<p:ajax process="@this" global="false" />
+								</p:selectBooleanCheckbox>
+
+								<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar"
+									action="#{interfazContableContratoVentaBean.mostrarDevengado}"
+									process="@this,cboDocumentoBase,txtAnioHasta,cboMesHasta" update=":form:panelDevengado" />
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+
+							<p:outputPanel id="panelDevengado">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+									value="#{interfazContableContratoVentaBean.listaDetalleValoresContratoVentaADevengar}"
+									id="tablaDetalleValoresContratoVentaADevengar" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleValoresContratoVenta"
+									paginator="true" paginatorPosition="bottom" style="width:100%"
+									binding="#{interfazContableContratoVentaBean.dtDetalleValoresContratoVenta}"
+									rowKey="#{_detalleValoresContratoVenta.id}"
+									rows="#{interfazContableContratoVentaBean.numeroFilas}"
+									rowsPerPageTemplate="#{interfazContableContratoVentaBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+									
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_fecha}">
+										<h:outputText value="#{_detalleValoresContratoVenta.contratoVenta.numero}" />
+									</p:column>
+									
+									<p:column styleClass="tableCell columnaDTFechaInput" headerText="#{msgs.lbl_fecha}">
+										<h:outputText value="#{_detalleValoresContratoVenta.fecha}" >
+											<f:convertDateTime
+											pattern="#{interfazContableContratoVentaBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+									
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_valor}">
+										<h:outputText value="#{_detalleValoresContratoVenta.valorDevengar}" />
+									</p:column>
+									
+								</p:dataTable>
+
+							</p:outputPanel>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_interfaz_contable_venta_proceso}"
+						rendered="#{!interfazContableContratoVentaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaInterfazContableProceso"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{interfazContableContratoVentaBean.listaInterfazContableProceso}"
+							var="_interfazContableProceso" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							binding="#{interfazContableContratoVentaBean.dtInterfazContableProceso}"
+							rows="#{interfazContableContratoVentaBean.numeroFilas}"
+							rowsPerPageTemplate="#{interfazContableContratoVentaBean.numeroFilasPorPagina}"
+							selection="#{interfazContableContratoVentaBean.interfazContableProceso}"
+							selectionMode="single" rowKey="#{_interfazContableProceso.id}"
+							sortBy="#{_interfazContableProceso.fechaDesde}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaHasta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_hasta}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaHasta}">
+									<f:convertDateTime
+										pattern="#{interfazContableContratoVentaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaContabilizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_contabilizacion}" />
+								</f:facet>
+								<h:outputText
+									value="#{_interfazContableProceso.fechaContabilizacion}">
+									<f:convertDateTime
+										pattern="#{interfazContableContratoVentaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_interfazContableProceso.asiento.tipoAsiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_asiento}" />
+								</f:facet>
+								<h:outputText
+									value="#{_interfazContableProceso.asiento.tipoAsiento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" >
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _interfazContableProceso.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true"
+									value="#{_interfazContableProceso.asiento}">
+									<f:param name="idAsiento"
+										value="#{_interfazContableProceso.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTEstado" sortBy="#{_interfazContableProceso.estado}"
+								filterBy="#{_interfazContableProceso.estado}"
+								filterOptions="#{interfazContableContratoVentaBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nota}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.observacion}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_procesar}" exportable="false">
+								<center>
+									<p:commandButton icon="ui-icon-gear" action="#{interfazContableContratoVentaBean.devengar}" process="@this"
+										update=":form:panelListado" />
+								</center>
+							</p:column>		
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion"
+						value="#{interfazContableContratoVentaBean.interfazContableProceso.fechaCreacion}" />
+					<ui:param name="usuarioCreacion"
+						value="#{interfazContableContratoVentaBean.interfazContableProceso.usuarioCreacion}" />
+					<ui:param name="fechaModificacion"
+						value="#{interfazContableContratoVentaBean.interfazContableProceso.fechaModificacion}" />
+					<ui:param name="usuarioModificacion"
+						value="#{interfazContableContratoVentaBean.interfazContableProceso.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

@@ -1,0 +1,215 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{categoriaRubroBean}">
+					<as2:buttonEliminar bean="#{categoriaRubroBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{categoriaRubroBean.categoriaRubro.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{categoriaRubroBean.categoriaRubro.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{categoriaRubroBean}" tabla=":form:tablaConjuntosAtributo" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_categoria_rubro}" rendered="#{categoriaRubroBean.editado}">
+
+						<!-- INICIO DIALOGO ASIGNACION DE RUBROS -->
+						<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_rubro}" widgetVar="listadoRubrosNoAsignados" modal="true" height="360" width="560"
+							showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelRubrosNoAsignados">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRubrosNoAsignados" rowIndexVar="secuencia"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{categoriaRubroBean.listaRubrosNoAsignados}" var="_rubro" paginator="true"
+									paginatorPosition="bottom" style="width:100%" rows="10" rowKey="#{_rubro.idRubro}" selection="#{categoriaRubroBean.listaRubrosSeleccionados}"
+									rowsPerPageTemplate="#{categoriaRubroBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" selectionMode="multiple" />
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_rubro.codigo}" filterBy="#{_rubro.codigo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+										<h:outputText value="#{_rubro.codigo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCategoria tableCell" sortBy="#{_rubro.nombre}" filterBy="#{_rubro.nombre}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nombre}" />
+										</f:facet>
+										<h:outputText value="#{_rubro.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_rubro.tipoRubro.nombre}" filterBy="#{_rubro.tipoRubro.nombre}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_tipo}" />
+										</f:facet>
+										<h:outputText value="#{_rubro.tipoRubro.nombre}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_agregar_salir}" oncomplete="listadoRubrosNoAsignados.hide()" action="#{categoriaRubroBean.agregarRubros}"
+										process="@this, :form:panelRubrosNoAsignados" update=":form:vistaTab:panelRubro" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- FIN DIALOGO ASIGNACION DE RUBROS -->
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{categoriaRubroBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{categoriaRubroBean.categoriaRubro.codigo}" id="txtCodigo">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{categoriaRubroBean.categoriaRubro.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{categoriaRubroBean.categoriaRubro.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{categoriaRubroBean.categoriaRubro.predeterminado}" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{categoriaRubroBean.categoriaRubro.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:tabView id="vistaTab" cache="true" dynamic="true">
+
+							<p:tab title="#{msgs.lbl_rubro}" id="tabRubro">
+								<p:outputPanel id="panelRubro">
+									<p:panel>
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnRubro" oncomplete="listadoRubrosNoAsignados.show()"
+											action="#{categoriaRubroBean.cargarRubrosNoAsignados}" update=":form:panelRubrosNoAsignados" process="@this" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{categoriaRubroBean.listaCategoriaRubroRubro}" id="tablaRubro"
+											rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_Rubro" paginator="true" paginatorPosition="bottom"
+											binding="#{categoriaRubroBean.dtRubro}" style="width:100%" rows="#{categoriaRubroBean.numeroFilas}"
+											rowsPerPageTemplate="#{categoriaRubroBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_Rubro.rubro.codigo}" filterBy="#{_Rubro.rubro.codigo}"
+												filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo}" />
+												</f:facet>
+												<h:outputText value="#{_Rubro.rubro.codigo}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_Rubro.rubro.nombre}" filterBy="#{_Rubro.rubro.nombre}"
+												filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_nombre}" />
+												</f:facet>
+												<h:outputText value="#{_Rubro.rubro.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" sortBy="#{_Rubro.rubro.tipoRubro.nombre}" filterBy="#{_Rubro.rubro.tipoRubro.nombre}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_tipo}" />
+												</f:facet>
+												<h:outputText value="#{_Rubro.rubro.tipoRubro.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarRubro" action="#{categoriaRubroBean.eliminarCategoriaRubroRubro(_Rubro)}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update="tablaRubro" process="@this">
+												</p:commandButton>
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_categoria_rubro}" rendered="#{!categoriaRubroBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaConjuntosAtributo" rowIndexVar="secuencialcategoriaRubro"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{categoriaRubroBean.listaCategoriaRubro}" var="categoriaRubro" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{categoriaRubroBean.dtCategoriaRubro}" rows="#{categoriaRubroBean.numeroFilas}"
+							rowsPerPageTemplate="#{categoriaRubroBean.numeroFilasPorPagina}" selection="#{categoriaRubroBean.categoriaRubro}" selectionMode="single"
+							rowKey="#{categoriaRubro.id}" sortBy="#{categoriaRubro.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialcategoriaRubro+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{categoriaRubro.codigo}" filterBy="#{categoriaRubro.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{categoriaRubro.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{categoriaRubro.nombre}" filterBy="#{categoriaRubro.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{categoriaRubro.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{categoriaRubro.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{categoriaRubro.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{categoriaRubro.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{categoriaRubro.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{categoriaRubroBean.categoriaRubro.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{categoriaRubroBean.categoriaRubro.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{categoriaRubroBean.categoriaRubro.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{categoriaRubroBean.categoriaRubro.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

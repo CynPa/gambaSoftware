@@ -1,0 +1,275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{devolucionOrdenSalidaMaterialBean}">
+
+					<as2:buttonImprimir id="btnImprimirSalidaMaterial" beanReporte="#{reporteSalidaMaterialBean}" bean="#{devolucionOrdenSalidaMaterialBean}"
+						target="#{reporteSalidaMaterialBean.ordenSalidaMaterial}" value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial}" />
+
+					<as2:buttonImprimir id="btnImprimirDevolucionSalidaMaterial" beanReporte="#{reporteSalidaMaterialBean}"
+						bean="#{devolucionOrdenSalidaMaterialBean}" target="#{reporteSalidaMaterialBean.devolucionOrdenSalidaMaterial}"
+						value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial}" etiquetaImprimir="#{msgs.lbl_devolucion}" />
+					<!-- 
+					<as2:buttonImprimir id="btnImprimirDevolucionSalidaMaterialConsumoDirecto" beanReporte="#{reporteSalidaMaterialBean}"
+						bean="#{devolucionOrdenSalidaMaterialBean}" target="#{reporteSalidaMaterialBean.devolucionOrdenSalidaMaterialConsumoDirecto}"
+						value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial}" etiquetaImprimir="#{msgs.lbl_devolucion_consumo_directo}" />
+ 					-->
+					<as2:buttonExportaExcel bean="#{devolucionOrdenSalidaMaterialBean}" tabla=":form:tablaOrdenFabricacion" />
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelConfirmarDevolucion">
+					<p:confirmDialog message="#{msgs.confirmacion_devolucion}?" header="#{msgs.lbl_confirmar_devolucion}" width="300" height="70"
+						widgetVar="dialogConfirmarDevolucion" appendTo="@(body)">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:outputText value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.numero}" />
+
+							<h:outputText value="#{msgs.lbl_fecha}" />
+							<h:outputText value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.fecha}">
+								<f:convertDateTime pattern="dd/MM/yyyy" timeZone="America/Guayaquil" />
+							</h:outputText>
+
+						</h:panelGrid>
+
+						<center>
+							<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelListado" process="@this"
+								action="#{devolucionOrdenSalidaMaterialBean.confirmarDevolucion}" oncomplete="dialogConfirmarDevolucion.hide()" />
+
+							<p:commandButton value="#{msgs.confirmacion_no}" onclick="dialogConfirmarDevolucion.hide()" />
+						</center>
+					</p:confirmDialog>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{devolucionOrdenSalidaMaterialBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_orden_salida_material})">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{devolucionOrdenSalidaMaterialBean}" />
+							<ui:param name="objetoActualizar" value=":form:tvDetalles:panelDetalleProductos" />
+							<ui:param name="mostrarCantidad" value="false" />
+						</ui:include>
+
+						<h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+
+							<p:fieldset>
+								<h:panelGrid columns="#{devolucionOrdenSalidaMaterialBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_documento}" />
+									<h:outputText value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.documento}" />
+
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<h:outputText value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.numero}" />
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<h:outputText value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.fecha}">
+										<f:convertDateTime pattern="#{devolucionOrdenSalidaMaterialBean.formatoFecha}" />
+									</h:outputText>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<h:outputText value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.descripcion}" />
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer height="1px" />
+
+							<p:tabView cache="true" dynamic="false" id="tvDetalles">
+
+								<p:tab title="#{msgs.lbl_producto}s" id="tabDetalleproducto">
+
+									<h:panelGrid columns="1" style="width:100%" border="0">
+
+										<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+
+										<p:outputPanel id="panelDetalleProductos">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{devolucionOrdenSalidaMaterialBean.listaDetalleOrden}"
+												id="tablaDetallemovimientoInventario" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleOrden"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalleOrden.id}"
+												rows="#{devolucionOrdenSalidaMaterialBean.numeroFilas}" rowsPerPageTemplate="#{devolucionOrdenSalidaMaterialBean.numeroFilasPorPagina}"
+												binding="#{devolucionOrdenSalidaMaterialBean.dtDetalleOrden}" selectionMode="single"
+												selection="#{devolucionOrdenSalidaMaterialBean.detalleOrdenSalidaMaterialSeleccionado}" filteredValue="#{devolucionOrdenSalidaMaterialBean.listaDetalleOrdenFilteredValue}">
+
+												<p:column styleClass="columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column rendered="#{!devolucionOrdenSalidaMaterialBean.mostrarBalanza}" styleClass="tableCell columnaDTNombreCorto"
+													headerText="#{msgs.lbl_orden_fabricacion}">
+													<h:outputText value="#{_detalleOrden.ordenFabricacion.numero}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo_producto}"
+													sortBy="#{_detalleOrden.producto.codigo}" filterBy="#{_detalleOrden.producto.codigo}">
+													<h:outputText value="#{_detalleOrden.producto.codigo}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}"
+												sortBy="#{_detalleOrden.producto.nombre}" filterBy="#{_detalleOrden.producto.nombre}">
+													<h:outputText value="#{_detalleOrden.producto.nombre}" id="txtNombreProducto" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTUnidad" headerText="#{msgs.lbl_unidad_producto}">
+													<h:outputText value="#{_detalleOrden.unidad.nombre}" id="txtUnidadProducto" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_bodega}"
+													sortBy="#{_detalleOrden.bodega.nombre}" filterBy="#{_detalleOrden.bodega.nombre}">
+													<h:outputText value="#{_detalleOrden.bodega.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTCantidad" headerText="#{msgs.lbl_cantidad_requerida}"
+												sortBy="#{_detalleOrden.cantidad}">
+													<h:outputText value="#{_detalleOrden.cantidad}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValorGrande" headerText="#{msgs.lbl_cantidad_despachada}"
+												sortBy="#{_detalleOrden.cantidadDespachada}">
+													<h:outputText value="#{_detalleOrden.cantidadDespachada}" />
+												</p:column>
+
+												<p:column styleClass="tableCell0 columnaDTValorGrande" headerText="#{msgs.lbl_cantidad_a_devolver}"
+												sortBy="#{_detalleOrden.cantidadADevolver}">
+													<p:inputText styleClass="input-text" rendered="#{!_detalleOrden.indicadorConsumoDirecto}"
+														value="#{_detalleOrden.cantidadADevolver}">
+														<p:ajax process="@this" global="false" partialSubmit="true" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell0 columnaDTCantidad" headerText="#{msgs.lbl_cantidad_adicional}"
+												sortBy="#{_detalleOrden.cantidadAdicional}">
+													<p:inputText styleClass="input-text" rendered="#{_detalleOrden.indicadorConsumoDirecto}"
+														value="#{_detalleOrden.cantidadAdicional}">
+														<p:ajax process="@this" global="false" partialSubmit="true" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<h:outputText value="#{_detalleOrden.descripcion}" />
+												</p:column>
+
+												<!--<p:column styleClass="tableCell columnaDTAccion">
+													<p:commandButton rendered="#{_detalleOrden.producto.indicadorConsumoDirecto}" id="btnEliminarDetalle"
+														action="#{devolucionOrdenSalidaMaterialBean.eliminarDetalle(_detalleOrden)}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tvDetalles:panelDetalleProductos" process="@this" />
+												</p:column> -->
+
+											</p:dataTable>
+										</p:outputPanel>
+									</h:panelGrid>
+								</p:tab>
+
+							</p:tabView>
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!devolucionOrdenSalidaMaterialBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_orden_salida_material})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOrdenFabricacion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{devolucionOrdenSalidaMaterialBean.listaOrdenSalidaMaterial}" var="_ordenSalidaMaterial"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{devolucionOrdenSalidaMaterialBean.numeroFilas}"
+							rowsPerPageTemplate="#{devolucionOrdenSalidaMaterialBean.numeroFilasPorPagina}"
+							selection="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial}" selectionMode="single" rowKey="#{_ordenSalidaMaterial.id}"
+							sortBy="#{_ordenSalidaMaterial.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" filterBy="#{_ordenSalidaMaterial.numero}" sortBy="#{_ordenSalidaMaterial.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_ordenSalidaMaterial.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+
+								<h:outputText value="#{_ordenSalidaMaterial.fecha}">
+									<f:convertDateTime pattern="#{devolucionOrdenSalidaMaterialBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_ordenSalidaMaterial.tipoCicloProduccionEnum}" filterBy="tipoCicloProduccionEnum"
+								filterOptions="#{devolucionOrdenSalidaMaterialBean.listaTipoCicloProduccionItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_ciclo}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.tipoCicloProduccionEnum.nombre}" />
+							</p:column>
+							
+							<p:column sortBy="#{_ordenSalidaMaterial.sucursal.nombre}" filterBy="#{_ordenSalidaMaterial.sucursal.nombre}" styleClass="tableCell">
+								<f:facet name="header"  filterMatchMode="contains"  >
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.sucursal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_ordenSalidaMaterial.estado}" filterBy="estado"
+								filterOptions="#{devolucionOrdenSalidaMaterialBean.listaEstadoItem}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_ordenSalidaMaterial.descripcion}" filterBy="#{_ordenSalidaMaterial.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_confirmar_devolucion}" />
+								</f:facet>
+								<center>
+									<p:commandLink oncomplete="dialogConfirmarDevolucion.show()" process="@this" update=":form:panelConfirmarDevolucion"
+										rendered="#{_ordenSalidaMaterial.estado =='ELABORADO'}" title="#{msgs.lbl_confirmar_devolucion}">
+										<f:setPropertyActionListener target="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial}" value="#{_ordenSalidaMaterial}" />
+										<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{devolucionOrdenSalidaMaterialBean.ordenSalidaMaterial.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

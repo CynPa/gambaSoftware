@@ -1,0 +1,100 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_documentos_digitalizados}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteDocumentosDigitalizadosBean}" />
+					<ui:param name="objetoActualizar" value="txtEmpleado" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteDocumentosDigitalizadosBean}"
+					entidadOrigen=""></tnt:panelImprimir>
+				
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera"
+							columns="#{reporteDocumentosDigitalizadosBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							
+							
+								
+							<h:outputText value="#{msgs.lbl_empleado}:" />							
+							<h:panelGroup >
+								<p:commandButton value="..." process="@this"
+									oncomplete="dglModalEmpleado.show();"
+									update=":form:panelListaEmpleado">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado"
+									value="#{reporteDocumentosDigitalizadosBean.empleado.apellidos} #{reporteDocumentosDigitalizadosBean.empleado.nombres}" />
+							</h:panelGroup>
+							
+							<h:outputText value="#{msgs.lbl_documento_digitalizado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteDocumentosDigitalizadosBean.idDocumentoDigitalizado}"
+								id="cboDocumento" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems
+									value="#{reporteDocumentosDigitalizadosBean.listaDocumentoDigitalizado}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteDocumentosDigitalizadosBean.departamento.idDepartamento}"
+								id="cboDepartamento" required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteDocumentosDigitalizadosBean.listaDepartamento}"
+									var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento.idDepartamento}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_vencen_antes_de}:" />
+							<p:calendar id="calFechaVencer" value="#{reporteDocumentosDigitalizadosBean.fechaVencer}" showOn="button" navigator="true" required="false"
+								pattern="#{reporteDocumentosDigitalizadosBean.formatoFecha}">
+								<p:ajax process="@this" event="change" update="@this" global="false" />
+							</p:calendar>
+							
+							<h:outputText value="#{msgs.lbl_cargados}:" />
+							<p:selectBooleanCheckbox id="chbNoCargado" value="#{reporteDocumentosDigitalizadosBean.cargados}"
+								disabled="false" >
+								<p:ajax process="@this"	event="change" global="false" />
+							</p:selectBooleanCheckbox>
+							
+							<h:outputText value="#{msgs.lbl_no_cargados}:" />
+							<p:selectBooleanCheckbox id="chbCargado" value="#{reporteDocumentosDigitalizadosBean.noCargados}"
+								disabled="false" >
+								<p:ajax process="@this"	event="change" global="false" />
+							</p:selectBooleanCheckbox>
+							
+							
+
+						</h:panelGrid>
+
+					</p:fieldset>
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+							process="@this :form:calFechaVencer :form:chbCargado :form:chbNoCargado :form:cboDocumento :form:cboDepartamento" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

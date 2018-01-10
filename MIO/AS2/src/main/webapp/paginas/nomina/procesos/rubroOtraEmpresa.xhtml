@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{rubroOtraEmpresaBean}">
+
+					<as2:buttonEliminar bean="#{rubroOtraEmpresaBean}">
+						<h:outputText value="#{msgs.lbl_rubros_otras_empresas}:" />
+						<h:outputText
+							value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.empleado.apellidos} #{rubroOtraEmpresaBean.rubroOtraEmpresa.empleado.nombres} ( #{rubroOtraEmpresaBean.rubroOtraEmpresa.anio} | #{rubroOtraEmpresaBean.rubroOtraEmpresa.mes} )" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{rubroOtraEmpresaBean}" tabla=":form:tablaRubroOtraEmpresa" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{rubroOtraEmpresaBean}" />
+					<ui:param name="objetoActualizar" value="txtEmpleado" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_rubros_otras_empresas} )" rendered="#{rubroOtraEmpresaBean.editado}">
+
+						<h:panelGrid columns="#{rubroOtraEmpresaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." onclick="dglModalEmpleado.show()" type="button" />
+								<h:outputText id="txtEmpleado" value="#{rubroOtraEmpresaBean.empleado.apellidos} #{rubroOtraEmpresaBean.empleado.nombres}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_anio}:" />
+							<p:inputMask styleClass="input-text" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.anio}" id="txtAnio" mask="9999" required="true">
+								<f:validateBean />
+							</p:inputMask>
+
+							<h:outputText value="#{msgs.lbl_mes}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.mes}" id="cboMes" required="true">
+								<f:selectItems value="#{rubroOtraEmpresaBean.listaMes}" var="_mes" itemLabel="#{_mes.label}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtValorIngreso" value="#{msgs.lbl_valor} #{msgs.lbl_ingreso}:" />
+							<p:inputText styleClass="input-text" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.valorIngreso}" id="txtValorIngreso" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtIESS" value="IESS:" />
+							<p:inputText value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.aportePersonalIessOtroEmpleador}" id="txtIESS" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_valor_retenido}:" />
+							<p:inputText styleClass="input-text" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.valorRetenido}" id="txtValorRetenido">
+								<f:validateBean />
+							</p:inputText>
+							
+							<h:outputText value="#{msgs.lbl_sueldo_agravada_contribucion}:" />
+							<p:inputText styleClass="input-text" id="txtSueldoAgravadaContribucion" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.sueldoAgravadaContribucion}">
+								<f:validateBean />
+							</p:inputText>
+							
+							<h:outputText value="#{msgs.lbl_meses_trabajados_vigencia_contribucion}:" />
+							<p:inputText styleClass="input-text" id="txtMesesTrabajadosAgravadaContribucion" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.mesesTrabajadosVigenciaContribucion}">
+								<f:validateBean />
+							</p:inputText>
+							
+							<h:outputText value="#{msgs.lbl_meses_trabajados_contribucion}:" />
+							<p:inputText styleClass="input-text" id="txtMesesTrabajadosContribucion" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.mesesTrabajadosContribucion}">
+								<f:validateBean />
+							</p:inputText>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="#{rubroOtraEmpresaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaDTValorGrande,columnaEtiqueta,columnaDTValorGrande">
+							<h:outputText value="Valor Ingreso:" />
+							<h:outputText value="Es el valor de los ingresos de empleado en otras empresas menos el valor del IESS" />
+							<h:outputText value="" />
+							<h:outputText value="" />
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_rubros_otras_empresas} )" rendered="#{!rubroOtraEmpresaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaRubroOtraEmpresa" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rubroOtraEmpresaBean.listaRubroOtraEmpresa}" var="_rubroOtraEmpresa"
+							binding="#{rubroOtraEmpresaBean.dtRubroOtraEmpresa}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{rubroOtraEmpresaBean.numeroFilas}" rowsPerPageTemplate="#{rubroOtraEmpresaBean.numeroFilasPorPagina}"
+							selection="#{rubroOtraEmpresaBean.rubroOtraEmpresa}" selectionMode="single" rowKey="#{_rubroOtraEmpresa.idRubroOtraEmpresa}"
+							sortBy="#{_rubroOtraEmpresa.anio}" sortOrder="ASCENDING">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell" sortBy="#{_rubroOtraEmpresa.anio}" filterBy="#{_rubroOtraEmpresa.anio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anio}" />
+								</f:facet>
+								<h:outputText value="#{_rubroOtraEmpresa.anio}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell" sortBy="#{_rubroOtraEmpresa.mes}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_mes}" />
+								</f:facet>
+								<h:outputText value="#{_rubroOtraEmpresa.mes.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_rubroOtraEmpresa.empleado.apellidos}" filterBy="#{_rubroOtraEmpresa.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_rubroOtraEmpresa.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_rubroOtraEmpresa.empleado.nombres}" filterBy="#{_rubroOtraEmpresa.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_rubroOtraEmpresa.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor} #{msgs.lbl_ingreso}" />
+								</f:facet>
+								<h:outputText value="#{_rubroOtraEmpresa.valorIngreso}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="IESS" />
+								</f:facet>
+								<h:outputText value="#{_rubroOtraEmpresa.aportePersonalIessOtroEmpleador}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_retenido}" />
+								</f:facet>
+								<h:outputText value="#{_rubroOtraEmpresa.valorRetenido}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{rubroOtraEmpresaBean.rubroOtraEmpresa.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

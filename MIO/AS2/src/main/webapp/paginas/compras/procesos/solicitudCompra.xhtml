@@ -1,0 +1,345 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{solicitudCompraBean}">
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar_cantidad_por_solicitar}" process="@this,:form:panelListado"
+						action="#{solicitudCompraBean.copiar}" update=":form:panelContenedor" rendered="#{!solicitudCompraBean.editado}">
+						<f:setPropertyActionListener target="#{solicitudCompraBean.copiarTodo}" value="false"></f:setPropertyActionListener>
+					</p:commandButton>
+
+					<p:commandButton id="btnCopiarTodo" icon="duplicate" title="#{msgs.lbl_copiar_todo}" process="@this,:form:panelListado"
+						action="#{solicitudCompraBean.copiar}" update=":form:panelContenedor" rendered="#{!solicitudCompraBean.editado}">
+						<f:setPropertyActionListener target="#{solicitudCompraBean.copiarTodo}" value="true"></f:setPropertyActionListener>
+					</p:commandButton>
+
+					<as2:buttonImprimir id="btnImprimirSolicitudCompra" beanReporte="#{reporteSolicitudCompraBean}" bean="#{solicitudCompraBean}"
+						target="#{reporteSolicitudCompraBean.solicitudCompra}" value="#{solicitudCompraBean.solicitudCompra}" />
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_solicitud_compra})" rendered="#{solicitudCompraBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{solicitudCompraBean}" />
+							<ui:param name="objetoActualizar" value=":form:panelDetalleSolicitudCompra" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<ui:include src="/template/listaEmpleado.xhtml">
+							<ui:param name="bean" value="#{solicitudCompraBean}" />
+							<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{solicitudCompraBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{solicitudCompraBean.solicitudCompra.sucursal}" id="cboSucursal" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{solicitudCompraBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{solicitudCompraBean.solicitudCompra.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{solicitudCompraBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+									<p:ajax update="txtNumero" event="change" process="@this" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{solicitudCompraBean.solicitudCompra.numero}" id="txtNumero"
+									mask="#{solicitudCompraBean.solicitudCompra.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update="txtEmpleado">
+										<!-- disabled="#{not empty solicitudCompraBean.solicitudCompra.empleado}"> -->
+									</p:commandButton>
+									<h:outputText id="txtEmpleado"
+										value="#{solicitudCompraBean.solicitudCompra.empleado.apellidos} #{solicitudCompraBean.solicitudCompra.empleado.nombres}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{solicitudCompraBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{solicitudCompraBean.solicitudCompra.fecha}" id="calFecha" required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" value="#{solicitudCompraBean.solicitudCompra.descripcion}" id="txtNota" maxlength="200">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:outputPanel id="panelDetalleSolicitudCompra">
+
+							<h:panelGrid columns="1" style="width:100%" border="0">
+
+								<h:panelGroup>
+
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{solicitudCompraBean.agregarDetalle}"
+										update=":form:tablaDetalleSolicitudCompra" process="@this" icon="ui-icon-plus" />
+
+									<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+
+								</h:panelGroup>
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{solicitudCompraBean.listaDetalleSolicitudCompra}"
+									id="tablaDetalleSolicitudCompra" rowIndexVar="secuencial" binding="#{solicitudCompraBean.dtDetalleSolicitudCompra}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePedidoProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rowKey="#{_detallePedidoProveedor.id}" rows="#{solicitudCompraBean.numeroFilas}"
+									rowsPerPageTemplate="#{solicitudCompraBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+										<p:inputText disabled="#{not empty _detallePedidoProveedor.detalleSolicitudCompraPadre}" styleClass="input-text100"
+											value="#{_detallePedidoProveedor.producto.codigo}" id="txtCodigoProducto" size="10">
+
+											<p:ajax listener="#{solicitudCompraBean.actualizarProducto}" process="@this" event="change"
+												update="txtNombreProducto txtUnidadCompraProducto" global="false" />
+
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+										<h:outputText value="#{_detallePedidoProveedor.producto.nombre}" id="txtNombreProducto" />
+									</p:column>
+
+									<p:column styleClass="columnaDTUnidad tableCell">
+										<f:facet name="header">
+											<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_unidad_compra}" />
+										</f:facet>
+
+										<h:outputText value="#{_detallePedidoProveedor.unidadCompra.nombre}" id="txtUnidadCompraProducto" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+										<p:inputText disabled="#{not empty _detallePedidoProveedor.detalleSolicitudCompraPadre}" styleClass="input-text"
+											value="#{_detallePedidoProveedor.cantidadOriginal}" id="txtCantidad" size="10">
+											<f:validateBean />
+											<p:ajax process="@this" global="false" update="txtCantidad" listener="#{solicitudCompraBean.actualizarCantidadDetalle}" />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+										<p:inputText styleClass="input-text" value="#{_detallePedidoProveedor.descripcion}" id="txtDescripcion">
+											<f:validateBean />
+											<p:ajax process="@this" global="false" />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarDetalle" action="#{solicitudCompraBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelDetalleSolicitudCompra" process="@this" disabled="#{not empty _detallePedidoProveedor.detalleSolicitudCompraPadre}">
+										</p:commandButton>
+									</p:column>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<!-- inicio dialogo cerrar solicitud -->
+					<p:dialog header="#{msgs.lbl_cerrar}" id="dlgCerrarSolicitudCompra" widgetVar="dialogCerrarSolicitudCompra" height="30" width="200"
+						closable="true">
+						<h:panelGrid columns="2"
+							columnClasses="columnaEtiqueta,columnaValor">
+							<p:outputLabel value="#{msgs.lbl_solicitud_compra}:" />
+							<p:outputLabel value="#{solicitudCompraBean.solicitudCompra.numero}" />
+						</h:panelGrid>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton process="@this" value="#{msgs.lbl_cerrar}" update=":form:tablaSolicitudCompra"
+									actionListener="#{solicitudCompraBean.cerrarSolicitudCompra}" oncomplete="PF('dialogCerrarSolicitudCompra').hide();">
+								</p:commandButton>
+								<p:commandButton value="#{msgs.btn_cancelar}" process="@this" update="@none" oncomplete="PF('dialogCerrarSolicitudCompra').hide();" />
+							</center>
+						</f:facet>
+					</p:dialog>
+					<!-- fin dialogo cerrar solicitud -->
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_solicitud_compra})" rendered="#{!solicitudCompraBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSolicitudCompra" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{solicitudCompraBean.listaSolicitudCompra}" var="_solicitudCompra" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{solicitudCompraBean.dtSolicitudCompra}" rows="#{pedidoProveedorBean.numeroFilas}"
+							rowsPerPageTemplate="#{pedidoProveedorBean.numeroFilasPorPagina}" selection="#{solicitudCompraBean.solicitudCompra}" selectionMode="single"
+							rowKey="#{_solicitudCompra.id}" sortBy="#{_solicitudCompra.idSolicitudCompra}" sortOrder="DESCENDING" lazy="true">
+
+							<p:ajax process="@this" partialSubmit="true" global="false" event="rowToggle" listener="#{solicitudCompraBean.cargarDetallesListado}"
+								update=":form:tablaSolicitudCompra:outListaDetallesSolicitud" />
+
+							<p:column style="width:16px">
+								<p:rowToggler />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_solicitudCompra.numero}" filterBy="#{_solicitudCompra.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.numero}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_solicitudCompra.fecha}">
+								<h:outputText value="#{_solicitudCompra.fecha}">
+									<f:convertDateTime pattern="#{pedidoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell" filterBy="#{_solicitudCompra.sucursal.nombre}" sortBy="#{_solicitudCompra.sucursal.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.sucursal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaNombre tableCell" filterBy="#{_solicitudCompra.empleado.filtro}" sortBy="#{_solicitudCompra.empleado.filtro}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.empleado.nombres} #{_solicitudCompra.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_solicitudCompra.descripcion}" filterBy="#{_solicitudCompra.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.descripcion}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_solicitudCompra.estado}" filterBy="#{_solicitudCompra.estado}"
+								filterOptions="#{consolidarSolicitudCompraBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton process="@this" update=":form:dlgCerrarSolicitudCompra" title="#{msgs.lbl_cerrar}"
+									oncomplete="dialogCerrarSolicitudCompra.show();" icon="ui-icon-close">
+									<f:setPropertyActionListener target="#{solicitudCompraBean.solicitudCompra}" value="#{_solicitudCompra}"></f:setPropertyActionListener>
+								</p:commandButton>
+							</p:column>
+
+							<p:rowExpansion>
+
+								<p:outputPanel id="outListaDetallesSolicitud">
+
+									<p:panel header="#{msgs.lbl_detalle}">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetallesSolicitudCompra" rowIndexVar="secuencialD"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{solicitudCompraBean.listaDetalleSolicitudSeleccionado}" var="_detalleSolicitud"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{solicitudCompraBean.numeroFilas}" sortBy="#{_detalleSolicitud.id}"
+											sortOrder="ASCENDING">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencialD+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_detalleSolicitud.producto.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_detalleSolicitud.producto.nombre}" id="txtNombreProducto" />
+											</p:column>
+
+											<p:column styleClass="columnaDTUnidad tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_unidad_compra}" />
+												</f:facet>
+
+												<h:outputText value="#{_detalleSolicitud.unidadCompra.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+												<h:outputText value="#{_detalleSolicitud.cantidadOriginal}" id="txtCantidad" size="10" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad_aprobada}">
+												<h:outputText value="#{_detalleSolicitud.cantidadOriginal-_detalleSolicitud.cantidad}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<h:outputText styleClass="input-text" value="#{_detalleSolicitud.descripcion}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_consolidacion}">
+
+												<h:link rendered="#{not empty _detalleSolicitud.detalleSolicitudCompraPadre}" target="_blank"
+													outcome="/paginas/compras/procesos/consolidarSolicitudCompra"
+													value="#{_detalleSolicitud.detalleSolicitudCompraPadre.solicitudCompra.numero}" includeViewParams="true">
+													<f:param name="idSolicitudCompra" value="#{_detalleSolicitud.detalleSolicitudCompraPadre.solicitudCompra.id}" />
+												</h:link>
+
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+
+							</p:rowExpansion>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{solicitudCompraBean.solicitudCompra.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{solicitudCompraBean.solicitudCompra.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{solicitudCompraBean.solicitudCompra.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{solicitudCompraBean.solicitudCompra.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

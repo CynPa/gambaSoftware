@@ -1,0 +1,1045 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{compraCajaChicaBean}">
+
+					<as2:buttonEliminar bean="#{compraCajaChicaBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_documento}:#" />
+						<h:outputText value="#{compraCajaChicaBean.compraCajaChica.documentoReferencia}" />
+
+						<h:outputText value="#{msgs.lbl_proveedor}:" />
+						<h:outputText value="#{compraCajaChicaBean.compraCajaChica.empresa.nombreComercial}" />
+						<h:outputText value="#{msgs.lbl_valor}:" />
+						<h:outputText value="#{compraCajaChicaBean.compraCajaChica.valor}" />
+					</as2:buttonEliminar>
+
+
+					<p:commandButton id="btnEmitirRetencion" icon="ui-icon-check" value="#{msgs.lbl_emitir_retencion}" title="#{msgs.lbl_emitir_retencion}"
+						process="@this,:form:panelListado" action="#{compraCajaChicaBean.emitirRetencion}" rendered="#{!compraCajaChicaBean.editado}">
+					</p:commandButton>
+
+					<p:commandButton id="btnCorregirRetencion" value="#{msgs.lbl_corregir_retencion}" title="#{msgs.lbl_corregir_retencion}"
+						process="@this,:form:panelListado" action="#{compraCajaChicaBean.cargarRetencion(true)}" rendered="#{!compraCajaChicaBean.editado}"
+						icon="ui-icon-document">
+					</p:commandButton>
+
+					<as2:buttonConfirmacion bean="#{compraCajaChicaBean}" titulo="#{msgs.lbl_anular_retencion}" mensaje="#{msgs.msg_anular_retencion}"
+						rendered="#{!compraCajaChicaBean.editado}" icono="ui-icon-trash" listener="#{compraCajaChicaBean.anularRetencion}" height="100" width="340">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{compraCajaChicaBean.compraCajaChica.documentoReferencia}" />
+
+						<h:outputText value="#{msgs.lbl_proveedor}:" />
+						<h:outputText value="#{compraCajaChicaBean.compraCajaChica.empresa.nombreComercial}" />
+					</as2:buttonConfirmacion>
+
+					<as2:buttonImprimir beanReporte="#{reporteFacturacionSRIBean}" bean="#{compraCajaChicaBean}"
+						target="#{reporteFacturacionSRIBean.idFacturaProveedorSRI}"
+						value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.idFacturaProveedorSRI}" etiquetaImprimir="#{msgs.lbl_imprimir_retencion}" />
+
+					<as2:buttonExportaExcel bean="#{compraCajaChicaBean}" tabla=":form:tablaCompraCajaChica" />
+
+					<as2:buttonEnviarMail id="btnEnviarMail" bean="#{compraCajaChicaBean}" />
+
+					<p:commandButton ajax="false" icon="xml" process="@this" title="XML" rendered="#{!compraCajaChicaBean.editado}">
+						<p:fileDownload value="#{compraCajaChicaBean.XMLSRI}" />
+					</p:commandButton>
+
+				</as2:toolBar>
+
+				<!-- CREACION PROVEEDOR  AGIL -->
+				<p:dialog header="#{msgs.lbl_empresa_titulo_panel}" widgetVar="dglCrearProveedor" id="dglCrearProveedor" modal="true" height="auto" width="900"
+					showEffect="slide" hideEffect="slide">
+
+					<p:outputPanel id="panelDatosBasicosProveedor">
+						<h:panelGrid columns="#{compraCajaChicaBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+							rendered="#{compraCajaChicaBean.renderProveedorNuevo}">
+
+							<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{compraCajaChicaBean.tipoIdentificacionProveedor}" id="cboTipoIdentificacionProveedor"
+								required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{compraCajaChicaBean.listaTipoIdentificacionCombo}" var="_tipoIdentificacion" itemLabel="#{_tipoIdentificacion.nombre}"
+									itemValue="#{_tipoIdentificacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" update=":form:panelValidacionIdentificacion" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empresa_identificacion}:" />
+							<h:panelGroup id="panelValidacionIdentificacion">
+								<p:inputText styleClass="input-text" rendered="#{!compraCajaChicaBean.tipoIdentificacionProveedor.indicadorValidarIdentificacion}"
+									value="#{compraCajaChicaBean.identificacionProveedor}" maxlength="20">
+									<f:validateBean />
+									<p:ajax event="change" process="@this" global="false" />
+								</p:inputText>
+
+								<p:inputMask mask="#{empty compraCajaChicaBean.tipoIdentificacionProveedor ? '' : compraCajaChicaBean.tipoIdentificacionProveedor.mascara}"
+									value="#{compraCajaChicaBean.identificacionProveedor}" styleClass="input-text"
+									rendered="#{compraCajaChicaBean.tipoIdentificacionProveedor.indicadorValidarIdentificacion}">
+									<p:ajax event="change" process="@this" global="false" />
+									<f:validateBean />
+								</p:inputMask>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}:" />
+							<p:inputText styleClass="input-text" id="txtNombreProveedor" value="#{compraCajaChicaBean.nombreProveedor}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_ciudad}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCiudad" value="#{compraCajaChicaBean.ciudad}"
+								completeMethod="#{compraCajaChicaBean.autocompletarCiudad}" var="_ciudad" itemLabel="#{_ciudad.nombre}" itemValue="#{_ciudad}"
+								forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_ciudad.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_ciudad.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text" id="txtDireccionProveedor" value="#{compraCajaChicaBean.direccionProveedor}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}:" />
+							<p:inputText styleClass="input-text" id="txtTelefonoProveedor" value="#{compraCajaChicaBean.telefonoProveedor}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}:" />
+							<p:inputText styleClass="input-text" id="txtEmail1" value="#{compraCajaChicaBean.email}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" action="#{compraCajaChicaBean.crearProveedor}" process="@this,panelDatosBasicosProveedor"
+								update="cboDireccionProveedor,autProveedor, cboTipoComprobante, vinculoAutorizacion"
+								oncomplete="validacionesModal(xhr, status, args, dglCrearProveedor)" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<!-- FIN CREACION PROVEEDOR AGIL-->
+
+				<!-- CREACION AUTORIZACION PROVEEDOR -->
+				<p:dialog header="#{msgs.lbl_SRI}" widgetVar="dglCrearAutorizacion" id="dglCrearAutorizacion" modal="true" height="auto" width="900"
+					showEffect="slide" hideEffect="slide">
+
+					<p:outputPanel id="panelCrearAutorizacion">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAutorizacionSRI" rowIndexVar="secuenciaSRI"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{compraCajaChicaBean.listaAutorizacionProveedorSRIProveedor}" var="_autorizacionSRI"
+							style="width:100%" rows="#{compraCajaChicaBean.numeroFilas}" rowKey="#{_autorizacionSRI.rowKey}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuenciaSRI+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_factura_electronica}">
+								<center>
+									<p:selectBooleanCheckbox value="#{_autorizacionSRI.indicadorFacturaElectronica}">
+										<p:ajax event="change" process="@this" update=":form:panelCrearAutorizacion" global="false" />
+									</p:selectBooleanCheckbox>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_documento_SRI_establecimiento}">
+								<p:inputMask value="#{_autorizacionSRI.establecimiento}" mask="999" required="true">
+									<f:validateBean />
+								</p:inputMask>
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_documento_SRI_punto_emision}">
+								<p:inputMask value="#{_autorizacionSRI.puntoEmision}" mask="999" required="true">
+									<f:validateBean />
+								</p:inputMask>
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_documento_SRI_autorizacion}">
+								<p:inputMask value="#{_autorizacionSRI.autorizacion}" id="txtAutorizacion" rendered="#{!_autorizacionSRI.indicadorFacturaElectronica}"
+									mask="#{_autorizacionSRI.patronAutorizacion}" styleClass="input-text100" required="true">
+									<f:validateBean />
+								</p:inputMask>
+							</p:column>
+
+							<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_documento_SRI_emision}">
+								<p:calendar pattern="#{compraCajaChicaBean.formatoFecha}" showOn="button" navigator="true" value="#{_autorizacionSRI.fechaDesde}"
+									id="calFechaDesde" size="10" rendered="#{!_autorizacionSRI.indicadorFacturaElectronica}" required="true">
+									<f:validateBean />
+								</p:calendar>
+							</p:column>
+
+							<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_documento_SRI_caducidad}">
+								<p:calendar pattern="#{compraCajaChicaBean.formatoFecha}" showOn="button" navigator="true" value="#{_autorizacionSRI.fechaHasta}"
+									id="calFechaHasta" size="10" rendered="#{!_autorizacionSRI.indicadorFacturaElectronica}" required="true">
+									<f:validateBean />
+								</p:calendar>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_autorizacionSRI.activo}">
+									<p:ajax event="change" process="@this" update="@this" global="false" />
+								</p:selectBooleanCheckbox>
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" action="#{compraCajaChicaBean.crearAutorizacion}" process="@this,panelCrearAutorizacion"
+								update="txtAutorizacion, cboAutorizacionProveedor" oncomplete="validacionesModal(xhr, status, args, dglCrearAutorizacion)" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<!-- FIN CREACION AUTORIZACION PROVEEDOR -->
+				
+				<!-- INICIO DIALOG SUBIR XML -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarCabeceraFacturaProveedor" modal="true" height="150" width="325" showEffect="clip"
+					hideEffect="clip" resizable="false">
+					<p:outputPanel id="outputCargarXML">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{compraCajaChicaBean.cargarCabeceraFacturaProveedorXML}" mode="advanced" auto="true" sizeLimit="10000000"
+									allowTypes="/(\.|\/)(xml)$/" label="#{msgs.btn_examinar}" process="@this" oncomplete="dlgCargarCabeceraFacturaProveedor.hide()"
+									update=":form:panelNuevo">
+								</p:fileUpload>
+							</center>
+						</p:fieldset>
+
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+				<ui:include src="/template/verDetalle.xhtml">
+					<ui:param name="descripcion" value="#{compraCajaChicaBean.compraCajaChica.descripcion}" />
+				</ui:include>
+
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200" modal="true" showEffect="explode" hideEffect="explode" severity="alert"
+					widgetVar="confirmacionEliminar">
+
+
+					<p:commandButton value="#{msgs.confirmacion_si}" process="@this" actionListener="#{compraCajaChicaBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{compraCajaChicaBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_compra_caja_chica_panel}">
+
+						<p:fieldset>
+							<h:panelGrid columns="#{compraCajaChicaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneRadio id="options" disabled="#{compraCajaChicaBean.compraCajaChica.id>0}"
+									value="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+									<f:selectItem itemLabel="#{msgs.lbl_factura}" itemValue="true" />
+									<f:selectItem itemLabel="#{msgs.lbl_recibo}" itemValue="false" />
+									<p:ajax process="@this" update=":form:panelNuevo"></p:ajax>
+								</p:selectOneRadio>
+
+								<p:spacer />
+								<p:spacer />
+
+								<h:outputText value="#{msgs.lbl_caja_chica}:" />
+								<h:panelGroup>
+									<p:selectOneMenu disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+										value="#{compraCajaChicaBean.compraCajaChica.cajaChica.idCajaChica}" id="cboCajaChica">
+										<f:selectItems value="#{compraCajaChicaBean.listaCajaChica}" var="_cajaChica" itemLabel="#{_cajaChica.nombre}"
+											itemValue="#{_cajaChica.idCajaChica}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<h:panelGroup>
+									<p:calendar disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" pattern="#{compraCajaChicaBean.formatoFecha}" showOn="button"
+										navigator="true" value="#{compraCajaChicaBean.compraCajaChica.fecha}" id="calFecha">
+
+										<p:ajax process="@this" event="dateSelect" global="false" listener="#{compraCajaChicaBean.actualizarFechaListener}"
+											update="#{compraCajaChicaBean.compraCajaChica.indicadorFactura ? 'txtMontoIVA,txtValor' : '@this'}" />
+										<p:ajax process="@this" event="change" global="false" listener="#{compraCajaChicaBean.actualizarFechaListener}"
+											update="#{compraCajaChicaBean.compraCajaChica.indicadorFactura ? 'txtMontoIVA,txtValor' : '@this'}" />
+									</p:calendar>
+
+								</h:panelGroup>
+
+								<p:commandLink onclick="dglCrearProveedor.show();" update="panelDatosBasicosProveedor" process="@this" id="vinculoEmpresa"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}">
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<f:setPropertyActionListener target="#{compraCajaChicaBean.renderProveedorNuevo}" value="true" />
+								</p:commandLink>
+								<p:autoComplete disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" queryDelay="#{sesionControler.retrasoFiltro}"
+									styleClass="input-text" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" id="autProveedor"
+									value="#{compraCajaChicaBean.compraCajaChica.empresa}" completeMethod="#{empresaBean.autocompletarProveedores}" var="_proveedor"
+									itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+									<p:column>#{_proveedor.identificacion}</p:column>
+									<p:column>#{_proveedor.nombreFiscal}</p:column>
+									<p:column>#{_proveedor.nombreComercial}</p:column>
+
+									<p:ajax listener="#{compraCajaChicaBean.actualizarProveedor}" process="@this" event="itemSelect"
+										update="cboDireccionProveedor,:form:cboAutorizacionProveedor,:form:cboTipoComprobante vinculoAutorizacion #{p:component('cboDireccionProveedor')}" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_empresa_direccion_factura}:" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<h:panelGroup rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+									<p:selectOneMenu disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}"
+										value="#{compraCajaChicaBean.compraCajaChica.direccionEmpresa.idDireccionEmpresa}" id="cboDireccionProveedor" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{compraCajaChicaBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir.idDireccionEmpresa}"
+											itemLabel="#{_dir.direccionCompleta}" />
+									</p:selectOneMenu>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_documento_SRI}:" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<h:panelGroup rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+									<p:selectOneMenu disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}"
+										value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.tipoComprobanteSRI.idTipoComprobanteSRI}" id="cboTipoComprobante"
+										required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{compraCajaChicaBean.listaTipoComprobanteSRI}" var="_tipoComprobante" itemLabel="#{_tipoComprobante.nombre}"
+											itemValue="#{_tipoComprobante.idTipoComprobanteSRI}" />
+
+										<p:ajax process="@this" update="txtFactura :form:panelDetalleCompraCajaChica" listener="#{compraCajaChicaBean.actualizarTipoComprobanteSRI}" />
+
+										<f:validateBean />
+									</p:selectOneMenu>
+								</h:panelGroup>
+
+								<p:commandLink disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura or empty compraCajaChicaBean.compraCajaChica.empresa}"
+									onclick="dglCrearAutorizacion.show();" process="@this" id="vinculoAutorizacion"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+									<h:outputText value="#{msgs.lbl_sri_serie_secuencial}:" />
+									<p:ajax process="@this" update=":form:panelCrearAutorizacion" global="false" listener="#{compraCajaChicaBean.actualizarListaAutorizacion}" />
+								</p:commandLink>
+								<h:panelGrid columns="3" styleClass="input-text" columnClasses="columnaValor,columnaEtiqueta,columnaEtiqueta"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+
+									<p:autoComplete disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" queryDelay="#{sesionControler.retrasoFiltro}"
+										styleClass="input-text" value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.autorizacionProveedorSRI}"
+										completeMethod="#{compraCajaChicaBean.autocompletarAutorizacionProveedorSRI}" var="_apSRI"
+										itemLabel="#{_apSRI.establecimiento}-#{_apSRI.puntoEmision}" itemValue="#{_apSRI}" forceSelection="true" dropdown="true" minQueryLength="2"
+										id="cboAutorizacionProveedor" style="width: 90% !important;">
+
+										<p:column>
+											<h:outputText value="#{_apSRI.establecimiento}" />
+										</p:column>
+										<p:column>
+											<h:outputText value="#{_apSRI.puntoEmision}" />
+										</p:column>
+										<p:column>
+											<h:outputText value="#{_apSRI.fechaHasta}">
+												<f:convertDateTime pattern="#{compraCajaChicaBean.formatoFecha}" />
+											</h:outputText>
+										</p:column>
+
+										<p:ajax listener="#{compraCajaChicaBean.actualizarAutorizacionProveedorSRI}" process="@this" event="itemSelect"
+											update=":form:txtAutorizacion" />
+									</p:autoComplete>
+
+									<p:spinner id="txtFactura" value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.numero}" min="1" max="999999999" maxlength="9"
+										style="width: 100%;" disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}">
+										<f:validateBean for="txtFactura" />
+									</p:spinner>
+
+									<p:commandButton id="btnCargarXML" title="#{msgs.btn_cargar_xml}" icon="ui-icon-bookmark" update="outputCargarXML"
+										onclick="dlgCargarCabeceraFacturaProveedor.show()" process="@this">
+									</p:commandButton>
+
+								</h:panelGrid>
+
+								<h:outputText value="#{msgs.lbl_numero_autorizacion}" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}"
+									value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.autorizacion}" id="txtAutorizacion" styleClass="input-text"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+									<f:validateBean for="txtAutorizacion" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_sri_base_cero}" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}"
+									value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.baseImponibleTarifaCero}" id="txtBaseCero">
+									<p:ajax process="@this" update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica, txtValor"
+										listener="#{compraCajaChicaBean.totalizarListener}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_sri_base_diferente_cero}" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}"
+									value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.baseImponibleDiferenteCero}" id="txtBaseDiferenteCero">
+									<p:ajax process="@this" update="txtMontoIVA,:form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica, txtValor"
+										listener="#{compraCajaChicaBean.totalizarListener}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_sri_monto_iva}" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+									value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.montoIva}" id="txtMontoIVA"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+
+								<h:outputText value="#{msgs.lbl_descuento_impuesto}" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+									value="#{compraCajaChicaBean.compraCajaChica.descuentoImpuesto}" id="txtDescuento"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+
+									<p:ajax process="@this" update="txtMontoIVA,:form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica, txtValor"
+										listener="#{compraCajaChicaBean.totalizarListener}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_sri_monto_ice}" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}"
+									value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.montoIce}" id="txtMontoICE">
+									<p:ajax process="@this" update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica txtValor"
+										listener="#{compraCajaChicaBean.totalizarListener}">
+									</p:ajax>
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_sri_base_no_objeto_iva}" rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+									rendered="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}"
+									value="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.baseImponibleNoObjetoIva}" id="txtBaseNoObjetoIva">
+									<p:ajax process="@this" update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica txtValor"
+										listener="#{compraCajaChicaBean.totalizarListener}">
+									</p:ajax>
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor}:" />
+								<p:inputText styleClass="input-text" disabled="#{compraCajaChicaBean.compraCajaChica.indicadorFactura}"
+									value="#{compraCajaChicaBean.compraCajaChica.valor}" id="txtValor">
+									<f:validateBean />
+									<p:ajax process="@this" update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica">
+									</p:ajax>
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_documento_referencia}:" rendered="#{!compraCajaChicaBean.compraCajaChica.indicadorFactura}" />
+								<h:panelGroup rendered="#{!compraCajaChicaBean.compraCajaChica.indicadorFactura}">
+									<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+										value="#{compraCajaChicaBean.compraCajaChica.documentoReferencia}" id="txtDocumentoReferencia">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+									value="#{compraCajaChicaBean.compraCajaChica.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+
+							<p:outputPanel id="panelDetalleCompraCajaChica">
+								<p:tabView cache="true" id="tvDetalleCompraCajaChica">
+
+
+									<p:tab title="#{msgs.lbl_detalle_compra_caja_chica}" id="tabDetalleCompraCajaChica">
+										<h:panelGrid columns="1" id="panelDetalleCompraCajaChica">
+
+											<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" value="#{msgs.btn_agregar_detalle}" id="btnAgregar"
+												action="#{compraCajaChicaBean.agregarDetalleCompraCajaChicaListener}" update="panelDetalleCompraCajaChica"
+												process="@this,panelDetalleCompraCajaChica,:form:txtDescripcion" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{compraCajaChicaBean.detalleCompraCajaChica}"
+												id="tablaDetalleCompraCajaChica" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleCompraCajaChica"
+												paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{compraCajaChicaBean.dtDetalleCompraCajaChica}"
+												rowKey="#{_detalleCompraCajaChica.rowKey}" rows="#{compraCajaChicaBean.numeroFilas}"
+												rowsPerPageTemplate="#{compraCajaChicaBean.numeroFilasPorPagina}" lazy="true">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion">
+													<!--<p:commandButton value="..." action="#{compraCajaChicaBean.seleccionar}" process="@this" update="panelDetalleCompraCajaChica"
+											oncomplete="cuentaContableDialog.show();" />  -->
+
+													<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" value="..."
+														actionListener="#{compraCajaChicaBean.listaCuentaContableBean.listarCuentaContable}" process="@this" propartialSubmit="true">
+														<p:ajax event="dialogReturn" listener="#{compraCajaChicaBean.cargarCuentaContable}"
+															update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica " />
+														<f:setPropertyActionListener target="#{compraCajaChicaBean.lineaDetalleCompraCajaChica}" value="#{_detalleCompraCajaChica}" />
+														<f:setPropertyActionListener target="#{compraCajaChicaBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+
+													</p:commandButton>
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoCuenta" headerText="#{msgs.lbl_codigo}">
+													<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+														value="#{_detalleCompraCajaChica.cuentaContable.codigoCuentaTransient}" id="txtCodigoCuentaContable">
+														<p:ajax listener="#{compraCajaChicaBean.buscarCuentaContableListener}" process="@this"
+															update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" event="change" />
+													</p:inputText>
+												</p:column>
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cuenta_contable}">
+													<h:outputText value="#{_detalleCompraCajaChica.cuentaContable.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" styleClass="input-text"
+														value="#{_detalleCompraCajaChica.descripcion}">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_valor}">
+													<p:inputText disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura or 0 > _detalleCompraCajaChica.valor }" styleClass="input-text"
+														value="#{_detalleCompraCajaChica.valor}" id="txtValor" required="true">
+														<f:validateBean />
+														<p:ajax process=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica"
+															update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" rendered="#{not empty compraCajaChicaBean.nombreDimension1}"
+													headerText="#{compraCajaChicaBean.nombreDimension1}">
+													<h:panelGroup rendered="#{_detalleCompraCajaChica.cuentaContable.indicadorValidarDimension1}">
+														<!--<p:commandButton icon="ui-icon-gear" actionListener="#{compraCajaChicaBean.seleccionarDetalle(_detalleCompraCajaChica)}"
+												process="@this,panelDetallePlantillaAsiento" update="panelListaDimensionContable" oncomplete="dimensionContableDialog.show();">
+												<f:setPropertyActionListener target="#{compraCajaChicaBean.listaDimensionContableBean.numeroDimension}" value="1" />
+											</p:commandButton>  -->
+
+														<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" value="..." process="@this" partialSubmit="true"
+															actionListener="#{compraCajaChicaBean.listaDimensionContableBean.listarDimensionContableListener('1')}">
+															<p:ajax event="dialogReturn" listener="#{compraCajaChicaBean.cargarDimensionContableListener}"
+																update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" />
+															<f:setPropertyActionListener target="#{compraCajaChicaBean.listaDimensionContableBean.numeroDimension}" value="1" />
+															<f:setPropertyActionListener target="#{compraCajaChicaBean.lineaDetalleCompraCajaChica}" value="#{_detalleCompraCajaChica}" />
+														</p:commandButton>
+														<h:outputText value="#{_detalleCompraCajaChica.dimensionContable1.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column rendered="#{not empty compraCajaChicaBean.nombreDimension2}" styleClass="tableCell"
+													headerText="#{compraCajaChicaBean.nombreDimension2}">
+													<h:panelGroup rendered="#{_detalleCompraCajaChica.cuentaContable.indicadorValidarDimension2}">
+														<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" value="..." process="@this" partialSubmit="true"
+															actionListener="#{compraCajaChicaBean.listaDimensionContableBean.listarDimensionContableListener('2')}">
+															<p:ajax event="dialogReturn" listener="#{compraCajaChicaBean.cargarDimensionContableListener}"
+																update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" />
+															<f:setPropertyActionListener target="#{compraCajaChicaBean.listaDimensionContableBean.numeroDimension}" value="2" />
+														</p:commandButton>
+														<h:outputText value="#{_detalleCompraCajaChica.dimensionContable2.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column rendered="#{not empty compraCajaChicaBean.nombreDimension3}" styleClass="tableCell"
+													headerText="#{compraCajaChicaBean.nombreDimension3}">
+													<h:panelGroup rendered="#{_detalleCompraCajaChica.cuentaContable.indicadorValidarDimension3}">
+														<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" value="..." process="@this" partialSubmit="true"
+															actionListener="#{compraCajaChicaBean.listaDimensionContableBean.listarDimensionContableListener('3')}">
+															<p:ajax event="dialogReturn" listener="#{compraCajaChicaBean.cargarDimensionContableListener}"
+																update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" />
+															<f:setPropertyActionListener target="#{compraCajaChicaBean.listaDimensionContableBean.numeroDimension}" value="3" />
+														</p:commandButton>
+														<h:outputText value="#{_detalleCompraCajaChica.dimensionContable3.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column rendered="#{not empty compraCajaChicaBean.nombreDimension4}" styleClass="tableCell"
+													headerText="#{compraCajaChicaBean.nombreDimension4}">
+													<h:panelGroup rendered="#{_detalleCompraCajaChica.cuentaContable.indicadorValidarDimension4}">
+														<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" value="..." process="@this" partialSubmit="true"
+															actionListener="#{compraCajaChicaBean.listaDimensionContableBean.listarDimensionContableListener('4')}">
+															<p:ajax event="dialogReturn" listener="#{compraCajaChicaBean.cargarDimensionContableListener}"
+																update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" />
+															<f:setPropertyActionListener target="#{compraCajaChicaBean.listaDimensionContableBean.numeroDimension}" value="4" />
+														</p:commandButton>
+														<h:outputText value="#{_detalleCompraCajaChica.dimensionContable4.nombre}" />
+													</h:panelGroup>
+												</p:column>
+
+												<p:column rendered="#{not empty compraCajaChicaBean.nombreDimension5}" styleClass="tableCell"
+													headerText="#{compraCajaChicaBean.nombreDimension5}">
+													<h:panelGroup rendered="#{_detalleCompraCajaChica.cuentaContable.indicadorValidarDimension5}">
+														<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" value="..." process="@this" partialSubmit="true"
+															actionListener="#{compraCajaChicaBean.listaDimensionContableBean.listarDimensionContableListener('5')}">
+															<p:ajax event="dialogReturn" listener="#{compraCajaChicaBean.cargarDimensionContableListener}"
+																update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" />
+															<f:setPropertyActionListener target="#{compraCajaChicaBean.listaDimensionContableBean.numeroDimension}" value="5" />
+														</p:commandButton>
+														<h:outputText value="#{_detalleCompraCajaChica.dimensionContable5.nombre}" />
+													</h:panelGroup>
+												</p:column>
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton disabled="#{compraCajaChicaBean.compraCajaChica.soloLectura}" id="btnEliminarDetalle"
+														action="#{compraCajaChicaBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tvDetalleCompraCajaChica:panelDetalleCompraCajaChica" process="@this" />
+												</p:column>
+
+												<p:columnGroup type="footer">
+													<p:row>
+														<p:column colspan="5" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+														<p:column>
+															<f:facet name="footer" colspan="10" style="text-align:right">
+																<h:outputText value="#{compraCajaChicaBean.total}">
+																	<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+													<p:row>
+														<p:column colspan="5" footerText="#{msgs.lbl_descuento_impuesto}:" style="text-align:right" />
+
+														<p:column>
+															<f:facet name="footer" colspan="10" style="text-align:right">
+																<h:outputText value="#{compraCajaChicaBean.compraCajaChica.descuentoImpuesto}">
+																	<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+													<p:row>
+														<p:column colspan="5" footerText="#{msgs.lbl_diferencia}:" style="text-align:right" />
+
+														<p:column>
+															<f:facet name="footer" colspan="10" style="text-align:right">
+																<h:outputText value="#{compraCajaChicaBean.diferencia}">
+																	<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+												</p:columnGroup>
+
+											</p:dataTable>
+										</h:panelGrid>
+									</p:tab>
+
+
+									<p:tab title="#{msgs.lbl_reembolso_gastos}" id="tabReembolsoGastos"
+										rendered="#{compraCajaChicaBean.compraCajaChica.facturaProveedorSRI.tipoComprobanteSRI.codigo == '41'}">
+
+										<h:panelGrid columns="1" width="100%">
+
+											<h:panelGroup>
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalleRB"
+													action="#{compraCajaChicaBean.agregarDetalleReembolsoGastos}" update="panelReembolsoGastos" process="@this,panelReembolsoGastos"
+													icon="ui-icon-plus" />
+
+											</h:panelGroup>
+
+											<p:outputPanel id="panelReembolsoGastos">
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{compraCajaChicaBean.listaReembolsoGastos}" id="tablaReembolsoGastos"
+													rowIndexVar="secuencial" binding="#{compraCajaChicaBean.dtReembolsoGastos}" emptyMessage="#{msgs.msg_no_hay_datos}"
+													var="_detalleReembolsoGastos" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalleReembolsoGastos.id}"
+													rows="#{compraCajaChicaBean.numeroFilas}" columnClasses="rowIndex" rowsPerPageTemplate="#{compraCajaChicaBean.numeroFilasPorPagina}">
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+
+													<p:column headerText="#{msgs.lbl_empresa_tipo_identificacion}">
+														<p:selectOneMenu styleClass="input-text" value="#{_detalleReembolsoGastos.tipoIdentificacion}" id="cboTipoIdentificacionRB"
+															required="true">
+															<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+															<f:selectItems value="#{compraCajaChicaBean.listaTipoIdentificacionCombo}" var="_tipoIdentificacion"
+																itemLabel="#{_tipoIdentificacion.nombre}" itemValue="#{_tipoIdentificacion}" />
+															<f:validateBean />
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.cargarListaTipoComprobanteSRIReembolso}"
+																update="cboTipoComprobanteSRIReembolso" />
+														</p:selectOneMenu>
+													</p:column>
+
+													<p:column styleClass="columnaDTNombreLargo tableCell" headerText="#{msgs.lbl_sri_tipo_comprobante}">
+														<p:selectOneMenu styleClass="input-text" value="#{_detalleReembolsoGastos.tipoComprobanteSRI}" id="cboTipoComprobanteSRIReembolso"
+															required="true">
+															<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+															<f:selectItems value="#{_detalleReembolsoGastos.listaTipoComprobanteSRI}" var="_tipoComprobante" itemLabel="#{_tipoComprobante.nombre}"
+																itemValue="#{_tipoComprobante}" />
+															<p:ajax process="@this" global="false" />
+														</p:selectOneMenu>
+													</p:column>
+
+													<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_identificacion}">
+														<p:inputMask value="#{_detalleReembolsoGastos.identificacionProveedor}" styleClass="input-text" id="txtIdentificacionRG">
+															<p:ajax event="change" listener="#{compraCajaChicaBean.buscarEmpresaEvent}" process="@this" />
+															<f:validateBean />
+														</p:inputMask>
+
+													</p:column>
+
+
+													<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_numero_autorizacion}">
+														<p:inputText value="#{_detalleReembolsoGastos.autorizacion}">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_documento_SRI_establecimiento}">
+														<p:inputText value="#{_detalleReembolsoGastos.establecimiento}">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+
+													<p:column styleClass="columnaDTNombreCorto tableCell"
+														headerText="#{msgs.lbl_documento_SRI_punto_emision} #{msgs.lbl_documento_SRI_emision}">
+														<p:inputText value="#{_detalleReembolsoGastos.puntoEmision}">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+
+													<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_secuencia}">
+														<p:inputText value="#{_detalleReembolsoGastos.numero}">
+															<p:ajax process="@this" global="false" />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha}">
+														<p:calendar pattern="#{compraCajaChicaBean.formatoFecha}" showOn="button" navigator="true"
+															value="#{_detalleReembolsoGastos.fechaEmision}" id="calFechaRecepcionRG" required="true" size="10">
+															<p:ajax process="@this" event="dateSelect" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos" />
+															<p:ajax process="@this" event="change" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos" />
+														</p:calendar>
+													</p:column>
+
+
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_sri_base_cero}">
+														<p:inputText id="inpBaseImponibleTarifaCero" value="#{_detalleReembolsoGastos.baseImponibleTarifaCero}" style="text-align:right">
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos"></p:ajax>
+															<f:validateRequired for="inpBaseImponibleTarifaCero"></f:validateRequired>
+														</p:inputText>
+
+													</p:column>
+
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_sri_base_diferente_cero}">
+														<p:inputText id="inpBaseImponibleDiferenteCero" value="#{_detalleReembolsoGastos.baseImponibleDiferenteCero}" style="text-align:right">
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos"></p:ajax>
+															<f:validateRequired for="inpBaseImponibleDiferenteCero"></f:validateRequired>
+														</p:inputText>
+
+													</p:column>
+
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_sri_base_no_objeto_iva}">
+														<p:inputText id="inpBaseImponibleNoObjetoIva" value="#{_detalleReembolsoGastos.baseImponibleNoObjetoIva}" style="text-align:right">
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos"></p:ajax>
+															<f:validateRequired for="inpBaseImponibleNoObjetoIva"></f:validateRequired>
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_exenta_iva}">
+														<p:inputText style="text-align:right" id="inpBaseExcentaIVA" value="#{_detalleReembolsoGastos.baseExentaIva}">
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos"></p:ajax>
+															<f:validateRequired for="inpBaseExcentaIVA"></f:validateRequired>
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_sri_monto_iva}">
+														<p:inputText id="inpMontoIva" value="#{_detalleReembolsoGastos.montoIva}" disabled="true" style="text-align:right">
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos"></p:ajax>
+															<f:validateRequired for="inpMontoIva"></f:validateRequired>
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_descuento_impuesto}">
+														<p:inputText id="inpDescuentoImpuesto" value="#{_detalleReembolsoGastos.descuentoImpuesto}" style="text-align:right">
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos"></p:ajax>
+															<f:validateRequired for="inpDescuentoImpuesto"></f:validateRequired>
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_sri_monto_ice}">
+														<p:inputText id="inpMontoIce" value="#{_detalleReembolsoGastos.montoIce}" style="text-align:right">
+															<p:ajax process="@this" global="false" listener="#{compraCajaChicaBean.totalizarReembolsoGastos}"
+																update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos"></p:ajax>
+															<f:validateRequired for="inpMontoIce"></f:validateRequired>
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<p:commandButton id="btnEliminarDetalleRG" action="#{compraCajaChicaBean.eliminarDetalleReembolsoGastos}" icon="ui-icon-trash"
+															title="#{msgs.lbl_eliminar}" update=":form:tvDetalleCompraCajaChica:panelReembolsoGastos" process="@this">
+														</p:commandButton>
+													</p:column>
+
+
+													<p:columnGroup type="footer" id="panelTotal1">
+														<p:row>
+															<p:column colspan="9" footerText="#{msgs.lbl_total}:" style="text-align:right">
+															</p:column>
+															<p:column style="text-align:right">
+																<f:facet name="footer">
+																	<h:outputText value="#{compraCajaChicaBean.totalBaseImponibleTarifaCero}" style="text-align:right" id="txtTotalDebito">
+																		<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																	</h:outputText>
+																</f:facet>
+															</p:column>
+															<p:column style="text-align:right">
+																<f:facet name="footer">
+																	<h:outputText value="#{compraCajaChicaBean.totalBaseImponibleDiferenteCero}" style="text-align:right" id="txtTotalCredito">
+																		<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																	</h:outputText>
+																</f:facet>
+															</p:column>
+															<p:column style="text-align:right">
+																<f:facet name="footer">
+																	<h:outputText value="#{compraCajaChicaBean.totalBaseImponibleNoObjetoIva}" style="text-align:right" id="txtTotalGlobal">
+																		<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																	</h:outputText>
+																</f:facet>
+															</p:column>
+															<p:column style="text-align:right">
+																<f:facet name="footer">
+																	<h:outputText value="#{compraCajaChicaBean.totalBaseExentaIVA}" style="text-align:right" id="txtTotalExcentaIva">
+																		<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																	</h:outputText>
+																</f:facet>
+															</p:column>
+															<p:column style="text-align:right">
+																<f:facet name="footer">
+																	<h:outputText value="#{compraCajaChicaBean.totalMontoIva}" style="text-align:right" id="txtTotaltotalMontoIva">
+																		<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																	</h:outputText>
+																</f:facet>
+															</p:column>
+
+															<p:column style="text-align:right">
+																<f:facet name="footer">
+																	<h:outputText value="#{compraCajaChicaBean.totalDescuentoImpuesto}" style="text-align:right" id="txtTotalDescuentoMontoImpuesto">
+																		<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																	</h:outputText>
+																</f:facet>
+															</p:column>
+
+															<p:column style="text-align:right">
+																<f:facet name="footer">
+																	<h:outputText value="#{compraCajaChicaBean.totalMontoIce}" style="text-align:right" id="txtTotaltotalMontoIce">
+																		<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+																	</h:outputText>
+																</f:facet>
+															</p:column>
+														</p:row>
+
+													</p:columnGroup>
+
+												</p:dataTable>
+											</p:outputPanel>
+										</h:panelGrid>
+									</p:tab>
+
+
+
+
+
+
+								</p:tabView>
+							</p:outputPanel>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!compraCajaChicaBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_compra_caja_chica_panel}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCompraCajaChica" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{compraCajaChicaBean.listaCompraCajaChica}" var="_compraCajaChica"
+							binding="#{compraCajaChicaBean.dtCompraCajaChica}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{compraCajaChicaBean.numeroFilas}" rowsPerPageTemplate="#{compraCajaChicaBean.numeroFilasPorPagina}"
+							selection="#{compraCajaChicaBean.compraCajaChica}" selectionMode="single" rowKey="#{_compraCajaChica.id}" sortBy="#{_compraCajaChica.fecha}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_titulo_compra_caja_chica}" />
+							</f:facet>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_compraCajaChica.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+
+								<h:outputText value="#{_compraCajaChica.fecha}">
+									<f:convertDateTime pattern="#{compraCajaChicaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_compraCajaChica.cajaChica.fechaContabilizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_contabilizacion}" />
+								</f:facet>
+
+								<h:outputText value="#{_compraCajaChica.cajaChica.fechaContabilizacion}">
+									<f:convertDateTime pattern="#{compraCajaChicaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_compraCajaChica.documentoReferencia}"
+								filterBy="#{_compraCajaChica.documentoReferencia}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_referencia}" />
+								</f:facet>
+
+								<h:outputText value="#{_compraCajaChica.documentoReferencia}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" sortBy="#{_compraCajaChica.indicadorFactura}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_compraCajaChica.indicadorFactura ? msgs.lbl_factura : msgs.lbl_recibo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_compraCajaChica.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_compraCajaChica.empresa.nombreFiscal}">
+									<f:attribute name="limit" value="40" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+
+
+							<p:column styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+
+								<h:outputText value="#{_compraCajaChica.valor - _compraCajaChica.facturaProveedorSRI.montoIva}"
+									rendered="#{_compraCajaChica.indicadorFactura}">
+									<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+
+
+
+							<p:column styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_indicador_impuestos}" />
+								</f:facet>
+
+								<h:outputText value="#{_compraCajaChica.facturaProveedorSRI.montoIva}">
+									<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento_impuesto}" />
+								</f:facet>
+
+								<h:outputText value="#{_compraCajaChica.descuentoImpuesto}" rendered="#{_compraCajaChica.indicadorFactura}">
+									<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{_compraCajaChica.valor - _compraCajaChica.descuentoImpuesto}">
+									<f:convertNumber pattern="#{compraCajaChicaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_compraCajaChica.facturaProveedorSRI.numeroRetencion}"
+								filterBy="#{_compraCajaChica.facturaProveedorSRI.numeroRetencion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_retencionSRI}" />
+								</f:facet>
+								<h:outputText
+									value="#{_compraCajaChica.facturaProveedorSRI.establecimientoRetencion}-#{_compraCajaChica.facturaProveedorSRI.puntoEmisionRetencion}-#{_compraCajaChica.facturaProveedorSRI.numeroRetencion}"
+									rendered="#{_compraCajaChica.indicadorFactura}" />
+
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" sortBy="#{_compraCajaChica.facturaProveedorSRI.indicadorRetencionEmitida}"
+								filterBy="#{_compraCajaChica.facturaProveedorSRI.indicadorRetencionEmitida}" filterOptions="#{compraCajaChicaBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_factura_proveedor_indicador_retencion_emitida}" />
+								</f:facet>
+								<h:selectBooleanCheckbox rendered="#{not empty _compraCajaChica.facturaProveedorSRI}"
+									value="#{_compraCajaChica.facturaProveedorSRI.indicadorRetencionEmitida}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_compraCajaChica.cajaChica.nombre}" filterBy="#{_compraCajaChica.cajaChica.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_caja_chica}" />
+								</f:facet>
+								<h:outputText value="#{_compraCajaChica.cajaChica.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_compraCajaChica.descripcion}" filterBy="#{_compraCajaChica.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_compraCajaChica.descripcion}">
+									<f:attribute name="limit" value="40" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_compraCajaChica.facturaProveedorSRI.mensajeSRI}" filterBy="#{_compraCajaChica.facturaProveedorSRI.mensajeSRI}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado } SRI" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_compraCajaChica.facturaProveedorSRI.mensajeSRI}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{compraCajaChicaBean.compraCajaChica}" value="#{_compraCajaChica}" bean="#{compraCajaChicaBean}"
+									formatos="/(\.|\/)(pdf|png|jpe?g)$/" actualiza=":form:panelListado" visible="#{_compraCajaChica.archivo!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{compraCajaChicaBean.compraCajaChica.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{compraCajaChicaBean.compraCajaChica.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{compraCajaChicaBean.compraCajaChica.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{compraCajaChicaBean.compraCajaChica.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

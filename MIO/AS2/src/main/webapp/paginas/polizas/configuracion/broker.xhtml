@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{brokerBean}" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}?" width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaAfianzado,mensajes" process="@this"
+						actionListener="#{brokerBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_broker}"
+						rendered="#{brokerBean.editado}">
+
+						<h:panelGrid id="panelTipoAsegurado"
+							columns="#{brokerBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.codigo}" id="txtCodigo">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_nombres}:" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.nombres}" id="txtNombres">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_apellidos}:" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.apellidos}" id="txtApellidos">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.direccion}" id="txtDireccion">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_tipo_identificacion}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{brokerBean.broker.tipoIdentificacion.idTipoIdentificacion}"
+									id="cboTipoIdentificacion" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{brokerBean.listaTipoIdentificacion}"
+										var="_tipoIdentificacion"
+										itemLabel="#{_tipoIdentificacion.nombre}"
+										itemValue="#{_tipoIdentificacion.idTipoIdentificacion}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboTipoIdentificacion" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_identificacion}:" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.identificacion}"
+								id="txtIdentificacion">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}: 1" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.telefono1}" id="txtTelefono1">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}: 2" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.telefono2}" id="txtTelefono2">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}: 1" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.email1}" id="txtEmail1">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}: 2" />
+							<p:inputText styleClass="input-text"
+								value="#{brokerBean.broker.email2}" id="txtEmail2">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{brokerBean.broker.activo}" />
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_broker}"
+						rendered="#{!brokerBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAfianzado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{brokerBean.listaBroker}" var="_broker"
+							binding="#{brokerBean.dtBroker}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{brokerBean.numeroFilas}" selection="#{brokerBean.broker}"
+							selectionMode="single" rowKey="#{_broker.id}">
+
+							<p:column headerText="No">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_codigo}"
+								sortBy="#{_broker.codigo}" filterBy="#{_broker.codigo}">
+								<h:outputText value="#{_broker.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombres}"
+								sortBy="#{_broker.nombres}" filterBy="#{_broker.nombres}">
+								<h:outputText value="#{_broker.nombres}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_apellidos}"
+								sortBy="#{_broker.apellidos}" filterBy="#{_broker.apellidos}">
+								<h:outputText value="#{_broker.apellidos}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_tipo_identificacion}"
+								sortBy="#{_broker.nombres}"
+								filterBy="#{_broker.tipoIdentificacion.nombre}">
+								<h:outputText value="#{_broker.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_identificacion}"
+								sortBy="#{_broker.identificacion}"
+								filterBy="#{_broker.identificacion}">
+								<h:outputText value="#{_broker.identificacion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_direccion}"
+								sortBy="#{_broker.direccion}" filterBy="#{_broker.direccion}">
+								<h:outputText value="#{_broker.direccion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_telefono}"
+								sortBy="#{_broker.telefono1}" filterBy="#{_broker.telefono1}">
+								<h:outputText value="#{_broker.telefono1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_broker.activo}"
+									disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{brokerBean.broker.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{brokerBean.broker.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{brokerBean.broker.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{brokerBean.broker.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{controlCalidadMPBean}">
+					<as2:buttonExportaExcel bean="#{controlCalidadMPBean}" tabla=":form:tablaControlCalidad" />
+
+					<p:commandButton id="btnLiberar" value="#{msgs.lbl_liberar}" title="#{msgs.lbl_liberar}" process="@this"
+						rendered="#{controlCalidadMPBean.editado}" icon="ui-icon-document" oncomplete="dialogLiberar.show();" update=":form:panelLiberar"
+						disabled="#{controlCalidadMPBean.registroPeso.estadoControlCalidad != 'PENDIENTE' and controlCalidadMPBean.registroPeso.estadoControlCalidad != 'EN_ESPERA'}">
+						<f:setPropertyActionListener value="#{controlCalidadMPBean.registroPeso.bodega}" target="#{controlCalidadMPBean.bodegaCalidad}"></f:setPropertyActionListener>
+					</p:commandButton>
+
+					<p:commandButton id="btnCastigar" value="#{msgs.lbl_castigar}" title="#{msgs.lbl_castigar}" process="@this"
+						rendered="#{controlCalidadMPBean.registroPeso.tipoRegistroPeso == 'INGRESO_MATERIA_PRIMA' and controlCalidadMPBean.editado and controlCalidadMPBean.registroPeso.producto.indicadorControlCalidad}"
+						disabled="#{controlCalidadMPBean.registroPeso.estadoControlCalidad != 'PENDIENTE' and controlCalidadMPBean.registroPeso.estadoControlCalidad != 'EN_ESPERA'}"
+						icon="ui-icon-document" oncomplete="dialogCastigar.show();" update=":form:panelCastigar">
+					</p:commandButton>
+
+					<p:commandButton id="btnRechazar" value="#{msgs.lbl_rechazar}" title="#{msgs.lbl_rechazar}" process="@this"
+						rendered="#{controlCalidadMPBean.registroPeso.tipoRegistroPeso == 'INGRESO_MATERIA_PRIMA' and controlCalidadMPBean.editado and controlCalidadMPBean.registroPeso.producto.indicadorControlCalidad}"
+						icon="ui-icon-document"
+						disabled="#{controlCalidadMPBean.registroPeso.estadoControlCalidad != 'PENDIENTE' and controlCalidadMPBean.registroPeso.estadoControlCalidad != 'EN_ESPERA'}"
+						update=":form:panelRechazar" oncomplete="dialogRechazar.show();">
+					</p:commandButton>
+				</as2:toolBar>
+
+				<!-- PANEL LIBERAR -->
+				<p:outputPanel id="panelLiberar">
+					<p:dialog header="#{msgs.lbl_liberar}" widgetVar="dialogLiberar" modal="true" height="90" width="600" showEffect="slide" hideEffect="slide">
+						<p:panel id="subpanelLiberar">
+							<h:panelGrid columns="2" columnClasses="columna40,columna60">
+
+								<p:spacer />
+								<h:outputText value="#{msgs.confirmacion_liberar_calidad}" />
+
+								<p:outputLabel for="cboBodegaCalidad" value="#{msgs.lbl_bodega}:"
+									rendered="#{controlCalidadMPBean.registroPeso.tipoRegistroPeso == 'INGRESO_MATERIA_PRIMA'}" />
+								<p:selectOneMenu value="#{controlCalidadMPBean.bodegaCalidad}" id="cboBodegaCalidad" required="true"
+									disabled="#{!controlCalidadMPBean.registroPeso.producto.indicadorControlCalidad}"
+									rendered="#{controlCalidadMPBean.registroPeso.tipoRegistroPeso == 'INGRESO_MATERIA_PRIMA'}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{controlCalidadMPBean.listaBodegaCalidad}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<p:ajax process="@this" update=":form:subpanelLiberar" global="false" />
+								</p:selectOneMenu>
+							</h:panelGrid>
+						</p:panel>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnAceptarLiberar" action="#{controlCalidadMPBean.liberar}" value="#{msgs.btn_guardar}"
+									oncomplete="dialogLiberar.hide();" process="@this" update=":form:panelContenedor">
+								</p:commandButton>
+								<p:commandButton id="btnCancelarLiberar" value="#{msgs.btn_cancelar}" oncomplete="dialogLiberar.hide();" process="@this">
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+
+				<!-- PANEL CASTIGAR -->
+				<p:outputPanel id="panelCastigar">
+					<p:dialog header="#{msgs.lbl_castigar}" widgetVar="dialogCastigar" modal="true" height="180" width="800" showEffect="slide" hideEffect="slide">
+						<p:panel id="subpanelCastigar">
+							<h:panelGrid columns="1">
+								<h:panelGrid columns="2" columnClasses="columna40,columna60">
+									<p:outputLabel for="cboMotivoCastigo" value="#{msgs.lbl_motivo_castigo_calidad}:" />
+									<p:selectOneMenu value="#{controlCalidadMPBean.motivoCastigo}" id="cboMotivoCastigo" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{controlCalidadMPBean.listaMotivoCastigoCalidad}" var="_motivo" itemLabel="#{_motivo.nombre}" itemValue="#{_motivo}" />
+										<p:ajax process="@this" update=":form:subpanelCastigar" global="false" />
+									</p:selectOneMenu>
+
+									<p:outputLabel for="txtObservacionCastigar" value="#{msgs.lbl_observacion}:" />
+									<p:inputText styleClass="input-text" value="#{controlCalidadMPBean.registroPeso.observacionCalidad}" id="txtObservacionCastigar">
+										<p:ajax process="@this" global="false" />
+									</p:inputText>
+
+								</h:panelGrid>
+							</h:panelGrid>
+						</p:panel>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnAceptarCastigar" action="#{controlCalidadMPBean.castigar}" value="#{msgs.btn_guardar}"
+									oncomplete="dialogCastigar.hide();" process="@this" update=":form:panelContenedor">
+								</p:commandButton>
+								<p:commandButton id="btnCancelarCastigar" value="#{msgs.btn_cancelar}" oncomplete="dialogCastigar.hide();" process="@this">
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+
+				<!-- PANEL RECHAZAR -->
+				<p:dialog header="#{msgs.lbl_rechazar}" widgetVar="dialogRechazar" modal="true" height="90" width="600" showEffect="slide" hideEffect="slide">
+					<p:panel id="panelRechazar">
+						<h:panelGrid columns="2" columnClasses="columna40,columna60">
+							<p:outputLabel for="cboMotivoRechazo" value="#{msgs.lbl_motivo_castigo_calidad}:" />
+							<p:selectOneMenu value="#{controlCalidadMPBean.motivoRechazo}" id="cboMotivoRechazo" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{controlCalidadMPBean.listaMotivoCastigoCalidad}" var="_motivo" itemLabel="#{_motivo.nombre}" itemValue="#{_motivo}" />
+								<p:ajax process="@this" update=":form:subpanelCastigar" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtObservacionRechazar" value="#{msgs.lbl_observacion}:" />
+							<p:inputText styleClass="input-text" value="#{controlCalidadMPBean.registroPeso.observacionCalidad}" id="txtObservacionRechazar">
+								<p:ajax process="@this" global="false" />
+							</p:inputText>
+						</h:panelGrid>
+					</p:panel>
+					<f:facet name="footer">
+						<center>
+							<p:commandButton id="btnAceptarRechazar" action="#{controlCalidadMPBean.rechazar}" value="#{msgs.btn_guardar}"
+								oncomplete="dialogRechazar.hide();" process="@this" update=":form:panelContenedor">
+							</p:commandButton>
+							<p:commandButton id="btnCancelarRechazar" value="#{msgs.btn_cancelar}" oncomplete="dialogRechazar.hide();" process="@this">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<!-- INICIO DIALOG CARGAR EXCEL -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarExcel" modal="true" height="150" width="400" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarExcel">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{controlCalidadMPBean.cargarExcel}" mode="advanced" update=":form:vistaTab:panelVariableCalidad"
+									auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xlsx)$/" label="#{msgs.btn_examinar}" process="@this"
+									oncomplete="dlgCargarExcel.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG CARGAR EXCEL -->
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{controlCalidadMPBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_control_calidad_panel}" toggleable="true">
+						<h:panelGrid columns="#{controlCalidadMPBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<p:outputLabel value="#{msgs.lbl_fecha}:" />
+							<h:outputText value="#{controlCalidadMPBean.registroPeso.fecha}">
+								<f:convertDateTime pattern="#{controlCalidadMPBean.formatoFecha}" />
+							</h:outputText>
+
+							<p:outputLabel value="#{msgs.lbl_proveedor}:" />
+							<h:outputText value="#{controlCalidadMPBean.registroPeso.empresa.nombreFiscal}" />
+
+							<p:outputLabel value="#{msgs.lbl_codigo} #{msgs.lbl_producto}:" />
+							<h:outputText value="#{controlCalidadMPBean.registroPeso.producto.codigo}" />
+
+							<p:outputLabel value="#{msgs.lbl_producto}:" />
+							<h:outputText value="#{controlCalidadMPBean.registroPeso.producto.nombre}" />
+
+							<p:outputLabel value="#{msgs.lbl_cantidad}:" />
+							<h:panelGroup>
+								<h:outputText rendered="#{not empty controlCalidadMPBean.registroPeso.detallePedidoProveedor.cantidad}"
+									value="#{controlCalidadMPBean.registroPeso.detallePedidoProveedor.unidadCompra.tipoUnidadMedida =='MASA' ? controlCalidadMPBean.registroPeso.detallePedidoProveedor.cantidad : controlCalidadMPBean.registroPeso.cantidad}" />
+								<h:outputText rendered="#{not empty controlCalidadMPBean.registroPeso.detalleTransferenciaBodega.cantidad}"
+									value="#{controlCalidadMPBean.registroPeso.detalleTransferenciaBodega.cantidad}" />
+							</h:panelGroup>
+
+							<p:outputLabel value="#{msgs.lbl_peso_neto}:" />
+							<h:outputText value="#{controlCalidadMPBean.registroPeso.pesoNeto}" />
+
+							<p:outputLabel value="#{msgs.lbl_precio_linea}:" />
+							<h:outputText value="#{controlCalidadMPBean.registroPeso.detallePedidoProveedor.precioLinea}" />
+						</h:panelGrid>
+
+						<p:tabView id="vistaTab" cache="true" dynamic="true">
+							<p:tab title="#{msgs.lbl_variable_calidad}" id="tabVariableCalidad">
+								<p:outputPanel id="panelVariableCalidad">
+									<p:panel>
+										<h:panelGrid id="panelBtnCargarExcel" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+											<h:outputText value="#{msgs.btn_cargar_excel}:" />
+											<p:commandButton id="btnCargarExcel" title="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update=":form:outputCargarExcel"
+												onclick="dlgCargarExcel.show()" process="@this" />
+											<h:outputText value="" />
+											<h:outputText value="" />
+										</h:panelGrid>
+
+										<p:dataList value="#{controlCalidadMPBean.mapaCVCEntryList}" var="_mcvc" style="width:100%" type="definition">
+											<p:fieldset legend="#{_mcvc.key.nombre}">
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{_mcvc.value}" id="tablaVariableCalidad" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" var="_vcrp" paginator="true" paginatorPosition="bottom" style="width:100%"
+													rows="#{controlCalidadMPBean.numeroFilas}" rowsPerPageTemplate="#{controlCalidadMPBean.numeroFilasPorPagina}">
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_vcrp.variableCalidadProducto.variableCalidad.codigo}"
+														filterBy="#{_vcrp.variableCalidadProducto.variableCalidad.codigo}" filterMatchMode="contains">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_codigo}" />
+														</f:facet>
+														<h:outputText value="#{_vcrp.variableCalidadProducto.variableCalidad.codigo}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" sortBy="#{_vcrp.variableCalidadProducto.variableCalidad.nombre}"
+														filterBy="#{_vcrp.variableCalidadProducto.variableCalidad.nombre}" filterMatchMode="contains">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre}" />
+														</f:facet>
+														<h:outputText value="#{_vcrp.variableCalidadProducto.variableCalidad.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_minimo}">
+														<h:outputText value="#{_vcrp.variableCalidadProducto.valorMinimo}"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_maximo}">
+														<h:outputText value="#{_vcrp.variableCalidadProducto.valorMaximo}"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_nir}">
+														<h:outputText value="#{_vcrp.valorNir}" size="8" id="outValorNir"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and _vcrp.variableCalidadProducto.variableCalidad.indicadorAutomatica}" />
+														<p:inputText styleClass="input-text" value="#{_vcrp.valorNir}" size="8" id="txtValorNir"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and !_vcrp.variableCalidadProducto.variableCalidad.indicadorAutomatica}">
+															<p:ajax process="@this" global="false" listener="#{controlCalidadMPBean.actualizaValorNIRAceptable(_vcrp)}" update="btnAceptable" />
+														</p:inputText>
+														<p:inputText styleClass="input-text" value="#{_vcrp.valorUnico}" id="txtValorUnico"
+															rendered="#{_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica}">
+															<p:ajax process="@this" global="false" />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_aceptable}">
+														<p:outputPanel id="btnAceptable">
+															<center>
+																<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;"
+																	rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and _vcrp.aceptable}" />
+																<h:graphicImage library="images" name="cancel_icon.png" style="height : 16px; width : 16px;"
+																	rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and !_vcrp.aceptable}" />
+															</center>
+														</p:outputPanel>
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_observacion}">
+														<p:inputText value="#{_vcrp.observacion}" id="txtObservacion" styleClass="input-text100">
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+												</p:dataTable>
+											</p:fieldset>
+										</p:dataList>
+
+										<p:fieldset>
+											<h:panelGrid id="panelOtrosCampos" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+												<p:outputLabel value="#{msgs.lbl_observacion}:" />
+												<p:inputText styleClass="input-text" value="#{controlCalidadMPBean.registroPeso.observacion}" id="txtObservacionCC">
+													<p:ajax process="@this" partialSubmit="true" global="false" />
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel value="#{msgs.lbl_presentacion}:" />
+												<p:inputText styleClass="input-text" value="#{controlCalidadMPBean.registroPeso.presentacion}" id="txtPresentacion">
+													<p:ajax process="@this" partialSubmit="true" global="false" />
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel value="#{msgs.lbl_condiciones_empaque}:" />
+												<p:inputText styleClass="input-text" value="#{controlCalidadMPBean.registroPeso.condicionesEmpaque}">
+													<p:ajax process="@this" partialSubmit="true" global="false" />
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel value="#{msgs.lbl_tipo_registro_sanitario}:" />
+												<p:inputText styleClass="input-text" value="#{controlCalidadMPBean.registroPeso.tipoRegistroSanitario}">
+													<p:ajax process="@this" partialSubmit="true" global="false" />
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel value="#{msgs.lbl_numero_registro_sanitario}:" />
+												<p:inputText styleClass="input-text" value="#{controlCalidadMPBean.registroPeso.numeroRegistroSanitario}">
+													<p:ajax process="@this" partialSubmit="true" global="false" />
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel value="#{msgs.lbl_fecha_elaboracion}:" />
+												<p:calendar pattern="#{controlCalidadMPBean.formatoFecha}" showOn="button" navigator="true"
+													value="#{controlCalidadMPBean.registroPeso.fechaElaboracion}" id="calFechaElaboracion">
+													<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+													<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+													<f:validateBean />
+												</p:calendar>
+
+												<p:outputLabel value="#{msgs.lbl_fecha_caducidad}:" />
+												<p:calendar pattern="#{controlCalidadMPBean.formatoFecha}" showOn="button" navigator="true"
+													value="#{controlCalidadMPBean.registroPeso.fechaCaducidad}" id="calFechaCaducidad">
+													<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+													<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+													<f:validateBean />
+												</p:calendar>
+											</h:panelGrid>
+										</p:fieldset>
+									</p:panel>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!controlCalidadMPBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_control_calidad_panel}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaControlCalidad" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{controlCalidadMPBean.listaRegistroPeso}" var="registroPeso"
+							binding="#{controlCalidadMPBean.dtRegistroPeso}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{controlCalidadMPBean.numeroFilas}" rowsPerPageTemplate="#{controlCalidadMPBean.numeroFilasPorPagina}"
+							selection="#{controlCalidadMPBean.registroPeso}" selectionMode="single" rowKey="#{registroPeso.id}" sortBy="#{registroPeso.estado}"
+							sortMode="ASC" lazy="true" rowStyleClass="#{!registroPeso.producto.indicadorControlCalidad ? 'fondo_rojo' : null}">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento" sortBy="#{registroPeso.numero}" filterBy="#{registroPeso.numero}"
+								headerText="#{msgs.lbl_numero} #{msgs.lbl_peso} #{msgs.lbl_bascula}">
+								<h:outputText value="#{registroPeso.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{registroPeso.fecha}" headerText="#{msgs.lbl_fecha}">
+								<h:outputText value="#{registroPeso.fecha}">
+									<f:convertDateTime pattern="#{controlCalidadMPBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{registroPeso.tipoRegistroPeso}"
+								filterOptions="#{controlCalidadMPBean.listaTipoRegistroPesoItem}" filterBy="#{registroPeso.tipoRegistroPeso}" headerText="#{msgs.lbl_tipo}">
+								<h:outputText value="#{registroPeso.tipoRegistroPeso.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento" headerText="#{msgs.lbl_documento_referencia}">
+								<h:outputText title="#{msgs.lbl_documento_referencia}" rendered="#{not empty registroPeso.detallePedidoProveedor.pedidoProveedor}"
+									value="#{registroPeso.detallePedidoProveedor.pedidoProveedor.numero}" />
+								<h:outputText title="#{msgs.lbl_documento_referencia}" rendered="#{not empty registroPeso.detalleTransferenciaBodega.movimientoInventario}"
+									value="#{registroPeso.detalleTransferenciaBodega.movimientoInventario.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{registroPeso.empresa.nombreFiscal}" filterBy="#{registroPeso.empresa.nombreFiscal}"
+								headerText="#{msgs.lbl_empresa}">
+								<h:outputText value="#{registroPeso.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto" sortBy="#{registroPeso.producto.codigo}" filterBy="#{registroPeso.producto.codigo}"
+								headerText="#{msgs.lbl_codigo} #{msgs.lbl_producto}">
+								<h:outputText value="#{registroPeso.producto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{registroPeso.producto.nombre}" filterBy="#{registroPeso.producto.nombre}"
+								headerText="#{msgs.lbl_producto}">
+								<h:outputText value="#{registroPeso.producto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{registroPeso.lote.codigo}" filterBy="#{registroPeso.lote.codigo}"
+								headerText="#{msgs.lbl_lote}">
+								<h:outputText value="#{registroPeso.lote.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_cantidad}">
+								<h:outputText rendered="#{not empty registroPeso.detallePedidoProveedor.cantidad}" value="#{registroPeso.detallePedidoProveedor.unidadCompra.tipoUnidadMedida =='MASA' ? registroPeso.detallePedidoProveedor.cantidad : registroPeso.cantidad}" />
+								<h:outputText rendered="#{not empty registroPeso.detalleTransferenciaBodega.cantidad}"
+									value="#{registroPeso.detalleTransferenciaBodega.cantidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" sortBy="#{registroPeso.pesoNeto}" headerText="#{msgs.lbl_peso_neto}">
+								<h:outputText value="#{registroPeso.pesoNeto}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" sortBy="#{registroPeso.detallePedidoProveedor.precioLinea}" headerText="#{msgs.lbl_precio_linea}">
+								<h:outputText value="#{registroPeso.detallePedidoProveedor.precioLinea}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado" sortBy="#{registroPeso.estadoControlCalidad}"
+								filterOptions="#{controlCalidadMPBean.listaEstadoControlCalidadItem}" filterBy="#{registroPeso.estadoControlCalidad}"
+								headerText="#{msgs.lbl_estado_control_calidad}">
+								<h:outputText value="#{registroPeso.estadoControlCalidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento" headerText="#{msgs.lbl_recepcion_proveedor}"
+								sortBy="#{registroPeso.listaRecepcionProveedor.get(0).numero}" filterBy="#{registroPeso.listaRecepcionProveedor.get(0).numero}">
+								<h:link rendered="#{not empty registroPeso.listaRecepcionProveedor}" target="_blank" outcome="/paginas/compras/procesos/recepcionProveedor"
+									value="#{registroPeso.listaRecepcionProveedor.get(0).numero}" includeViewParams="true">
+									<f:param name="idRecepcionProveedor" value="#{registroPeso.listaRecepcionProveedor.get(0).id}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTDescripcion" filterBy="#{registroPeso.observacion}" headerText="#{msgs.lbl_observacion}">
+								<h:outputText value="#{registroPeso.observacion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{controlCalidadMPBean.registroPeso.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{controlCalidadMPBean.registroPeso.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{controlCalidadMPBean.registroPeso.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{controlCalidadMPBean.registroPeso.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

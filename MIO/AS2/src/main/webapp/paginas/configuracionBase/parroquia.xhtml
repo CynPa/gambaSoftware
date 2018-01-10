@@ -1,0 +1,168 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{parroquiaBean}">
+
+					<as2:buttonEliminar bean="#{parroquiaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{parroquiaBean.parroquia.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{parroquiaBean.parroquia.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{parroquiaBean}" tabla=":form:tablaParroquia" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_parroquia_panel}" rendered="#{parroquiaBean.editado}">
+
+						<h:panelGrid columns="1">
+
+							<p:fieldset>
+
+								<h:panelGrid id="panelCabecera" columns="#{parroquiaBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_ciudad}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCiudad"
+										value="#{parroquiaBean.parroquia.ciudad}" completeMethod="#{parroquiaBean.autocompletarCiudad}" var="_ciudad" itemLabel="#{_ciudad.nombre}"
+										itemValue="#{_ciudad}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+										<p:column headerText="#{msgs.lbl_codigo}">#{_ciudad.codigo}</p:column>
+										<p:column headerText="#{msgs.lbl_nombre}">#{_ciudad.nombre}</p:column>
+										<p:ajax listener="#{parroquiaBean.actualizarParroquia}" process="@this" event="itemSelect" />
+									</p:autoComplete>
+
+									<h:outputText value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{parroquiaBean.parroquia.codigo}" id="txtCodigo">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" id="txtNombre" value="#{parroquiaBean.parroquia.nombre}">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" id="txtDescripcion" value="#{parroquiaBean.parroquia.descripcion}">
+										<f:validateBean />
+									</p:inputTextarea>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{parroquiaBean.parroquia.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{parroquiaBean.parroquia.predeterminado}" />
+
+								</h:panelGrid>
+							</p:fieldset>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!parroquiaBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_parroquia_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaParroquia" rowIndexVar="secuencialParroquia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{parroquiaBean.listaParroquia}" var="parroquia" binding="#{parroquiaBean.dtParroquia}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{parroquiaBean.numeroFilas}"
+							rowsPerPageTemplate="#{parroquiaBean.numeroFilasPorPagina}" selection="#{parroquiaBean.parroquia}" selectionMode="single"
+							rowKey="#{parroquia.idParroquia}" lazy="true" sortBy="#{parroquia.codigo}">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialParroquia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{parroquia.codigo}" filterBy="#{parroquia.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{parroquia.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{parroquia.nombre}" filterBy="#{parroquia.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{parroquia.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{parroquia.ciudad.provincia.codigo}" filterBy="#{parroquia.ciudad.provincia.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo} #{msgs.lbl_provincia}" />
+								</f:facet>
+								<h:outputText value="#{parroquia.ciudad.provincia.codigo}" />
+							</p:column>
+
+
+							<p:column sortBy="#{parroquia.ciudad.provincia.nombre}" filterBy="#{parroquia.ciudad.provincia.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_provincia}" />
+								</f:facet>
+								<h:outputText value="#{parroquia.ciudad.provincia.nombre}" />
+							</p:column>
+
+
+							<p:column sortBy="#{parroquia.ciudad.codigo}" filterBy="#{parroquia.ciudad.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo} #{msgs.lbl_ciudad}" />
+								</f:facet>
+								<h:outputText value="#{parroquia.ciudad.codigo}" />
+							</p:column>
+
+
+							<p:column sortBy="#{parroquia.ciudad.nombre}" filterBy="#{parroquia.ciudad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ciudad}" />
+								</f:facet>
+								<h:outputText value="#{parroquia.ciudad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{parroquia.activo}">
+								<p:selectBooleanCheckbox value="#{parroquia.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{parroquia.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{parroquia.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{parroquiaBean.parroquia.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{parroquiaBean.parroquia.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{parroquiaBean.parroquia.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{parroquiaBean.parroquia.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

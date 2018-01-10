@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{salidaMaterialBean}">
+
+					<as2:buttonImprimir id="btnImprimirConsumoBodega" beanReporte="#{reporteConsumoBodegaBean}" bean="#{salidaMaterialBean}"
+						target="#{reporteConsumoBodegaBean.consumoBodega}" value="#{salidaMaterialBean.movimientoInventario}" />
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{salidaMaterialBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{salidaMaterialBean.movimientoInventario.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>	
+						
+					<as2:buttonExportaExcel bean="#{salidaMaterialBean}" tabla=":form:tablaMovimientoInventario" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_salida_material})" rendered="#{salidaMaterialBean.editado}">
+						<!-- En Desarrollo -->
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_salida_material})" rendered="#{!salidaMaterialBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMovimientoInventario" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{salidaMaterialBean.listaMovimientoInventario}" var="_movimientoInventario" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{salidaMaterialBean.dtMovimientoInventario}" rows="#{salidaMaterialBean.numeroFilas}"
+							rowsPerPageTemplate="#{salidaMaterialBean.numeroFilasPorPagina}" selection="#{salidaMaterialBean.movimientoInventario}" selectionMode="single"
+							rowKey="#{_movimientoInventario.id}" sortBy="#{_movimientoInventario.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_movimientoInventario.numero}" filterBy="#{_movimientoInventario.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoInventario.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_movimientoInventario.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoInventario.fecha}">
+									<f:convertDateTime pattern="#{salidaMaterialBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_movimientoInventario.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoInventario.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_movimientoInventario.asiento.numero}"
+								filterBy="#{_movimientoInventario.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _movimientoInventario.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_movimientoInventario.asiento.numero}">
+									<f:param name="idAsiento" value="#{_movimientoInventario.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_movimientoInventario.estado}" filterBy="#{_movimientoInventario.estado}"
+								filterOptions="#{salidaMaterialBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoInventario.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_movimientoInventario.descripcion}" filterBy="#{_movimientoInventario.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" styleClass="input-text-col" />
+								</f:facet>
+								<h:outputText value="#{_movimientoInventario.descripcion}" rows="1" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="ui-icon-check" process="@this" action="#{salidaMaterialBean.contabilizar(_movimientoInventario)}"
+										update=":form:panelListado">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{salidaMaterialBean.movimientoInventario.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{salidaMaterialBean.movimientoInventario.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{salidaMaterialBean.movimientoInventario.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{salidaMaterialBean.movimientoInventario.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

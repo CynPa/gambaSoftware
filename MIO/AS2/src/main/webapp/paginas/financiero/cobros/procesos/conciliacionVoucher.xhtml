@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{conciliacionVoucherBean}">
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_voucher}" rendered="#{conciliacionVoucherBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{empresaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel value="Lote" />
+							<p:inputTextarea styleClass="input-text" value="#{conciliacionVoucherBean.lote}" id="txtLote" size="100" maxlength="200">
+								<f:validateBean />
+								<p:ajax process="@this" global="false"    ></p:ajax>
+							</p:inputTextarea>
+							
+							<p:outputLabel value="Tarjeta" />
+							<p:inputTextarea styleClass="input-text" value="#{conciliacionVoucherBean.lote}" id="txtTarjeta" size="100" maxlength="200">
+								<f:validateBean />
+								<p:ajax process="@this" global="false"    ></p:ajax>
+							</p:inputTextarea>
+							
+							<p:outputLabel value="Plan" />
+							<p:inputTextarea styleClass="input-text" value="#{conciliacionVoucherBean.lote}" id="txtPlan" size="100" maxlength="200">
+								<f:validateBean />
+								<p:ajax process="@this" global="false"    ></p:ajax>
+							</p:inputTextarea>
+
+
+						</h:panelGrid>
+
+						<h:panelGroup>
+							<p:commandButton value="Cargar Voucher" id="btnCargarVouche" action="#{conciliacionVoucherBean.cargarVoucher}"
+								update=":form:panelComisionTarjeta" process="@this :form:panelComisionTarjeta" icon="ui-icon-plus" />
+						</h:panelGroup>
+
+						<p:outputPanel id="panelComisionTarjeta">
+
+							<h:panelGrid columns="1" id="panelDetalleCategoriaRetencion" style="width:100%">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{conciliacionVoucherBean.listaDetalleVoucher}" id="tablaComisionTarjeta"
+									rowIndexVar="secuencial" binding="#{conciliacionVoucherBean.dtDetalleVoucher}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleVoucher"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{conciliacionVoucherBean.numeroFilas}"
+									rowsPerPageTemplate="#{conciliacionVoucherBean.numeroFilasPorPagina}" rowKey="#{_detalleVoucher.id}" lazy="true">
+
+
+									
+									<p:column styleClass="tableCell" headerText="Banco Pagador">
+										<p:selectOneMenu styleClass="input-text" value="#{_detalleVoucher.banco}" id="cboBanco">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{conciliacionVoucherBean.listaBancoAcreedor}" var="_bancoAcreedor" itemLabel="#{_bancoAcreedor.nombre}"
+												itemValue="#{_bancoAcreedor}" />
+										</p:selectOneMenu>
+									</p:column>
+
+
+									
+
+
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_tarjeta_credito}" rendered="#{!conciliacionVoucherBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlan" rowIndexVar="secuencialPlan" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{conciliacionVoucherBean.listaVoucher}" var="_voucher" binding="#{conciliacionVoucherBean.dataTableVoucher}" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{conciliacionVoucherBean.numeroFilas}" rowsPerPageTemplate="#{conciliacionVoucherBean.numeroFilasPorPagina}"
+							selection="#{conciliacionVoucherBean.voucher}" selectionMode="single" rowKey="#{_voucher.id}" sortBy="#{_voucher.nombre}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialPlan+1}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="fecha">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_voucher.fecha}">
+									<f:convertDateTime pattern="#{conciliacionVoucherBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tarjetaCredito.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{conciliacionVoucherBean.voucher.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{conciliacionVoucherBean.voucher.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{conciliacionVoucherBean.voucher.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{conciliacionVoucherBean.voucher.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

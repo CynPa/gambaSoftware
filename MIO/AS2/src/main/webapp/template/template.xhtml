@@ -1,0 +1,219 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:view contentType="text/html">
+	<h:head>
+		<title>AS2 ERP (#{sesionControler.version})</title>
+		<link href="#{resource['images:logo_asinfo.ico']}" rel='shortcut icon' type='image/x-icon' />
+		<ui:insert name="headAdicionales"/>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+		<h:outputStylesheet library="css" name="skin.css" />
+		<h:outputStylesheet library="css" name="as2style.css" />
+		<h:outputStylesheet library="css" name="as2styletable.css" />
+		<h:outputScript library="js" name="as2-funciones.js" />
+		<h:outputScript library="primefaces" name="jquery/jquery.js" />
+
+		<script type="text/javascript">
+		
+			window.history.forward();
+			function noBack() {
+				window.history.forward();
+			}
+
+			function handleLoginRequest(xhr, status, args) {
+				if (args.validationFailed || !args.loggedIn) {
+					jQuery('#dialog').effect("shake", {
+						times : 3
+					}, 100);
+				} else {
+					dlg.hide();
+					jQuery('#loginLink').fadeOut();
+				}
+			}
+			function validacionesModal(xhr, status, args, nombreDialog) {
+				if (args.validationFailed) {
+				} else {
+					nombreDialog.hide();
+				}
+			}
+
+			   function contarCaracteres()
+			    {
+			    	document.getElementById("txtCantidadCaracteres").innerHTML = document.getElementById("txtAutorizacion").value.length;
+			    }
+			
+		</script>
+		<script type="text/javascript">
+		$(document).ready(function() {
+		    PrimeFaces.widget.Dialog.prototype.originalHide = PrimeFaces.widget.Dialog.prototype.hide; // keep a reference to the original hide()
+		    PrimeFaces.widget.Dialog.prototype.hide = function() {
+		        var ajaxResponseArgs = arguments.callee.caller.arguments[2]; // accesses oncomplete arguments
+		        if (ajaxResponseArgs)
+			        if (ajaxResponseArgs.validationFailed) 
+		            	return;// on validation error, prevent closing
+		        	
+		        	this.originalHide();
+		        
+		    };
+		});	
+		</script>
+		
+		<script type="text/javascript">
+			function start() {
+			    PF('statusDialog').show();
+			}
+			 
+			function stop() {
+			    PF('statusDialog').hide();
+			}
+		</script>
+		
+	</h:head>
+
+	<!-- <h:body onload="noBack();" onpageshow="if (event.persisted) noBack();" onunload=""> -->
+
+	<h:body onload="noBack();" onpageshow="if (event.persisted) noBack();" onunload="">
+
+		<div id="div_contenedor">
+
+			<p:outputPanel autoUpdate="true">
+				<p:growl id="mensajes" showDetail="true" life="4000" />
+			</p:outputPanel>
+
+			<p:ajaxStatus onstart="statusDialog.show();" onsuccess="statusDialog.hide();" />
+
+			<p:dialog modal="true" widgetVar="statusDialog" draggable="false" closable="false">
+				<h:panelGrid columns="2" border="0" cellspacing="0">
+					<h:graphicImage library="images" name="ajaxloading.gif" style="margin-right: 12px; vertical-align: middle;" />
+
+					<h:outputText value="Procesando..." style="white-space: nowrap;" />
+				</h:panelGrid>
+			</p:dialog>
+
+			<p:idleMonitor onidle="dialogoSessionTime.show();" timeout="#{session.maxInactiveInterval * 1000}">
+
+				<p:ajax event="idle" listener="#{authenticationController.invalidarSesion}" />
+
+			</p:idleMonitor>
+
+			<p:dialog header="#{msgs.lbl_sesion_caducada}" widgetVar="dialogoSessionTime" id="dialogoSessionTime" modal="true" fixedCenter="true"
+				closable="false" width="300" height="60" visible="false" resizable="false">
+
+				<h:outputText value="#{msgs.lbl_sesion_caducada_texto}" style="white-space: nowrap;" />
+
+				<f:facet name="footer">
+					<center>
+						<input id="confirmBackToLogin" type="button" value="#{msgs.lbl_sesion_caducada_boton}"
+							onclick="window.location='#{facesContext.externalContext.requestContextPath}/login.jsf';" />
+					</center>
+				</f:facet>
+			</p:dialog>
+
+			<div id="cabecera">
+				<p:fieldset>
+					<h:panelGrid columns="6" border="0" cellspacing="0">
+
+						<p:graphicImage library="images" name="AS2_ERP.png" style="height : 40px; width : 120px;" />
+
+						<h:panelGroup>
+							<ui:include src="/resources/componentes/menu.xhtml" />
+						</h:panelGroup>
+						<p:spacer></p:spacer>
+
+						<p:graphicImage value="/images/dynamic/?file=#{seleccionarOrganizacionBean.organizacion.imagen}" style="height : 40px; width : 120px;" />
+
+						<h:form>
+							<div>
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoProcesosUsuario"
+									value="#{menuBean.entidadProceso}" completeMethod="#{menuBean.autocompletarProceso}" var="_proceso" itemLabel="#{_proceso.viewName}"
+									itemValue="#{_proceso}" forceSelection="true" minQueryLength="2">
+									<p:column>
+										<h:link value="#{_proceso.viewName}" outcome="#{_proceso.viewId}" />
+									</p:column>
+									<p:ajax event="itemSelect" process="@this" listener="#{menuBean.seleccionarProceso}"  />
+								</p:autoComplete>
+							</div>
+						</h:form>
+
+						<h:panelGrid columns="1">
+
+							<h:form prependId="false" id="formSelOrgSucPun">
+								<h:panelGroup>
+									<p:commandLink style="font-weight:bold" process="@this" title="${msgs.lbl_titulo_panel_seleccionar_organizacion}"
+										id="btnDialogoSeleccionarOPrganizacion" oncomplete="dialogoSeleccionarOrganizacion.show()">
+
+										<h:outputText value="#{authenticationController.usuario.nombreUsuario}" />
+									</p:commandLink>
+
+									<p:dialog id="dialogoSeleccionarOrganizacion" widgetVar="dialogoSeleccionarOrganizacion" modal="true" fixedCenter="true" closable="false"
+										width="400" visible="false">
+
+										<as2:panelSeleccionarOrganizacion />
+
+									</p:dialog>
+
+								</h:panelGroup>
+							</h:form>
+
+							<h:form>
+								<p:commandLink value="#{msgs.btn_cerrar_sesion}" action="#{authenticationController.logout}" process="@this"
+									oncomplete="window.location.href = '#{request.contextPath}/login.jsf'; return false;" />
+							</h:form>
+
+						</h:panelGrid>
+
+					</h:panelGrid>
+				</p:fieldset>
+				<p:spacer height="2px" />
+			</div>
+
+			<div id="contenido">
+				<p:fieldset>
+					<ui:insert name="contenido">
+						<center>
+							<h:graphicImage library="images" name="logo_sistema.png" style="height : 600px;" />
+						</center>
+					</ui:insert>
+				</p:fieldset>
+			</div>
+
+			<div id="pie">
+
+				<p:spacer height="2px" />
+
+				<p:fieldset>
+					<h:panelGrid columns="1" cellspacing="0" border="0">
+
+						<h:panelGroup>
+							<center>
+								<h:outputText style="font-weight:bold" value="#{msgs.lbl_organizacion}:" />
+								<h:outputText value=" #{seleccionarOrganizacionBean.organizacion.razonSocial}" />
+								<p:spacer width="20px" />
+
+								<h:outputText style="font-weight:bold" value="#{msgs.lbl_sucursal}:" />
+								<h:outputText value=" #{seleccionarOrganizacionBean.sucursal.nombre}" />
+								<p:spacer width="20px" />
+
+								<h:outputText style="font-weight:bold" value="#{msgs.lbl_punto_de_venta}:" />
+								<h:outputText value=" #{seleccionarOrganizacionBean.puntoDeVenta.nombre}" />
+								<p:spacer width="20px" />
+
+								<h:outputText style="font-weight:bold" value="#{msgs.lbl_caja}:" />
+								<h:outputText value=" #{seleccionarOrganizacionBean.caja.nombre}" />
+							</center>
+						</h:panelGroup>
+
+						<center>
+							<font size="1"> <a href="http://www.asinfo.com.ec">Copyright © 2013 ASINFO Todos los derechos reservados </a>
+							</font>
+						</center>
+					</h:panelGrid>
+
+				</p:fieldset>
+			</div>
+
+		</div>
+	</h:body>
+</f:view>
+</html>

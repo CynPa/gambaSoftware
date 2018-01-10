@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<as2:buttonExportaExcel bean="#{unidadManejoProductoBean}" tabla=":form:tablaUnidadManejoProducto" />
+					</p:toolbarGroup>
+				</p:toolbar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{unidadManejoProductoBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelListado" />
+					<ui:param name="listadoFiltrado" value="true" />
+					<ui:param name="mostrarCantidad" value="false" />
+				</ui:include>
+
+				<p:confirmDialog id="dialogEliminar" header="#{msgs.lbl_eliminar}" widgetVar="dialogEliminar" height="80" width="300" appendTo="@(body)"
+					message="#{msgs.confirmacion_msg}">
+
+					<p:outputPanel id="panelEliminar" autoUpdate="true">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_unidad_manejo}:" />
+							<h:outputText value="#{unidadManejoProductoBean.unidadManejoProducto.unidadManejo.nombre}" />
+
+							<h:outputText value="#{msgs.lbl_producto}:" />
+							<h:outputText value="#{unidadManejoProductoBean.unidadManejoProducto.producto.nombre}" />
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<center>
+						<p:commandButton value="#{msgs.lbl_eliminar}" action="#{unidadManejoProductoBean.eliminar}" process="@this" update="@this :form:panelContenedor"
+							partialSubmit="true" onclick="dialogEliminar.hide()" id="DELETE">
+						</p:commandButton>
+
+						<p:commandButton process="@this" value="#{msgs.btn_cancelar}" partialSubmit="true" onclick="dialogEliminar.hide()" />
+					</center>
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelListado">
+					<h:panelGrid columns="1" style="width:100%" border="0">
+						<h:panelGroup>
+							<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{unidadManejoProductoBean.agregarDetalle}"
+								update=":form:panelListado" process="@this :form:panelListado" icon="ui-icon-plus" />
+
+							<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+						</h:panelGroup>
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{unidadManejoProductoBean.listaUnidadManejoProducto}"
+							id="tablaUnidadManejoProducto" rowIndexVar="secuencial" binding="#{unidadManejoProductoBean.dataTableUnidadManejoProducto}"
+							emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalle.id}"
+							rows="#{unidadManejoProductoBean.numeroFilas}" rowsPerPageTemplate="#{unidadManejoProductoBean.numeroFilasPorPagina}" selectionMode="single"
+							selection="#{unidadManejoProductoBean.unidadManejoProducto}" filteredValue="#{unidadManejoProductoBean.listaUnidadManejoProductoFiltrados}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_detalle.unidadManejo.nombre}"
+								filterMatchMode="contains" sortBy="#{_detalle.unidadManejo.nombre}">
+								<p:selectOneMenu style="text-align: left;" value="#{_detalle.unidadManejo}" required="true" id="slctUnidadManejo">
+									<f:selectItem itemLabel="" itemValue="" />
+									<f:selectItems value="#{unidadManejoProductoBean.listaUnidadManejo}" var="_unidadManejo"
+										itemLabel="#{_unidadManejo.codigo} - #{_unidadManejo.nombre}" itemValue="#{_unidadManejo}" />
+									<p:ajax process="@this"
+										update="txtNombreCategoriaUnidadManejo txtPesoUnidadManejo txtNombreUnidadUnidadManejo btnGuardarDetalle slctUnidadManejo" global="false" />
+								</p:selectOneMenu>
+								<!-- <h:outputText value="#{_detalle.unidadManejo.nombre}" id="txtNombreUnidadManejo" rendered="#{_detalle.unidadManejo != null and _detalle.unidadManejo.id != 0}" />-->
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_categoria_unidad_manejo}"
+								filterBy="#{_detalle.unidadManejo.categoriaUnidadManejo.nombre}" filterMatchMode="contains"
+								sortBy="#{_detalle.unidadManejo.categoriaUnidadManejo.nombre}">
+								<h:outputText value="#{_detalle.unidadManejo.categoriaUnidadManejo.nombre}" id="txtNombreCategoriaUnidadManejo" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTUnidad" headerText="#{msgs.lbl_unidad}" filterBy="#{_detalle.unidadManejo.unidad.nombre}"
+								filterMatchMode="contains" sortBy="#{_detalle.unidadManejo.unidad.nombre}">
+								<h:outputText value="#{_detalle.unidadManejo.unidad.nombre}" id="txtNombreUnidadUnidadManejo" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_peso} #{msgs.lbl_unidad_manejo}" sortBy="#{_detalle.unidadManejo.peso}">
+								<h:outputText value="#{_detalle.unidadManejo.peso}" id="txtPesoUnidadManejo" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_digitarCantidad}">
+								<p:selectBooleanCheckbox value="#{_detalle.unidadManejo.indicadorDigitarCantidad}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalle.producto.codigo}"
+								filterMatchMode="contains" sortBy="#{_detalle.producto.codigo}">
+								<p:inputText styleClass="input-text100" value="#{_detalle.producto.codigo}" id="txtCodigoProducto" size="10"
+									rendered="#{_detalle.producto == null or _detalle.producto.id == 0}">
+
+									<p:ajax listener="#{unidadManejoProductoBean.actualizarProducto}" process="@this" event="change"
+										update="txtNombreProducto txtCodigoBarras btnGuardarDetalle" oncomplete="nextFocus('#{p:component('txtPesoPromedio')}')" global="false" />
+									<f:validateBean />
+								</p:inputText>
+								<h:outputText value="#{_detalle.producto.codigo}" id="txtCodigo" rendered="#{_detalle.producto != null and _detalle.producto.id != 0}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{_detalle.producto.codigoBarras}" filterMatchMode="contains"
+								headerText="#{msgs.lbl_producto_codigo_barras}" sortBy="#{_detalle.producto.codigoBarras}">
+								<h:outputText value="#{_detalle.producto.codigoBarras}" id="txtCodigoBarras" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre_producto}" filterBy="#{_detalle.producto.nombre}"
+								filterMatchMode="contains" sortBy="#{_detalle.producto.nombre}">
+								<h:outputText value="#{_detalle.producto.nombre}" id="txtNombreProducto" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_minimo}">
+								<p:inputText styleClass="input-text" value="#{_detalle.pesoMinimo}" size="10" required="true">
+									<p:ajax process="@this" global="false" update="btnGuardarDetalle" />
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_maximo}">
+								<p:inputText styleClass="input-text" value="#{_detalle.pesoMaximo}" size="10" required="true">
+									<p:ajax process="@this" global="false" update="btnGuardarDetalle" />
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_promedio}">
+								<p:inputText styleClass="input-text" value="#{_detalle.pesoPromedio}" id="txtPesoPromedio" size="10" required="true">
+									<p:ajax process="@this" global="false" update="btnGuardarDetalle" />
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+								<p:inputText styleClass="input-text" value="#{_detalle.cantidad}" id="txtCantidad" size="10">
+									<p:ajax process="@this" global="false" update="btnGuardarDetalle" />
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<p:commandButton id="btnEliminarDetalle" oncomplete="dialogEliminar.show()" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+									update=":form:panelListado" process="@this" partialSubmit="true">
+									<f:setPropertyActionListener target="#{unidadManejoProductoBean.unidadManejoProducto}" value="#{_detalle}" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<p:commandButton id="btnGuardarDetalle" action="#{unidadManejoProductoBean.guardarUnidadManejoProducto(_detalle)}" icon="ui-icon-disk"
+									title="#{msgs.btn_guardar}" update=":form:panelListado" process="@this" partialSubmit="true"
+									disabled="#{!_detalle.editado or _detalle.unidadManejo == null or _detalle.unidadManejo.id == 0 or _detalle.producto == null or _detalle.producto.id == 0}">
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+					</h:panelGrid>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{unidadManejoProductoBean.unidadManejoProducto.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{unidadManejoProductoBean.unidadManejoProducto.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{unidadManejoProductoBean.unidadManejoProducto.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{unidadManejoProductoBean.unidadManejoProducto.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

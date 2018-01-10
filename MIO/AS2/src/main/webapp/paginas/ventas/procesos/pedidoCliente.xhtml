@@ -1,0 +1,911 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idPedidoCliente" value="#{pedidoClienteBean.idPedidoCliente}" />
+</f:metadata>
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{pedidoClienteBean}">
+
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{pedidoClienteBean.copiar}" update=":form:panelContenedor" disabled="#{pedidoClienteBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonEliminar bean="#{pedidoClienteBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{pedidoClienteBean.pedidoCliente.fecha}">
+							<f:convertDateTime pattern="#{pedidoClienteBean.formatoFecha}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{pedidoClienteBean.pedidoCliente.numero}" />
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<h:outputText value="#{pedidoClienteBean.pedidoCliente.empresa.nombreComercial}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reportePedidoClienteBean}" bean="#{pedidoClienteBean}" target="#{reportePedidoClienteBean.pedidoCliente}"
+						value="#{pedidoClienteBean.pedidoCliente}" />
+
+					<as2:buttonExportaExcel bean="#{pedidoClienteBean}" tabla=":form:tablaPedidoCliente" />
+					<as2:buttonTotalizar bean="#{pedidoClienteBean}" update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle :form:btnAutorizarVenta"></as2:buttonTotalizar>
+				</as2:toolBar>
+
+				<!-- INICIO DIALOG SUBIR ARCHIVO -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarDetallePedidoCliente" modal="true" height="150" width="325" showEffect="clip"
+					hideEffect="clip" resizable="false">
+					<p:outputPanel id="outputCargarExcel">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{pedidoClienteBean.cargarDetallePedidoClienteExcel}" mode="advanced"
+									update=":form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetalle" auto="true" sizeLimit="10000000"
+									allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this" oncomplete="dlgCargarDetallePedidoCliente.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+				<!-- INICIO DIALOGO AUTORIZACION PEDIDO CLIENTE-->
+				<p:dialog header="#{msgs.lbl_autoriza_venta_cupo_disponible}" widgetVar="dlgAutorizaVenta" id="dlgAutorizaVenta" modal="true" height="300"
+					width="500" showEffect="slide" hideEffect="slide">
+					<p:panel header="#{msgs.lbl_autoriza_venta_cupo_disponible}">
+						<p:outputPanel id="panelAutorizaVenta">
+
+							<h:panelGrid columns="2">
+
+								<h:outputText value="#{msgs.lbl_usuario}" />
+								<p:inputText styleClass="input-text" value="#{pedidoClienteBean.usuarioAutorizaVenta}" id="txtUsuarioAutoriza">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_clave}:" />
+								<p:password styleClass="input-text" value="#{pedidoClienteBean.claveAutorizaVenta}" id="txtClaveAutoriza" feedback="false">
+									<f:validateBean />
+								</p:password>
+
+							</h:panelGrid>
+
+						</p:outputPanel>
+					</p:panel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_autorizar}" process="@this panelAutorizaVenta" action="#{pedidoClienteBean.autorizarVenta}"
+								oncomplete="validacionesModal(xhr, status, args, dlgAutorizaVenta)" update="panelAutorizaVenta" icon="ui-icon-plus" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<!-- FIN DIALOGO AUTORIZACION PEDIDO CLIENTE-->
+				<!-- CREAR CLIENTE AGIL -->
+				<p:dialog header="#{msgs.lbl_empresa_titulo_panel}" widgetVar="dglCrearCliente" modal="true" height="250" width="800" showEffect="slide"
+					hideEffect="slide">
+
+					<p:outputPanel id="panelDatosBasicosCliente">
+						<h:panelGrid columns="#{pedidoClienteBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+							rendered="#{pedidoClienteBean.renderClienteNuevo}">
+							<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.tipoIdentificacionCliente}" id="cboTipoIdentificacionCliente"
+								required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{pedidoClienteBean.listaTipoIdentificacion}" var="_tipoIdentificacion" itemLabel="#{_tipoIdentificacion.nombre}"
+									itemValue="#{_tipoIdentificacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" update=":form:panelValidacionIdentificacion" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empresa_identificacion}:" />
+							<h:panelGroup id="panelValidacionIdentificacion">
+								<p:inputText styleClass="input-text" rendered="#{!pedidoClienteBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}"
+									value="#{pedidoClienteBean.identificacionCliente}" maxlength="20">
+									<f:validateBean />
+									<p:ajax event="change" process="@this" global="false" />
+								</p:inputText>
+
+								<p:inputMask mask="#{empty pedidoClienteBean.tipoIdentificacionCliente ? '' : pedidoClienteBean.tipoIdentificacionCliente.mascara}"
+									value="#{pedidoClienteBean.identificacionCliente}" styleClass="input-text"
+									rendered="#{pedidoClienteBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}">
+									<p:ajax event="change" process="@this" global="false" />
+									<f:validateBean />
+								</p:inputMask>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}:" />
+							<p:inputText styleClass="input-text" id="txtNombreCliente" value="#{pedidoClienteBean.nombreCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_ciudad}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCiudad" value="#{pedidoClienteBean.ciudad}"
+								completeMethod="#{pedidoClienteBean.autocompletarCiudad}" var="_ciudad" itemLabel="#{_ciudad.nombre}" itemValue="#{_ciudad}"
+								forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_ciudad.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_ciudad.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text" id="txtDireccionCliente" value="#{pedidoClienteBean.direccionCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}:" />
+							<p:inputText styleClass="input-text" id="txtTelefonoCliente" value="#{pedidoClienteBean.telefonoCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}:" />
+							<p:inputText styleClass="input-text" id="txtEmail1" value="#{pedidoClienteBean.email}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu value="#{pedidoClienteBean.agenteComercial}" id="cboAgenteComercialGenerico" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{pedidoClienteBean.listaAgenteComercialCombo}" var="_agenteComercial"
+									itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" action="#{pedidoClienteBean.crearCliente}" process="@this,panelDatosBasicosCliente"
+								update="cboDireccionCliente,autoEmpresa,ouputPanelAgenteComercial, txtDescripcion"
+								oncomplete="validacionesModal(xhr, status, args, dglCrearCliente)" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<!-- FIN CREACION DE CLIENTE -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_pedido_cliente}" rendered="#{pedidoClienteBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{pedidoClienteBean}" />
+							<ui:param name="objetoActualizar" value=":form:tvDetallePedido:panelDetallePedido" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{pedidoClienteBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboSucursal" value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.sucursal}" id="cboSucursal" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.documento.idDocumento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaDocumentoCliente}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+									<p:ajax update="txtNumero" event="change" global="false" listener="#{pedidoClienteBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumero" value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.numero}" id="txtNumero"
+									mask="#{pedidoClienteBean.pedidoCliente.documento.secuencia.patron}" disabled="#{!pedidoClienteBean.secuenciaEditable}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:spacer />
+
+								<h:panelGrid columns="4">
+									<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{pedidoClienteBean.formatoFecha}" showOn="button" navigator="true" value="#{pedidoClienteBean.pedidoCliente.fecha}"
+										id="calFecha" required="true" disabled="#{pedidoClienteBean.pedidoCliente.empresaFinal.cliente.tipoOrdenDespacho.diasDespacho > 0}">
+										<p:ajax listener="#{pedidoClienteBean.actualizarFecha}" process="@this" event="dateSelect" global="false"
+											update="calFechaDespacho :form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetalle" />
+										<p:ajax listener="#{pedidoClienteBean.actualizarFecha}" process="@this" event="change" global="false"
+											update="calFechaDespacho :form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetalle" />
+									</p:calendar>
+
+									<p:outputLabel for="calFechaDespacho" value="#{msgs.lbl_fecha} #{msgs.lbl_despacho}:" />
+									<p:calendar pattern="#{pedidoClienteBean.formatoFecha}" showOn="button" navigator="true" required="true"
+										value="#{pedidoClienteBean.pedidoCliente.fechaDespacho}" id="calFechaDespacho"
+										disabled="#{pedidoClienteBean.pedidoCliente.empresaFinal.cliente.tipoOrdenDespacho.diasDespacho > 0}">
+										<p:ajax process="@this" event="dateSelect" global="false" />
+										<p:ajax process="@this" event="change" global="false" />
+									</p:calendar>
+								</h:panelGrid>
+
+								<p:commandLink rendered="#{facturaClienteBean.crearClienteAgil}" onclick="dglCrearCliente.show();" update="panelDatosBasicosCliente" process="@this">
+									<h:outputText value="#{msgs.lbl_cliente}:" />
+									<f:setPropertyActionListener target="#{pedidoClienteBean.renderClienteNuevo}" value="true" />
+								</p:commandLink>
+								<h:outputText value="#{msgs.lbl_cliente}:" rendered="#{!facturaClienteBean.crearClienteAgil}" />
+
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+									value="#{pedidoClienteBean.pedidoCliente.empresa}" completeMethod="#{pedidoClienteBean.autocompletarClientes}" var="_cliente"
+									itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{pedidoClienteBean.actualizarCliente}" process="@this" event="itemSelect"
+										update="calFechaDespacho calFecha cboTransportista cboDireccionCliente,cboAgenteComercial,cboCondicionPago,txtNumeroCuotas,cboZona,cboSubempresa,cboContacto :form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetalle outEnvioFactura1 outEnvioFactura" />
+								</p:autoComplete>
+
+								<p:outputLabel for="cboSubempresa" value="#{msgs.lbl_subcliente}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.subempresa}" id="cboSubempresa">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+										itemLabel="#{_subempresa.empresaFinal}" />
+									<p:ajax event="change" listener="#{pedidoClienteBean.actualizarSubclienteListener}" process="@this"
+										update="calFechaDespacho calFecha  :form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetalle cboTransportista,cboDireccionCliente,cboAgenteComercial,cboZona,cboCondicionPago,txtNumeroCuotas"></p:ajax>
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboDireccionCliente" value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.direccionEmpresa}" id="cboDireccionCliente" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboAgenteComercial" value="#{msgs.lbl_agente_comercial}:" />
+								<p:outputPanel id="ouputPanelAgenteComercial">
+									<p:selectOneMenu value="#{pedidoClienteBean.pedidoCliente.agenteComercial}" id="cboAgenteComercial" required="false">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{pedidoClienteBean.listaAgenteComercialCombo}" var="_agenteComercial"
+											itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+									</p:selectOneMenu>
+								</p:outputPanel>
+
+								<p:outputLabel for="cboCondicionPago" value="#{msgs.lbl_condicion_pago}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.condicionPago}" id="cboCondicionPago" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+										itemValue="#{_condicionPago}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumeroCuotas" value="#{msgs.lbl_factura_cliente_cuotas}:" />
+								<p:inputText styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.numeroCuotas}" id="txtNumeroCuotas" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="cboZona" value="#{msgs.lbl_zona}:" />
+								<p:selectOneMenu value="#{pedidoClienteBean.pedidoCliente.zona}" id="cboZona">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pedidoClienteBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboCanal" value="#{msgs.lbl_canal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.canal}" id="cboCanal" required="false">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaCanal}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel rendered="#{pedidoClienteBean.manejaMotivoPedido}" for="cboMotivoPedidoCliente" value="#{msgs.lbl_motivo_pedido_cliente}:" />
+								<p:selectOneMenu rendered="#{pedidoClienteBean.manejaMotivoPedido}" styleClass="input-text"
+									value="#{pedidoClienteBean.pedidoCliente.motivoPedidoCliente}" id="cboMotivoPedidoCliente" required="false">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaMotivoPedidoCliente}" var="_motivoPedidoCliente" itemLabel="#{_motivoPedidoCliente.nombre}"
+										itemValue="#{_motivoPedidoCliente}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboBodega" value="#{msgs.lbl_bodega}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.bodega}" id="cboBodega">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoClienteBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<p:ajax process="@this" event="change" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.transportista}" id="cboTransportista" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pedidoClienteBean.listaTransportistaCombo}" var="_trasnportista" itemLabel="#{_trasnportista.nombre}"
+										itemValue="#{_trasnportista}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboContacto" value="Contacto :" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.contacto}" id="cboContacto">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pedidoClienteBean.listaContacto}" var="_contacto" itemLabel="#{_contacto.nombre}" itemValue="#{_contacto}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="autoProyecto:autoProyecto" rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_proyecto}:" />
+								<h:panelGrid rendered="#{sesionControler.manejaProyectos}">
+									<as2:autoCompletarProyecto value="#{pedidoClienteBean.pedidoCliente.proyecto}" id="autoProyecto" required="true" />
+								</h:panelGrid>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.descripcion}" id="txtDescripcion" maxlength="500" rows="1">
+									<f:validateBean />
+								</p:inputTextarea>
+								
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_nota} 2:" />
+								<p:inputTextarea styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.descripcion2}" id="txtDescripcion2" maxlength="500" rows="1">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<p:outputPanel id="outEnvioFactura1">
+									<h:outputText value="#{msgs.lbl_referencia_cliente}:" rendered="#{pedidoClienteBean.pedidoCliente.empresa.cliente.indicadorEnvio}" />
+								</p:outputPanel>
+
+								<p:outputPanel id="outEnvioFactura">
+									<h:panelGrid rendered="#{pedidoClienteBean.pedidoCliente.empresa.cliente.indicadorEnvio}" id="pgEnvioFactura" columns="4" cellspacing="5"
+										cellpadding="0" style="width: 95% !important;">
+										<p:outputLabel value="#{pedidoClienteBean.pedidoCliente.empresa.cliente.referencia}" />
+										<p:inputText styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.referencia8}" id="txtReferencia8">
+											<f:validateBean />
+										</p:inputText>
+
+										<p:outputLabel value="#{pedidoClienteBean.pedidoCliente.empresa.cliente.referencia2}" />
+										<p:inputText styleClass="input-text" value="#{pedidoClienteBean.pedidoCliente.referencia9}" id="txtReferencia9">
+											<f:validateBean />
+										</p:inputText>
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</h:panelGrid>
+
+							<p:outputPanel id="btnAutorizarVenta">
+								<p:commandButton value="#{msgs.lbl_autoriza_venta_cupo_disponible}" rendered="#{pedidoClienteBean.mostrarAutorizarVenta}"
+									oncomplete="dlgAutorizaVenta.show();" update="#{p:component('panelAutorizaVenta')}" process="@this" icon="ui-icon-plus" />
+							</p:outputPanel>
+
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<!-- INICIO MENU DETALLE-->
+
+						<p:tabView cache="true" dynamic="true" id="tvDetallePedido">
+
+							<p:tab title="#{msgs.lbl_detalle_pedido}">
+
+								<p:outputPanel id="panelDetallePedido">
+
+									<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{pedidoClienteBean.agregarDetalle}"
+												update=":form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetalle :form:calFecha"
+												process="@this :form:tvDetallePedido:panelDetallePedido panelImpuestoDetalle :form:calFecha" icon="ui-icon-plus" />
+
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+											
+											<p:commandButton id="btnCargarExcel" value="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update=":form:outputCargarExcel"
+												onclick="dlgCargarDetallePedidoCliente.show()" process="@this" />
+												
+											<as2:buttonDescagarPlantilla bean="#{pedidoClienteBean}" />
+									
+										</h:panelGroup>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pedidoClienteBean.detallePedidoCliente}" id="tablaDetallePedidoCLiente"
+											rowIndexVar="secuencial" binding="#{pedidoClienteBean.dtDetallePedidoCliente}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detallePedidoCliente" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detallePedidoCliente.id}"
+											rows="#{pedidoClienteBean.numeroFilas}" rowsPerPageTemplate="#{pedidoClienteBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_detallePedidoCliente.producto}"
+													completeMethod="#{pedidoClienteBean.autocompletarProductos}" var="_producto" itemLabel="#{_producto.codigo}" itemValue="#{_producto}"
+													dropdown="false" minQueryLength="2" id="txtCodigoProducto">
+													<p:column headerText="#{msgs.lbl_codigo}">#{_producto.codigo}</p:column>
+													<p:column headerText="#{msgs.lbl_codigo_alterno}">#{_producto.codigoAlterno}</p:column>
+													<p:column headerText="#{msgs.lbl_nombre}">#{_producto.nombre}</p:column>
+													<p:ajax listener="#{pedidoClienteBean.actualizarProductoListener}" process="@this" event="itemSelect" global="false"
+														oncomplete="nextFocus('#{p:component('txtCantidad')}')"
+														update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle" />
+													<f:validateBean />
+												</p:autoComplete>
+
+												<!--  
+												<p:inputText value="#{_detallePedidoCliente.producto.codigo}" id="txtCodigoProducto">
+
+													<p:ajax listener="#{pedidoClienteBean.actualizarProductoListener}" process="@this" event="change" global="false"
+														oncomplete="nextFocus('#{p:component('txtCantidad')}')"
+														update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle" />
+
+													<f:validateBean />
+												</p:inputText>
+											-->
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_detallePedidoCliente.producto.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_producto}">
+												<h:outputText value="#{_detallePedidoCliente.unidadVenta.nombre}" id="txtUnidadProducto">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_saldo} (#{msgs.lbl_indicador_venta}) ">
+												<h:outputText value="#{_detallePedidoCliente.saldoVenta}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+												<p:inputText value="#{_detallePedidoCliente.cantidad}" id="txtCantidad" size="8">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" />
+													<p:ajax disabled="#{pedidoClienteBean.indicadorTotalizar}" listener="#{pedidoClienteBean.totalizar}" process="@this,txtDescripcion" event="change" global="false"
+														update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle :form:btnAutorizarVenta"
+														oncomplete="nextFocus('#{p:component('txtPrecio')}')" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<p:inputText id="txtDescripcion" value="#{_detallePedidoCliente.descripcion}" styleClass="input-text100">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+												<p:inputText value="#{_detallePedidoCliente.precio}" id="txtPrecio" size="10"
+													disabled="#{!pedidoClienteBean.pedidoCliente.empresaFinal.cliente.indicadorEditarPrecio}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" />
+													<p:ajax disabled="#{pedidoClienteBean.indicadorTotalizar}" listener="#{pedidoClienteBean.totalizar}" process="@this,txtDescripcion"
+														update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle :form:btnAutorizarVenta" event="change"
+														global="false" oncomplete="nextFocus('#{p:component('txtPorcentajeDescuento')}')" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_unitario}">
+												<p:inputText value="#{_detallePedidoCliente.descuento}" id="inDescuento" size="5">
+													<p:ajax listener="#{pedidoClienteBean.actuailzarPorcentajeDescuentoDesdePrecioUnitario}" process="@this"
+														update=":form:tvDetallePedido:panelDetallePedido"></p:ajax>
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTPorcentaje tableCell">
+												<f:facet name="header">
+													<h:outputText value="%" />
+													<br />
+													<p:spinner value="#{pedidoClienteBean.descuentoGeneral}" id="txtDescuentoGeneral" min="0" stepFactor="1" size="3" max="100">
+														<p:ajax event="change" listener="#{pedidoClienteBean.actualizarPorcentajeDescuentoGeneral}" process="@this,txtDescuentoGeneral"
+															update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle" />
+													</p:spinner>
+												</f:facet>
+												<p:inputText value="#{_detallePedidoCliente.porcentajeDescuento}" id="txtPorcentajeDescuento" size="5">
+													<p:ajax listener="#{pedidoClienteBean.actualizarPorcentajeDescuento}" process="@this,txtCantidad,txtDescripcion,txtPrecio"
+														update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle"
+														oncomplete="nextFocus('#{p:component('txtCodigoProducto')}')" event="change" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_linea}">
+												<h:outputText value="#{_detallePedidoCliente.descuentoLinea}" id="lblDescuentoLinea">
+													<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_linea}">
+												<h:outputText value="#{_detallePedidoCliente.precioLinea}" id="lblPrecioLinea">
+													<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" action="#{pedidoClienteBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle" process="@this">
+												</p:commandButton>
+											</p:column>
+
+											<p:columnGroup type="footer" id="panelTotal">
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_subtotal}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotal">
+															<h:outputText value="#{pedidoClienteBean.pedidoCliente.total}">
+																<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_descuento}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="11" style="text-align:right" id="txtDescuentoPedido">
+															<h:outputText value="#{pedidoClienteBean.pedidoCliente.descuento}">
+																<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+
+												<p:row rendered="#{pedidoClienteBean.pedidoCliente.montoIce > 0}">
+													<p:column colspan="11" footerText="#{msgs.lbl_indicador_impuesto_ice}:	"
+														style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{pedidoClienteBean.pedidoCliente.montoIce}" style="text-align:right" id="txtIce">
+																<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_producto_indicador_impuestos}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="11" style="text-align:right" id="txtImpuesto">
+															<h:outputText value="#{pedidoClienteBean.pedidoCliente.impuesto}">
+																<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_descuento_impuesto}" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{pedidoClienteBean.pedidoCliente.descuentoImpuesto}" style="text-align:right" id="txtDescuentoImpuesto">
+																<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_total}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="11" style="text-align:right" id="txtSubtotal">
+															<h:outputText value="#{pedidoClienteBean.pedidoCliente.totalPedido}">
+																<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+										</p:dataTable>
+
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_detalle_impuesto}" id="tabImpuestoDetallePedido">
+
+								<p:outputPanel id="panelImpuestoDetalle">
+
+									<h:panelGrid columns="1" style="width:100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pedidoClienteBean.listaImpuestoProductoPedidoCliente}"
+											id="tablaImpuestoDetallePedidoCLiente" rowIndexVar="secuencial" binding="#{pedidoClienteBean.dtImpuestoDetallePedidoCliente}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_impuestoDetallePedidoCliente" style="width:100%" rowKey="#{_impuestoDetallePedidoCliente.id}"
+											rows="#{pedidoClienteBean.numeroFilas}" rowsPerPageTemplate="#{pedidoClienteBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_producto_nombre_comercial}">
+												<h:outputText value="#{_impuestoDetallePedidoCliente.detallePedidoCliente.producto.nombreComercial}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre_impuesto}">
+												<h:outputText value="#{_impuestoDetallePedidoCliente.impuesto.nombre}" id="txtNombreProductoImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_porcentaje_impuesto}" styleClass="input-text-number">
+												<h:outputText value="#{_impuestoDetallePedidoCliente.porcentajeImpuesto}" id="txtPorcentajeProductoImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_base_imponible}" styleClass="input-text-number">
+												<h:outputText
+													value="#{ _impuestoDetallePedidoCliente.impuesto.tipoImpuesto == 'AFECTA_CANTIDAD_UNIDADES' ? _impuestoDetallePedidoCliente.cantidadUnidades : _impuestoDetallePedidoCliente.detallePedidoCliente.baseImponible}"
+													id="txtBaseImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor_impuesto}" styleClass="input-text-number">
+												<h:outputText value="#{_impuestoDetallePedidoCliente.impuestoProducto}" id="txtImpuestoProducto">
+												</h:outputText>
+											</p:column>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+						</p:tabView>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_pedido_cliente}" rendered="#{!pedidoClienteBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPedidoCliente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pedidoClienteBean.listaPedidoCliente}" var="_pedidoCliente" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{pedidoClienteBean.dtPedidoCliente}" rows="#{pedidoClienteBean.numeroFilas}"
+							selection="#{pedidoClienteBean.pedidoCliente}" rowsPerPageTemplate="#{pedidoClienteBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_pedidoCliente.id}" sortBy="#{_pedidoCliente.numero}" sortOrder="DESCENDING" lazy="true" editable="true">
+
+							<p:ajax event="rowEdit" listener="#{pedidoClienteBean.actualizarDatosPedido}" update="@this" />
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell0" sortBy="#{_pedidoCliente.numero}" filterBy="#{_pedidoCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.empresa.nombreFiscal}" filterBy="#{_pedidoCliente.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.subempresa.empresa.nombreFiscal}"
+								filterBy="#{_pedidoCliente.subempresa.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subcliente}" />
+								</f:facet>
+								<h:outputText value="#{empty _pedidoCliente.subempresa ? '' : _pedidoCliente.subempresa.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.transportista.nombre}" filterBy="#{_pedidoCliente.transportista.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_titulo_transportista}" />
+								</f:facet>
+
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{empty _pedidoCliente.transportista ? '' : _pedidoCliente.transportista.nombre}" />
+									</f:facet>
+									<f:facet name="input">
+										<p:selectOneMenu styleClass="input-text" value="#{_pedidoCliente.transportista}" required="true">
+											<f:selectItems value="#{pedidoClienteBean.listaTransportistaCombo}" var="_trasnportista" itemLabel="#{_trasnportista.nombre}"
+												itemValue="#{_trasnportista}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+
+							<p:column styleClass="columnaDTFecha tableCell0" sortBy="#{_pedidoCliente.sucursal.nombre}" filterBy="#{_pedidoCliente.sucursal.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.sucursal.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell0" sortBy="#{_pedidoCliente.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.fecha}">
+									<f:convertDateTime pattern="#{pedidoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell0" sortBy="#{_pedidoCliente.fechaDespacho}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_despacho}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.fechaDespacho}">
+									<f:convertDateTime pattern="#{pedidoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.total}">
+									<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.descuento}">
+									<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0" headerText="#{msgs.lbl_producto_indicador_impuestos}">
+								<h:outputText value="#{_pedidoCliente.impuesto}">
+									<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>							
+
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_impuesto_ice}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.montoIce}">
+									<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_pedidoCliente.descuentoImpuesto}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento_impuesto}" />
+								</f:facet>
+
+								<h:outputText value="#{_pedidoCliente.descuentoImpuesto}">
+									<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.totalPedido}">
+									<f:convertNumber pattern="#{pedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell0" filterBy="#{_pedidoCliente.motivoPedidoCliente.nombre}"
+								sortBy="#{_pedidoCliente.motivoPedidoCliente.nombre}" rendered="#{pedidoClienteBean.manejaMotivoPedido}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_motivo_pedido_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.motivoPedidoCliente.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell0" sortBy="#{_pedidoCliente.estado}" filterBy="#{_pedidoCliente.estado}"
+								filterOptions="#{pedidoClienteBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell0" filterBy="#{_pedidoCliente.usuarioCreacion}" sortBy="#{_pedidoCliente.usuarioCreacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.msg_usuario_creacion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.usuarioCreacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell0" filterBy="#{_pedidoCliente.usuariosAutorizacion}"
+								sortBy="#{_pedidoCliente.usuariosAutorizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_usuarios_autorizacion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.usuariosAutorizacion}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTFechaInput tableCell" sortBy="#{_pedidoCliente.fechaAutorizacion}">
+								<f:facet name="header">
+									<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_fecha_autorizacion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.fechaAutorizacion}">
+									<f:convertDateTime pattern="#{pedidoClienteBean.formatoFecha} HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="tableCell0" rendered="#{sesionControler.manejaProyectos}" filterBy="#{_pedidoCliente.proyecto.nombre}"
+								sortBy="#{_pedidoCliente.proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proyecto}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.proyecto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.descripcion}" filterBy="#{_pedidoCliente.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.descripcion}" title="#{_pedidoCliente.descripcion}">
+									<f:attribute name="limit" value="10" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.codigoMovil}" filterBy="#{_pedidoCliente.codigoMovil}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo} Movil" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.codigoMovil}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell0" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_cerrar}" />
+								</f:facet>
+								<center>
+									<p:commandLink action="#{pedidoClienteBean.cerrarPedidoCliente}" process="@this" update=":form:panelListado"
+										disabled="#{(_pedidoCliente.estado == 'ANULADO') or (_pedidoCliente.estado == 'CERRADO')}" title="#{msgs.btn_cerrar}">
+										<f:setPropertyActionListener value="#{_pedidoCliente}" target="#{pedidoClienteBean.pedidoCliente}" />
+										<h:graphicImage library="images" name="ejecutar.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+
+							<p:column styleClass="#{_pedidoCliente.estado == 'PROCESADO' ? 'color_verde' : _pedidoCliente.estado == 'ANULADO' ? 'color_rojo' : ''}" />
+
+							<p:column styleClass="tableCell0 columnaDTAccion">
+								<p:rowEditor />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{pedidoClienteBean.pedidoCliente}" value="#{_pedidoCliente}" bean="#{pedidoClienteBean}"
+									formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado" visible="#{_pedidoCliente.pdf!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{pedidoClienteBean.pedidoCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{pedidoClienteBean.pedidoCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{pedidoClienteBean.pedidoCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{pedidoClienteBean.pedidoCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,502 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+
+
+				<as2:toolBar bean="#{organizacionBean}">
+					<as2:buttonExportaExcel bean="#{organizacionBean}" tabla=":form:tablaOrganizacion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelOrganizacionACopiar">
+					<p:dialog header="#{msgs.lbl_organizacion_a_copiar}" widgetVar="catalogosACopiar" id="catalogosACopiar" modal="true" height="400" width="800"
+						showEffect="slide" hideEffect="slide">
+
+						<h:panelGrid id="panelGridCatalogosACopiar" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+
+							<h:panelGrid columns="2">
+								<h:outputText value="#{msgs.lbl_organizacion}:" />
+								<h:outputText value="#{organizacionBean.organizacionCopiar.razonSocial}:" />
+							</h:panelGrid>
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCatalogoACopiar" rowIndexVar="secuencia"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{organizacionBean.listaCatalogosACopiar}" var="catalogo"
+								binding="#{organizacionBean.dtCatalogosACopiar}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{organizacionBean.numeroFilas}">
+
+								<p:column headerText="Nº">
+									<h:outputText value="#{secuencia+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_organizacion_a_copiar}">
+									<h:outputText value="#{catalogo.catalogosACopiar.nombre}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_copiar}">
+									<p:selectBooleanCheckbox value="#{catalogo.catalogosACopiar.indicadorObligatorio}"
+										disabled="#{catalogo.catalogosACopiar.indicadorObligatorio}" />
+								</p:column>
+
+							</p:dataTable>
+
+						</h:panelGrid>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_procesar}" process="@this panelOrganizacionACopiar panelNuevo" oncomplete="catalogosACopiar.hide()"
+									update="panelNuevo" icon="ui-icon-plus" />
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarArchivo" modal="true" height="100" width="325" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarFichero" autoUpdate="true">
+						<center>
+							<p:fileUpload fileUploadListener="#{organizacionBean.processUploadFichero}" mode="advanced" auto="true"
+								sizeLimit="#{organizacionBean.sizeLimit}" allowTypes="#{organizacionBean.allowTypes}" label="#{msgs.btn_examinar}" process="@this"
+								oncomplete="dlgCargarArchivo.close()" />
+						</center>
+					</p:outputPanel>
+				</p:dialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_organizacion_panel}" rendered="#{organizacionBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{organizacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtRazonSocial" value="#{msgs.lbl_organizacion_razon_social}:" />
+							<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.razonSocial}" id="txtRazonSocial" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtRepresentanteLegal" value="#{msgs.lbl_organizacion_representante_legal}:" />
+							<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.representanteLegal}" id="txtRepresentanteLegal" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+
+							<h:outputText value="#{msgs.lbl_organizacion_tipo_identif_legal}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboTipoIdenticacionRepresentante"
+								value="#{organizacionBean.organizacion.tipoIdentificacionRepresentante}">
+								<f:selectItems value="#{organizacionBean.listaTipoIdentificacion}" var="_tipoIdentificacionRepresentante"
+									itemLabel="#{_tipoIdentificacionRepresentante.nombre}" itemValue="#{_tipoIdentificacionRepresentante}">
+								</f:selectItems>
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtIdentificacionRepresentante" value="#{msgs.lbl_organizacion_num_identif_repres_legal}:" />
+							<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.identificacionRepresentante}" id="txtIdentificacionRepresentante"
+								required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_organizacion_tipo_identif_organizacion}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboTipoIdenticacion" value="#{organizacionBean.organizacion.tipoIdentificacion}">
+								<f:selectItems value="#{organizacionBean.listaTipoIdentificacion}" var="_tipoIdentificacion" itemLabel="#{_tipoIdentificacion.nombre}"
+									itemValue="#{_tipoIdentificacion}">
+								</f:selectItems>
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtNumOrganizacion" value="#{msgs.lbl_organizacion_num_identif_organizacion}:" />
+							<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.identificacion}" id="txtNumOrganizacion" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_organizacion_tipo_identif_contador}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboTipoIdenticacionContador" value="#{organizacionBean.organizacion.tipoIdentificacionContador}">
+								<f:selectItems value="#{organizacionBean.listaTipoIdentificacion}" var="_tipoIdentificacionContador"
+									itemLabel="#{_tipoIdentificacionContador.nombre}" itemValue="#{_tipoIdentificacionContador}">
+								</f:selectItems>
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtNumContador" value="#{msgs.lbl_organizacion_num_identif_contador}:" />
+							<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.identificacionContador}" id="txtNumContador" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_pagina_web}:" />
+							<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.paginaWeb}" id="txtPaginaWeb">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboOrganizacionCopiar" value="#{msgs.lbl_organizacion_a_copiar}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboOrganizacionCopiar" disabled="#{organizacionBean.organizacion.idOrganizacion > 0}"
+								value="#{organizacionBean.organizacionCopiar}" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccionar}" />
+								<f:selectItems value="#{organizacionBean.listaOrganizacionCopiar}" var="_organizacionCopiar" itemLabel="#{_organizacionCopiar.razonSocial}"
+									itemValue="#{_organizacionCopiar}">
+								</f:selectItems>
+								<p:ajax event="change" oncomplete="catalogosACopiar.show()" process="@this" update="panelOrganizacionACopiar"></p:ajax>
+							</p:selectOneMenu>
+
+							<!--  <h:panelGrid columns="2" cellpadding="0" cellspacing="0" style="width: 100%;">
+								<p:graphicImage value="/images/dynamic/?file=#{organizacionBean.organizacion.imagen}" width="15%" height="15%" id="imgLogoOrganizacion" />
+								<p:fileUpload fileUploadListener="#{organizacionBean.processUpload}" mode="advanced" update="imgLogoOrganizacion" auto="true"
+									sizeLimit="1000000" allowTypes="/(\.|\/)(gif|jpe?g|png)$/" label="#{msgs.btn_examinar}" process="@this txtRazonSocial" />
+							</h:panelGrid>-->
+
+							<h:outputText value="#{msgs.lbl_imagen} (140x60)" />
+							<p:outputPanel id="panelImagen" autoUpdate="true">
+								<h:panelGrid columns="2" cellpadding="0" cellspacing="0" style="width: 100%;">
+									<p:graphicImage value="/images/dynamic/?file=#{organizacionBean.organizacion.imagen}" style="height : 40px; width : 120px;"
+										id="imgLogoOrganizacion" />
+									<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+										<f:setPropertyActionListener target="#{organizacionBean.tipoFileUpload}" value="logoOrganizacion"></f:setPropertyActionListener>
+										<h:graphicImage library="images" name="subir.png" style="height : 22px; width : 22px;" />
+									</p:commandLink>
+
+								</h:panelGrid>
+							</p:outputPanel>
+
+
+
+						</h:panelGrid>
+
+						<!-- PRONER AQUI PARAMETROS DE CONFIGURACION -->
+						<p:tabView id="tbConfiguracion">
+							<p:tab title="#{msgs.lbl_configuracion}">
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_tipo_organizacion}:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.tipoOrganizacion}" id="cboTipoOrganizacion"
+										required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaTipoOrganizacion}" />
+
+										<f:validateBean for="cboTipoOrganizacion" />
+
+										<p:ajax process="@this" event="change" global="false" />
+
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_peso}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacionConfiguracion.indicadorManejoPeso}">
+										<p:ajax process="@this" global="false" />
+									</p:selectBooleanCheckbox>
+
+
+									<h:outputText value="#{msgs.lbl_inicio_serie}:" />
+									<p:spinner value="#{organizacionBean.organizacionConfiguracion.inicioSerie}" id="txtInicioSerie" min="0" stepFactor="1" size="15"
+										max="999999999999999" />
+
+								</h:panelGrid>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_dimensiones}" id="tabDimensiones">
+								<h:panelGrid id="panelDimensiones" columns="6"
+									columnClasses="columnaEtiqueta,columna30,columnaEtiqueta,columna30,columnaEtiqueta,columnaEtiqueta">
+
+									<h:outputText value="#{msgs.lbl_dimension} 1:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.nombreDimension1}"
+										id="txtNombreDimension1">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_mascara} 1:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.mascaraDimension1}"
+										id="txtMascaraDimension1">
+										<f:validateBean />
+									</p:inputText>
+
+
+									<h:outputText value="#{msgs.lbl_maneja_presupuesto}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension1}"
+										disabled="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension2 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension3 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension4 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension5}">
+										<p:ajax process="@this" global="false" update=":form:tbConfiguracion:panelDimensiones" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_dimension} 2:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.nombreDimension2}"
+										id="txtNombreDimension2">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_mascara} 2:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.mascaraDimension2}"
+										id="txtMascaraDimension2">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_maneja_presupuesto}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension2}"
+										disabled="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension1 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension3 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension4 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension5}">
+										<p:ajax process="@this" global="false" update=":form:tbConfiguracion:panelDimensiones" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_dimension} 3:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.nombreDimension3}"
+										id="txtNombreDimension3">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_mascara} 3:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.mascaraDimension3}"
+										id="txtMascaraDimension3">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_maneja_presupuesto}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension3}"
+										disabled="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension2 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension1 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension4 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension5}">
+										<p:ajax process="@this" global="false" update=":form:tbConfiguracion:panelDimensiones" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_dimension} 4:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.nombreDimension4}"
+										id="txtNombreDimension4">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_mascara} 4:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.mascaraDimension4}"
+										id="txtMascaraDimension4">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_maneja_presupuesto}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension4}"
+										disabled="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension2 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension3 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension1 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension5}">
+										<p:ajax process="@this" global="false" update=":form:tbConfiguracion:panelDimensiones" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_dimension} 5:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.nombreDimension5}"
+										id="txtNombreDimension5">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_mascara} 5:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacion.organizacionConfiguracion.mascaraDimension5}"
+										id="txtMascaraDimension5">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_maneja_presupuesto}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension5}"
+										disabled="#{organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension2 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension3 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension4 or organizacionBean.organizacion.organizacionConfiguracion.indicadorUsoPresupuestoDimension1}">
+										<p:ajax process="@this" global="false" update=":form:tbConfiguracion:panelDimensiones" />
+									</p:selectBooleanCheckbox>
+
+								</h:panelGrid>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_sri}">
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_autoimpresor}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacionConfiguracion.indicadorAutoimpresor}" />
+
+									<h:outputText value="#{msgs.lbl_clase_contribuyente}:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.claseContribuyente}" id="txtClaseContribuyente">
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_empresa_obligado_llevar_contabilidad}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacionConfiguracion.indicadorObligadoContabilidad}" />
+
+									<h:outputText value="#{msgs.lbl_numero_resolucion_contribuyente}:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.numeroResolucionContribuyente}"
+										id="txtnumeroResolucion">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_numero_copias_documento_tributario}:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.numeroCopiasDocumentoTributario}"
+										id="txtnumeroCopias" />
+								</h:panelGrid>
+							</p:tab>
+							<p:tab title="SMTP">
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_servidor}:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.smtpServidor}" />
+
+									<h:outputText value="#{msgs.lbl_enviar_de}:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.smtpEnviarDe}" />
+
+									<h:outputText value="CC:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.smtpEnviarCopiaA}">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_usuario}:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.smtpUsuario}" />
+
+									<h:outputText value="#{msgs.lbl_clave}:" />
+									<p:password redisplay="true" styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.smtpClave}" />
+
+									<h:outputText value="#{msgs.lbl_puerto}:" />
+									<p:inputText styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.smtpPuerto}" />
+
+									<h:outputText value="#{msgs.lbl_requiere_autenticacion}:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacionConfiguracion.smtpRequiereAutenticacion}" />
+
+									<h:outputText value="SSL:" />
+									<p:selectBooleanCheckbox value="#{organizacionBean.organizacionConfiguracion.autenticacionSSL}" />
+
+								</h:panelGrid>
+
+							</p:tab>
+							<p:tab title="#{msgs.lbl_firma_electronica}" rendered="#{organizacionBean.organizacion.idOrganizacion != 0}">
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_clave}:" />
+									<p:inputText type="password" styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.pkcs12Password}" />
+
+									<h:outputText value="#{msgs.lbl_confirma_clave}:" />
+									<p:inputText type="password" styleClass="input-text" value="#{organizacionBean.confirmarClave}" />
+
+									<h:outputText value="#{msgs.lbl_p12}" />
+									<p:outputPanel id="panelFoto" autoUpdate="true">
+										<h:panelGrid columns="2">
+											<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+												<f:setPropertyActionListener target="#{organizacionBean.tipoFileUpload}" value="keyP12"></f:setPropertyActionListener>
+												<h:graphicImage library="images" name="subir.png" style="height : 22px; width : 22px;" />
+											</p:commandLink>
+											<h:outputText value="#{organizacionBean.existeKeyP12 == true ? msgs.lbl_cargado : msgs.lbl_vacio}" />
+										</h:panelGrid>
+									</p:outputPanel>
+
+								</h:panelGrid>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_atributos_instancia_produccion}">
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_atributo} 1:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo1}" id="cboAtributo1">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+
+									<h:outputText value="#{msgs.lbl_atributo} 2:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo2}" id="cboAtributo2">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 3:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo3}" id="cboAtributo3">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 4:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo4}" id="cboAtributo4">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 5:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo5}" id="cboAtributo5">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 6:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo6}" id="cboAtributo6">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 7:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo7}" id="cboAtributo7">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 8:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo8}" id="cboAtributo8">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 9:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo9}" id="cboAtributo9">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_atributo} 10:" />
+									<p:selectOneMenu styleClass="input-text" value="#{organizacionBean.organizacionConfiguracion.atributo10}" id="cboAtributo10">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{organizacionBean.listaAtributo}" />
+										<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+									</p:selectOneMenu>
+
+								</h:panelGrid>
+							</p:tab>
+
+						</p:tabView>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_organizacion_panel}" rendered="#{!organizacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOrganizacion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{organizacionBean.listaOrganizacion}" var="organizacion"
+							binding="#{organizacionBean.dtOrganizacion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{organizacionBean.numeroFilas}" rowsPerPageTemplate="#{organizacionBean.numeroFilasPorPagina}"
+							selection="#{organizacionBean.organizacion}" selectionMode="single" rowKey="#{organizacion.id}" sortBy="#{organizacion.razonSocial}"
+							lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_organizacion_razon_social}" sortBy="#{organizacion.razonSocial}">
+								<h:outputText value="#{organizacion.razonSocial}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_tipo_identificacion}" sortBy="#{organizacion.tipoIdentificacion.nombre}">
+								<h:outputText value="#{organizacion.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_numero_identificacion}" sortBy="#{organizacion.identificacion}">
+								<h:outputText value="#{organizacion.identificacion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_organizacion_representante_legal}">
+								<h:outputText value="#{organizacion.representanteLegal}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{organizacionBean.organizacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{organizacionBean.organizacion.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{organizacionBean.organizacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{organizacionBean.organizacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

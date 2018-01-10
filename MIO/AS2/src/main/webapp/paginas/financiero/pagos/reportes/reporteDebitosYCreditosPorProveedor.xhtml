@@ -1,0 +1,66 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:panel header="#{msgs.lbl_titulo_reporte_debitos_creditos_cliente}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteDebitosYCreditosPorProveedorBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteDebitosYCreditosPorProveedorBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteDebitosYCreditosPorProveedorBean.formatoFecha}" showOn="button" navigator="true" required="true"
+								value="#{reporteDebitosYCreditosPorProveedorBean.fechaDesde}" id="calFechaDesde">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteDebitosYCreditosPorProveedorBean.formatoFecha}" showOn="button" navigator="true" required="true"
+								value="#{reporteDebitosYCreditosPorProveedorBean.fechaHasta}" id="calFechaHasta">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa" value="#{reporteDebitosYCreditosPorProveedorBean.empresa}"
+								completeMethod="#{reporteDebitosYCreditosPorProveedorBean.autocompletarProveedores}" var="_prov" itemLabel="#{_prov.nombreFiscal}"
+								itemValue="#{_prov}" forceSelection="true" dropdown="true" minQueryLength="2">
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_prov.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_prov.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_prov.nombreComercial}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_sucursal}" />
+							<p:selectOneMenu value="#{reporteDebitosYCreditosPorProveedorBean.sucursal}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteDebitosYCreditosPorProveedorBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" id="cboSucursal" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu value="#{reporteDebitosYCreditosPorProveedorBean.tipoReporte}">
+								<f:selectItem itemLabel="Por Proveedor" itemValue="1" />
+								<f:selectItem itemLabel="Por Factura" itemValue="2" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_saldos_diferente_de_cero}:" />
+							<p:selectBooleanCheckbox value="#{reporteDebitosYCreditosPorProveedorBean.saldosDiferenteDeCero}" />
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

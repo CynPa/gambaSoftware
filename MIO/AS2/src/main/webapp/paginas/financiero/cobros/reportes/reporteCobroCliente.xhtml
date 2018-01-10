@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_cobro_titulo}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteCobroClienteBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+
+					<h:panelGrid id="panelDetalle" columns="#{reporteCobroClienteBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+						<p:calendar pattern="#{reporteCobroClienteBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteCobroClienteBean.fechaDesde}"
+							id="calFechaDesde">
+							<!--<p:ajax event="dateSelect" update=":form:calFechaHasta"></p:ajax>
+						<p:ajax event="change" update=":form:calFechaHasta"></p:ajax>-->
+						</p:calendar>
+
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<p:calendar pattern="#{reporteCobroClienteBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteCobroClienteBean.fechaHasta}"
+							id="calFechaHasta">
+							<!--<p:ajax event="dateSelect" update=":form:calFechaDesde"></p:ajax>
+						<p:ajax event="change" update=":form:calFechaDesde"></p:ajax>-->
+						</p:calendar>
+						
+						<h:outputText value="#{msgs.lbl_tipo} #{msgs.lbl_reporte}:" />
+						<p:selectOneMenu value="#{reporteCobroClienteBean.tipoReporte}" id="cboTipoReporte" required="true">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+							<f:selectItems value="#{reporteCobroClienteBean.listaTipoReporte}" var="_tipoReporte" itemLabel="#{_tipoReporte.label}"
+								itemValue="#{_tipoReporte.value}" />
+							<p:ajax process="@this" event="change" update=":form:panelFiltros"/>
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_documento}:" rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}"   />
+						<p:selectOneMenu rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}"  styleClass="input-text" value="#{reporteCobroClienteBean.documento}" id="cboDocumento">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{reporteCobroClienteBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+						</p:selectOneMenu>
+
+						<h:outputText rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}"  value="#{msgs.lbl_cliente}:"  />
+						<p:autoComplete rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{reporteCobroClienteBean.empresa}"
+							completeMethod="#{reporteCobroClienteBean.empresaBean.autocompletarClientes}" var="_empresa" itemLabel="#{_empresa.nombreFiscal}"
+							itemValue="#{_empresa}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+							<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_empresa.identificacion}</p:column>
+							<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_empresa.nombreFiscal}</p:column>
+							<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_empresa.nombreComercial}</p:column>
+						</p:autoComplete>
+
+						<h:outputText rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" value="#{msgs.lbl_recaudador}:" />
+						<p:selectOneMenu rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" value="#{reporteCobroClienteBean.recaudador}" id="cboRecaudador" required="false">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{reporteCobroClienteBean.listaRecaudador}" var="_recaudador" itemLabel="#{_recaudador.nombre}"
+								itemValue="#{_recaudador}" />
+							<p:ajax process="@this" global="false" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_sucursal}" />
+						<p:selectOneMenu value="#{reporteCobroClienteBean.sucursal}" required="false">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{reporteCobroClienteBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+								itemValue="#{_sucursal}" id="cboSucursal" />
+							<p:ajax process="@this" listener="#{reporteCobroClienteBean.cargarPuntoVenta}"
+								update="cboPuntoVenta" event="change" partialSubmit="true" global="false" />
+						</p:selectOneMenu>
+
+						<h:outputText rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" value="#{msgs.lbl_punto_de_venta}" />
+						<p:selectOneMenu id="cboPuntoVenta" rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}"
+							value="#{reporteCobroClienteBean.puntoVenta}">
+							<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+							<f:selectItems value="#{reporteCobroClienteBean.listaPuntoVenta}" var="_puntoVenta"
+								itemLabel="#{_puntoVenta.nombre}" itemValue="#{_puntoVenta}" />
+						</p:selectOneMenu>
+
+						<h:outputText rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" value="#{msgs.lbl_agente_comercial}:" />
+						<p:selectOneMenu rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" id="cboAgenteComercial"
+							value="#{reporteCobroClienteBean.agenteComercial}"
+							disabled="#{reporteCobroClienteBean.tipoReporte != 'VENDEDOR' and reporteCobroClienteBean.tipoReporte != 'FORMA_PAGO'}">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+							<f:selectItems value="#{reporteCobroClienteBean.listaAgenteComercial}" var="_agenteComercial" itemValue="#{_agenteComercial}"
+								itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_zona}" />
+						<p:selectOneMenu value="#{reporteCobroClienteBean.zona}" id="cboZona">
+							<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+							<f:selectItems value="#{reporteCobroClienteBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+						</p:selectOneMenu>
+
+						<h:outputText rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" value="#{msgs.lbl_tiene_cheque_posfechado}:" />
+						<p:selectBooleanCheckbox rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" value="#{reporteCobroClienteBean.posfechados}" />
+
+						<h:outputText rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" value="#{msgs.lbl_resumen}:" />
+						<p:selectBooleanCheckbox rendered="#{reporteCobroClienteBean.tipoReporte != 'FACTURAS_CANCELADAS'}" id="chkIndicadorResumen" value="#{reporteCobroClienteBean.indicadorResumen}" />
+
+					</h:panelGrid>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

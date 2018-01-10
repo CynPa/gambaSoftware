@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_comportamiento_cobro_cliente}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteComportamientoCobroClienteBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteComportamientoCobroClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteComportamientoCobroClienteBean.fechaDesde}" id="calFechaDesde" required="true">
+								<p:ajax process="@this" global="false" event="dateSelect"></p:ajax>
+								<p:ajax process="@this" global="false" event="change"></p:ajax>
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteComportamientoCobroClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteComportamientoCobroClienteBean.fechaHasta}" id="calFechaHasta" required="true">
+								<p:ajax process="@this" global="false" event="dateSelect"></p:ajax>
+								<p:ajax process="@this" global="false" event="change"></p:ajax>
+							</p:calendar>
+
+							<p:outputLabel for="cboCategoriaEmpresa" value="#{msgs.lbl_empresa_categoria}:" />
+							<p:selectOneMenu id="cboCategoriaEmpresa" value="#{reporteComportamientoCobroClienteBean.categoriaEmpresa}">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+								<f:selectItems value="#{reporteComportamientoCobroClienteBean.listaCategoriaEmpresa}" var="_categoriaEmpresa" itemValue="#{_categoriaEmpresa}"
+									itemLabel="#{_categoriaEmpresa.nombre}" />
+								<p:ajax process="@this" global="false" update="autoCliente" listener="#{reporteComportamientoCobroClienteBean.actualizarCategoriaCliente}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="autoCliente" value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCliente"
+								value="#{reporteComportamientoCobroClienteBean.empresa}" completeMethod="#{reporteComportamientoCobroClienteBean.autocompletarClientes}"
+								var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+								<p:ajax process="@this" global="false" event="itemSelect" />
+
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

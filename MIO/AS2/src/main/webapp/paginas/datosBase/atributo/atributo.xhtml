@@ -1,0 +1,265 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{atributoBean}">
+					<as2:buttonEliminar bean="#{atributoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{atributoBean.atributo.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{atributoBean.atributo.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteAtributoBean}" bean="#{atributoBean}" target="#{reporteAtributoBean.atributo}"
+						value="#{atributoBean.atributo}" />
+					<as2:buttonExportaExcel bean="#{atributoBean}" tabla=":form:tablaAtributos" />
+				</as2:toolBar>
+
+				<!-- INICIO DIALOG SUBIR ARCHIVO -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarDetalleAtributo" modal="true" height="150" width="325" showEffect="clip"
+					hideEffect="clip" resizable="false">
+					<p:outputPanel id="outputCargarExcel">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{atributoBean.cargarDetalleAtributo}" mode="advanced"
+									update=":form:panleValoresAtributo :form:tablaValorAtributo" auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/"
+									label="#{msgs.btn_examinar}" process="@this" oncomplete="dlgCargarDetalleAtributo.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_atributo_panel}" rendered="#{atributoBean.editado}">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+								<h:panelGrid id="panelDetalle" columns="#{atributoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{atributoBean.atributo.codigo}" id="txtCodigo" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{atributoBean.atributo.nombre}" id="txtNombre" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="cboTipoArticulo" value="#{msgs.lbl_atributo_tipo_atributo}:" />
+									<p:selectOneMenu value="#{atributoBean.atributo.tipoAtributo}" id="cboTipoArticulo" required="true"
+										disabled="#{atributoBean.atributo.indicadorInstancia}">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{atributoBean.listaTipoAtributo}" />
+										<p:ajax process="@this" global="false" update="panleValoresAtributo" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_requerido}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.indicadorRequerido}" />
+
+									<h:outputText value="#{msgs.lbl_atributo_indicador_producto}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.indicadorProducto}" />
+
+									<h:outputText value="#{msgs.lbl_atributo_indicador_cliente}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.indicadorCliente}" />
+
+									<h:outputText value="#{msgs.lbl_atributo_indicador_proveedor}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.indicadorProveedor}" />
+
+									<h:outputText value="#{msgs.lbl_indicador_impresion}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.indicadorImpresion}" />
+
+									<h:outputText value="#{msgs.lbl_atributo_instancia}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.indicadorInstancia}">
+										<p:ajax process="@this" global="false" update="panleValoresAtributo cboTipoArticulo"
+											listener="#{atributoBean.atributo.setTipoAtributo('LISTA')}" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{atributoBean.atributo.predeterminado}" />
+
+									<p:outputPanel id="panelCargaExcel" rendered="#{atributoBean.atributo.tipoAtributo=='LISTA'}">
+										<h:outputText value="#{msgs.btn_cargar_excel}:" id="cargarExcel" />
+									</p:outputPanel>
+
+									<p:outputPanel id="cargaExcel" rendered="#{atributoBean.atributo.tipoAtributo=='LISTA'}">
+										<p:commandButton id="btnCargarExcel" title="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update="outputCargarExcel"
+											onclick="dlgCargarDetalleAtributo.show()" process="@this panelNuevo" />
+									</p:outputPanel>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{atributoBean.atributo.descripcion}" id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:outputPanel id="panleValoresAtributo">
+								<p:fieldset rendered="#{atributoBean.atributo.tipoAtributo=='LISTA'}">
+									<h:panelGrid columns="1">
+
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{atributoBean.agregarDetalle}"
+											update=":form:tablaValorAtributo" process="@this,tablaValorAtributo" icon="ui-icon-plus" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaValorAtributo" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{atributoBean.listaValorAtributo}" var="_valorAtributo"
+											binding="#{atributoBean.dtValorAtributo}" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{atributoBean.numeroFilas}"
+											rowsPerPageTemplate="#{atributoBean.numeroFilasPorPagina}" rowKey="#{_valorAtributo.rowKey}"
+											filteredValue="#{atributoBean.listaValorAtributoFiltrado}">
+
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo" filterBy="#{_valorAtributo.codigo}" filterMatchMode="contains" sortBy="#{_valorAtributo.codigo}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo}" />
+												</f:facet>
+												<p:inputText styleClass="input-text-col" value="#{_valorAtributo.codigo}" id="txtCodigo">
+													<f:validateBean />
+													<p:ajax process="@this" global="false"></p:ajax>
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre" filterBy="#{_valorAtributo.nombre}" filterMatchMode="contains" sortBy="#{_valorAtributo.nombre}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_nombre}" />
+												</f:facet>
+												<p:inputText styleClass="input-text-col" value="#{_valorAtributo.nombre}" id="txtNombre">
+													<f:validateBean />
+													<p:ajax process="@this" global="false" listener="#{atributoBean.valorAtributoEditado(_valorAtributo)}" event="change"></p:ajax>
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_valorAtributo.activo}">
+												<p:selectBooleanCheckbox value="#{_valorAtributo.activo}" id="chkActivo">
+													<p:ajax process="@this" global="false"></p:ajax>
+												</p:selectBooleanCheckbox>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_predeterminado}" sortBy="#{_valorAtributo.predeterminado}">
+												<p:selectBooleanCheckbox value="#{_valorAtributo.predeterminado}" id="chkPredeterminado">
+													<p:ajax process="@this" global="false"></p:ajax>
+												</p:selectBooleanCheckbox>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_descripcion}">
+												<p:inputText styleClass="input-text-col" value="#{_valorAtributo.descripcion}" id="txtDescripcion">
+													<f:validateBean />
+													<p:ajax process="@this" global="false"></p:ajax>
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion">
+												<p:commandButton id="btnEliminarDetalle" action="#{atributoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:panleValoresAtributo" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:fieldset>
+							</p:outputPanel>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_atributo_panel}" rendered="#{!atributoBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAtributos" rowIndexVar="secuencialAtributo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{atributoBean.listaAtributos}" var="atributo" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{atributoBean.dtAtributo}" rows="#{atributoBean.numeroFilas}"
+							rowsPerPageTemplate="#{atributoBean.numeroFilasPorPagina}" selection="#{atributoBean.atributo}" selectionMode="single" rowKey="#{atributo.id}"
+							sortBy="#{atributo.codigo}" lazy="true">
+
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_atributos_titulo_panel_listado}" />
+							</f:facet>
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<f:facet name="header"></f:facet>
+								<h:outputText value="#{secuencialAtributo+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{atributo.codigo}" sortBy="#{atributo.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{atributo.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" filterBy="#{atributo.nombre}" sortBy="#{atributo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{atributo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto" sortBy="#{atributo.tipoAtributo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_atributo_tipo_atributo}" />
+								</f:facet>
+								<h:outputText value="#{atributo.tipoAtributo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{atributo.indicadorRequerido}" headerText="#{msgs.lbl_requerido}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{atributo.indicadorRequerido}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{atributo.indicadorInstancia}" headerText="#{msgs.lbl_atributo_instancia}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{atributo.indicadorInstancia}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{atributo.activo}" headerText="#{msgs.lbl_activo}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{atributo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{atributo.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<f:facet name="header">
+								</f:facet>
+								<h:outputText value="#{atributo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{atributoBean.atributo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{atributoBean.atributo.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{atributoBean.atributo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{atributoBean.atributo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

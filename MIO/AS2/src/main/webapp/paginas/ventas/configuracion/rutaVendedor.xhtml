@@ -1,0 +1,172 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{rutaVendedorBean}">
+					<as2:buttonImprimir id="btnImprimirRutaVendedor" beanReporte="#{reporteRutaVendedorBean}" bean="#{rutaVendedorBean}"
+						target="#{reporteRutaVendedorBean.entidadUsuario}" value="#{rutaVendedorBean.entidadUsuario}" />
+
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{rutaVendedorBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_usuario_panel}">
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{rutaVendedorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<h:outputText id="txtEmpleado" value="#{rutaVendedorBean.entidadUsuario.empleado.empresa.nombreFiscal}" />
+								</h:panelGroup>
+
+							</h:panelGrid>
+						</p:fieldset>
+						<p:separator />
+
+
+
+						<p:tabView id="tabViewUsuario">
+
+							<!-- INICIO TAB ASIGNACION ROLES -->
+							<p:tab title="#{msgs.lbl_asignacion_sector_dia}">
+								<p:commandButton value="#{msgs.lbl_agregar_detalle}" action="#{rutaVendedorBean.agregarDetalle}" process="@this"
+									update=":form:tabViewUsuario:tablaRolesAsignados" />
+								<p:outputPanel id="outputPanelRol" style="width:100%">
+									<h:panelGrid columns="1" id="panelRolesAsignados" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{rutaVendedorBean.listaRutaVendedorFiltrado}" id="tablaRolesAsignados"
+											rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_vendedorSector" paginator="true" paginatorPosition="bottom"
+											style="width:100%" rowKey="#{_vendedorSector.idRutaVendedor}" rows="#{rutaVendedorBean.numeroFilas}"
+											rowsPerPageTemplate="#{rutaVendedorBean.numeroFilasPorPagina}" binding="#{rutaVendedorBean.dtRutaVendedor}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_sector}" styleClass="tableCell">
+												<p:selectOneMenu styleClass="input-text" value="#{_vendedorSector.sector}" id="cboSector">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{rutaVendedorBean.listaSector}" var="_sector" itemLabel="#{_sector.codigo} | #{_sector.nombre}"
+														itemValue="#{_sector}" />
+													<p:ajax process="@this"></p:ajax>
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_dias_dias}" styleClass="tableCell">
+												<p:selectOneMenu styleClass="input-text" value="#{_vendedorSector.diaSemana}" id="cboDiaSemana">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{rutaVendedorBean.listaDiaSemana}" var="_diaSemana" itemLabel="#{_diaSemana}" itemValue="#{_diaSemana}" />
+													<p:ajax process="@this"></p:ajax>
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton actionListener="#{rutaVendedorBean.eliminarDetalleRutaVendedor}" icon="ui-icon-trash"
+													process="@this :form:tabViewUsuario:tablaRolesAsignados" update=":form:tabViewUsuario:tablaRolesAsignados" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB ASIGNACION ROLES -->
+
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!rutaVendedorBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_usuario_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUsuario" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{rutaVendedorBean.listaEntidadUsuarios}" var="usuario" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{rutaVendedorBean.dtEntidadUsuario}" rows="#{rutaVendedorBean.numeroFilas}"
+							rowsPerPageTemplate="#{rutaVendedorBean.numeroFilasPorPagina}" selection="#{rutaVendedorBean.entidadUsuario}" selectionMode="single"
+							rowKey="#{usuario.id}" sortBy="#{usuario.nombreUsuario}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{usuario.nombreUsuario}" sortBy="#{usuario.nombreUsuario}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_usuario}" />
+								</f:facet>
+								<h:outputText value="#{usuario.nombreUsuario}" />
+							</p:column>
+
+							<p:column filterBy="#{usuario.nombre1}" sortBy="#{usuario.nombre1}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{usuario.nombre1}" />
+							</p:column>
+
+							<p:column filterBy="#{usuario.nombre2}" sortBy="#{usuario.nombre2}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{usuario.nombre2}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{usuario.genero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_genero}" />
+								</f:facet>
+								<h:outputText value="#{usuario.genero.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{usuario.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{usuario.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{usuario.enlinea}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_en_linea}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{usuario.enlinea}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTDescripcion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{usuario.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{rutaVendedorBean.entidadUsuario.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{rutaVendedorBean.entidadUsuario.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{rutaVendedorBean.entidadUsuario.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{rutaVendedorBean.entidadUsuario.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

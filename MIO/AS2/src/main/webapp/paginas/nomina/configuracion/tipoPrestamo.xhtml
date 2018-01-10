@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{tipoPrestamoBean}">
+					<as2:buttonEliminar bean="#{tipoPrestamoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoPrestamoBean.tipoPrestamo.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoPrestamoBean.tipoPrestamo.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tipoPrestamoBean}" tabla=":form:tablaTipoPrestamo"/>
+				</as2:toolBar>
+
+				<ui:include src="/template/listaCuentaContable.html">
+					<ui:param name="bean" value="#{tipoPrestamoBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtCuentContable" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_tipo_prestamo} )"
+						rendered="#{tipoPrestamoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera"
+								columns="#{tipoPrestamoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoPrestamoBean.tipoPrestamo.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoPrestamoBean.tipoPrestamo.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}" />
+								<p:selectOneMenu styleClass="input-text" id="cboDocumento"
+									required="true"
+									value="#{tipoPrestamoBean.tipoPrestamo.documento.idDocumento}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{tipoPrestamoBean.listaDocumento}"
+										var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+
+									<p:ajax process="@this" 
+										listener="#{tipoPrestamoBean.actualizarDocumento}" />
+
+									<f:validateBean />
+
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_rubro_empleado}:" />
+								<p:selectOneMenu styleClass="input-text"
+									value="#{tipoPrestamoBean.rubroSelecionado}" id="cboRubro"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{tipoPrestamoBean.listaRubro}"
+										var="_rubro" itemLabel="#{_rubro.nombre}"
+										itemValue="#{_rubro.idRubro}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_cuenta_contable}:"
+									rendered="#{tipoPrestamoBean.tipoPrestamo.indicadorContabilizar==true}" />
+								<h:panelGroup id="txtCuentContable"
+									rendered="#{tipoPrestamoBean.tipoPrestamo.indicadorContabilizar==true}">
+									<p:commandButton value="..." process="@this"
+										oncomplete="cuentaContableDialog.show();"
+										update=":form:panelListaCuentaContable"
+										action="#{tipoPrestamoBean.actualizarCuenta}">
+									</p:commandButton>
+									<as2:outputTextCuentaContable
+										cuentaContable="#{tipoPrestamoBean.tipoPrestamo.cuentaContable}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_contabilizar}:" />
+								<p:selectBooleanCheckbox
+									value="#{tipoPrestamoBean.tipoPrestamo.indicadorContabilizar}">
+									<p:ajax event="change" process=":form:panelNuevo" update=":form:panelNuevo" />
+								</p:selectBooleanCheckbox>								
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox
+									value="#{tipoPrestamoBean.tipoPrestamo.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox
+									value="#{tipoPrestamoBean.tipoPrestamo.predeterminado}" />
+									
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text"
+									value="#{tipoPrestamoBean.tipoPrestamo.descripcion}"
+									id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_tipo_prestamo} )"
+						rendered="#{!tipoPrestamoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoPrestamo" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tipoPrestamoBean.listaTipoPrestamo}" var="_tipoPrestamo"
+							binding="#{tipoPrestamoBean.dtTipoPrestamo}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoPrestamoBean.numeroFilas}"
+							rowsPerPageTemplate="#{tipoPrestamoBean.numeroFilasPorPagina}"
+							selection="#{tipoPrestamoBean.tipoPrestamo}"
+							selectionMode="single" rowKey="#{_tipoPrestamo.idTipoPrestamo}"
+							sortBy="#{_tipoPrestamo.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_tipoPrestamo.codigo}"
+								filterBy="#{_tipoPrestamo.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipoPrestamo.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_tipoPrestamo.nombre}"
+								filterBy="#{_tipoPrestamo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoPrestamo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_tipoPrestamo.rubro.nombre}"
+								filterBy="#{_tipoPrestamo.rubro.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre_rubro}" />
+								</f:facet>
+								<h:outputText value="#{_tipoPrestamo.rubro.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_contabilizar}" sortBy="#{_tipoPrestamo.indicadorContabilizar}">
+								<p:selectBooleanCheckbox
+									value="#{_tipoPrestamo.indicadorContabilizar}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_tipoPrestamo.activo}">
+								<p:selectBooleanCheckbox value="#{_tipoPrestamo.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox
+									value="#{_tipoPrestamo.predeterminado}" disabled="true" />
+							</p:column>
+							
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tipoPrestamo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{tipoPrestamoBean.tipoPrestamo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{tipoPrestamoBean.tipoPrestamo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{tipoPrestamoBean.tipoPrestamo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{tipoPrestamoBean.tipoPrestamo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

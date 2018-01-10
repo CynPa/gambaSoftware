@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{registroVoucherBean}">
+					<as2:buttonImprimir beanReporte="#{reporteRegistroVoucherBean}" bean="#{registroVoucherBean}" target="#{reporteRegistroVoucherBean.cobro}"
+						value="#{registroVoucherBean.cobro}" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_voucher})" rendered="#{registroVoucherBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{pagoVoucherBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel value="#{msgs.lbl_fecha_registro}:" />
+							<h:outputText value="#{registroVoucherBean.cobro.fecha}">
+								<f:convertDateTime pattern="#{registroVoucherBean.formatoFecha}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumento" disabled="#{registroVoucherBean.cobro.id != 0}"
+								value="#{registroVoucherBean.cobro.documento}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{registroVoucherBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+								<p:ajax process="@this" update="@this" global="false" partialSubmit="true" />
+
+								<f:validateBean />
+
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{registroVoucherBean.cobro.descripcion}" id="txtDescripcion" rows="1">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1">
+							<p:commandButton value="#{msgs.lbl_agregar}" id="btnAgregarDetalle" action="#{registroVoucherBean.agregarDetalle}" update=":form:panelVoucher"
+								process="@this :form:panelVoucher" icon="ui-icon-plus" partialSubmit="true" />
+
+							<p:outputPanel id="panelVoucher">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{registroVoucherBean.listaDetalleVoucher}" id="tablaComisionTarjeta"
+									rowIndexVar="secuencial" binding="#{registroVoucherBean.dtVoucher}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_voucher" paginator="true"
+									paginatorPosition="bottom" style="width:100%" rows="#{registroVoucherBean.numeroFilas}"
+									rowsPerPageTemplate="#{registroVoucherBean.numeroFilasPorPagina}" rowKey="#{_voucher.rowKey}" lazy="true" editable="true" editMode="cell">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{_voucher.secuencial}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_estacion}">
+										<p:selectOneMenu styleClass="input-text" value="#{_voucher.puntoVenta}" id="cboPuntoVenta" required="true">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{registroVoucherBean.listaPuntoVenta}" var="_puntoVenta" itemLabel="#{_puntoVenta.codigoAlterno}"
+												itemValue="#{_puntoVenta}" />
+											<p:ajax process="@this" global="false" event="change" update="@this" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_tarjeta_credito}">
+										<p:selectOneMenu rendered="#{empty _voucher.cobroTarjeta}" styleClass="input-text" value="#{_voucher.tarjetaCredito}" id="cboTarjetaCredito"
+											required="true">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{registroVoucherBean.listaTarjetaCredito}" var="_tarjetaCredito" itemLabel="#{_tarjetaCredito.nombre}"
+												itemValue="#{_tarjetaCredito}" />
+											<p:ajax process="@this" global="false" partialSubmit="true" event="change" update="@this cboPlanPago"
+												listener="#{registroVoucherBean.cargarPlanTarjetaListener(_voucher)}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+										<h:outputText rendered="#{not empty _voucher.cobroTarjeta}" value="#{_voucher.tarjetaCredito.nombre}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_plan_tarjeta_credito}">
+										<p:selectOneMenu styleClass="input-text" rendered="#{empty _voucher.cobroTarjeta}" value="#{_voucher.planTarjetaCredito}" id="cboPlanPago"
+											required="true">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{_voucher.tarjetaCredito.listaPlanTarjetaCredito}" var="_plan" itemLabel="#{_plan.codigo}" itemValue="#{_plan}" />
+											<p:ajax process="@this" global="false" event="change" partialSubmit="true" update="@this" />
+											<f:validateBean />
+										</p:selectOneMenu>
+										<h:outputText rendered="#{not empty _voucher.cobroTarjeta}" value="#{_voucher.planTarjetaCredito.codigo}" />
+									</p:column>
+
+
+									<p:column styleClass="tableCell columnaDTNumeroDocumento" headerText="#{msgs.lbl_numero_tarjeta}">
+										<p:inputText rendered="#{empty _voucher.cobroTarjeta}" styleClass="input-text" value="#{_voucher.numeroTarjeta}" id="txtNumeroTarjeta"
+											required="true">
+											<p:ajax process="@this" global="false" />
+											<f:validateBean />
+										</p:inputText>
+
+										<h:outputText rendered="#{not empty _voucher.cobroTarjeta}" value="#{_voucher.numeroTarjeta}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_sri_base_diferente_cero}">
+										<p:inputText rendered="#{empty _voucher.cobroTarjeta}" styleClass="input-text" value="#{_voucher.baseImponibleDiferenteCero}"
+											id="txtBaseImponibleDiferenteCero">
+											<p:ajax process="@this" global="false" listener="#{registroVoucherBean.totalizar(_voucher)}" update="@this txtMontoIva txtValor" />
+											<f:validateBean />
+										</p:inputText>
+
+										<h:outputText rendered="#{not empty _voucher.cobroTarjeta}" value="#{_voucher.baseImponibleDiferenteCero}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_sri_base_cero}">
+										<p:inputText rendered="#{empty _voucher.cobroTarjeta}" styleClass="input-text" value="#{_voucher.baseImponibleTarifaCero}"
+											id="txtBaseImponibleTarifaCero">
+											<p:ajax process="@this" global="false" listener="#{registroVoucherBean.totalizar(_voucher)}" update="@this txtValor" />
+											<f:validateBean />
+										</p:inputText>
+										<h:outputText rendered="#{not empty _voucher.cobroTarjeta}" value="#{_voucher.baseImponibleTarifaCero}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_sri_monto_iva}">
+										<h:outputText value="#{_voucher.montoIva}" id="txtMontoIva" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_interes}">
+										<p:inputText rendered="#{empty _voucher.cobroTarjeta}" styleClass="input-text" value="#{_voucher.interes}">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+
+										<h:outputText rendered="#{not empty _voucher.cobroTarjeta}" value="#{_voucher.interes}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_total}">
+										<h:outputText value="#{_voucher.valor}" id="txtValor" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_numero}">
+										<p:inputText rendered="#{empty _voucher.cobroTarjeta}" styleClass="input-text" value="#{_voucher.documentoReferencia}" id="txtNumeroVoucher"
+											required="true">
+											<p:ajax process="@this" global="false" />
+											<f:validateBean />
+										</p:inputText>
+										<h:outputText rendered="#{not empty _voucher.cobroTarjeta}" value="#{_voucher.documentoReferencia}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_lote}">
+										<p:inputText rendered="#{empty _voucher.cobroTarjeta}" styleClass="input-text" value="#{_voucher.lote}" id="txtLote" required="true" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTFechaInput" headerText="#{msgs.lbl_emision}">
+										<p:calendar id="cFechaVoucher" value="#{_voucher.fechaVoucher}" pattern="#{tarjetaCreditoBean.formatoFecha}" showButtonPanel="true"
+											locale="es" showOn="button" required="true" size="10" mindate="01/01/" maxdate="#{registroVoucherBean.cobro.fecha}">
+											<p:ajax process="@this"  partialSubmit="true" event="dateSelect" listener="#{registroVoucherBean.totalizar(_voucher)}" update="@this txtValor txtMontoIva"  />
+											<p:ajax process="@this" partialSubmit="true" event="change" listener="#{registroVoucherBean.totalizar(_voucher)}" update="@this txtValor txtMontoIva" />
+											<f:validateBean />
+										</p:calendar>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+										<p:inputText styleClass="input-text" value="#{_voucher.descripcion}">
+											<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton rendered="#{empty _voucher.cobroTarjeta}" id="btnEliminarDetalle"
+											actionListener="#{registroVoucherBean.eliminarVoucher(_voucher)}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelVoucher" process="@this cFechaVoucher" />
+									</p:column>
+
+								</p:dataTable>
+
+							</p:outputPanel>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_voucher})" rendered="#{!registroVoucherBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlan" rowIndexVar="secuencialPlan" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{registroVoucherBean.listaCobro}" var="_voucher" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{registroVoucherBean.numeroFilas}" rowsPerPageTemplate="#{registroVoucherBean.numeroFilasPorPagina}"
+							selection="#{registroVoucherBean.cobro}" selectionMode="single" rowKey="#{_voucher.id}" sortBy="fecha" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialPlan+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_voucher.numero}" filterBy="#{_voucher.numero}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_voucher.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFechaInput tableCell" sortBy="#{_voucher.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_registro}" />
+								</f:facet>
+								<h:outputText value="#{_voucher.fecha}">
+									<f:convertDateTime pattern="#{registroVoucherBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_voucher.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{registroVoucherBean.cobro.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{registroVoucherBean.cobro.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{registroVoucherBean.cobro.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{registroVoucherBean.cobro.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{reporteInventarioProductoBean}" />
+					<ui:param name="objetoActualizar" value=":form:lblProducto ,:form:panelProducto " />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+				</ui:include>
+
+				<as2:panelImprimir entidadDestino="" bean="#{reporteInventarioProductoBean}" entidadOrigen="">
+				</as2:panelImprimir>
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{reporteInventarioProductoBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value="tablaInventarioProducto" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+					<ui:param name="ocultarBtnExportarTabla" value="true" />
+				</ui:include>
+
+				<p:panel header="#{msgs.lbl_panel_consulta_inventario}">
+
+					<h:panelGrid columns="1">
+						<p:fieldset>
+							<p:outputPanel id="panelFiltros">
+								<h:panelGrid columns="#{reporteInventarioProductoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+									<p:calendar pattern="#{reporteInventarioProductoBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{reporteInventarioProductoBean.fechaDesde}" id="calFechaDesde" required="true">
+										<!--<p:ajax event="dateSelect" update=":form:calFechaHasta"></p:ajax>
+										<p:ajax event="change" update=":form:calFechaHasta"></p:ajax>-->
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+									<p:calendar pattern="#{reporteInventarioProductoBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{reporteInventarioProductoBean.fechaHasta}" id="calFechaHasta" required="true">
+										<!--<p:ajax event="dateSelect" update=":form:calFechaDesde"></p:ajax>
+										<p:ajax event="change" update=":form:calFechaDesde"></p:ajax>-->
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_nombre_producto}:" />
+									<h:panelGroup>
+										<p:commandButton value="..." onclick="dglModalProducto.show();" type="button" />
+										<h:outputText id="lblProducto"
+											value="#{reporteInventarioProductoBean.producto.codigo} #{reporteInventarioProductoBean.producto.nombreComercial}" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_bodega}:" />
+									<p:selectOneMenu styleClass="input-text" value="#{reporteInventarioProductoBean.bodega}" id="cboBodega">
+										<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="null" />
+										<f:selectItems value="#{reporteInventarioProductoBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_unidad_panel}:" />
+									<p:selectOneRadio id="options" value="#{reporteInventarioProductoBean.unidad}" required="true">
+										<f:selectItems value="#{reporteInventarioProductoBean.listaUnidad}"></f:selectItems>
+										<p:ajax process="@this" update=":form:panelProducto" listener="#{reporteInventarioProductoBean.actualizarUnidad}" event="change"></p:ajax>
+									</p:selectOneRadio>
+									<h:outputText value="#{msgs.lbl_lote}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" size="15"
+										value="#{reporteInventarioProductoBean.lote}" completeMethod="#{reporteInventarioProductoBean.autocompletarLotes}" var="_lote"
+										itemLabel="#{_lote.codigo}" itemValue="#{_lote}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+										<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+										<p:ajax event="itemSelect" process="@this" update=":form:panelFiltros" />
+
+										<p:ajax event="itemSelect" process="@this" update=":form:panelFiltros" />
+									</p:autoComplete>
+
+								</h:panelGrid>
+
+							</p:outputPanel>
+						</p:fieldset>
+
+						<p:fieldset>
+							<p:outputPanel id="panelConsulta">
+
+								<h:panelGrid columns="1" id="panelProducto">
+
+
+									<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+										<h:outputText value="#{msgs.lbl_nombre_producto}:" />
+										<h:outputText value="#{reporteInventarioProductoBean.producto.nombreComercial}" />
+
+										<h:outputText value="#{msgs.lbl_unidad_producto}:" />
+										<h:outputText value="#{reporteInventarioProductoBean.nombreUnidad}" />
+
+									</h:panelGrid>
+									<p:remoteCommand name="refreshFooter"
+										update="tablaInventarioProducto:txtTotalIngreso, tablaInventarioProducto:txtTotalEgreso, tablaInventarioProducto:txtTotal" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaInventarioProducto" rowIndexVar="secuencialBodega"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteInventarioProductoBean.listaReporteInventarioProducto}" var="_inventario"
+										paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{reporteInventarioProductoBean.dtIventarioProducto}"
+										rows="#{reporteInventarioProductoBean.numeroFilas}" rowsPerPageTemplate="#{reporteInventarioProductoBean.numeroFilasPorPagina}"
+										filteredValue="#{reporteInventarioProductoBean.listaReporteInventarioProductoFiltrado}"
+										selection="#{reporteInventarioProductoBean.reporteInventarioProducto}" selectionMode="single" rowKey="#{_inventario.rowKey}">
+										<p:ajax event="filter" oncomplete="refreshFooter();" />
+										<p:columnGroup type="header">
+											<p:row>
+												<p:column styleClass="tableCell columnaDTAccion" colspan="1" rowspan="2" headerText="N." />
+												<p:column styleClass="tableCell columnaDTFecha" colspan="1" rowspan="2" headerText="#{msgs.lbl_fecha}" />
+												<p:column styleClass="tableCell columnaDTBodega" colspan="1" rowspan="2" headerText="#{msgs.lbl_empresa}" filterBy="#{_inventario.nombreFiscalEmpresa}" filterMatchMode="contains" />
+												<p:column styleClass="tableCell columnaDTBodega" colspan="1" rowspan="2" headerText="#{msgs.lbl_bodega}" filterBy="#{_inventario.bodega}"
+													filterMatchMode="contains" />
+												<p:column styleClass="tableCell columnaDTNombreCorto" colspan="1" rowspan="2" headerText="#{msgs.lbl_documento}"
+													filterBy="#{_inventario.documento}" filterMatchMode="contains" />
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{msgs.lbl_lote}" filterBy="#{_inventario.lote}"
+													filterMatchMode="contains" />
+
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo1.nombre}"
+													filterBy="#{_inventario.valorAtributo1}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo1}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo2.nombre}"
+													filterBy="#{_inventario.valorAtributo2}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo2}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo3.nombre}"
+													filterBy="#{_inventario.valorAtributo3}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo3}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo4.nombre}"
+													filterBy="#{_inventario.valorAtributo4}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo4}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo5.nombre}"
+													filterBy="#{_inventario.valorAtributo5}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo5}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo6.nombre}"
+													filterBy="#{_inventario.valorAtributo6}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo6}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo7.nombre}"
+													filterBy="#{_inventario.valorAtributo7}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo7}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo8.nombre}"
+													filterBy="#{_inventario.valorAtributo8}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo8}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo9.nombre}"
+													filterBy="#{_inventario.valorAtributo9}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo9}"/>
+												<p:column styleClass="tableCell columnaDTLote" colspan="1" rowspan="2" headerText="#{reporteInventarioProductoBean.organizacionConfiguracion.atributo10.nombre}"
+													filterBy="#{_inventario.valorAtributo10}" filterMatchMode="contains" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo10}"/>
+
+												<p:column styleClass="tableCell columnaDTNombreCorto" colspan="1" rowspan="2" headerText="#{msgs.lbl_documento} #{msgs.lbl_referencia}"
+													filterBy="#{_inventario.numeroDocumento}" filterMatchMode="contains" />
+												<p:column styleClass="tableCell columnaDTNombreCorto"
+													rendered="#{reporteInventarioProductoBean.tipoOrganizacion=='TIPO_ORGANIZACION_TEXTILES_PADILLA'}" colspan="1" rowspan="2"
+													headerText="#{msgs.lbl_orden_fabricacion}" filterBy="#{_inventario.descripcionMovimientoInventario}" filterMatchMode="contains" />
+												<p:column styleClass="tableCell columnaDTNumeroFactura" colspan="1" rowspan="2" headerText="#{msgs.lbl_factura_cliente}"
+													filterBy="#{_inventario.facturaCliente}" filterMatchMode="contains" />
+												<p:column styleClass="tableCell columnaDTNumeroFactura" colspan="1" rowspan="2" headerText="(#{msgs.lbl_factura_proveedor})"
+													filterBy="#{_inventario.facturaCliente}" filterMatchMode="contains" />
+												<p:column colspan="#{reporteInventarioProductoBean.visible?3:1}" headerText="#{msgs.lbl_ingreso_inventario}s" />
+												<p:column colspan="#{reporteInventarioProductoBean.visible?3:1}" headerText="#{msgs.lbl_egreso_inventario}s" />
+												<p:column colspan="#{reporteInventarioProductoBean.visible?3:1}" headerText="#{msgs.lbl_saldo}s" />
+												<p:column styleClass="tableCell" colspan="1" rowspan="2" headerText="#{msgs.lbl_descripcion}"
+													filterBy="#{_inventario.descripcionMovimientoInventario}" filterMatchMode="contains" />
+											</p:row>
+											<p:row>
+												<p:column headerText="#{msgs.lbl_cantidad}" />
+												<p:column headerText="#{msgs.lbl_costo_unitario}" rendered="#{reporteInventarioProductoBean.visible}" />
+												<p:column headerText="#{msgs.lbl_costo} (T) " rendered="#{reporteInventarioProductoBean.visible}" />
+												<p:column headerText="#{msgs.lbl_cantidad}" />
+												<p:column headerText="#{msgs.lbl_costo_unitario}" rendered="#{reporteInventarioProductoBean.visible}" />
+												<p:column headerText="#{msgs.lbl_costo} (T)" rendered="#{reporteInventarioProductoBean.visible}" />
+												<p:column headerText="#{msgs.lbl_cantidad}" />
+												<p:column headerText="#{msgs.lbl_costo_unitario}" rendered="#{reporteInventarioProductoBean.visible}" />
+												<p:column headerText="#{msgs.lbl_costo} (T)" rendered="#{reporteInventarioProductoBean.visible}" />
+											</p:row>
+										</p:columnGroup>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<h:outputText value="#{secuencialBodega+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTFecha">
+											<h:outputText value="#{_inventario.fecha}">
+												<f:convertDateTime pattern="#{reporteInventarioProductoBean.formatoFecha}" />
+											</h:outputText>
+										</p:column>
+										
+										<p:column styleClass="tableCell columnaDTBodega">
+											<h:outputText value="#{_inventario.nombreFiscalEmpresa}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTBodega">
+											<h:outputText value="#{_inventario.bodega}" />
+										</p:column>
+										
+										<p:column styleClass="tableCell columnaDTNombre">
+											<h:outputText value="#{_inventario.documento} (#{_inventario.cantidadDocumento} #{_inventario.unidadDocumento})" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote">
+											<h:outputText value="#{_inventario.lote}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo1}">
+											<h:outputText value="#{_inventario.valorAtributo1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo2}">
+											<h:outputText value="#{_inventario.valorAtributo2}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo3}">
+											<h:outputText value="#{_inventario.valorAtributo3}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo4}">
+											<h:outputText value="#{_inventario.valorAtributo4}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo5}">
+											<h:outputText value="#{_inventario.valorAtributo5}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo6}">
+											<h:outputText value="#{_inventario.valorAtributo6}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo7}">
+											<h:outputText value="#{_inventario.valorAtributo7}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo8}">
+											<h:outputText value="#{_inventario.valorAtributo8}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo9}">
+											<h:outputText value="#{_inventario.valorAtributo9}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTLote" rendered="#{not empty reporteInventarioProductoBean.organizacionConfiguracion.atributo10}">
+											<h:outputText value="#{_inventario.valorAtributo10}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNumeroDocumento">
+											<h:outputText value="#{_inventario.numeroDocumento}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombreCorto"
+											rendered="#{reporteInventarioProductoBean.tipoOrganizacion=='TIPO_ORGANIZACION_TEXTILES_PADILLA'}">
+											<h:outputText value="#{_inventario.descripcionMovimientoInventario}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNumeroFactura">
+											<h:link rendered="#{ not empty _inventario.facturaCliente and not empty _inventario.idFacturaCliente}" target="_blank"
+												outcome="/paginas/ventas/procesos/facturaCliente" includeViewParams="true" value="#{_inventario.facturaCliente}">
+												<f:param name="idFacturaCliente" value="#{_inventario.idFacturaCliente}" />
+											</h:link>
+										</p:column>
+
+
+										<p:column styleClass="tableCell columnaDTNumeroFactura">
+											<h:outputText rendered="#{_inventario.operacion==1 and not empty _inventario.facturaCliente}" value="#{_inventario.facturaCliente}" />
+										</p:column>
+
+
+										<p:column styleClass="tableCell columnaDTValorGrande">
+											<h:outputText rendered="#{_inventario.operacion==1}" value="#{_inventario.cantidad}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" rendered="#{reporteInventarioProductoBean.visible}">
+											<h:outputText rendered="#{_inventario.operacion==1}" value="#{_inventario.costoUnitario}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValorGrande" rendered="#{reporteInventarioProductoBean.visible}">
+											<h:outputText rendered="#{_inventario.operacion==1}" value="#{_inventario.costo}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValorGrande">
+											<h:outputText rendered="#{_inventario.operacion==-1}" value="#{_inventario.cantidad}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" rendered="#{reporteInventarioProductoBean.visible}">
+											<h:outputText rendered="#{_inventario.operacion==-1}" value="#{_inventario.costoUnitario}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValorGrande" rendered="#{reporteInventarioProductoBean.visible}">
+											<h:outputText rendered="#{_inventario.operacion==-1}" value="#{_inventario.costo}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValorGrande">
+											<h:outputText value="#{_inventario.cantidadTotal}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValorGrande" rendered="#{reporteInventarioProductoBean.visible}">
+											<h:outputText value="#{_inventario.costoPromedio}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValorGrande" rendered="#{reporteInventarioProductoBean.visible}">
+											<h:outputText value="#{_inventario.costoTotal}" />
+										</p:column>
+
+										<p:column styleClass="tableCell">
+											<h:outputText value="#{_inventario.descripcionMovimientoInventario}" />
+										</p:column>
+
+										<p:columnGroup type="footer" id="panelTotal">
+											<p:row>
+												<p:column rendered="#{reporteInventarioProductoBean.tipoOrganizacion!='TIPO_ORGANIZACION_TEXTILES_PADILLA'}" colspan="#{reporteInventarioProductoBean.organizacionConfiguracion.numeroAtributos + 9}">
+													<f:facet name="footer">
+														<h:outputText value="#{msgs.lbl_total}:" />
+													</f:facet>
+												</p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.tipoOrganizacion=='TIPO_ORGANIZACION_TEXTILES_PADILLA'}" colspan="#{reporteInventarioProductoBean.organizacionConfiguracion.numeroAtributos + 10}">
+													<f:facet name="footer">
+														<h:outputText value="#{msgs.lbl_total}:" />
+													</f:facet>
+												</p:column>
+												<p:column>
+													<f:facet name="footer">
+														<h:outputText value="#{reporteInventarioProductoBean.totalIngreso}" id="txtTotalIngreso" style="text-align:right" />
+													</f:facet>
+												</p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.visible}"></p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.visible}"></p:column>
+												<p:column>
+													<f:facet name="footer">
+														<h:outputText value="#{reporteInventarioProductoBean.totalEgreso}" id="txtTotalEgreso" style="text-align:right" />
+													</f:facet>
+												</p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.visible}"></p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.visible}"></p:column>
+												<p:column>
+													<f:facet name="footer">
+														<h:outputText value="#{reporteInventarioProductoBean.totalIngreso-reporteInventarioProductoBean.totalEgreso}" id="txtTotal"
+															style="text-align:right" />
+													</f:facet>
+												</p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.visible}"></p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.visible}"></p:column>
+												<p:column rendered="#{reporteInventarioProductoBean.tipoOrganizacion=='TIPO_ORGANIZACION_TEXTILES_PADILLA'}"></p:column>
+											</p:row>
+										</p:columnGroup>
+
+									</p:dataTable>
+								</h:panelGrid>
+
+							</p:outputPanel>
+						</p:fieldset>
+					</h:panelGrid>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

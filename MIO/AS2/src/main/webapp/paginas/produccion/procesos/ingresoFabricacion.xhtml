@@ -1,0 +1,609 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{ingresoFabricacionBean}">
+					<as2:buttonImprimir bean="#{ingresoFabricacionBean}" beanReporte="#{reporteIngresoFabricacionBean}"
+						value="#{ingresoFabricacionBean.ajusteInventario}" target="#{reporteIngresoFabricacionBean.ajusteInventario}">
+					</as2:buttonImprimir>
+					<as2:buttonImprimir bean="#{ingresoFabricacionBean}" beanReporte="#{reporteIngresoFabricacionBean}"
+						value="#{ingresoFabricacionBean.ajusteInventario}" target="#{reporteIngresoFabricacionBean.ajusteInventarioIndividual}"
+						etiquetaImprimir="#{msgs.lbl_imprimir_ingreso_fabricacion}">
+					</as2:buttonImprimir>
+					<!-- TODO: Falta el boton anular -->
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{ingresoFabricacionBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{ingresoFabricacionBean.ajusteInventario.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}" />
+
+					<as2:buttonExportaExcel bean="#{ingresoFabricacionBean}" tabla=":form:tablaAjustes" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelDialogImprimirEtiqueta">
+					<p:dialog id="dialogImprimirEtiqueta" header="#{msgs.btn_imprimir}" widgetVar="dialogImprimirEtiqueta" height="305" width="600" modal="true"
+						style="border-width:0px;border-style:none;" appendTo="@(body)">
+						<object type="application/pdf" data="#{ingresoFabricacionBean.urlReporte}" height="300px" width="100%" internalinstanceid="12"> Su
+							navegador no soporta visualizar ficheros PDF.</object>
+					</p:dialog>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelDialogEliminarDetalle">
+
+					<p:confirmDialog id="dialogConfirmarEliminarDetalle" header="#{msgs.lbl_eliminar}" widgetVar="dialogConfirmarEliminarDetalle" height="80"
+						width="300" appendTo="@(body)" message="#{msgs.confirmacion_msg}">
+
+						<p:outputPanel id="panelEliminarDetalle" autoUpdate="true">
+							<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+								<p:outputLabel value="#{msgs.lbl_fecha}:" />
+								<h:outputText value="#{ingresoFabricacionBean.detalleSeleccionado.fechaCreacion}">
+									<f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+
+								<p:outputLabel value="#{msgs.lbl_producto}:" />
+								<h:outputText value="#{ingresoFabricacionBean.detalleSeleccionado.producto.nombre}" />
+							</h:panelGrid>
+						</p:outputPanel>
+
+						<center>
+							<p:commandButton value="#{msgs.lbl_eliminar}" action="#{ingresoFabricacionBean.eliminarDetalle}" process="@this"
+								update="@this :form:panelDetalle :form:panelGridOrdenFabricacion" partialSubmit="true" onclick="dialogConfirmarEliminarDetalle.hide()"
+								id="DELETEDETALLE">
+							</p:commandButton>
+
+							<p:commandButton process="@this" value="#{msgs.btn_cancelar}" partialSubmit="true" onclick="dialogConfirmarEliminarDetalle.hide()" />
+						</center>
+					</p:confirmDialog>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_ingreso_fabricacion})" rendered="#{ingresoFabricacionBean.editado}">
+						<ui:include src="/template/nuevoLote.xhtml">
+							<ui:param name="bean" value="#{ingresoFabricacionBean}" />
+							<ui:param name="objetoActualizar" value=":form:autoLoteProductoTerminado" />
+						</ui:include>
+						<p:fieldset>
+							<p:outputPanel id="panelCabecera">
+								<h:panelGrid columns="#{ingresoFabricacionBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}" />
+									<p:selectOneMenu styleClass="input-text" value="#{ingresoFabricacionBean.ajusteInventario.documento}" id="cboDocumento" required="true"
+										disabled="#{ingresoFabricacionBean.ajusteInventario.idMovimientoInventario != 0}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{ingresoFabricacionBean.listaDocumentosAjuste}" var="_documento" itemLabel="#{_documento.nombre}"
+											itemValue="#{_documento}" />
+										<p:ajax process="@this" />
+									</p:selectOneMenu>
+
+									<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{ingresoFabricacionBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{ingresoFabricacionBean.ajusteInventario.fecha}" id="calFecha" disabled="true">
+										<p:ajax process="@this" event="dateSelect" global="false" />
+										<p:ajax process="@this" event="change" global="false" />
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}" />
+									<p:selectOneMenu value="#{ingresoFabricacionBean.categoriaProductoSeleccionado}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{ingresoFabricacionBean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+											itemValue="#{_categoriaProducto}" />
+										<p:ajax process="@this" listener="#{ingresoFabricacionBean.actualizarCategoriaProducto}"
+											update=":form:panelDetalle autoOrden outCantidadUnidad cboUnidadConversion txtCantidadOrigen outCantidadPlanificada outCantidadFabricada outCantidadPorProducir" />
+									</p:selectOneMenu>
+
+									<h:outputText rendered="#{ingresoFabricacionBean.indicadorManejaCiclosLargos}" value="#{msgs.lbl_bodega}:" />
+									<p:column rendered="#{ingresoFabricacionBean.indicadorManejaCiclosLargos}" styleClass="tableCell" headerText="#{msgs.lbl_bodega}">
+										<p:selectOneMenu value="#{ingresoFabricacionBean.ajusteInventario.bodegaOrigen}" id="cboBodega">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{ingresoFabricacionBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+											<f:validateBean />
+											<p:ajax process="@this" global="false" />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:spacer rendered="#{!ingresoFabricacionBean.indicadorManejaCiclosLargos}" />
+									<p:spacer rendered="#{!ingresoFabricacionBean.indicadorManejaCiclosLargos}" />
+
+									<p:outputLabel for="autoOrden" value="#{msgs.lbl_orden_fabricacion}:" />
+									<h:panelGrid columns="2" columnClasses="columnaValor,columnaEtiqueta">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoOrden"
+											value="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion}"
+											completeMethod="#{ingresoFabricacionBean.autocompletarOrdenFabricacion}" var="_ordenFabricacion" itemValue="#{_ordenFabricacion}"
+											itemLabel="#{_ordenFabricacion.numero}#{empty _ordenFabricacion ? '' : ' - '}#{_ordenFabricacion.producto.nombre} #{not empty _ordenFabricacion.valorAtributoOrdenFabricacion ? ( _ordenFabricacion.valorAtributoOrdenFabricacion.nombre ) : ''}"
+											forceSelection="true" required="true" minQueryLength="2" dropdown="true">
+											<p:column headerText="#{msgs.lbl_numero}">
+												<h:outputText value="#{_ordenFabricacion.numero}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_codigo_producto}">
+												<h:outputText value="#{_ordenFabricacion.producto.codigo}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_ordenFabricacion.producto.nombre}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_fecha_lanzamiento}">
+												<h:outputText value="#{_ordenFabricacion.fechaLanzamiento}">
+													<f:convertDateTime pattern="#{ingresoFabricacionBean.formatoFecha}" timeZone="America/Guayaquil" />
+												</h:outputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_atributo}">
+												<h:outputText value="#{_ordenFabricacion.valorAtributoOrdenFabricacion.nombre}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_nota}">
+												<h:outputText value="#{_ordenFabricacion.descripcion}" />
+											</p:column>
+
+											<p:ajax process="@this" global="false" event="itemSelect" listener="#{ingresoFabricacionBean.ordenFabricacionValueChanged}"
+												update=":form:panelCabecera" />
+											<!-- <p:ajax process="@this" global="false" event="change" listener="#{ingresoFabricacionBean.ordenFabricacionValueChanged}"
+											update=":form:panelCabecera" />-->
+										</p:autoComplete>
+
+
+										<p:selectOneRadio id="ckbBusquedaPorOrdenFabricacion" value="#{ingresoFabricacionBean.busquedaPorOrdenFabricacion}">
+											<f:selectItem itemLabel="#{msgs.lbl_orden}" itemValue="ORDEN" />
+											<f:selectItem itemLabel="#{msgs.lbl_suborden}" itemValue="SUBORDEN" />
+											<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="TODOS" />
+											<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+										</p:selectOneRadio>
+
+									</h:panelGrid>
+
+									<p:spacer />
+									<h:panelGrid columns="4" id="panelGridOrdenFabricacion">
+										<p:outputLabel value="#{msgs.lbl_planificada}:" />
+										<h:outputText value="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion.cantidad}" id="outCantidadPlanificada" />
+
+										<p:outputLabel value="#{msgs.lbl_producida}:" />
+										<h:outputText value="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion.cantidadFabricada}" id="outCantidadFabricada" />
+
+										<p:outputLabel value="#{msgs.lbl_por_producir}:" />
+										<h:outputText value="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion.cantidadPorProducir}" id="outCantidadPorProducir" />
+									</h:panelGrid>
+
+									<p:outputLabel for="cboPersonaResponsable" value="#{msgs.lbl_responsable}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboPersonaResponsable"
+										value="#{ingresoFabricacionBean.ajusteInventario.responsableSalidaMercaderia}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{ingresoFabricacionBean.listaPersonaResponsable}" var="_personaResponsable"
+											itemLabel="#{_personaResponsable.nombres} #{_personaResponsable.apellidos}" itemValue="#{_personaResponsable}" />
+										<p:ajax process="@this" global="false" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_maquina}:" />
+									<p:outputPanel id="panelMaterial">
+										<h:panelGrid columns="3">
+											<p:selectOneMenu value="#{ingresoFabricacionBean.ajusteInventario.maquina}">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{ingresoFabricacionBean.listaMaquina}" var="_maquina" itemLabel="#{_maquina.nombre}" itemValue="#{_maquina}" />
+												<p:ajax process="@this" global="false" partialSubmit="true" />
+											</p:selectOneMenu>
+											<p:selectBooleanCheckbox itemLabel="#{msgs.lbl_todos}" value="#{ingresoFabricacionBean.indicadorTodosMaterial}">
+												<p:ajax process="@this" global="false" partialSubmit="true" update=":form:panelMaterial"></p:ajax>
+											</p:selectBooleanCheckbox>
+										</h:panelGrid>
+									</p:outputPanel>
+
+									<p:outputLabel for="txtCantidadOrigen" value="#{msgs.lbl_cantidad}:" rendered="#{!ingresoFabricacionBean.mostrarBalanza}" />
+									<h:panelGrid columns="4" columnClasses="columnaEtiqueta" rendered="#{!ingresoFabricacionBean.mostrarBalanza}">
+										<p:inputText size="10" id="txtCantidadOrigen" value="#{ingresoFabricacionBean.detalleMovimientoInventario.cantidadOrigen}" required="true"
+											disabled="#{empty ingresoFabricacionBean.ajusteInventario.ordenFabricacion}">
+											<p:ajax listener="#{ingresoFabricacionBean.actualizarCantidadDetalle}" process="@this" update="outCantidadUnidad" />
+										</p:inputText>
+										<p:selectOneMenu styleClass="input-text" value="#{ingresoFabricacionBean.detalleMovimientoInventario.unidadConversion}"
+											id="cboUnidadConversion" required="true" disabled="#{empty ingresoFabricacionBean.ajusteInventario.ordenFabricacion}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{ingresoFabricacionBean.detalleMovimientoInventario.producto.traListaUnidadConversion}" var="_unidadConversion"
+												itemLabel="#{_unidadConversion.nombre}" itemValue="#{_unidadConversion}" />
+											<p:ajax listener="#{ingresoFabricacionBean.actualizarCantidadDetalle}" process="@this" event="change" update="outCantidadUnidad" />
+										</p:selectOneMenu>
+										<h:outputText id="outCantidadUnidad"
+											value="#{ingresoFabricacionBean.detalleMovimientoInventario.cantidad} #{ingresoFabricacionBean.detalleMovimientoInventario.producto.unidad.codigo}" />
+
+										<h:panelGroup id="panelUnidadInformativa"
+											rendered="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion.producto.indicadorManejaUnidadInformativa}">
+											<p:outputLabel for="txtCantidadUnidadInformativa" id="outUnidadInformativa"
+												value="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion.producto.unidadInformativa.nombre}:" />
+											<p:inputText size="10" id="txtCantidadUnidadInformativa"
+												value="#{ingresoFabricacionBean.detalleMovimientoInventario.cantidadUnidadInformativa}"
+												disabled="#{empty ingresoFabricacionBean.ajusteInventario.ordenFabricacion}" required="true">
+												<f:validateBean />
+												<p:ajax process="@this" partialSubmit="true" global="false" update="outCantidadUnidad" />
+											</p:inputText>
+										</h:panelGroup>
+									</h:panelGrid>
+
+									<p:outputLabel for="autoLoteProductoTerminado" value="#{msgs.lbl_lote}:"
+										rendered="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion.producto.indicadorLote}" />
+									<h:panelGrid columns="2" styleClass="columna90" cellpadding="0" cellspacing="0"
+										rendered="#{ingresoFabricacionBean.ajusteInventario.ordenFabricacion.producto.indicadorLote}">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="autoLoteProductoTerminado" styleClass="input-text"
+											value="#{ingresoFabricacionBean.detalleMovimientoInventario.lote}"
+											completeMethod="#{ingresoFabricacionBean.autocompletarLotesProductoTerminado}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+											forceSelection="true" dropdown="false" minQueryLength="2" required="false">
+
+											<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+											<p:ajax event="itemSelect" process="@this" update="@this" global="false" partialSubmit="true" />
+											<!-- <p:ajax event="change" process="@this" update="@this" global="false" partialSubmit="true" /> -->
+										</p:autoComplete>
+
+										<p:commandButton icon="ui-icon-newwin" id="btnCrearLote" update=":form:panelListaInventarioProductoLote" process="@this"
+											oncomplete="dglModalInventarioProductoLote.show();" action="#{ingresoFabricacionBean.crearLoteListener}"
+											title="#{msgs.lbl_crear} #{msgs.lbl_lote}">
+										</p:commandButton>
+									</h:panelGrid>
+
+									<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{ingresoFabricacionBean.detalleMovimientoInventario.descripcion}" id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+
+								</h:panelGrid>
+
+								<ui:include src="/template/lecturaBalanza.xhtml">
+									<ui:param name="bean" value="#{ingresoFabricacionBean}" />
+									<ui:param name="mostrarBalanza" value="#{ingresoFabricacionBean.mostrarBalanza}" />
+									<ui:param name="update" value=":form:panelDetalle :form:panelLecturaPeso :form:panelCabecera" />
+									<ui:param name="disabled" value="false" />
+								</ui:include>
+							</p:outputPanel>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<p:outputPanel id="panelDetalle">
+								<p:tabView cache="true" dynamic="false" id="tvDetalles">
+									<p:tab title="#{msgs.lbl_detalle}s">
+										<h:panelGrid columns="1" width="100%">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{ingresoFabricacionBean.ajusteInventario.detalleMovimientosInventario}"
+												id="tablaDetalle" rowIndexVar="secuencial" binding="#{ingresoFabricacionBean.dtDetalleAjuste}" emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalle.id}"
+												rows="#{ingresoFabricacionBean.numeroFilas}" rowsPerPageTemplate="#{ingresoFabricacionBean.numeroFilasPorPagina}"
+												sortBy="#{_detalle.fechaCreacion}" sortOrder="DESCENDING">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha}">
+													<h:outputText value="#{_detalle.fechaCreacion}">
+														<f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Guayaquil" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}" filterBy="#{_detalle.producto.codigo}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_detalle.producto.codigo}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="tableCell" filterBy="#{_detalle.producto.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_detalle.producto.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" headerText="#{msgs.lbl_lote}">
+													<h:outputText value="#{_detalle.lote.codigo}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo1}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo1.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo1.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo2}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo2.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo2.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo3}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo3.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo3.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo4}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo4.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo4.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo5}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo5.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo5.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo6}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo6.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo6.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo7}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo7.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo7.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo8}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo8.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo8.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo9}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo9.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo9.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty ingresoFabricacionBean.organizacionConfiguracion.atributo10}"
+													headerText="#{ingresoFabricacionBean.organizacionConfiguracion.atributo10.nombre}">
+													<h:outputText value="#{_detalle.lote.valorAtributo10.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_orden_fabricacion}" styleClass="columnaDTNumeroDocumento tableCell">
+													<h:outputText value="#{_detalle.movimientoInventario.ordenFabricacion.numero}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+													<h:outputText value="#{_detalle.cantidadOrigen}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad}">
+													<h:outputText value="#{_detalle.unidadConversion.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_total_unidades}">
+													<h:outputText value="#{_detalle.cantidad}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_informativa}">
+													<h:outputText value="#{_detalle.producto.unidadInformativa.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad_informativa}">
+													<h:outputText value="#{_detalle.cantidadUnidadInformativa}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_transformacion_producto}">
+													<h:link rendered="#{not empty _detalle.transformacionAutomatica}" target="_blank" outcome="/paginas/produccion/procesos/produccionBom"
+														value="#{_detalle.transformacionAutomatica.numero}" includeViewParams="true">
+														<f:param name="numeroTransformacion" value="#{_detalle.transformacionAutomatica.numero}" />
+													</h:link>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<h:outputText styleClass="input-text100" value="#{_detalle.descripcion}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell" exportable="false" headerText="#{msgs.lbl_recibido}">
+													<p:selectBooleanCheckbox disabled="true" value="#{_detalle.indicadorRecibido}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+													<p:commandButton id="btnImprimirEtiqueta" icon="ui-icon-print" title="#{msgs.btn_imprimir}"
+														actionListener="#{ingresoFabricacionBean.seleccionarDetalleSeleccionado}" update=":form:panelDialogImprimirEtiqueta"
+														process="@this :form:panelDetalle" disabled="#{!_detalle.indicadorRecibido}" oncomplete="dialogImprimirEtiqueta.show();">
+													</p:commandButton>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+													<p:commandButton id="btnEliminarDetalle" oncomplete="dialogConfirmarEliminarDetalle.show()" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update="@this :form:panelDialogEliminarDetalle" process="@this :form:panelDetalle"
+														disabled="#{(ingresoFabricacionBean.permiteEliminacionIngresoProduccion and _detalle.movimientoInventario.ordenFabricacion.estado=='FINALIZADA') or (!ingresoFabricacionBean.permiteEliminacionIngresoProduccion and _detalle.indicadorRecibido == true)}">
+														<f:setPropertyActionListener target="#{ingresoFabricacionBean.detalleSeleccionado}" value="#{_detalle}" />
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+									</p:tab>
+									<p:tab title="#{msgs.lbl_lectura_balanza}" id="tabDetallePesadas" rendered="#{ingresoFabricacionBean.mostrarBalanza}">
+										<p:outputPanel id="panelDetallePesadas">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{ingresoFabricacionBean.listaLecturaBalanza}" id="tablaLecturaBalanza"
+												rowIndexVar="secuencial" binding="#{ingresoFabricacionBean.dtLecturaBalanza}" emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_lecturaBalanza" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_lecturaBalanza.rowKey}"
+												rows="#{ingresoFabricacionBean.numeroFilas}" rowsPerPageTemplate="#{ingresoFabricacionBean.numeroFilasPorPagina}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalle.producto.codigo}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.producto.codigo}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" filterBy="#{_lecturaBalanza.producto.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.producto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_lecturaBalanza.unidadManejo.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.unidadManejo.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_pallet}" filterBy="#{_lecturaBalanza.pallet.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.pallet.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValorCorto tableCell" headerText="# #{msgs.lbl_unidad_manejo}">
+													<h:outputText value="#{_lecturaBalanza.numeroUnidadesManejo}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_bruto}">
+													<h:outputText value="#{_lecturaBalanza.pesoBruto}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_neto}">
+													<h:outputText value="#{_lecturaBalanza.pesoNeto}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+													<h:outputText value="#{_lecturaBalanza.cantidad}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarPesada" action="#{ingresoFabricacionBean.eliminarLecturaBalanza(_lecturaBalanza)}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:panelDetalle :form:panelGridOrdenFabricacion" process="@this">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</p:outputPanel>
+									</p:tab>
+								</p:tabView>
+							</p:outputPanel>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_ingreso_fabricacion})" rendered="#{!ingresoFabricacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAjustes" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{ingresoFabricacionBean.listaAjusteInventario}" var="_ajusteInventario" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{ingresoFabricacionBean.dtListaAjuste}" rows="#{ingresoFabricacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{ingresoFabricacionBean.numeroFilasPorPagina}" selection="#{ingresoFabricacionBean.ajusteInventario}"
+							selectionMode="single" rowKey="#{_ajusteInventario.id}" sortBy="#{_ajusteInventario.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.numero}" filterBy="#{_ajusteInventario.numero}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.fecha}">
+									<f:convertDateTime pattern="#{ingresoFabricacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.ordenFabricacion.numero}" filterBy="#{_ajusteInventario.ordenFabricacion.numero}"
+								styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_orden_fabricacion}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.ordenFabricacion.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.documento.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.documento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.ordenFabricacion.producto.codigo}" filterBy="#{_ajusteInventario.ordenFabricacion.producto.codigo}"
+								styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_producto2}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.ordenFabricacion.producto.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.ordenFabricacion.producto.nombre}" filterBy="#{_ajusteInventario.ordenFabricacion.producto.nombre}"
+								styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre_producto}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.ordenFabricacion.producto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.sucursal.nombre}" filterBy="#{_ajusteInventario.sucursal.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.sucursal.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajusteInventario.asiento.numero}" filterBy="#{_ajusteInventario.asiento.numero}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _ajusteInventario.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_ajusteInventario.asiento.numero}">
+									<f:param name="idAsiento" value="#{_ajusteInventario.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_estado}" filterBy="#{_ajusteInventario.estado}" filterOptions="#{ingresoFabricacionBean.listaEstadoItem}"
+								styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_ajusteInventario.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="ui-icon-check" process="@this" action="#{ingresoFabricacionBean.contabilizar(_ajusteInventario)}"
+										update=":form:panelListado">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{ingresoFabricacionBean.ajusteInventario.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{ingresoFabricacionBean.ajusteInventario.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{ingresoFabricacionBean.ajusteInventario.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{ingresoFabricacionBean.ajusteInventario.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

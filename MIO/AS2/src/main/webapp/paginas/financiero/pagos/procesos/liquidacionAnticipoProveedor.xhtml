@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{liquidacionAnticipoProveedorBean}" />
+				<p:separator />
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_liquidacion_anticipo_proveedor_titulo_panel_anticipo}">
+						<h:panelGrid id="panelAnticipo" columns="#{liquidacionAnticipoProveedorBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:outputText id="txtNumeroAnticipo" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.numero}" />
+
+							<h:outputText value="#{msgs.lbl_proveedor}:" />
+							<h:outputText id="txtEmpresa" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.empresa.nombreComercial}" />
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:outputText id="txtFechaAnticipo" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.fecha}">
+								<f:convertDateTime pattern="#{liquidacionAnticipoProveedorBean.formatoFecha}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<h:outputText id="txtValorAnticipo" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.valor}">
+								<f:convertNumber pattern="#{liquidacionAnticipoProveedorBean.formatoDinero}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_saldo}:" />
+							<h:outputText id="txtSaldoAnticipo" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.saldo}">
+								<f:convertNumber pattern="#{liquidacionAnticipoProveedorBean.formatoDinero}" />
+							</h:outputText>
+
+						</h:panelGrid>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{liquidacionAnticipoProveedorBean.anticipoProveedor.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_liquidacion_anticipo_proveedor_titulo_panel_edicion}">
+						<h:panelGrid id="panelDetalle" columns="#{liquidacionAnticipoProveedorBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true"
+								value="#{liquidacionAnticipoProveedorBean.liquidacionAnticipoProveedor.documento}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{liquidacionAnticipoProveedorBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento}" />
+								<f:validateBean />
+
+								<p:ajax process="@this" update=":form:txtNumero" listener="#{liquidacionAnticipoProveedorBean.actualizarDocumento}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputMask id="txtNumero" value="#{liquidacionAnticipoProveedorBean.liquidacionAnticipoProveedor.numero}"
+								mask="#{liquidacionAnticipoProveedorBean.liquidacionAnticipoProveedor.documento.secuencia.patron}">
+								<f:validateBean />
+							</p:inputMask>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{liquidacionAnticipoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{liquidacionAnticipoProveedorBean.liquidacionAnticipoProveedor.fecha}" id="calFecha" required="true">
+								<f:validateBean />
+							</p:calendar>
+						</h:panelGrid>
+
+						<p:commandButton process="@this" value="#{msgs.btn_liquidacion_anticipo_proveedor_cargar_facturas_pendientes}" update=":form:panelGridFacturas"
+							action="#{liquidacionAnticipoProveedorBean.cargarFacturasPendientes}" />
+
+						<h:panelGrid columns="1" id="panelGridFacturas">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturas" rowIndexVar="secuencialFacturas"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{liquidacionAnticipoProveedorBean.listaDetalleLiquidacionAnticipoProveedor}" var="_factura"
+								paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{liquidacionAnticipoProveedorBean.numeroFilas}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_liquidacion_anticipo_proveedor_titulo_panel_facturas}" />
+								</f:facet>
+
+								<p:column headerText="Nª" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencialFacturas+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_numero}" filterBy="#{_factura.cuentaPorPagar.facturaProveedor.numero}" filterMatchMode="contains"
+									styleClass="columnaDTNumeroFactura tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.facturaProveedor.numero}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_liquidacion_anticipo_proveedor_numero_factura}"
+									filterBy="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" filterMatchMode="contains"
+									styleClass="columnaDTNumeroFactura tableCell">
+									<h:outputText rendered="#{empty _factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI}"
+										value="#{_factura.cuentaPorPagar.facturaProveedor.referencia3}" />
+									<h:outputText rendered="#{not empty _factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI}"
+										value="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_liquidacion_anticipo_proveedor_fecha_emision_factura}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.facturaProveedor.fecha}">
+										<f:convertDateTime pattern="#{liquidacionAnticipoProveedorBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_liquidacion_anticipo_proveedor_fecha_vencimiento_factura}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.fechaVencimiento}">
+										<f:convertDateTime pattern="#{liquidacionAnticipoProveedorBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_liquidacion_anticipo_proveedor_numero_cuota}" styleClass="columnaDTCodigo tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.numeroCuota}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_liquidacion_anticipo_proveedor_valor_pendiente}" styleClass="columnaDTValorGrande tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.saldo}">
+										<f:convertNumber pattern="#{liquidacionAnticipoProveedorBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_liquidacion_anticipo_proveedor_valor_factura_a_liquidar}" styleClass="columnaDTValorGrande tableCell">
+									<p:inputText styleClass="input-text" id="txtValor" value="#{_factura.valor}" required="true">
+										<f:validateBean />
+										<p:ajax process="@this :form:panelGridFacturas" update=":form:panelGridFacturas" />
+									</p:inputText>
+								</p:column>
+
+								<p:columnGroup type="footer">
+									<p:row>
+										<p:column colspan="7" footerText="#{msgs.lbl_liquidacion_anticipo_proveedor_total_liquidado}" style="text-align:right" />
+										<p:column>
+											<f:facet name="footer" style="text-align:right">
+												<h:outputText value="#{liquidacionAnticipoProveedorBean.totalLiquidado}">
+													<f:convertNumber pattern="#{liquidacionAnticipoProveedorBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+
+									<p:row>
+										<p:column colspan="7" footerText="#{msgs.lbl_liquidacion_anticipo_proveedor_diferencia}" style="text-align:right" />
+										<p:column>
+											<f:facet name="footer" style="text-align:right">
+												<h:outputText
+													value="#{liquidacionAnticipoProveedorBean.liquidacionAnticipoProveedor.anticipoProveedor.saldo - liquidacionAnticipoProveedorBean.totalLiquidado}">
+													<f:convertNumber pattern="#{liquidacionAnticipoProveedorBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+								</p:columnGroup>
+							</p:dataTable>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,2035 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{planPersonalizadoHorarioEmpleadoBean}">
+
+					<as2:buttonEliminar bean="#{planPersonalizadoHorarioEmpleadoBean}">
+						<h:outputText value="#{msgs.lbl_departamento}:" />
+						<h:outputText value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.departamento.nombre}" />
+
+						<h:outputText value="#{msgs.lbl_horario_empleado}:" />
+						<h:outputText value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.horarioEmpleado.nombre}" />
+
+						<h:outputText value="#{msgs.lbl_mes}:" />
+						<h:outputText value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.mes}" />
+
+						<h:outputText value="#{msgs.lbl_anio}:" />
+						<h:outputText value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.anno}" />
+
+					</as2:buttonEliminar>
+
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{planPersonalizadoHorarioEmpleadoBean.copiar}" update=":form:panelContenedor"
+						rendered="#{!planPersonalizadoHorarioEmpleadoBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonExportaExcel bean="#{planPersonalizadoHorarioEmpleadoBean}" tabla=":form:tablaPlanPersonalizadoHorarioEmpleados" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{planPersonalizadoHorarioEmpleadoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_plan_personalizado_horario_empleado})">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{planPersonalizadoHorarioEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboDepartamento" value="#{msgs.lbl_departamento_empleado}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.departamento}"
+									id="cboDepartamento" required="true" disabled="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.id != 0}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+										itemValue="#{_departamento}" />
+									<p:ajax process="@this" listener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDetalles}"
+										update=":form:panelDetalles :form:cboHorarioEmpleado" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboHorarioEmpleado" value="#{msgs.lbl_horario_empleado}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.horarioEmpleado}"
+									id="cboHorarioEmpleado" required="true" disabled="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.id != 0}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaHorarioEmpleado}" var="_horarioEmpleado"
+										itemLabel="#{_horarioEmpleado.nombre}" itemValue="#{_horarioEmpleado}" />
+									<p:ajax process="@this" listener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDetalles}" update=":form:panelDetalles" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboMes" value="#{msgs.lbl_mes}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.mes}" id="cboMes"
+									required="true" disabled="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.id != 0}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaMes}" />
+									<p:ajax process="@this" listener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDetalles}" update=":form:panelDetalles" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="spAnno" value="#{msgs.lbl_anio}:" />
+								<p:spinner id="spAnno" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.anno}" min="2000" max="2500"
+									disabled="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.id != 0}">
+									<p:ajax process="@this" listener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDetalles}" update=":form:panelDetalles" global="false" />
+								</p:spinner>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.descripcion}"
+									id="txtDescripcion">
+								</p:inputTextarea>
+								<p:spacer />
+								<p:panelGrid columns="#{registroAsistenciaBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<h:outputText value="#819FF7" style="background-color:#819FF7; color:#819FF7" />
+									<h:outputText value="#{msgs.lbl_leyenda_dia_descanso}" />
+									<h:outputText value="#FFDAB9" style="background-color:#FFDAB9; color:#FFDAB9" />
+									<h:outputText value="#{msgs.lbl_dia_complementario}" />
+								</p:panelGrid>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer />
+						<p:outputPanel id="panelDetalles">
+							<p:dialog header="Grupos" widgetVar="seleccionarGrupo" modal="true" height="auto" width="auto" showEffect="slide" hideEffect="slide"
+								closable="true">
+								<p:ajax event="close" listener="#{planPersonalizadoHorarioEmpleadoBean.limpiarIndicadores}" />
+
+								<p:outputPanel id="panelGrupoTrabajo">
+									<h:panelGrid id="pnlGrdGrupoTrabajo" columns="#{planPersonalizadoHorarioEmpleadoBean.numeroColumnasPanelNuevo}"
+										columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+										<p:outputLabel for="cboGrupoTrabajoEmpleado" value="#{msgs.lbl_grupo_trabajo_empleado}:" />
+										<p:selectOneMenu styleClass="input-text" value="#{planPersonalizadoHorarioEmpleadoBean.grupoTrabajoEmpleado}" id="cboGrupoTrabajoEmpleado">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaGrupoTrabajoEmpleado}" var="_grupoTrabajo"
+												itemLabel="#{_grupoTrabajo.nombre}" itemValue="#{_grupoTrabajo}" />
+											<p:ajax process="@this" />
+											<f:validateBean />
+										</p:selectOneMenu>
+
+										<p:outputLabel value="#{msgs.lbl_turno}:" />
+										<p:selectOneMenu style="text-align: left;" value="#{planPersonalizadoHorarioEmpleadoBean.turnoDialogo}" required="false">
+											<f:selectItem itemLabel="" itemValue="" />
+											<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}" itemValue="#{_turno}" />
+											<p:ajax process="@this" event="change" global="false" />
+										</p:selectOneMenu>
+
+										<p:outputLabel value="#{msgs.lbl_seleccionar} #{msgs.lbl_todos}:" />
+										<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.seleccionarTodos}">
+											<p:ajax listener="#{planPersonalizadoHorarioEmpleadoBean.cambiarTodos}" update="pnlGrdPrimeraQuincena, pnlGrdSegundaQuincena"
+												process="@this" global="false" />
+										</p:selectBooleanCheckbox>
+
+									</h:panelGrid>
+									<h:panelGrid id="pnlGrdPrimeraQuincena" columns="2" rendered="#{planPersonalizadoHorarioEmpleadoBean.renderPanelDias}"
+										columnClasses="columnaMitad, columnaMitad">
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<h:outputText value="#{msgs.lbl_seleccionar}" />
+											<h:outputText value="#{msgs.lbl_leyenda_dia_descanso}" style="background-color:#819FF7;" />
+											<h:outputText value="#{msgs.lbl_dia_complementario}" style="background-color:#FFDAB9;" />
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<h:outputText value="Seleccionar" />
+											<h:outputText value="#{msgs.lbl_leyenda_dia_descanso}" style="background-color:#819FF7;" />
+											<h:outputText value="#{msgs.lbl_dia_complementario}" style="background-color:#FFDAB9;" />
+										</p:panelGrid>
+										<h:outputText value="1-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(1)}" />
+										<h:outputText value="2-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(2)}" />
+
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia1}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso1}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario1}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia2}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso2}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario2}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+
+										<h:outputText value="3-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(3)}" />
+										<h:outputText value="4-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(4)}" />
+
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia3}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso3}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario3}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia4}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso4}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario4}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="5-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(5)}" />
+										<h:outputText value="6-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(6)}" />
+
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia5}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso5}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario5}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia6}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso6}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario6}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="7-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(7)}" />
+										<h:outputText value="8-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(8)}" />
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia7}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso7}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario7}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia8}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso8}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario8}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+
+										<h:outputText value="9-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(9)}" />
+										<h:outputText value="10-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(10)}" />
+
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia9}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso9}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario9}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia10}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso10}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario10}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="11-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(11)}" />
+										<h:outputText value="12-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(12)}" />
+
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia11}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso11}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario11}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia12}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso12}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario12}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="13-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(13)}" />
+										<h:outputText value="14-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(14)}" />
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia13}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso13}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario13}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia14}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso14}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario14}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="15-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(15)}" />
+										<p:spacer />
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia15}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso15}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario15}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+
+									</h:panelGrid>
+									<h:panelGrid id="pnlGrdSegundaQuincena" columns="2" rendered="#{!planPersonalizadoHorarioEmpleadoBean.renderPanelDias}"
+										columnClasses="columnaMitad, columnaMitad">
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<h:outputText value="#{msgs.lbl_seleccionar}" />
+											<h:outputText value="#{msgs.lbl_leyenda_dia_descanso}" style="background-color:#819FF7;" />
+											<h:outputText value="#{msgs.lbl_dia_complementario}" style="background-color:#FFDAB9;" />
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<h:outputText value="Seleccionar" />
+											<h:outputText value="#{msgs.lbl_leyenda_dia_descanso}" style="background-color:#819FF7;" />
+											<h:outputText value="#{msgs.lbl_dia_complementario}" style="background-color:#FFDAB9;" />
+										</p:panelGrid>
+										<h:outputText value="16-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(16)}" />
+										<h:outputText value="17-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(17)}" />
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia1}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso1}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario1}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia2}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso2}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario2}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="18-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(18)}" />
+										<h:outputText value="19-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(19)}" />
+
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia3}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso3}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario3}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia4}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso4}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario4}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="20-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(20)}" />
+										<h:outputText value="21-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(21)}" />
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia5}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso5}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario5}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia6}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso6}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario6}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="22-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(22)}" />
+										<h:outputText value="23-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(23)}" />
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia7}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso7}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario7}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia8}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso8}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario8}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText value="24-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(24)}" />
+										<h:outputText value="25-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(25)}" />
+
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia9}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso9}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario9}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid columns="3" columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia10}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso10}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario10}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+
+										<h:outputText rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 26}"
+											value="26-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(26)}" />
+										<h:outputText rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 27}"
+											value="27-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(27)}" />
+
+										<p:panelGrid rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 26}" columns="3"
+											columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia11}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso11}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario11}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 27}" columns="3"
+											columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia12}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso12}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario12}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<h:outputText rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 28}"
+											value="28-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(28)}" />
+										<p:spacer rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes == 28}" />
+										<h:outputText rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 29}"
+											value="29-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(29)}" />
+
+										<p:panelGrid rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 28}" columns="3"
+											columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia13}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso13}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario13}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 29}" columns="3"
+											columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia14}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso14}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario14}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+
+										<h:outputText rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 30}"
+											value="30-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(30)}" />
+										<p:spacer rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes == 30}" />
+										<h:outputText rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 31}"
+											value="31-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(31)}" />
+
+										<p:panelGrid rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 30}" columns="3"
+											columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia15}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso15}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario15}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+										<p:panelGrid rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 31}" columns="3"
+											columnClasses="columnaBoton,columnaBoton,columnaBoton">
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.dia31}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaDescanso31}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+											<p:selectBooleanCheckbox value="#{planPersonalizadoHorarioEmpleadoBean.diaComplementario31}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</p:panelGrid>
+
+									</h:panelGrid>
+								</p:outputPanel>
+
+								<f:facet name="footer">
+									<center>
+										<p:commandButton id="btnAdicionarOtrosDespachos" action="#{planPersonalizadoHorarioEmpleadoBean.copiarTurno}" value="Copiar Grupo"
+											oncomplete="seleccionarGrupo.hide();" process="@this" update=":form:panelDetalles">
+										</p:commandButton>
+										<p:commandButton id="btnCancelar" value="#{msgs.btn_cancelar}" oncomplete="seleccionarGrupo.hide();" process="@this">
+										</p:commandButton>
+									</center>
+								</f:facet>
+							</p:dialog>
+							<p:tabView cache="true" dynamic="true" id="tvDetalles">
+
+								<p:tab id="tvDetalles1" title="#{msgs.lbl_primera} #{msgs.lbl_quincena}">
+									<p:outputPanel id="panelQuincena1">
+										<p:commandButton process="@this" global="false" value="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"
+											action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}" icon="eliminar">
+											<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="115"></f:setPropertyActionListener>
+										</p:commandButton>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+											value="#{planPersonalizadoHorarioEmpleadoBean.listaDetallePlanPersonalizadoHorarioEmpleado}" id="tablaDetalle1" rowIndexVar="secuencial"
+											binding="#{planPersonalizadoHorarioEmpleadoBean.dtDetallePlanPersonalizadoHorarioEmpleado1}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowsPerPageTemplate="#{planPersonalizadoHorarioEmpleadoBean.numeroFilasPorPagina}" selectionMode="single" rows="15" rowKey="#{_detalle.id}"
+											selection="#{planPersonalizadoHorarioEmpleadoBean.detallePlanPersonalizadoSeleccionado}" editable="true" editMode="cell">
+
+											<p:column headerText="N?" styleClass="columnaDTAccion tableCell0">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empleado}" filterBy="#{_detalle.empleado.filtro}"
+												filterMatchMode="contains">
+												<h:outputText value="#{_detalle.empleado.nombreCompleto}" />
+											</p:column>
+
+											<p:column id="col1" styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 1}">
+												<f:facet name="header">
+													<h:outputText value="1-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(1)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(1)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="1"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="1"></f:setPropertyActionListener>
+													</p:commandLink>
+
+												</f:facet>
+												<p:cellEditor id="edit1">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol1">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso1 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario1 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno1.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno1}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit1" id="cm1">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso1 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(1,_detalle, true)}" update="panelCol1 cm1" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario1 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(1,_detalle, false)}" update="panelCol1 cm1"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 2}">
+												<f:facet name="header">
+													<h:outputText value="2-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(2)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(2)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="2"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="2"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit2">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol2">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso2 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario2 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno2.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno2}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit2" id="cm2">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso2 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(2,_detalle, true)}" update="panelCol2 cm2" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario2 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(2,_detalle, false)}" update="panelCol2 cm2"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 3}">
+												<f:facet name="header">
+													<h:outputText value="3-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(3)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(3)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="3"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="3"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit3">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol3">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso3 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario3 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno3.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno3}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit3" id="cm3">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso3 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(3,_detalle, true)}" update="panelCol3 cm3" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario3 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(3,_detalle, false)}" update="panelCol3 cm3"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 4}">
+												<f:facet name="header">
+													<h:outputText value="4-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(4)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(4)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="4"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="4"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit4">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol4">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso4 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario4 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno4.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno4}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit4" id="cm4">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso4 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(4,_detalle, true)}" update="panelCol4 cm4" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario4 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(4,_detalle, false)}" update="panelCol4 cm4"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 5}">
+												<f:facet name="header">
+													<h:outputText value="5-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(5)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(5)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="5"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="5"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit5">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol5">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso5 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario5 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno5.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno5}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit5" id="cm5">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso5 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(5,_detalle, true)}" update="panelCol5 cm5" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario5 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(5,_detalle, false)}" update="panelCol5 cm5"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 6}">
+												<f:facet name="header">
+													<h:outputText value="6-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(6)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(6)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="6"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="6"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit6">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol6">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso6 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario6 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno6.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno6}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit6" id="cm6">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso6 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(6,_detalle, true)}" update="panelCol6 cm6" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario6 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(6,_detalle, false)}" update="panelCol6 cm6"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 7}">
+												<f:facet name="header">
+													<h:outputText value="7-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(7)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(7)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="7"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="7"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit7">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol7">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso7 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario7 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno7.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno7}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit7" id="cm7">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso7 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(7,_detalle, true)}" update="panelCol7 cm7" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario7 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(7,_detalle, false)}" update="panelCol7 cm7"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 8}">
+												<f:facet name="header">
+													<h:outputText value="8-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(8)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(8)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="8"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="8"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit8">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol8">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso8 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario8 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno8.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno8}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit8" id="cm8">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso8 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(8,_detalle, true)}" update="panelCol8 cm8" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario8 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(8,_detalle, false)}" update="panelCol8 cm8"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 9}">
+												<f:facet name="header">
+													<h:outputText value="9-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(9)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(9)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="9"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="9"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit9">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol9">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso9 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario9 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno9.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno9}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit9" id="cm9">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso9 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(9,_detalle, true)}" update="panelCol9 cm9" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario9 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(9,_detalle, false)}" update="panelCol9 cm9"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 10}">
+												<f:facet name="header">
+													<h:outputText value="10-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(10)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(10)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="10"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="10"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit10">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol10">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso10 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario10 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno10.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno10}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit10" id="cm10">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso10 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(10,_detalle, true)}" update="panelCol10 cm10" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario10 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(10,_detalle, false)}" update="panelCol10 cm10"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 11}">
+												<f:facet name="header">
+													<h:outputText value="11-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(11)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(11)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="11"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="12"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit11">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol11">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso11 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario11 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno11.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno11}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit11" id="cm11">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso11 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(11,_detalle, true)}" update="panelCol11 cm11" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario11 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(11,_detalle, false)}" update="panelCol11 cm11"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 12}">
+												<f:facet name="header">
+													<h:outputText value="12-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(12)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(12)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="12"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="12"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit12">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol12">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso12 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario12 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno12.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno12}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit12" id="cm12">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso12 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(12,_detalle, true)}" update="panelCol12 cm12" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario12 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(12,_detalle, false)}" update="panelCol12 cm12"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 13}">
+												<f:facet name="header">
+													<h:outputText value="13-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(13)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(13)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="13"></f:setPropertyActionListener>
+													</p:commandLink><p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="13"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit13">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol13">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso13 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario13 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno13.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno13}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit13" id="cm13">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso13 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(13,_detalle, true)}" update="panelCol13 cm13" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario13 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(13,_detalle, false)}" update="panelCol13 cm13"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 14}">
+												<f:facet name="header">
+													<h:outputText value="14-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(14)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(14)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="14"></f:setPropertyActionListener>
+													</p:commandLink><p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="14"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit14">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol14">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso14 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario14 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno14.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno14}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit14" id="cm14">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso14 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(14,_detalle, true)}" update="panelCol14 cm14" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario14 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(14,_detalle, false)}" update="panelCol14 cm14"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 15}">
+												<f:facet name="header">
+													<h:outputText value="15-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(15)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(15)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="15"></f:setPropertyActionListener>
+													</p:commandLink><p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="15"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit15">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol15">
+															<h:outputText styleClass="#{_detalle.indicadorDiaDescanso15 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario15 == true ? 'color_pagoSuplementarias' : ''}" value="#{_detalle.turno15.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno15}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit15" id="cm15">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso15 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(15,_detalle, true)}" update="panelCol15 cm15" icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario15 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(15,_detalle, false)}" update="panelCol15 cm15"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+										</p:dataTable>
+									</p:outputPanel>
+								</p:tab>
+								<p:tab id="tvDetalles2" title="#{msgs.lbl_segunda} #{msgs.lbl_quincena}">
+									<p:outputPanel id="panelQuincena2">
+										<p:commandButton process="@this" global="false" value="#{msgs.btn_eliminar} #{msgs.lbl_turno}s"
+											title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles" action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}"
+											icon="eliminar">
+											<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="215"></f:setPropertyActionListener>
+										</p:commandButton>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+											value="#{planPersonalizadoHorarioEmpleadoBean.listaDetallePlanPersonalizadoHorarioEmpleado}" id="tablaDetalle2" rowIndexVar="secuencial"
+											binding="#{planPersonalizadoHorarioEmpleadoBean.dtDetallePlanPersonalizadoHorarioEmpleado2}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowsPerPageTemplate="#{planPersonalizadoHorarioEmpleadoBean.numeroFilasPorPagina}" rows="15" rowKey="#{_detalle.id}" selectionMode="single"
+											selection="#{planPersonalizadoHorarioEmpleadoBean.detallePlanPersonalizadoSeleccionado}" editable="true" editMode="cell">
+
+											<p:column headerText="N?" styleClass="columnaDTAccion tableCell0">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empleado}" filterBy="#{_detalle.empleado.filtro}"
+												filterMatchMode="contains">
+												<h:outputText value="#{_detalle.empleado.nombreCompleto}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 16}">
+												<f:facet name="header">
+													<h:outputText value="16-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(16)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(16)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="16"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="16"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit16">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol16">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso16 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario16 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno16.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno16}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit16" id="cm16">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso16 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(16,_detalle, true)}" update="panelCol16 cm16"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario16 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(16,_detalle, false)}" update="panelCol16 cm16"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 17}">
+												<f:facet name="header">
+													<h:outputText value="17-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(17)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(17)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="17"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="17"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit17">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol17">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso17 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario17 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno17.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno17}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit17" id="cm17">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso17 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(17,_detalle, true)}" update="panelCol17 cm17"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario17 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(17,_detalle, false)}" update="panelCol17 cm17"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 18}">
+												<f:facet name="header">
+													<h:outputText value="18-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(18)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(18)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="18"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="18"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit18">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol18">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso18 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario18 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno18.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno18}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit18" id="cm18">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso18 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(18,_detalle, true)}" update="panelCol18 cm18"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario18 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(18,_detalle, false)}" update="panelCol18 cm18"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 19}">
+												<f:facet name="header">
+													<h:outputText value="19-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(19)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(19)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="19"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="19"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit19">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol19">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso19 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario19 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno19.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno19}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit19" id="cm19">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso19 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(19,_detalle, true)}" update="panelCol19 cm19"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario19 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(19,_detalle, false)}" update="panelCol19 cm19"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 20}">
+												<f:facet name="header">
+													<h:outputText value="20-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(20)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(20)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="20"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="20"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit20">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol20">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso20 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario20 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno20.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno20}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit20" id="cm20">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso20 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(20,_detalle, true)}" update="panelCol20 cm20"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario20 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(20,_detalle, false)}" update="panelCol20 cm20"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 21}">
+												<f:facet name="header">
+													<h:outputText value="21-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(21)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(21)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="21"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="21"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit21">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol21">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso21 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario21 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno21.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno21}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit21" id="cm21">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso21 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(21,_detalle, true)}" update="panelCol21 cm21"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario21 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(21,_detalle, false)}" update="panelCol21 cm21"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 22}">
+												<f:facet name="header">
+													<h:outputText value="22-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(22)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(22)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="22"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="22"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit22">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol22">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso22 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario22 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno22.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno22}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit22" id="cm22">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso22 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(22,_detalle, true)}" update="panelCol22 cm22"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario22 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(22,_detalle, false)}" update="panelCol22 cm22"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 23}">
+												<f:facet name="header">
+													<h:outputText value="23-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(23)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(23)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="23"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="23"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit23">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol23">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso23 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario23 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno23.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno23}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit23" id="cm23">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso23 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(23,_detalle, true)}" update="panelCol23 cm23"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario23 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(23,_detalle, false)}" update="panelCol23 cm23"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 24}">
+												<f:facet name="header">
+													<h:outputText value="24-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(24)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(24)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="24"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="24"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit24">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol24">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso24 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario24 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno24.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno24}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit24" id="cm24">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso24 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(24,_detalle, true)}" update="panelCol24 cm24"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario24 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(24,_detalle, false)}" update="panelCol24 cm24"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 25}">
+												<f:facet name="header">
+													<h:outputText value="25-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(25)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(25)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="25"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="25"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit25">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol25">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso25 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario25 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno25.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno25}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit25" id="cm25">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso25 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(25,_detalle, true)}" update="panelCol25 cm25"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario25 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(25,_detalle, false)}" update="panelCol25 cm25"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 26}">
+												<f:facet name="header">
+													<h:outputText value="26-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(26)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(26)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="26"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="26"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit26">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol26">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso26 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario26 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno26.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno26}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit26" id="cm26">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso26 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(26,_detalle, true)}" update="panelCol26 cm26"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario26 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(26,_detalle, false)}" update="panelCol26 cm26"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 27}">
+												<f:facet name="header">
+													<h:outputText value="27-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(27)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(27)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="27"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="27"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit27">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol27">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso27 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario27 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno27.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno27}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit27" id="cm27">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso27 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(27,_detalle, true)}" update="panelCol27 cm27"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario27 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(27,_detalle, false)}" update="panelCol27 cm27"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 28}">
+												<f:facet name="header">
+													<h:outputText value="28-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(28)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(28)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="28"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="28"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit28">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol28">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso28 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario28 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno28.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno28}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit28" id="cm28">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso28 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(28,_detalle, true)}" update="panelCol28 cm28"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario28 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(28,_detalle, false)}" update="panelCol28 cm28"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 29}">
+												<f:facet name="header">
+													<h:outputText value="29-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(29)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(29)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="29"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="29"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit29">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol29">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso29 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario29 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno29.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno29}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit29" id="cm29">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso29 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(29,_detalle, true)}" update="panelCol29 cm29"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario29 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(29,_detalle, false)}" update="panelCol29 cm29"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 30}">
+												<f:facet name="header">
+													<h:outputText value="30-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(30)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(30)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="30"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="30"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit30">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol30">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso30 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario30 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno30.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno30}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit30" id="cm30">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso30 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(30,_detalle, true)}" update="panelCol30 cm30"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario30 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(30,_detalle, false)}" update="panelCol30 cm30"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell0" rendered="#{planPersonalizadoHorarioEmpleadoBean.diasMes >= 31}">
+												<f:facet name="header">
+													<h:outputText value="31-#{planPersonalizadoHorarioEmpleadoBean.getDiaSemana(31)}" />
+													<br />
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_copiar}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.copiarColumna(31)}">
+														<h:graphicImage library="images" name="duplicate.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.lbl_seleccionar_grupo}" update=":form:panelDetalles"
+														action="#{planPersonalizadoHorarioEmpleadoBean.cargarGrupos}" oncomplete="seleccionarGrupo.show();">
+														<h:graphicImage library="images" name="upload.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="31"></f:setPropertyActionListener>
+													</p:commandLink>
+													<p:commandLink process="@this" global="false" title="#{msgs.btn_eliminar} #{msgs.lbl_turno}s" update=":form:panelDetalles"  action="#{planPersonalizadoHorarioEmpleadoBean.eliminarTurno}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{planPersonalizadoHorarioEmpleadoBean.numeroColumna}" value="31"></f:setPropertyActionListener>
+													</p:commandLink>
+												</f:facet>
+												<p:cellEditor id="edit31">
+													<f:facet name="output">
+														<p:outputPanel id="panelCol31">
+															<h:outputText
+																styleClass="#{_detalle.indicadorDiaDescanso31 == true ? 'color_dia_descanso' : _detalle.indicadorDiaComplementario31 == true ? 'color_pagoSuplementarias' : ''}"
+																value="#{_detalle.turno31.codigo}" />
+														</p:outputPanel>
+													</f:facet>
+													<f:facet name="input">
+														<p:selectOneMenu style="text-align: left;" value="#{_detalle.turno31}" required="false">
+															<f:selectItem itemLabel="" itemValue="" />
+															<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo}"
+																itemValue="#{_turno}" />
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectOneMenu>
+													</f:facet>
+												</p:cellEditor>
+												<p:contextMenu for="edit31" id="cm31">
+													<p:menuitem value="#{_detalle.indicadorDiaDescanso31 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_descanso}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(31,_detalle,true)}" update="panelCol31 cm31"
+														icon="ui-icon-disk" />
+													<p:menuitem value="#{_detalle.indicadorDiaComplementario31 == true ? msgs.lbl_dia_laborable : msgs.lbl_dia_complementario}"
+														actionListener="#{planPersonalizadoHorarioEmpleadoBean.actualizarDiaDescanso(31,_detalle, false)}" update="panelCol31 cm31"
+														icon="ui-icon-circle-plus" />
+												</p:contextMenu>
+											</p:column>
+										</p:dataTable>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!planPersonalizadoHorarioEmpleadoBean.editado}"
+						header="#{msgs.lbl_panel_listado} (#{msgs.lbl_plan_personalizado_horario_empleado})">
+
+						<h:panelGrid columns="#{planPersonalizadoHorarioEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboDepartamento1" value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{planPersonalizadoHorarioEmpleadoBean.departamentoSeleccionado}" id="cboDepartamento1">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{planPersonalizadoHorarioEmpleadoBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento}" />
+								<p:ajax process="@this" update=":form:panelListado" global="false" />
+							</p:selectOneMenu>
+
+							<p:spacer />
+							<p:spacer />
+						</h:panelGrid>
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlanPersonalizadoHorarioEmpleados" rowIndexVar="secuencialHorarioEmpleado"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{planPersonalizadoHorarioEmpleadoBean.listaPlanPersonalizadoHorarioEmpleado}"
+							var="planPersonalizadoHorarioEmpleado" binding="#{planPersonalizadoHorarioEmpleadoBean.dtPlanPersonalizadoHorarioEmpleado}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{planPersonalizadoHorarioEmpleadoBean.numeroFilas}"
+							rowsPerPageTemplate="#{planPersonalizadoHorarioEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado}" selectionMode="single"
+							rowKey="#{planPersonalizadoHorarioEmpleado.id}" sortBy="#{planPersonalizadoHorarioEmpleado.anno}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="N?">
+								<h:outputText value="#{secuencialHorarioEmpleado+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{planPersonalizadoHorarioEmpleado.departamento.nombre}"
+								filterBy="#{planPersonalizadoHorarioEmpleado.departamento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_departamento}" />
+								</f:facet>
+								<h:outputText value="#{planPersonalizadoHorarioEmpleado.departamento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{planPersonalizadoHorarioEmpleado.horarioEmpleado.nombre}"
+								filterBy="#{planPersonalizadoHorarioEmpleado.horarioEmpleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horario_empleado}" />
+								</f:facet>
+								<h:outputText value="#{planPersonalizadoHorarioEmpleado.horarioEmpleado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto" sortBy="#{planPersonalizadoHorarioEmpleado.mes}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_mes}" />
+								</f:facet>
+								<h:outputText value="#{planPersonalizadoHorarioEmpleado.mes}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto" sortBy="#{planPersonalizadoHorarioEmpleado.anno}"
+								filterBy="#{planPersonalizadoHorarioEmpleado.anno}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anio}" />
+								</f:facet>
+								<h:outputText value="#{planPersonalizadoHorarioEmpleado.anno}" />
+							</p:column>
+
+							<p:column sortBy="#{planPersonalizadoHorarioEmpleado.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{planPersonalizadoHorarioEmpleado.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{planPersonalizadoHorarioEmpleadoBean.planPersonalizadoHorarioEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

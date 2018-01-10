@@ -1,0 +1,102 @@
+<p:outputPanel id="panelListaActivoFijo"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+
+	<p:dialog header="#{msgs.lbl_panel_listado_activo_fijos}"
+		widgetVar="dglModalActivoFijo" modal="true" height="400" width="800"
+		showEffect="slide" hideEffect="slide">
+
+		<p:fieldset>
+
+			<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaActivoFijo" rowIndexVar="secuencia"
+				emptyMessage="#{msgs.msg_no_hay_datos}"
+				value="#{listaActivoFijoBean.listaActivoFijo}" var="_activoFijo"
+				binding="#{listaActivoFijoBean.dtActivoFijo}" paginator="true"
+				paginatorPosition="bottom" style="width:100%"
+				rowsPerPageTemplate="#{listaActivoFijoBean.numeroFilasPorPagina}"
+				rows="#{listaActivoFijoBean.numeroFilas}"
+				selection="#{bean.activoFijo}" selectionMode="single"
+				rowKey="#{_activoFijo.id}" lazy="true">
+
+				<p:column headerText="Nº">
+					<h:outputText value="#{secuencia+1}" />
+				</p:column>
+
+				<p:column sortBy="#{_activoFijo.codigo}"
+					filterBy="#{_activoFijo.codigo}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_codigo}" />
+					</f:facet>
+					<h:outputText value="#{_activoFijo.codigo}" />
+				</p:column>
+
+				<p:column sortBy="#{_activoFijo.nombre}"
+					filterBy="#{_activoFijo.nombre}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_nombre}" />
+					</f:facet>
+					<h:outputText value="#{_activoFijo.nombre}" />
+				</p:column>
+
+				<p:column sortBy="#{_activoFijo.categoriaActivo.nombre}"
+					filterBy="#{_activoFijo.categoriaActivo.nombre}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_categoria_activo}" />
+					</f:facet>
+					<h:outputText value="#{_activoFijo.categoriaActivo.nombre}" />
+				</p:column>
+
+				<p:column sortBy="#{_activoFijo.numeroSerie}"
+					filterBy="#{_activoFijo.numeroSerie}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_numero_serie}" />
+					</f:facet>
+					<h:outputText value="#{_activoFijo.numeroSerie}" />
+				</p:column>
+
+				<p:column headerText="#{msgs.lbl_imagen}">
+					<p:commandLink onclick="imagenDialog.show()" process="@this"
+						title="#{msgs.lbl_imagen}">
+
+						<h:graphicImage library="images" name="imagen.png"
+							style="height : 16px; width : 16px;" />
+
+						<f:setPropertyActionListener value="#{_activoFijo}"
+							target="#{activoFijoBean.activoFijo}" />
+					</p:commandLink>
+				</p:column>
+
+			</p:dataTable>
+
+		</p:fieldset>
+
+		<f:facet name="footer">
+			<center>
+				<p:commandButton value="#{msgs.lbl_seleccionar}"
+					action="#{bean.cargarActivoFijo}"
+					process="@this, panelListaActivoFijo"
+					onclick="dglModalActivoFijo.hide()" update="#{objetoActualizar}"
+					icon="ui-icon-plus" />
+			</center>
+		</f:facet>
+	</p:dialog>
+
+	<p:dialog header="#{msgs.lbl_imagen}" widgetVar="imagenDialog"
+		resizable="true" showEffect="fade" hideEffect="explode" modal="true">
+		<p:outputPanel id="panelImagen" autoUpdate="true">
+			<h:panelGrid columns="2">
+				<f:facet name="header">
+					<h:graphicImage
+						value="/images/dynamic/?file=#{activoFijoBean.activoFijo.imagen}"
+						width="400" height="300" />
+				</f:facet>
+			</h:panelGrid>
+		</p:outputPanel>
+	</p:dialog>
+
+</p:outputPanel>

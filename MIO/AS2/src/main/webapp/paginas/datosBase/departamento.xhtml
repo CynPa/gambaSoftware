@@ -1,0 +1,462 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<as2:toolBar bean="#{departamentoBean}">
+
+					<as2:buttonEliminar bean="#{departamentoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{departamentoBean.departamento.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{departamentoBean.departamento.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{departamentoBean}" tabla=":form:tablaDepartamento" />
+
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_departamento_panel}" rendered="#{departamentoBean.editado}">
+
+						<ui:include src="/template/listaEmpleado.xhtml">
+							<ui:param name="bean" value="#{departamentoBean}" />
+							<ui:param name="objetoActualizar" value=":form:panelSupervisor :form:panelSupervisor2" />
+						</ui:include>
+
+						<!-- INICIO DIALOG DE DOCUMENTOS DIGITALIZADOS NO ASIGNADOS -->
+						<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_documento_digitalizado}" widgetVar="listadoDocumentosDigitalizadosNoAsignados"
+							modal="true" height="360" width="560" showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelDocumentosDigitalizadosNoAsignados">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDocumentosDigitalizadosNoAsignados" rowIndexVar="secuencia"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{departamentoBean.listaDocumentosDigitalizadosNoAsignados}"
+									var="_documentoDigitalizadoNoAsignado" paginator="true" paginatorPosition="bottom" style="width:100%" rows="10"
+									rowKey="#{_documentoDigitalizadoNoAsignado.idDocumentoDigitalizado}"
+									selection="#{departamentoBean.listaDocumentosDigitalizadosSeleccionados}" rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" selectionMode="multiple" />
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_documentoDigitalizadoNoAsignado.codigo}"
+										filterBy="#{_documentoDigitalizadoNoAsignado.codigo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+										<h:outputText value="#{_documentoDigitalizadoNoAsignado.codigo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCategoria tableCell" sortBy="#{_documentoDigitalizadoNoAsignado.categoriaDocumentoDigitalizado.nombre}"
+										filterBy="#{_documentoDigitalizadoNoAsignado.categoriaDocumentoDigitalizado.nombre}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_categoria}" />
+										</f:facet>
+										<h:outputText value="#{_documentoDigitalizadoNoAsignado.categoriaDocumentoDigitalizado.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_documentoDigitalizadoNoAsignado.nombre}"
+										filterBy="#{_documentoDigitalizadoNoAsignado.nombre}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nombre}" />
+										</f:facet>
+										<h:outputText value="#{_documentoDigitalizadoNoAsignado.nombre}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_agregar}" action="#{departamentoBean.agregarDocumentosDigitalizados}"
+										process="@this :form:panelDocumentosDigitalizadosNoAsignados"
+										update=":form:vistaTab:panelDocumentoDigitalizado :form:panelDocumentosDigitalizadosNoAsignados" />
+
+									<p:commandButton value="#{msgs.lbl_agregar_salir}" oncomplete="listadoDocumentosDigitalizadosNoAsignados.hide()"
+										action="#{departamentoBean.agregarDocumentosDigitalizados}" process="@this, :form:panelDocumentosDigitalizadosNoAsignados"
+										update=":form:vistaTab:panelDocumentoDigitalizado,:form:vistaTab:tabDocumentoDigitalizado, :form:vistaTab" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- FIN DIALOG DE DOCUMENTOS DIGITALIZADOS NO ASIGNADOS -->
+
+						<!-- INICIO DIALOG TURNOS NO ASIGNADOS -->
+						<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_turno}" widgetVar="listadoTurnosNoAsignados" modal="true" height="360" width="560"
+							showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelTurnosNoAsignados">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTurnosNoAsignados" rowIndexVar="secuencia"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{departamentoBean.listaTurnosNoAsignados}" var="_turnoNoAsignado" paginator="true"
+									paginatorPosition="bottom" style="width:100%" rows="10" rowKey="#{_turnoNoAsignado.rowKey}"
+									selection="#{departamentoBean.listaTurnosSeleccionados}" rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" selectionMode="multiple" />
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_turnoNoAsignado.codigo}" filterBy="#{_turnoNoAsignado.codigo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+										<h:outputText value="#{_turnoNoAsignado.codigo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_turnoNoAsignado.nombre}" filterBy="#{_turnoNoAsignado.nombre}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nombre}" />
+										</f:facet>
+										<h:outputText value="#{_turnoNoAsignado.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_turnoNoAsignado.horaEntrada}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_hora_entrada}" />
+										</f:facet>
+										<h:outputText value="#{_turnoNoAsignado.horaEntrada}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_turnoNoAsignado.horaSalida}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_hora_salida}" />
+										</f:facet>
+										<h:outputText value="#{_turnoNoAsignado.horaSalida}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_agregar_salir}" oncomplete="listadoTurnosNoAsignados.hide();" action="#{departamentoBean.agregarTurno}"
+										process="@this :form:panelTurnosNoAsignados" update=":form:vistaTab:panelTurnosAsignados" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- FIN DIALOG DE TURNOS NO ASIGNADOS -->
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{departamentoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{departamentoBean.departamento.codigo}" id="txtCodigo">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{departamentoBean.departamento.nombre}" id="txtNombre">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_tipo_departamento}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text" value="#{departamentoBean.departamento.tipoDepartamento}" id="cboTipoDepartamento" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{departamentoBean.listaTipoDepartamento}" />
+										<p:ajax process="@this" update=":form:vistaTab" />
+									</p:selectOneMenu>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_supervisor}:" />
+								<h:panelGroup id="panelSupervisor">
+									<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelListaEmpleado">
+										<f:setPropertyActionListener target="#{departamentoBean.supervisorPrincipal}" value="true" />
+									</p:commandButton>
+									<h:outputText id="txtSupervisor" value="#{departamentoBean.departamento.supervisor.nombreCompleto}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{departamentoBean.departamento.activo}" />
+
+								<h:outputText value="#{msgs.lbl_supervisor2}:" />
+								<h:panelGroup id="panelSupervisor2">
+									<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelListaEmpleado">
+										<f:setPropertyActionListener target="#{departamentoBean.supervisorPrincipal}" value="false" />
+									</p:commandButton>
+									<h:outputText id="txtSupervisor2" value="#{departamentoBean.departamento.supervisor2.nombreCompleto}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{departamentoBean.departamento.predeterminado}" />
+
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{departamentoBean.departamento.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:tabView id="vistaTab" cache="true" dynamic="true">
+							<p:tab title="#{msgs.lbl_documento_digitalizado}" id="tabDocumentoDigitalizado">
+								<p:outputPanel id="panelDocumentoDigitalizado">
+									<p:panel>
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDocumento" oncomplete="listadoDocumentosDigitalizadosNoAsignados.show()"
+											action="#{departamentoBean.cargarDocumentosDigitalizadosNoAsignados}"
+											update=":form:vistaTab:tabDocumentoDigitalizado,:form:panelDocumentosDigitalizadosNoAsignados" process="@this" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{departamentoBean.departamento.listaDocumentoDigitalizadoDepartamento}"
+											id="tablaDocumentoDigitalizadoDepartamento" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_documentoDigitalizadoDepartamento" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{departamentoBean.numeroFilas}" rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.codigo}"
+												filterBy="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.codigo}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo}" />
+												</f:facet>
+												<h:outputText value="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.codigo}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCategoria tableCell"
+												sortBy="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}"
+												filterBy="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_categoria}" />
+												</f:facet>
+												<h:outputText value="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" sortBy="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.nombre}"
+												filterBy="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.nombre}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_nombre}" />
+												</f:facet>
+												<h:outputText value="#{_documentoDigitalizadoDepartamento.documentoDigitalizado.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_requerido}">
+												<p:selectBooleanCheckbox value="#{_documentoDigitalizadoDepartamento.requerido}" disabled="false">
+													<p:ajax process="@this" event="change" global="false" />
+												</p:selectBooleanCheckbox>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDocumentoDigitalizado" action="#{departamentoBean.eliminarDocumentoDigitalizadoDepartamento}"
+													icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:vistaTab:tabDocumentoDigitalizado, :form:vistaTab" process="@this">
+													<f:setPropertyActionListener target="#{departamentoBean.documentoDigitalizadoDepartamento}" value="#{_documentoDigitalizadoDepartamento}" />
+												</p:commandButton>
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_turno}" id="tabTurno">
+								<p:outputPanel id="panelTurnosAsignados">
+
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarTurno" oncomplete="listadoTurnosNoAsignados.show()"
+										action="#{departamentoBean.cargarTurnosNoAsignados}" update=":form:panelTurnosNoAsignados" process="@this" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTurnosNoAsignados" rowIndexVar="secuencia"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{departamentoBean.listaTurnoDepartamento}" var="_turnoDepartamento" paginator="true"
+										paginatorPosition="bottom" style="width:100%" rows="10" rowKey="#{_turnoDepartamento.rowKey}"
+										rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}" selection="single">
+
+										<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_turnoDepartamento.turno.codigo}">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_codigo}" />
+											</f:facet>
+											<h:outputText value="#{_turnoDepartamento.turno.codigo}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" sortBy="#{_turnoDepartamento.turno.nombre}" filterMatchMode="contains">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_nombre}" />
+											</f:facet>
+											<h:outputText value="#{_turnoDepartamento.turno.nombre}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTCodigo tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_hora_entrada}" />
+											</f:facet>
+											<h:outputText value="#{_turnoDepartamento.turno.horaEntrada}">
+												<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTCodigo tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_hora_salida}" />
+											</f:facet>
+											<h:outputText value="#{_turnoDepartamento.turno.horaSalida}">
+												<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarTurno" action="#{departamentoBean.eliminarTurno(_turnoDepartamento)}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:vistaTab:panelTurnosAsignados" process="@this">
+											</p:commandButton>
+										</p:column>
+
+									</p:dataTable>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_centro_trabajo}" id="tabCentroTrabajo"
+								rendered="#{departamentoBean.departamento.tipoDepartamento == 'CENTRO_TRABAJO'}">
+								<p:outputPanel id="panelCentroTrabajo">
+									<p:panel>
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregar" action="#{departamentoBean.agregarCentroTrabajo}"
+											update=":form:vistaTab:panelCentroTrabajo" process="@this" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{departamentoBean.listaCentroTrabajo}" id="tablaCentroTrabajo"
+											rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_centroTrabajo" paginator="true" paginatorPosition="bottom"
+											style="width:100%" rows="#{departamentoBean.numeroFilas}" lazy="true" rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}">
+												<p:inputText styleClass="input-text" value="#{_centroTrabajo.codigo}" id="txtCodigoCentroTrabajo">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombre}">
+												<p:inputText styleClass="input-text" value="#{_centroTrabajo.nombre}" id="txtNombreCentroTrabajo">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_tipo_centro_trabajo}">
+												<p:selectOneMenu value="#{_centroTrabajo.tipoCentroTrabajo}" id="cboTipoCentroTrabajo">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{departamentoBean.listaTipoCentroTrabajo}" var="_tipoCentroTrabajo" itemValue="#{_tipoCentroTrabajo}"
+														itemLabel="#{_tipoCentroTrabajo.nombre}">
+													</f:selectItems>
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_bodega_trabajo} ">
+												<p:selectOneMenu value="#{_centroTrabajo.bodegaTrabajo}" id="cboBodegaTrabajo">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{departamentoBean.listaBodega}" var="_bodegaTrabajo" itemValue="#{_bodegaTrabajo}"
+														itemLabel="#{_bodegaTrabajo.nombre}">
+													</f:selectItems>
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_empleado_generico}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autEmpleadoGenerico"
+													value="#{_centroTrabajo.empleadoGenerico}" completeMethod="#{departamentoBean.autocompletarEmpleadoGenerico}" var="_empleadoGenerico"
+													itemLabel="#{_empleadoGenerico.nombre}" itemValue="#{_empleadoGenerico}" forceSelection="true" size="50" dropdown="true"
+													minQueryLength="2">
+
+													<p:column>#{_empleadoGenerico.codigo}</p:column>
+													<p:column>#{_empleadoGenerico.nombre}</p:column>
+													<f:validateBean />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<p:inputText styleClass="input-text-col" value="#{_centroTrabajo.descripcion}" id="txtDescripcionCentroTrabajo">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarCentroTrabajo" action="#{departamentoBean.eliminarCentroTrabajo}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:vistaTab" process="@this">
+													<f:setPropertyActionListener target="#{departamentoBean.centroTrabajo}" value="#{_centroTrabajo}" />
+												</p:commandButton>
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+							</p:tab>
+
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_departamento_panel}" rendered="#{!departamentoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDepartamento" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{departamentoBean.listaDepartamento}" var="_departamento"
+							binding="#{departamentoBean.dtDepartamento}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{departamentoBean.numeroFilas}" rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}"
+							selection="#{departamentoBean.departamento}" selectionMode="single" rowKey="#{_departamento.idDepartamento}" sortBy="#{_departamento.codigo}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_departamento.codigo}" filterBy="#{_departamento.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_departamento.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_departamento.nombre}" filterBy="#{_departamento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_departamento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_departamento.tipoDepartamento}" filterBy="#{_departamento.tipoDepartamento}"
+								filterOptions="#{departamentoBean.listaTipoDepartamentoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_departamento}" />
+								</f:facet>
+								<h:outputText value="#{_departamento.tipoDepartamento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{_departamento.activo}">
+								<p:selectBooleanCheckbox value="#{_departamento.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}" sortBy="#{_departamento.predeterminado}">
+								<p:selectBooleanCheckbox value="#{_departamento.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTDescripcion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_departamento.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{departamentoBean.departamento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{departamentoBean.departamento.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{departamentoBean.departamento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{departamentoBean.departamento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

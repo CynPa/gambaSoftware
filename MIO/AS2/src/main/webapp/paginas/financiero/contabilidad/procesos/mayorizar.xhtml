@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:panel header="#{msgs.lbl_titulo_mayorizar}">
+
+
+
+					<p:outputPanel id="panelFiltros">
+						<p:fieldset>
+							<h:panelGrid id="panelDetalle" columns="3" columnClasses="columnaEtiqueta,columnaValor,columnaValor">
+								<p:commandButton value="#{msgs.lbl_hoy}" id="btnHoy" action="#{mayorizarBean.setearHoy}" process="@this" global="false"
+									update="calenFechaDesde,calenFechaHasta" />
+
+								<h:panelGrid id="panelFechas" columns="#{mayorizarBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+									<p:calendar pattern="#{mayorizarBean.formatoFecha}" showOn="button" navigator="true" value="#{mayorizarBean.fechaDesde}" id="calenFechaDesde"
+										required="true">
+									</p:calendar>
+									<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+									<p:calendar pattern="#{mayorizarBean.formatoFecha}" showOn="button" navigator="true" value="#{mayorizarBean.fechaHasta}" id="calenFechaHasta"
+										required="true">
+									</p:calendar>
+								</h:panelGrid>
+
+								<h:panelGrid id="panelAsiento" columns="#{mayorizarBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<h:outputText value="#{msgs.lbl_tipo_asiento}:" />
+									<p:selectOneMenu styleClass="input-text" value="#{mayorizarBean.tipoAsiento}" id="cboTipoAsiento">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{mayorizarBean.listaTipoAsiento}" var="_tipoAsiento" itemLabel="#{_tipoAsiento.nombre}" itemValue="#{_tipoAsiento}" />
+										<p:ajax event="change" process="@this" global="false" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_numero_asiento}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{mayorizarBean.asiento}"
+										completeMethod="#{mayorizarBean.autocompletarAsiento}" var="_asiento" itemLabel="#{_asiento.numero}" itemValue="#{_asiento}"
+										minQueryLength="2" id="cboAsiento">
+										<p:column headerText="#{msgs.lbl_numero}">
+											<h:outputText value="#{_asiento.numero}" />
+										</p:column>
+										<p:column headerText="#{msgs.lbl_concepto}">
+											<h:outputText value="#{_asiento.concepto}">
+												<f:attribute name="limit" value="40" />
+												<f:converter converterId="stringLimitConverter" />
+											</h:outputText>
+										</p:column>
+										<p:ajax event="itemSelect" process="@this" />
+									</p:autoComplete>
+								</h:panelGrid>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<h:panelGroup>
+								<p:commandButton value="#{msgs.lbl_titulo_mayorizar}" id="btnMayorizar" action="#{mayorizarBean.mayorizar}"
+									process="@this,calenFechaDesde,calenFechaHasta,cboTipoAsiento" />
+								<p:commandButton value="#{msgs.lbl_titulo_desmayorizar}" id="btnProcesar" action="#{mayorizarBean.desmayorizar}"
+									process="@this,calenFechaDesde,calenFechaHasta,cboTipoAsiento" />
+							</h:panelGroup>
+						</h:panelGrid>
+					</p:outputPanel>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

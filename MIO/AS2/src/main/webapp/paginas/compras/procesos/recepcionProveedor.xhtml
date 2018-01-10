@@ -1,0 +1,884 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idRecepcionProveedor" value="#{recepcionProveedorBean.idRecepcionProveedor}" />
+	<f:viewParam name="idFacturaProveedor" value="#{recepcionProveedorBean.idFacturaProveedor}" />
+	<f:event listener="#{recepcionProveedorBean.cargarRecepcionDesdeFactura}" type="preRenderView" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{recepcionProveedorBean}">
+
+					<as2:buttonEliminar bean="#{recepcionProveedorBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{recepcionProveedorBean.recepcionProveedor.numero}" />
+
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{recepcionProveedorBean.recepcionProveedor.fecha}">
+							<f:convertDateTime pattern="#{recepcionProveedorBean.formatoFecha}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_proveedor}:" />
+						<h:outputText value="#{recepcionProveedorBean.recepcionProveedor.empresa.nombreComercial}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteRecepcionProveedorBean}" bean="#{recepcionProveedorBean}"
+						target="#{reporteRecepcionProveedorBean.recepcionProveedor}" value="#{recepcionProveedorBean.recepcionProveedor}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{recepcionProveedorBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{recepcionProveedorBean.recepcionProveedor.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}" />
+
+					<as2:buttonImprimir etiquetaImprimir="#{msgs.btn_imprimir} #{msgs.lbl_etiqueta}" beanReporte="#{reporteEtiquetaLoteRecepcionBean}"
+						bean="#{recepcionProveedorBean}" target="#{reporteEtiquetaLoteRecepcionBean.recepcionProveedor}"
+						value="#{recepcionProveedorBean.recepcionProveedor}" />
+
+					<as2:buttonExportaExcel bean="#{recepcionProveedorBean}" tabla=":form:tablaRecepcionProveedor" />
+				</as2:toolBar>
+
+				<h:panelGroup id="pgPanelEdicionRecepcionProveedor">
+
+					<p:dialog header="#{msgs.lbl_titulo_recepcion_proveedores}" widgetVar="edicionRecepcionProveedorDialogo" modal="true" height="400" width="1200"
+						showEffect="slide" hideEffect="slide">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEdicionRecepcionProveedor"
+							rowIndexVar="secuencialEdicionRecepcionProveedor" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{recepcionProveedorBean.listaEdicionDetalleRecepcionProveedor}" var="_detalleRecepcionProveedor"
+							binding="#{recepcionProveedorBean.dtEdicionRecepcionProveedor}" paginator="true" paginatorPosition="bottom"
+							rows="#{recepcionProveedorBean.numeroFilas}" rowKey="#{_detalleRecepcionProveedor.hashCode}">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialEdicionRecepcionProveedor + 1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+								<h:outputText value="#{_detalleRecepcionProveedor.producto.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_producto}" styleClass="columnaDTNombre tableCell">
+								<h:outputText value="#{_detalleRecepcionProveedor.producto.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_unidad_producto}">
+								<h:outputText value="#{_detalleRecepcionProveedor.unidadCompra.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_bodega}">
+								<h:outputText value="#{_detalleRecepcionProveedor.bodega.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+								<h:outputText value="#{_detalleRecepcionProveedor.descripcion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_cantidad}" styleClass="columnaDTCantidad tableCell">
+								<h:outputText value="#{_detalleRecepcionProveedor.cantidad}"
+									rendered="#{not empty recepcionProveedorBean.recepcionProveedor.facturaProveedor}" />
+								<p:inputText value="#{_detalleRecepcionProveedor.cantidad}" rendered="#{ empty recepcionProveedorBean.recepcionProveedor.facturaProveedor }">
+									<p:ajax process="@this" global="false" partialSubmit="true"
+										listener="#{recepcionProveedorBean.actualizarCantidad(_detalleRecepcionProveedor)}"
+										update="costoUnitario :form:panelTotalGri :form:panelCuentaDiferencia" />
+								</p:inputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_costo_unitario}" styleClass="columnaDTValor columnaValor">
+								<h:outputText value="#{_detalleRecepcionProveedor.inventarioProducto.costoUnitario}" id="costoUnitario">
+								</h:outputText>
+							</p:column>
+
+
+							<p:column headerText="#{msgs.lbl_costo}" styleClass="columnaDTValor columnaValor">
+								<p:inputText value="#{_detalleRecepcionProveedor.inventarioProducto.costo}">
+									<p:ajax process="@this" global="false" partialSubmit="true" listener="#{recepcionProveedorBean.cargarCostoActual}"
+										update="costoUnitario :form:panelTotalGri :form:panelCuentaDiferencia" />
+								</p:inputText>
+							</p:column>
+
+						</p:dataTable>
+
+						<p:panelGrid columns="2" id="panelTotalGri">
+							<p:panel id="panelTotal">
+								<h:outputText value="#{recepcionProveedorBean.totalCostoAnterior}" id="txtTotal" style="text-align:left">
+									<f:convertNumber pattern="#{recepcionProveedorBean.formatoDinero}" />
+								</h:outputText>
+								<h:outputText value="Costo Total Anterior"></h:outputText>
+
+							</p:panel>
+							<p:panel>
+								<h:outputText value="#{recepcionProveedorBean.totalCostoActual}" id="txtTotalCosto" style="text-align:left">
+									<f:convertNumber pattern="#{recepcionProveedorBean.formatoDinero}" />
+								</h:outputText>
+								<h:outputText value="Costo Total Actual"></h:outputText>
+
+							</p:panel>
+
+						</p:panelGrid>
+
+
+						<h:outputText value="#{msgs.lbl_cuenta_contable} Diferencia :" />
+						<h:panelGrid id="panelCuentaDiferencia">
+
+							<p:commandButton value="..." process="@this" actionListener="#{recepcionProveedorBean.listaCuentaContableBean.listarCuentaContable}">
+								<p:ajax event="dialogReturn" listener="#{recepcionProveedorBean.seleccionarCuentaContableDiferenciaEnMasOEnMenos}"
+									update="txtCuentaContableImportacionDiferenciaEnMas" />
+							</p:commandButton>
+
+							<p:outputPanel id="txtCuentaContableImportacionDiferenciaEnMas">
+								<h:outputText value="#{recepcionProveedorBean.facturaProveedorImportacion.cuentaContableImportacionDiferenciaEnMasOEnMenos.nombre}" />
+							</p:outputPanel>
+						</h:panelGrid>
+
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnGuardarDetalleRecepcionProveedor" action="#{recepcionProveedorBean.guardarDetalleRecepcionProveedor}"
+									value="#{msgs.btn_guardar}" oncomplete="edicionRecepcionProveedorDialogo.hide();" process="@this">
+								</p:commandButton>
+								<p:commandButton id="btnCancelarRecepcionProveedor" value="#{msgs.btn_cancelar}" oncomplete="edicionRecepcionProveedorDialogo.hide();"
+									process="@this">
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+				</h:panelGroup>
+
+				<ui:include src="/template/nuevoLote.xhtml">
+					<ui:param name="bean" value="#{recepcionProveedorBean}" />
+					<ui:param name="objetoActualizar" value=":form:tvDetalles:panelDetalleRecepcion" />
+				</ui:include>
+
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{recepcionProveedorBean.exContabilizacion.mensajes}" var="_mensaje"
+							rowIndexVar="secuencial">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+
+				<!-- INICIO DIALOG SUBIR ARCHIVO -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarArchivoTexto" modal="true" height="240" width="500" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarTxt">
+
+						<h:outputText value="#{msgs.lbl_producto}" />
+						<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acProducto" styleClass="input-text"
+							value="#{recepcionProveedorBean.productoCargaArchivo}" completeMethod="#{recepcionProveedorBean.autocompletarProductosTodos}" var="_producto"
+							itemLabel="#{_producto.nombreComercial}" itemValue="#{_producto}" forceSelection="true" dropdown="true" minQueryLength="2">
+							<p:column headerText="Codigo">#{_producto.codigo}</p:column>
+							<p:column headerText="Nombre">#{_producto.nombre}</p:column>
+							<p:ajax event="itemSelect" process="@this" partialSubmit="true" />
+						</p:autoComplete>
+
+						<p:selectOneRadio id="opciones" value="#{recepcionProveedorBean.opcionCarga}">
+							<f:selectItem itemLabel="Proveedor" itemValue="0" />
+							<f:selectItem itemLabel="Movimiento Interno" itemValue="1" />
+							<p:ajax process="@this" update="panelCargaArchivo panelCrearLoteVarios" global="false" partialSubmit="true" />
+						</p:selectOneRadio>
+
+						<h:panelGrid columns="2" id="panelCargaArchivo" rendered="#{recepcionProveedorBean.opcionCarga == 0}">
+
+							<h:outputText value="Carga archivo" />
+							<p:fileUpload fileUploadListener="#{recepcionProveedorBean.cargaArchivoLoteListener}" mode="advanced" update=":form:panelCargaArchivo"
+								auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(txt|TXT)$/" label="#{msgs.btn_examinar}" process="@this"
+								rendered="#{recepcionProveedorBean.opcionCarga == 0}" />
+
+							<h:outputText value="#{msgs.lbl_total_lineas}" />
+							<h:outputText value="#{recepcionProveedorBean.lineasLotesArchivo}" />
+
+							<h:outputText value="#{msgs.lbl_total_cantidad}" />
+							<h:outputText value="#{recepcionProveedorBean.totalCantidadLoteArchivo}" />
+
+							<p:spacer />
+
+							<p:commandButton value="#{msgs.btn_aceptar}" update=":form:tvDetalles:panelDetalleRecepcion"
+								actionListener="#{recepcionProveedorBean.cargarDetalleArchivoLoteListener}" process="@this" oncomplete="dlgCargarArchivoTexto.hide()" />
+
+						</h:panelGrid>
+
+						<!-- 
+						<p:outputPanel id="panelCargaArchivo">
+							<h:outputText value="Carga archivo" rendered="#{recepcionProveedorBean.opcionCarga == 0}" />
+							<p:fileUpload fileUploadListener="#{recepcionProveedorBean.cargarDetalleRecepcionClienteTxt}" mode="advanced"
+								update=":form:tvDetalles:panelDetalleRecepcion" auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(txt|TXT)$/" label="#{msgs.btn_examinar}"
+								process="@this" oncomplete="dlgCargarArchivoTexto.hide()" rendered="#{recepcionProveedorBean.opcionCarga == 0}" />
+						</p:outputPanel>
+						 -->
+
+						<p:outputPanel id="panelCrearLoteVarios">
+							<h:panelGrid columns="4">
+								<h:outputText value="Peso/Cantidad" rendered="#{recepcionProveedorBean.opcionCarga == 1}" />
+								<p:inputText value="#{recepcionProveedorBean.cantidadPesoLote}" id="txtCantidadPeso" rendered="#{recepcionProveedorBean.opcionCarga == 1}">
+									<p:ajax event="change" process="@this" global="false" partialSubmit="true" />
+								</p:inputText>
+
+								<h:outputText value="# Lotes" rendered="#{recepcionProveedorBean.opcionCarga == 1}" />
+								<p:spinner value="#{recepcionProveedorBean.numeroLotes}" id="txtNumeroLotes" min="1" stepFactor="1"
+									rendered="#{recepcionProveedorBean.opcionCarga == 1}">
+									<p:ajax event="change" process="@this" global="false" partialSubmit="true" />
+								</p:spinner>
+
+								<h:outputText value="#{msgs.lbl_secuencia_prefijo} #{msgs.lbl_lote}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{recepcionProveedorBean.productoCargaArchivo.prefijoLote}" id="cboPrefijoLote"
+									editable="true">
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.valoresPrefijosLote}" />
+									<p:ajax process="@this" global="false" partialSubmit="true" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo1.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo1 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo1}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo1 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo1.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo2.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo2 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo2}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo2 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo2.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo3.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo3 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo3}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo3 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo3.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo4.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo4 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo4}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo4 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo4.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo5.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo5 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo5}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo5 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo5.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo6.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo6 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo6}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo6 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo6.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo7.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo7 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo7}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo7 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo7.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo8.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo8 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo8}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo8 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo8.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo9.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo9 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo9}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo9 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo9.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo10.nombre}:"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo10 and recepcionProveedorBean.opcionCarga == 1}" />
+								<p:selectOneMenu value="#{recepcionProveedorBean.productoCargaArchivo.valorAtributo10}" required="true"
+									requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty recepcionProveedorBean.productoCargaArchivo.traAtributo10 and recepcionProveedorBean.opcionCarga == 1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionProveedorBean.productoCargaArchivo.traAtributo10.listaValorAtributo}" var="_valorAtributo"
+										itemValue="#{_valorAtributo}" itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_generar_lotes}" />
+								<p:selectBooleanCheckbox value="#{recepcionProveedorBean.generarLotesAutomaticamente}">
+									<p:ajax event="change" process="@this" global="false" partialSubmit="true" />
+								</p:selectBooleanCheckbox>
+
+							</h:panelGrid>
+
+							<p:spacer />
+
+							<center>
+								<h:panelGroup>
+									<p:commandButton id="btnCargarLotes" value="Cargar lotes" rendered="#{recepcionProveedorBean.opcionCarga == 1}"
+										action="#{recepcionProveedorBean.creacionLoteCarga}" update=":form:tvDetalles:panelDetalleRecepcion outputCargarTxt" process="@this" />
+
+									<p:commandButton id="btnCancelarCargarLotes" value="Cerrar" rendered="#{recepcionProveedorBean.opcionCarga == 1}"
+										action="#{recepcionProveedorBean.limpiarCargaLote}" process="@this" oncomplete="dlgCargarArchivoTexto.hide()" />
+								</h:panelGroup>
+							</center>
+
+						</p:outputPanel>
+
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+				<p:spacer height="2px" />
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{recepcionProveedorBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_recepcion_proveedores_panel}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="objetoActualizar" value=":form:tvDetalles:panelDetalleRecepcion" />
+							<ui:param name="bean" value="#{recepcionProveedorBean}" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{recepcionProveedorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{recepcionProveedorBean.recepcionProveedor.documento.idDocumento}" id="cboDocumento"
+									required="true" disabled="#{!recepcionProveedorBean.secuenciaEditable}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{recepcionProveedorBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+
+									<p:ajax process="@this" update="txtNumero" listener="#{recepcionProveedorBean.actualizarDocumento}" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{recepcionProveedorBean.recepcionProveedor.numero}" id="txtNumero"
+									mask="#{recepcionProveedorBean.recepcionProveedor.documento.secuencia.patron}" disabled="#{!recepcionProveedorBean.secuenciaEditable}">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{recepcionProveedorBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{recepcionProveedorBean.recepcionProveedor.fecha}" id="calFecha" required="true"
+									disabled="#{!recepcionProveedorBean.permitirFechaInventario}">
+
+									<p:ajax process="@this" event="dateSelect" global="false" update="@none" />
+									<p:ajax process="@this" event="change" global="false" update="@none" />
+
+								</p:calendar>
+
+								<p:outputLabel for="cboProveedor" value="#{msgs.lbl_proveedor}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+									value="#{recepcionProveedorBean.recepcionProveedor.empresa}" completeMethod="#{recepcionProveedorBean.autocompletarProveedores}"
+									var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2"
+									disabled="#{not empty recepcionProveedorBean.recepcionProveedor.facturaProveedor}" id="cboProveedor" required="true">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+									<p:ajax listener="#{recepcionProveedorBean.actualizarProveedor}" process="@this" event="itemSelect" update="cboPedido :form:panelLecturaPeso" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_pedido}:" rendered="#{empty recepcionProveedorBean.recepcionProveedor.facturaProveedor}" />
+								<h:panelGroup rendered="#{empty recepcionProveedorBean.recepcionProveedor.facturaProveedor}">
+									<p:selectOneMenu value="#{recepcionProveedorBean.recepcionProveedor.pedidoProveedor}" id="cboPedido"
+										disabled="#{recepcionProveedorBean.recepcionProveedor.id>0}">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{recepcionProveedorBean.listaPedidoProveedor}" var="_pedidoProveedor" itemLabel="#{_pedidoProveedor.numero}"
+											itemValue="#{_pedidoProveedor}" />
+
+										<p:ajax process="@this" update=":form:tvDetalles:panelDetalleRecepcion :form:panelProyecto txtDescripcion"
+											listener="#{recepcionProveedorBean.cargarDetallePedidoListener}" global="false" />
+									</p:selectOneMenu>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_factura}:" />
+								<p:inputText styleClass="input-text" value="#{recepcionProveedorBean.recepcionProveedor.numeroFactura}" id="txtFactura" maxlength="20">
+									<p:ajax process="@this" event="change" global="false" update="@none" />
+									<f:validateBean />
+								</p:inputText>
+
+
+								<p:outputLabel for="autoProyecto:autoProyecto" rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_proyecto}:" />
+								<p:outputPanel id="panelProyecto">
+									<as2:autoCompletarProyecto value="#{recepcionProveedorBean.recepcionProveedor.proyecto}" required="true" id="autoProyecto" />
+									<h:outputText rendered="#{!sesionControler.manejaProyectos}" value="#{msgs.lbl_descripcion}:" />
+								</p:outputPanel>
+
+
+								<h:outputText rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{recepcionProveedorBean.recepcionProveedor.descripcion}" id="txtDescripcion" maxlength="500">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputTextarea>
+
+
+								<h:outputText value="#{msgs.lbl_cargar_con_codigo}:" />
+								<h:panelGrid id="panelIngresarCodigo" columns="2" styleClass="columna90,columnaEtiqueta">
+
+									<p:inputText styleClass="input-text" value="#{recepcionProveedorBean.codigoCabecera}" id="txtCodigoCabecera">
+										<p:ajax listener="#{recepcionProveedorBean.agregarDetalleDesdeCodigoCabecera}" process="@this"
+											update=":form:tvDetalles:panelDetalleRecepcion #{p:component('txtCodigoCabecera')}" event="change" global="false"
+											oncomplete="nextFocus('#{p:component('txtCodigoCabecera')}')" />
+									</p:inputText>
+
+									<h:panelGroup>
+										<p:commandButton id="btnCargarTexto" title="#{msgs.btn_cargar_texto}" icon="ui-icon-bookmark" update=":form:outputCargarTxt"
+											onclick="dlgCargarArchivoTexto.show()" process="@this" />
+									</h:panelGroup>
+
+								</h:panelGrid>
+
+							</h:panelGrid>
+
+							<!-- <as2:lecturaBalanza bean="#{recepcionProveedorBean}" mostrarBalanza="#{recepcionProveedorBean.mostrarBalanza}"
+								update=":form:panelDetalle :form:panelLecturaPeso" disabled="#{recepcionProveedorBean.recepcionProveedor.empresa == null}" /> -->
+
+							<ui:include src="/template/lecturaBalanza.xhtml">
+								<ui:param name="bean" value="#{recepcionProveedorBean}" />
+								<ui:param name="mostrarBalanza" value="#{recepcionProveedorBean.mostrarBalanza}" />
+								<ui:param name="update" value=":form:panelDetalle :form:panelLecturaPeso :form:panelCabecera" />
+								<ui:param name="disabled" value="#{recepcionProveedorBean.recepcionProveedor.empresa == null}" />
+							</ui:include>
+
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset id="fsDetalle">
+							<p:outputPanel id="panelDetalle">
+								<p:tabView cache="true" dynamic="false" id="tvDetalles">
+
+									<p:tab title="#{msgs.lbl_producto}s" id="tabDetalleproducto">
+										<h:panelGrid columns="1" width="100%">
+											<h:panelGroup>
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{recepcionProveedorBean.agregarDetalleListener}"
+													update=":form:panelDetalle" process="@this,:form:panelDetalle" icon="ui-icon-plus"
+													disabled="#{not empty recepcionProveedorBean.recepcionProveedor.facturaProveedor}" />
+
+												<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button"
+													disabled="#{not empty recepcionProveedorBean.recepcionProveedor.facturaProveedor}" />
+
+											</h:panelGroup>
+
+
+											<p:outputPanel id="panelDetalleRecepcion">
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{recepcionProveedorBean.listaDetalleRecepcionProveedor}"
+													id="tablaDetalleDespachoCLiente" rowIndexVar="secuencial" binding="#{recepcionProveedorBean.dtDetalleRecepcionProveedor}"
+													emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleRecepcionProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+													rowKey="#{_detalleRecepcionProveedor.rowKey}" rows="#{recepcionProveedorBean.numeroFilas}"
+													rowsPerPageTemplate="#{recepcionProveedorBean.numeroFilasPorPagina}"
+													selection="#{recepcionProveedorBean.detalleRecepcionProveedorSeleccionado}" selectionMode="single">
+													<p:ajax event="rowSelect" listener="#{recepcionProveedorBean.cargarProductoSeleccionadoPesa}"
+														process=":form:tvDetalles:tablaDetalleDespachoCLiente" update=":form:panelLecturaPeso" global="false" partialSubmit="true"
+														oncomplete="nextFocus('cboUnidadManejo_focus')" />
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}">
+														<p:inputText value="#{_detalleRecepcionProveedor.producto.codigo}" id="txtCodigoProducto"
+															rendered="#{(empty _detalleRecepcionProveedor.detalleFacturaProveedor) and (empty _detalleRecepcionProveedor.detallePedidoProveedor)}">
+
+															<p:ajax listener="#{recepcionProveedorBean.actualizarProducto}" execute="txtCodigoProducto" event="change"
+																render="txtCodigoProducto txtNombreProducto txtUnidadCompraProducto btnDetallarLote " update=":form:tvDetalles:panelDetalleRecepcion" />
+															<f:validateBean />
+														</p:inputText>
+
+														<h:outputText value="#{_detalleRecepcionProveedor.producto.codigo}"
+															rendered="#{(not empty _detalleRecepcionProveedor.detalleFacturaProveedor) or (not empty _detalleRecepcionProveedor.detallePedidoProveedor)}" />
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_nombre_producto}">
+														<h:outputText value="#{_detalleRecepcionProveedor.producto.nombre}" id="txtNombreProducto">
+														</h:outputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_compra}">
+														<h:outputText value="#{_detalleRecepcionProveedor.unidadCompra.nombre}" id="txtUnidadCompraProducto" />
+													</p:column>
+
+													<p:column styleClass="columnaDTBodega tableCell" headerText="#{msgs.lbl_bodega}">
+														<p:selectOneMenu value="#{_detalleRecepcionProveedor.bodega}" id="cboBodega" required="true">
+
+															<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+
+															<f:selectItems value="#{recepcionProveedorBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+															<f:validateBean />
+															<p:ajax process="@this" partialSubmit="true" />
+														</p:selectOneMenu>
+
+													</p:column>
+
+													<p:column styleClass="tableCell">
+														<f:facet name="header">
+															<p:commandLink update=":form:tvDetalles:panelDetalleRecepcion" process="@this"
+																actionListener="#{recepcionProveedorBean.limpiarDescripciones()}" title="Borrar Notas">
+																<h:outputText value="#{msgs.lbl_descripcion}" />
+															</p:commandLink>
+														</f:facet>
+														<p:inputText value="#{_detalleRecepcionProveedor.descripcion}" id="txtDescripcion" styleClass="input-text100">
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+
+														<p:inputText value="#{_detalleRecepcionProveedor.cantidad}" id="txtCantidad"
+															rendered="#{empty _detalleRecepcionProveedor.detalleFacturaProveedor}"
+															disabled="#{recepcionProveedorBean.mostrarBalanza and _detalleRecepcionProveedor.producto.indicadorPesoBalanza}">
+															<f:validateBean />
+															<p:ajax listener="#{recepcionProveedorBean.validarCantidadRecepcion(_detalleRecepcionProveedor)}" process="@this" event="change"
+																update=":form:panelDetalle" oncomplete="nextFocus('#{p:component('txtCodigoProducto')}')" global="false" />
+														</p:inputText>
+														<p:commandLink action="#{recepcionProveedorBean.seleccionarDetalleRecepcion}" title="#{msgs.lbl_seleccionar}" process="@this"
+															icon="ui-icon-plus" update=":form:panelNuevoLote :form:outputCargarTxt" oncomplete="dlgCargarArchivoTexto.show();">
+
+															<h:outputText value="#{_detalleRecepcionProveedor.cantidad}" rendered="#{not empty _detalleRecepcionProveedor.detalleFacturaProveedor}" />
+														</p:commandLink>
+
+													</p:column>
+
+													<p:column styleClass="columnaDTNumeroDocumento tableCell0" headerText="#{msgs.lbl_cantidad} (#{msgs.lbl_pedido})">
+														<h:outputText
+															value="#{empty _detalleRecepcionProveedor.detallePedidoProveedor ? '' : _detalleRecepcionProveedor.detallePedidoProveedor.cantidad}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_informativa}">
+														<h:outputText value="#{_detalleRecepcionProveedor.producto.unidadInformativa.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad_informativa}">
+														<p:inputText value="#{_detalleRecepcionProveedor.cantidadUnidadInformativa}" required="true"
+															rendered="#{_detalleRecepcionProveedor.producto.indicadorManejaUnidadInformativa and (!recepcionProveedorBean.mostrarBalanza or !_detalleRecepcionProveedor.producto.indicadorPesoBalanza)}">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+														<h:outputText value="#{_detalleRecepcionProveedor.cantidadUnidadInformativa}"
+															rendered="#{recepcionProveedorBean.mostrarBalanza and _detalleRecepcionProveedor.producto.indicadorPesoBalanza}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTLote tableCell" headerText=" #{msgs.lbl_lote}">
+														<!-- 
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text"
+												value="#{_detalleRecepcionProveedor.inventarioProducto.lote}" completeMethod="#{recepcionProveedorBean.autocompletarLotes}" var="_lote"
+												itemLabel="#{_lote.codigo}" itemValue="#{_lote}" forceSelection="true" dropdown="false" minQueryLength="2"
+												required="#{_detalleRecepcionProveedor.producto.indicadorLote}" rendered="#{_detalleRecepcionProveedor.producto.indicadorLote}">
+
+												<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+												<p:ajax event="itemSelect" process="@this" update=":form:tvDetalles:panelDetalleRecepcion" />
+											</p:autoComplete>
+										-->
+														<p:inputText rendered="#{_detalleRecepcionProveedor.producto.indicadorLote}"
+															value="#{_detalleRecepcionProveedor.inventarioProducto.lote.codigo}">
+															<p:ajax process="@this" global="false" partialSubmit="true" update=":form:panelDetalle" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_serie}">
+														<p:commandButton rendered="#{_detalleRecepcionProveedor.producto.indicadorSerie}" value="..." process="@this" partialSubmit="true"
+															id="btnSeries" actionListener="#{dialogoSerieProductoBean.abrirDialogo(_detalleRecepcionProveedor.inventarioProducto)}">
+
+															<p:ajax event="dialogReturn" oncomplete="nextFocus('#{p:component('btnSeries')}')" update="txtCantidad" />
+
+														</p:commandButton>
+													</p:column>
+
+													<p:column styleClass="tableCell0" width="90">
+														<h:panelGroup rendered="#{_detalleRecepcionProveedor.producto.indicadorLote}">
+															<p:commandButton icon="ui-icon-newwin" id="btnCrearLote" update=":form:panelNuevoLote" process="@this"
+																action="#{recepcionProveedorBean.creacionLote}" oncomplete="dglModalInventarioProductoLote.show();"
+																title="#{msgs.lbl_editar} #{msgs.lbl_lote}">
+															</p:commandButton>
+
+															<p:commandButton action="#{recepcionProveedorBean.seleccionarDetalleRecepcion}" process="@this"
+																update=":form:panelNuevoLote :form:outputCargarTxt" oncomplete="dlgCargarArchivoTexto.show()" title="#{msgs.lbl_generar_lotes}"
+																icon=" ui-icon-script" disabled="#{_detalleRecepcionProveedor.cantidad le 0}"
+																rendered="#{empty _detalleRecepcionProveedor.detalleFacturaProveedor}">
+															</p:commandButton>
+
+															<p:commandButton action="#{recepcionProveedorBean.replicaLineaEnLotes(_detalleRecepcionProveedor)}" process="@this"
+																update=":form:panelDetalle" oncomplete="nextFocus('#{p:component('txtCodigoProducto')}')" title="#{msgs.lbl_replicar_linea}"
+																icon="ui-icon-copy" />
+														</h:panelGroup>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<p:commandButton id="btnEliminarDetalle" action="#{recepcionProveedorBean.eliminarDetalle}" icon="ui-icon-trash"
+															title="#{msgs.lbl_eliminar}" update=":form:panelDetalle" process="@this" />
+													</p:column>
+
+													<p:columnGroup type="footer" id="panelTotal">
+														<p:row>
+															<p:column colspan="6" footerText="#{msgs.lbl_total}:" style="text-align:right">
+															</p:column>
+															<p:column footerText="#{recepcionProveedorBean.recepcionProveedor.total}" style="text-align:right" id="txtTotal" />
+															<p:column />
+															<p:column />
+															<p:column />
+															<p:column />
+															<p:column />
+															<p:column />
+															<p:column />
+														</p:row>
+													</p:columnGroup>
+
+												</p:dataTable>
+											</p:outputPanel>
+										</h:panelGrid>
+									</p:tab>
+									<p:tab title="#{msgs.lbl_lectura_balanza}" id="tabDetallePesadas" rendered="#{recepcionProveedorBean.mostrarBalanza}">
+										<p:outputPanel id="panelDetallePesadas">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{recepcionProveedorBean.listaLecturaBalanza}" id="tablaLecturaBalanza"
+												rowIndexVar="secuencial" binding="#{recepcionProveedorBean.dtLecturaBalanza}" emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_lecturaBalanza" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_lecturaBalanza.rowKey}"
+												rows="#{recepcionProveedorBean.numeroFilas}" rowsPerPageTemplate="#{recepcionProveedorBean.numeroFilasPorPagina}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalle.producto.codigo}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.producto.codigo}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" filterBy="#{_lecturaBalanza.producto.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.producto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_lecturaBalanza.unidadManejo.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.unidadManejo.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_pallet}" filterBy="#{_lecturaBalanza.pallet.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.pallet.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValorCorto tableCell" headerText="# #{msgs.lbl_unidad_manejo}">
+													<h:outputText value="#{_lecturaBalanza.numeroUnidadesManejo}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_bruto}">
+													<h:outputText value="#{_lecturaBalanza.pesoBruto}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_neto}">
+													<h:outputText value="#{_lecturaBalanza.pesoNeto}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+													<h:outputText value="#{_lecturaBalanza.cantidad}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarPesada" action="#{recepcionProveedorBean.eliminarLecturaBalanza(_lecturaBalanza)}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:panelDetalle" process="@this">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</p:outputPanel>
+									</p:tab>
+								</p:tabView>
+							</p:outputPanel>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!recepcionProveedorBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_recepcion_proveedores_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRecepcionProveedor" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{recepcionProveedorBean.listaRecepcionProveedor}" var="_recepcionProveedor" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{recepcionProveedorBean.dtRecepcionProveedor}"
+							rows="#{recepcionProveedorBean.numeroFilas}" rowsPerPageTemplate="#{recepcionProveedorBean.numeroFilasPorPagina}"
+							selection="#{recepcionProveedorBean.recepcionProveedor}" selectionMode="single" rowKey="#{_recepcionProveedor.id}"
+							sortBy="#{_recepcionProveedor.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_recepcionProveedor.numero}" filterBy="#{_recepcionProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_recepcionProveedor.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_recepcionProveedor.fecha}">
+								<h:outputText value="#{_recepcionProveedor.fecha}">
+									<f:convertDateTime pattern="#{recepcionProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_recepcionProveedor.empresa.nombreFiscal}" filterBy="#{_recepcionProveedor.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+
+								<h:outputText value="#{_recepcionProveedor.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_recepcionProveedor.asiento.numero}"
+								filterBy="#{_recepcionProveedor.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _recepcionProveedor.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_recepcionProveedor.asiento.numero}">
+									<f:param name="idAsiento" value="#{_recepcionProveedor.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_recepcionProveedor.pedidoProveedor.numero}"
+								filterBy="#{_recepcionProveedor.pedidoProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pedido}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _recepcionProveedor.pedidoProveedor}" target="_blank" outcome="/paginas/compras/procesos/pedidoProveedor"
+									value="#{_recepcionProveedor.pedidoProveedor.numero}" includeViewParams="true">
+									<f:param name="idPedidoProveedor" value="#{_recepcionProveedor.pedidoProveedor.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_recepcionProveedor.estado}" filterBy="#{_recepcionProveedor.estado}"
+								filterOptions="#{recepcionProveedorBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_recepcionProveedor.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell" sortBy="#{_recepcionProveedor.numeroFactura}"
+								filterBy="#{_recepcionProveedor.numeroFactura}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_factura}" />
+								</f:facet>
+								<h:outputText value="#{_recepcionProveedor.numeroFactura}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" rendered="#{sesionControler.manejaProyectos}" filterBy="#{_recepcionProveedor.proyecto.nombre}"
+								sortBy="#{_recepcionProveedor.proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proyecto}" />
+								</f:facet>
+								<h:outputText value="#{_recepcionProveedor.proyecto.nombre}" />
+							</p:column>
+
+							<p:column filterBy="#{_recepcionProveedor.descripcion}" sortBy="#{_recepcionProveedor.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_recepcionProveedor.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<h:link target="_blank" outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true" value="#{msgs.lbl_facturar}"
+									rendered="#{_recepcionProveedor.estado != 'ANULADO' and _recepcionProveedor.estado != 'ELABORADO'}">
+									<f:param name="idRecepcionProveedor" value="#{_recepcionProveedor.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_editar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="ui-icon ui-icon-pencil" process="@this" action="#{recepcionProveedorBean.cargarDatosRecepcionProveedor}"
+										update=":form:pgPanelEdicionRecepcionProveedor" disabled="#{_recepcionProveedor.estado == 'ELABORADO'}">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{recepcionProveedorBean.recepcionProveedor}" value="#{_recepcionProveedor}" bean="#{recepcionProveedorBean}"
+									formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado" visible="#{_recepcionProveedor.pdf!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{recepcionProveedorBean.recepcionProveedor.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{recepcionProveedorBean.recepcionProveedor.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{recepcionProveedorBean.recepcionProveedor.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{recepcionProveedorBean.recepcionProveedor.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>
+

@@ -1,0 +1,87 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+			<p:panel header="#{msgs.lbl_asignacion_masiva_rubro}">
+				<p:outputPanel id="panelContenedor">
+
+					<!-- INICIO DIALOG DE SUBIR RUBROS VARIABLES  -->
+
+					<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarAsignarRubros" modal="true" height="150" width="325" showEffect="clip"
+						hideEffect="clip" resizable="false">
+						<p:outputPanel id="outputCargarExcel">
+							<p:fieldset>
+								<center>
+									<p:fileUpload fileUploadListener="#{rubroEmpleadoBean.cargarAsignarRubros}" mode="advanced" update="panelFiltros" auto="true"
+										sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this outputCargarExcel"
+										oncomplete="dlgCargarAsignarRubros.hide()" />
+								</center>
+							</p:fieldset>
+						</p:outputPanel>
+					</p:dialog>
+
+					<!-- FIN DIALOG DE SUBIR RUBROS VARIABLES -->
+
+					<p:outputPanel id="panelFiltros">
+						<h:panelGrid columns="#{reporteListadoFirmasBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_exportar}:" />
+							<p:commandButton ajax="false" icon="excel" process="@this">
+								<p:fileDownload value="#{rubroEmpleadoBean.file}" />
+							</p:commandButton>
+							<h:outputText value="#{msgs.btn_cargar_excel}:" />
+							<p:commandButton id="btnCargarExcel" title="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update="outputCargarExcel"
+								onclick="dlgCargarAsignarRubros.show()" process="@this" disabled="#{empty rubroEmpleadoBean.rubro}" />
+						</h:panelGrid>
+					</p:outputPanel>
+					<p:separator />
+					<p:outputPanel id="panelListado">
+						<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_rubro}">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRubrosNoAsignados" rowIndexVar="secuencia"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rubroEmpleadoBean.listaRubro}" var="_rubro" paginator="true" paginatorPosition="bottom"
+								style="width:100%" rows="10" rowKey="#{_rubro.idRubro}" selection="#{rubroEmpleadoBean.listaRubroSeleccionado}"
+								rowsPerPageTemplate="#{categoriaRubroBean.numeroFilasPorPagina}">
+
+								<p:column styleClass="columnaDTAccion tableCell" selectionMode="multiple" />
+
+								<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_rubro.codigo}" filterBy="#{_rubro.codigo}" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_rubro.codigo}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCategoria tableCell" sortBy="#{_rubro.nombre}" filterBy="#{_rubro.nombre}" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_rubro.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_rubro.tipoRubro.nombre}" filterBy="#{_rubro.tipoRubro.nombre}" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_tipo}" />r
+									</f:facet>
+									<h:outputText value="#{_rubro.tipoRubro.nombre}" />
+								</p:column>
+							</p:dataTable>
+						</p:panel>
+						<p:separator />
+						<ui:include src="/template/auditoriaRapida.xhtml">
+							<ui:param name="fechaCreacion" value="#{reporteAsistenciaDiariaBean.asistencia.fechaCreacion}" />
+							<ui:param name="usuarioCreacion" value="#{reporteAsistenciaDiariaBean.asistencia.usuarioCreacion}" />
+							<ui:param name="fechaModificacion" value="#{reporteAsistenciaDiariaBean.asistencia.fechaModificacion}" />
+							<ui:param name="usuarioModificacion" value="#{reporteAsistenciaDiariaBean.asistencia.usuarioModificacion}" />
+						</ui:include>
+					</p:outputPanel>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

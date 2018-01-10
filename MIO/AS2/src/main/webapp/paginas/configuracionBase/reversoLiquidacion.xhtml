@@ -1,0 +1,64 @@
+<p:outputPanel id="panelReversoLiquidacion" xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes"
+	rendered="#{mantenimientoBean.render=='Reverso liquidacion'}">
+
+	<p:outputPanel id="pgPanelReverso">
+		<p:dialog header="#{msgs.lbl_revertir}" widgetVar="eliminarReverso" modal="true" height="180" width="600" showEffect="slide" hideEffect="slide"
+			closable="false">
+			<h:panelGrid columns="2">
+				<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+				<h:outputText value="#{mantenimientoBean.facturaProveedor2.numero}" />
+
+				<h:outputText value="#{msgs.lbl_cliente}:" />
+				<h:outputText value="#{mantenimientoBean.facturaProveedor2.empresa.nombreFiscal}" />
+
+				<h:outputText value="#{msgs.lbl_valor}:" />
+				<h:outputText value="#{mantenimientoBean.facturaProveedor2.totalFactura}">
+					<f:convertNumber pattern="#{mantenimientoBean.formatoDinero}" />
+				</h:outputText>
+				<p:outputLabel for="txtResponsableReversoLiquidacion" value="#{msgs.lbl_responsable}:" />
+				<p:outputLabel styleClass="input-text" value="#{mantenimientoBean.logSoporte.responsable}" id="txtResponsableReversoLiquidacion" required="true">
+				</p:outputLabel>
+				<p:outputLabel for="txtMotivoReversoLiquidacion" value="#{msgs.lbl_motivo}:" />
+				<p:inputText styleClass="input-text" value="#{mantenimientoBean.logSoporte.motivo}" id="txtMotivoReversoLiquidacion" required="true" />
+				<p:outputLabel for="txtArchivosReversoLiquidacion" value="#{msgs.lbl_archivos_eliminados}:" />
+				<p:inputText styleClass="input-text" value="#{mantenimientoBean.logSoporte.archivosEliminados}" id="txtArchivosReversoLiquidacion" required="true" />
+
+				<f:facet name="footer">
+					<center>
+						<p:commandButton id="btnReverso" action="#{mantenimientoBean.reverso()}" value="Revertir" process="@this :form:pgPanelReverso"
+							update=":form:panelListadoReverso :form:panelReversoLiquidacion">
+						</p:commandButton>
+						<p:commandButton id="btnCancelarReverso" value="#{msgs.btn_cancelar}" onclick="eliminarF.hide();" process="@this" update="@none">
+						</p:commandButton>
+					</center>
+				</f:facet>
+
+			</h:panelGrid>
+
+		</p:dialog>
+
+	</p:outputPanel>
+	<p:outputPanel id="panelListadoReverso">
+
+		<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_importacion} )">
+			<h:panelGrid id="panelFiltrosReverso" columns="2" columnClasses="columnaEtiqueta, columnaValor">
+				<p:outputLabel value="#{msgs.lbl_numero_factura}:" />
+				<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboReverso"
+					value="#{mantenimientoBean.facturaProveedor2}" completeMethod="#{mantenimientoBean.autocompletarReverso}" var="_fac" itemValue="#{_fac}"
+					itemLabel="#{_fac.numero}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+					<p:column headerText="#{msgs.lbl_numero}:">#{_fac.numero}</p:column>
+
+					<f:validateBean />
+					<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+					<p:ajax partialSubmit="true" event="itemSelect" process="@this" global="false" />
+				</p:autoComplete>
+				<h:outputText value="#{msgs.lbl_revertir}" />
+				<p:commandButton id="btnOpenDialogReverse" action="#{mantenimientoBean.buscar()}" oncomplete="eliminarReverso.show();"
+					icon="ui-icon-arrowrefresh-1-w" title="#{msgs.lbl_eliminar}" update=":form:panelReversoLiquidacion" process="@this" />
+			</h:panelGrid>
+		</p:panel>
+	</p:outputPanel>
+</p:outputPanel>

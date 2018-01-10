@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idTipoAsiento"
+		value="#{tipoAsientoBean.idTipoAsiento}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{tipoAsientoBean}">
+					<as2:buttonEliminar bean="#{tipoAsientoBean}">						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoAsientoBean.tipoAsiento.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{tipoAsientoBean}" tabla=":form:tablaTipoAsiento"/>
+				</as2:toolBar>
+		
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_tipo_asiento} )"
+						rendered="#{tipoAsientoBean.editado}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{tipoAsientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{tipoAsientoBean.tipoAsiento.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_secuencia}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{tipoAsientoBean.tipoAsiento.secuencia.idSecuencia}"
+								id="cboSecuencia">
+								<f:selectItems value="#{tipoAsientoBean.listaSecuencia}"
+									var="_secuencia" itemLabel="#{_secuencia.nombre}"
+									itemValue="#{_secuencia.idSecuencia}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu
+								value="#{tipoAsientoBean.tipoAsiento.tipoReporteAsiento}"
+								id="cboTipoReporteAsiento">
+								<f:selectItems
+									value="#{tipoAsientoBean.listaTipoReporteAsiento}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtReporte" value="#{msgs.lbl_reporte}:" />
+							<p:inputText value="#{tipoAsientoBean.tipoAsiento.reporte}"
+								id="txtReporte" styleClass="input-text" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtReporteResumen" value="#{msgs.lbl_reporte} #{msgs.lbl_resumen}:" />
+							<p:inputText value="#{tipoAsientoBean.tipoAsiento.reporteResumen}" id="txtReporteResumen" styleClass="input-text" required="false">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_indicador_NIIF}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoAsientoBean.tipoAsiento.indicadorNIIF}" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoAsientoBean.tipoAsiento.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoAsientoBean.tipoAsiento.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{tipoAsientoBean.tipoAsiento.descripcion}"
+								id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_tipo_asiento} )"
+						rendered="#{!tipoAsientoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoAsiento"
+							rowIndexVar="secuencialTipoAsiento"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tipoAsientoBean.listaTipoAsiento}" var="_tipoAsiento"
+							binding="#{tipoAsientoBean.dataTableTipoAsiento}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoAsientoBean.numeroFilas}"
+							rowsPerPageTemplate="#{tipoAsientoBean.numeroFilasPorPagina}"
+							selection="#{tipoAsientoBean.tipoAsiento}" selectionMode="single"
+							rowKey="#{_tipoAsiento.id}" sortBy="#{_tipoAsiento.nombre}"
+							sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+
+								<h:outputText value="#{secuencialTipoAsiento+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_tipoAsiento.nombre}"
+								filterBy="#{_tipoAsiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoAsiento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_tipoAsiento.tipoReporteAsiento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_reporte}" />
+								</f:facet>
+								<h:outputText value="#{_tipoAsiento.tipoReporteAsiento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_tipoAsiento.indicadorNIIF}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_NIIF}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tipoAsiento.indicadorNIIF}"
+									disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_tipoAsiento.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tipoAsiento.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tipoAsiento.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tipoAsiento.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{tipoAsientoBean.tipoAsiento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{tipoAsientoBean.tipoAsiento.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{tipoAsientoBean.tipoAsiento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{tipoAsientoBean.tipoAsiento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

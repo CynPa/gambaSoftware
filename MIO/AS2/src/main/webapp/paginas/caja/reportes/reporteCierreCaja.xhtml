@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_cierre_caja}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteCierreDeCajaBean}" entidadOrigen="" />
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteCierreDeCajaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteCierreDeCajaBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteCierreDeCajaBean.fechaDesde}"
+								id="calFechaDesde" maxdate="#{reporteCierreDeCajaBean.fechaHasta}">
+								<p:ajax event="dateSelect" update="@this calFechaHasta" process="@this" />
+								<p:ajax event="change" update="@this calFechaHasta" process="@this" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteCierreDeCajaBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteCierreDeCajaBean.fechaHasta}"
+								id="calFechaHasta" mindate="#{reporteCierreDeCajaBean.fechaDesde}">
+								<p:ajax event="dateSelect" update="@this calFechaDesde" process="@this" />
+								<p:ajax event="change" update="@this calFechaDesde" process="@this" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_usuario}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{reporteCierreDeCajaBean.user}"
+								completeMethod="#{reporteCierreDeCajaBean.autocompletarUsuarios}" var="_user" itemLabel="#{_user.nombreUsuario}" itemValue="#{_user}"
+								forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+								<p:column headerText="#{msgs.lbl_nombre}">#{_user.nombreUsuario}</p:column>
+								<p:ajax process="@this" update="@this" event="itemSelect" global="false" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_cierre_caja}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{reporteCierreDeCajaBean.cierreCaja}"
+								completeMethod="#{reporteCierreDeCajaBean.autocompletarCierreCaja}" var="_cierreCaja" itemLabel="#{_cierreCaja.numero}"
+								itemValue="#{_cierreCaja}" forceSelection="true" size="50" dropdown="true" minQueryLength="2" required="true">
+								<p:column headerText="#{msgs.lbl_numero}">#{_cierreCaja.numero}</p:column>
+								<p:ajax process="@this :form:panelFiltros" update="@this" event="itemSelect" global="false" />
+							</p:autoComplete>
+
+							<h:outputLabel for="items" value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu value="#{reporteCierreDeCajaBean.tipoReporte}" id="items">
+								<f:selectItems value="#{reporteCierreDeCajaBean.listaTipoReporte}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+								<p:ajax process="@this" update="@this" event="change"></p:ajax>
+							</p:selectOneMenu>
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+					</p:fieldset>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

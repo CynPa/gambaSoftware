@@ -1,0 +1,246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{interfazContableVentasLocalesBean}">
+					<as2:buttonEliminar bean="#{interfazContableVentasLocalesBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+						<h:outputText value="#{interfazContableVentasLocalesBean.interfazContableProceso.fechaDesde}" />
+
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<h:outputText value="#{interfazContableVentasLocalesBean.interfazContableProceso.fechaHasta}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{interfazContableVentasLocalesBean}" tabla=":form:tablaInterfazContableProceso" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_interfaz_contable_venta_proceso}" rendered="#{interfazContableVentasLocalesBean.editado}">
+						<p:fieldset>
+
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+								<h:outputText value="#{msgs.lbl_documento_documentoBase}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{interfazContableVentasLocalesBean.interfazContableProceso.filtroDocumentoBase}"
+									id="cboDocumentoBase" required="true">
+									<f:selectItems value="#{interfazContableVentasLocalesBean.listaDocumentoBase}" />
+									<f:validateBean for="cboDocumentoBase" />
+									<p:ajax process="@this" event="change" update="cboDocumento" listener="#{interfazContableVentasLocalesBean.cargarListaDocumento}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{interfazContableVentasLocalesBean.interfazContableProceso.filtroDocumento}"
+									id="cboDocumento" required="true">
+									<f:selectItem itemValue="0" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{interfazContableVentasLocalesBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+								</p:selectOneMenu>
+
+
+								<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+								<p:calendar pattern="#{interfazContableVentasLocalesBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{interfazContableVentasLocalesBean.interfazContableProceso.fechaDesde}" id="calFechaDesde" required="true">
+									<p:ajax process="@this" event="change" update=":form:panelNuevo" global="false" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+								<p:calendar pattern="#{interfazContableVentasLocalesBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{interfazContableVentasLocalesBean.interfazContableProceso.fechaHasta}" id="calFechaHasta" required="true">
+									<p:ajax process="@this" event="change" update=":form:panelNuevo" global="false" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_punto_de_venta}:" />
+								<p:column>
+									<p:selectOneMenu styleClass="input-text" value="#{interfazContableVentasLocalesBean.puntoDeVenta}" id="cboPuntoVenta">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{interfazContableVentasLocalesBean.listaPuntoVenta}" var="_puntoVenta" itemLabel="#{_puntoVenta.codigoAlterno}"
+											itemValue="#{_puntoVenta}" />
+										<p:ajax process="@this" global="false"></p:ajax>
+									</p:selectOneMenu>
+								</p:column>
+
+
+								<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar" action="#{interfazContableVentasLocalesBean.preliminarInterfazProceso}"
+									process="@this,calFechaDesde,calFechaHasta" update=":form:panelListadoTickets" />
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+
+							<p:outputPanel id="panelListadoTickets">
+								<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_ticket}">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTickets" rowIndexVar="secuencialPlan"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{interfazContableVentasLocalesBean.listaAsientoB}" var="_ticket" paginator="true"
+										paginatorPosition="bottom" style="width:100%" rows="#{interfazContableVentasLocalesBean.numeroFilas}" rowsPerPageTemplate="#{interfazContableVentasLocalesBean.numeroFilasPorPagina}"
+										rowKey="#{_ticket.id}">
+
+										<p:columnGroup type="header">
+											<p:row>
+												<p:column rowspan="2" headerText="Cuenta Contable" />
+												<p:column rowspan="2" headerText="Descripcion" />
+												<p:column rowspan="2" headerText="Debe" />
+												<p:column rowspan="2" headerText="Haber" />
+												<p:column rowspan="2" headerText="Referencia" />
+											</p:row>
+										</p:columnGroup>
+										<p:subTable var="_detalleAsiento" value="#{_ticket.listaDetalleAsiento}">
+											<f:facet name="header">
+												<h:outputText value="#{_ticket.documentoReferencia}">
+												</h:outputText>
+												<p:row>
+													<p:column rowspan="2" headerText="Team" />
+													<p:column colspan="2" headerText="Stats" />
+												</p:row>
+											</f:facet>
+											<p:column headerText="#{msgs.lbl_cuenta_contable}" styleClass="columnaDTCodigo tableCell">
+												<h:outputText value="#{_detalleAsiento.cuentaContable.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+												<h:outputText value="#{_detalleAsiento.descripcion}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_debe}" styleClass="columnaDTValor tableCell">
+												<h:outputText value="#{_detalleAsiento.debe}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_haber}" styleClass="columnaDTValor tableCell">
+												<h:outputText value="#{_detalleAsiento.haber}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+												<h:outputText value="#{_detalleAsiento.descripcion2}" />
+											</p:column>
+
+											<p:columnGroup type="footer">
+												<p:row>
+													<p:column colspan="2" footerText="Totales: " style="text-align:right" />
+													<p:column styleClass="columnaDTValor tableCell" footerText="#{_ticket.totalDebe}" />
+													<p:column styleClass="columnaDTValor tableCell" footerText="#{_ticket.totalHaber}" />
+												</p:row>
+											</p:columnGroup>
+										</p:subTable>
+
+									</p:dataTable>
+								</p:panel>
+							</p:outputPanel>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_interfaz_contable_venta_proceso}" rendered="#{!interfazContableVentasLocalesBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaInterfazContableProceso" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{interfazContableVentasLocalesBean.listaInterfazContableProceso}"
+							var="_interfazContableProceso" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{interfazContableVentasLocalesBean.dtInterfazContableProceso}" rows="#{interfazContableVentasLocalesBean.numeroFilas}"
+							rowsPerPageTemplate="#{interfazContableVentasLocalesBean.numeroFilasPorPagina}"
+							selection="#{interfazContableVentasLocalesBean.interfazContableProceso}" selectionMode="single" rowKey="#{_interfazContableProceso.id}"
+							sortBy="#{_interfazContableProceso.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_interfazContableProceso.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.numero}" />
+							</p:column>
+
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaDesde}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_desde}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaDesde}">
+									<f:convertDateTime pattern="#{interfazContableVentasLocalesBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaHasta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_hasta}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaHasta}">
+									<f:convertDateTime pattern="#{interfazContableVentasLocalesBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaContabilizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_contabilizacion}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaContabilizacion}">
+									<f:convertDateTime pattern="#{interfazContableVentasLocalesBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_interfazContableProceso.asiento.tipoAsiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_asiento}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.asiento.tipoAsiento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTEstado" sortBy="#{_interfazContableProceso.estado}" filterBy="#{_interfazContableProceso.estado}"
+								filterOptions="#{interfazContableVentasLocalesBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nota}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.observacion}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{interfazContableVentasLocalesBean.interfazContableProceso.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{interfazContableVentasLocalesBean.interfazContableProceso.usuarioCreacion}" />
+					<ui:param name="fechaModificacion" value="#{interfazContableVentasLocalesBean.interfazContableProceso.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{interfazContableVentasLocalesBean.interfazContableProceso.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

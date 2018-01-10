@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<!--
+<f:metadata>
+	<f:viewParam name="idOrdenSalidaMaterial" value="#{aprobarOrdenSalidaMaterialBean.idOrdenSalidaMaterial}" />
+	  <f:event listener="#{aprobarOrdenSalidaMaterialBean.cargarOrdenSalidaMaterial}" type="preRenderView" />
+</f:metadata>-->
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{aprobarOrdenSalidaMaterialBean}">
+					<as2:buttonImprimir id="btnImprimirSalidaMaterial" beanReporte="#{reporteSalidaMaterialBean}" bean="#{aprobarOrdenSalidaMaterialBean}"
+						target="#{reporteSalidaMaterialBean.ordenSalidaMaterial}" value="#{aprobarOrdenSalidaMaterialBean.ordenSalidaMaterial}" />
+					<as2:buttonExportaExcel bean="#{aprobarOrdenSalidaMaterialBean}" tabla=":form:tablaOrdenSalidaMaterial" />
+				</as2:toolBar>
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{aprobarOrdenSalidaMaterialBean.editado}" header="#{msgs.lbl_panel_edicion} (#{ msgs.lbl_orden_salida_material})">
+					</p:panel>
+				</p:outputPanel>
+				<p:outputPanel id="panelListado">
+					<p:confirmDialog
+						message="#{aprobarOrdenSalidaMaterialBean.aprobarOrden?msgs.confirmacion_aprobacion_orden_salida_material:msgs.confirmacion_desaprobacion_orden_salida_material}?"
+						width="200" modal="true" showEffect="explode" hideEffect="explode" severity="alert" widgetVar="aprobarOrdenSalidaMaterial"
+						id="aprobarOrdenSalidaMaterial">
+						<center>
+							<p:commandButton value="#{msgs.confirmacion_si}" update="panelListado" process="@this"
+								action="#{aprobarOrdenSalidaMaterialBean.aprobarDesaprobarOrdenSalidaMaterial}" oncomplete="aprobarOrdenSalidaMaterial.hide()" />
+							<p:commandButton value="#{msgs.confirmacion_no}" onclick="aprobarOrdenSalidaMaterial.hide()" />
+						</center>
+					</p:confirmDialog>
+					<p:panel rendered="#{!aprobarOrdenSalidaMaterialBean.editado}"
+						header="#{msgs.lbl_panel_listado} (#{msgs.lbl_indicador_aprobado} #{msgs.lbl_orden_salida_material})">
+					<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOrdenSalidaMaterial" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobarOrdenSalidaMaterialBean.listaOrdenSalidaMaterial}" var="_ordenSalidaMaterial"
+							style="width:100%" rows="155" binding="#{aprobarOrdenSalidaMaterialBean.dtOrden}"
+							selection="#{aprobarOrdenSalidaMaterialBean.ordenSalidaMaterial}" selectionMode="single" rowKey="#{_ordenSalidaMaterial.id}"
+							sortBy="#{_ordenSalidaMaterial.numero}" sortOrder="DESCENDING" lazy="true">
+							
+							
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" filterBy="#{_ordenSalidaMaterial.numero}" sortBy="#{_ordenSalidaMaterial.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.numero}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_ordenSalidaMaterial.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.fecha}">
+									<f:convertDateTime pattern="#{aprobarOrdenSalidaMaterialBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_ordenSalidaMaterial.tipoCicloProduccionEnum}" filterBy="tipoCicloProduccionEnum"
+								filterOptions="#{aprobarOrdenSalidaMaterialBean.listaTipoCicloProduccionItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_ciclo}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.tipoCicloProduccionEnum.nombre}" />
+							</p:column>
+							<p:column sortBy="#{_ordenSalidaMaterial.sucursal.nombre}" filterBy="#{_ordenSalidaMaterial.sucursal.nombre}" styleClass="tableCell">
+								<f:facet name="header" filterMatchMode="contains">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.sucursal.nombre}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_ordenSalidaMaterial.estado}" filterBy="estado"
+								filterOptions="#{aprobarOrdenSalidaMaterialBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.estado.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false" sortBy="#{_ordenSalidaMaterial.indicadorTransferencia}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_transferencia}" />
+								</f:facet>
+								<p:selectBooleanCheckbox disabled="true" value="#{_ordenSalidaMaterial.indicadorTransferencia}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false" sortBy="#{_ordenSalidaMaterial.aprobado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_aprobado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox disabled="true" value="#{_ordenSalidaMaterial.aprobado}" />
+							</p:column>
+							<p:column styleClass="tableCell" sortBy="#{_ordenSalidaMaterial.descripcion}" filterBy="#{_ordenSalidaMaterial.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_ordenSalidaMaterial.descripcion}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_aprobar}" />
+								</f:facet>
+								<p:commandButton oncomplete="aprobarOrdenSalidaMaterial.show()" icon="ui-icon-check" process="@this"
+									action="#{aprobarOrdenSalidaMaterialBean.ordenSeleccionado(true)}" update=":form:aprobarOrdenSalidaMaterial" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_desaprobar}" />
+								</f:facet>
+								<p:commandButton oncomplete="aprobarOrdenSalidaMaterial.show()" icon="ui-icon-closethick" process="@this"
+									action="#{aprobarOrdenSalidaMaterialBean.ordenSeleccionado(false)}" update=":form:aprobarOrdenSalidaMaterial" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+					<p:separator />
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{aprobarOrdenSalidaMaterialBean.ordenSalidaMaterial.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{aprobarOrdenSalidaMaterialBean.ordenSalidaMaterial.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{aprobarOrdenSalidaMaterialBean.ordenSalidaMaterial.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{aprobarOrdenSalidaMaterialBean.ordenSalidaMaterial.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

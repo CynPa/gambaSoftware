@@ -1,0 +1,177 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_stock_por_lote}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteStockValoradoPorLoteBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle" columns="#{reporteStockValoradoPorLoteBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_bodega}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.bodega}" id="cboBodega">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.listaBodega}" var="_bodega"
+									itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteStockValoradoPorLoteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteStockValoradoPorLoteBean.fechaHasta}" id="calFechaHasta" required="true" />
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}" />
+							<p:selectOneMenu value="#{reporteStockValoradoPorLoteBean.categoriaProductoSeleccionado}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.listaCategoriaProductos}" var="_categoriaProducto"
+									itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+								<p:ajax process="@this" listener="#{reporteStockValoradoPorLoteBean.cargarListaSubcategoriaProducto}"
+									update="cboSubcategoriaProducto" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}" />
+							<p:selectOneMenu value="#{reporteStockValoradoPorLoteBean.subcategoriaProductoSeleccionado}"
+								id="cboSubcategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_producto}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acProducto" styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.producto}"
+								completeMethod="#{reporteStockValoradoPorLoteBean.autocompletarProductos}" var="_producto" itemLabel="#{_producto.codigo}"
+								itemValue="#{_producto}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="Codigo">#{_producto.codigo}</p:column>
+								<p:column headerText="Nombre">#{_producto.nombreComercial}</p:column>
+								<p:ajax process="@this"  />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_unidad_panel}" />
+							<p:selectOneRadio id="options" value="#{reporteStockValoradoPorLoteBean.unidad}" required="true">
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.listaUnidad}"></f:selectItems>
+							</p:selectOneRadio>
+
+							<h:outputText value="#{msgs.lbl_indicador_lote}:" />
+							<p:selectBooleanCheckbox value="#{reporteStockValoradoPorLoteBean.indicadorProductoLote}" />
+							
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributoOrdenFabricacion and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributoOrdenFabricacion.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributoOrdenFabricacion and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributoOF}" id="cboAtributo1">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributoOrdenFabricacion.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}"
+									itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo1 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo1.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo1 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo1}" id="cboAtributo2">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo1.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo2 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo2.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo2 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo2}" id="cboAtributo3">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo2.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo3 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo3.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo3 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo3}" id="cboAtributo4">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo3.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo4 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo4.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo4 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo4}" id="cboAtributo5">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo4.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo5 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo5.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo5 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo5}" id="cboAtributo6">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo5.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo6 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo6.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo6 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo6}" id="cboAtributo7">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo6.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo7 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo7.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo7 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo7}" id="cboAtributo8">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo7.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo8 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo8.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo8 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo8}" id="cboAtributo9">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo8.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteStockValoradoPorLoteBean.atributo9 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								value="#{reporteStockValoradoPorLoteBean.atributo9.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteStockValoradoPorLoteBean.atributo9 and reporteStockValoradoPorLoteBean.indicadorProductoLote}"
+								styleClass="input-text" value="#{reporteStockValoradoPorLoteBean.valorAtributo9}" id="cboAtributo10">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoPorLoteBean.atributo9.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this"
+								oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+
+					</p:fieldset>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

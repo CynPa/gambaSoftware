@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html" xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<h:head>
+	<title>#{msgs.lbl_panel_listado} #{msgs.lbl_serie}</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<h:outputStylesheet library="css" name="skin.css" />
+	<h:outputStylesheet library="css" name="as2style.css" />
+	<h:outputStylesheet library="css" name="as2styletable.css" />
+	<h:outputScript library="primefaces" name="jquery/jquery.js" />
+</h:head>
+
+<h:body>
+	<h:form>
+
+		<p:outputPanel autoUpdate="true">
+			<p:growl id="mensajes" showDetail="true" life="4000" />
+		</p:outputPanel>
+
+		<p:focus context="panelSerie" />
+
+		<h:panelGrid columns="3">
+			<h:panelGroup id="panelSerie">
+				<h:panelGroup id="txtSerie">
+					<p:inputText rendered="#{dialogoSerieProductoBean.operacion == 1}" styleClass="input-text" value="#{dialogoSerieProductoBean.codigoSerie}" />
+
+					<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" rendered="#{dialogoSerieProductoBean.operacion != 1}" styleClass="input-text"
+						value="#{dialogoSerieProductoBean.serieProducto}" completeMethod="#{dialogoSerieProductoBean.autocompletarSerie}" var="_serie"
+						itemLabel="#{_serie.codigo}" itemValue="#{_serie}" forceSelection="true" dropdown="true" minQueryLength="2">
+						<p:column>#{_serie.codigo}</p:column>
+					</p:autoComplete>
+				</h:panelGroup>
+
+				<h:panelGroup>
+					<p:commandButton rendered="#{dialogoSerieProductoBean.operacion == 1}" value="#{msgs.lbl_agregar}"
+						actionListener="#{dialogoSerieProductoBean.crearSerieListener()}" process="@this txtSerie" update="@form" partialSubmit="true" />
+
+					<p:commandButton rendered="#{dialogoSerieProductoBean.operacion != 1}" value="#{msgs.lbl_agregar}"
+						actionListener="#{dialogoSerieProductoBean.cargarSerieListener()}" process="@this txtSerie" update="@form" partialSubmit="true" />
+				</h:panelGroup>
+			</h:panelGroup>
+
+			<p:fileUpload fileUploadListener="#{dialogoSerieProductoBean.cargaArchivoListener}" mode="advanced" update="@form" auto="true" sizeLimit="10000000"
+				allowTypes="/(\.|\/)(txt|TXT)$/" label="#{msgs.btn_examinar}" />
+
+			<p:commandButton actionListener="#{dialogoSerieProductoBean.cerrarDialogo()}" value="#{msgs.btn_aceptar}" title="#{msgs.btn_aceptar}" process="@this" partialSubmit="true" />
+
+		</h:panelGrid>
+
+		<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSeries" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+			value="#{dialogoSerieProductoBean.listaSerieProducto}" var="_serie" paginator="true" paginatorPosition="bottom"
+			rowsPerPageTemplate="#{dialogoSerieProductoBean.numeroFilasPorPagina}" filteredValue="#{dialogoSerieProductoBean.listaSerieProductoFiltrada}"
+			rows="10" rowKey="#{_serie.rowKey}" selectionMode="single" sortBy="#{_serie.serieProducto.codigo}" lazy="true" sortOrder="ASCENDING">
+
+			<p:column styleClass="columnaDTAccion tableAccion" headerText="Nº">
+				<h:outputText value="#{secuencia+1}" />
+			</p:column>
+
+			<p:column styleClass="tableCell" sortBy="#{_serie.serieProducto.codigo}" filterBy="#{_serie.serieProducto.codigo}" filterMatchMode="contains">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_codigo}" />
+				</f:facet>
+
+				<h:outputText value="#{_serie.serieProducto.codigo}" />
+
+			</p:column>
+
+			<p:column styleClass="columnaDTAccion tableCell">
+				<p:commandButton icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" process="@this"
+					actionListener="#{dialogoSerieProductoBean.eliminarSerieListener(_serie)}" update="tablaSeries" />
+
+			</p:column>
+
+		</p:dataTable>
+	</h:form>
+</h:body>
+
+</html>

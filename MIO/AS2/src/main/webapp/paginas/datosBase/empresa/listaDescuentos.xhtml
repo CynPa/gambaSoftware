@@ -1,0 +1,413 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{listaDescuentosBean}">
+					<as2:buttonEliminar bean="#{listaDescuentosBean}">
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{listaDescuentosBean.listaDescuentos.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteListaDescuentosBean}" bean="#{listaDescuentosBean}"
+						target="#{reporteListaDescuentosBean.listaDescuentos}" value="#{listaDescuentosBean.listaDescuentos}" />
+
+					<as2:buttonExportaExcel bean="#{listaDescuentosBean}" tabla=":form:tablaListasDescuentos" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{listaDescuentosBean}" />
+					<ui:param name="objetoActualizar" value=":form:tabView:panelDetalleVersionDescuentos" />
+				</ui:include>
+
+				<!-- INICIO DIALOG DE SUBIR LISTA DESCUENTOS -->
+
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarListaDescuentos" modal="true" height="150" width="325" showEffect="clip"
+					hideEffect="clip" resizable="false">
+					<p:outputPanel id="outputCargarListaDescuentos">
+						<h:panelGrid columns="2" id="panelCargarVersionListaPrecios">
+							<h:outputText value="#{msgs.lbl_fecha_desde}" />
+							<p:calendar id="calFechaHasta" value="#{listaDescuentosBean.fechaDesde}" showOn="button" navigator="true"
+								pattern="#{listaPreciosBean.formatoFecha}" size="10">
+								<p:ajax process="@this" update="@this" event="change" global="false" partialSubmit="true" />
+								<p:ajax process="@this" update="@this" event="dateSelect" global="false" partialSubmit="true" />
+							</p:calendar>
+						</h:panelGrid>
+						<p:spacer width="10px" />
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{listaDescuentosBean.migrarListaDescuentos}" mode="advanced" auto="true" sizeLimit="10000000"
+									allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this, outputCargarListaDescuentos"
+									oncomplete="dlgCargarListaDescuentos.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+
+				<!-- FIN DIALOG DE SUBIR LISTA DESCUENTOS -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_lista_descuentos})" rendered="#{listaDescuentosBean.editado}">
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelDetalle" columns="#{listaDescuentosBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{listaDescuentosBean.listaDescuentos.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{listaDescuentosBean.listaDescuentos.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_indicador_por_producto}:" />
+								<p:selectBooleanCheckbox value="#{listaDescuentosBean.listaDescuentos.indicadorDescuentoPorProducto}">
+									<p:ajax process="@this" update="#{p:component('panelDetalleProductos')}" event="change"
+										listener="#{listaDescuentosBean.actualizarIndicadorDescuentoPorProducto}" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_carga_automatica}:" />
+								<p:selectBooleanCheckbox value="#{listaDescuentosBean.listaDescuentos.indicadorCargaAutomatica}">
+									<p:ajax process="@this" global="false" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{listaDescuentosBean.listaDescuentos.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{listaDescuentosBean.listaDescuentos.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{listaDescuentosBean.listaDescuentos.predeterminado}" />
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:outputPanel id="panelDetalleProductos">
+
+							<p:tabView id="tabView">
+
+								<p:ajax event="tabChange" process=":form:tabView:panelListaVersionListaDescuentos" update=":form:tabView:panelDetalleVersionDescuentos"
+									global="false" />
+
+								<p:tab title="#{msgs.lbl_titulo_version_lista_descuentos}">
+
+									<h:panelGrid columns="1" style="width:100%;" cellpadding="0" cellspacing="0">
+
+										<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarVersionListaDescuentos"
+											action="#{listaDescuentosBean.agregarVersionListaDescuentos}" update="panelListaVersionListaDescuentos"
+											process="@this, :form:tabView:panelListaVersionListaDescuentos" icon="ui-icon-plus" />
+
+										<p:spacer height="2px" />
+
+										<p:outputPanel id="panelListaVersionListaDescuentos">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{listaDescuentosBean.listaVersionListaDescuentos}"
+												id="tablaListaVersionDescuentos" rowIndexVar="secuencial" binding="#{listaDescuentosBean.dtListaVersionDescuentos}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_versionListaDescuentos" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rows="#{listaDescuentosBean.numeroFilas}" rowKey="#{_versionListaDescuentos.id}" selection="#{listaDescuentosBean.versionListaDescuentos}"
+												selectionMode="single" lazy="true" rowsPerPageTemplate="#{listaDescuentosBean.numeroFilasPorPagina}">
+
+												<p:ajax event="rowSelect" listener="#{listaDescuentosBean.listarDescuentos}" update=":form:tabView:panelDetalleVersionDescuentos" />
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{msgs.lbl_seleccionar}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+													<p:inputText value="#{_versionListaDescuentos.descripcion}" id="txtNombreVersion" styleClass="input-text100">
+														<p:ajax process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_valido_desde}">
+													<p:calendar pattern="#{listaDescuentosBean.formatoFecha}" showOn="button" navigator="true" value="#{_versionListaDescuentos.validoDesde}"
+														id="calFechaDesde" size="10">
+														<p:ajax process="@this" event="dateSelect" global="false" />
+														<p:ajax process="@this" event="change" global="false" />
+													</p:calendar>
+												</p:column>
+
+												<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_valido_hasta}">
+													<p:calendar pattern="#{listaDescuentosBean.formatoFecha}" showOn="button" navigator="true" value="#{_versionListaDescuentos.validoHasta}"
+														id="calFechaHasta" size="10">
+														<p:ajax process="@this" event="dateSelect" global="false" />
+														<p:ajax process="@this" event="change" global="false" />
+													</p:calendar>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_porcentaje_descuento_maximo}"
+													rendered="#{!listaDescuentosBean.listaDescuentos.indicadorDescuentoPorProducto}">
+													<p:inputText styleClass="input-text" value="#{_versionListaDescuentos.porcentajeDescuentoMaximo}" id="txtPorcentajeDescuentoMaximo"
+														required="true">
+														<f:validateBean />
+														<p:ajax process="@this" global="false" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}">
+													<center>
+														<p:selectBooleanCheckbox value="#{_versionListaDescuentos.activo}" />
+													</center>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{listaDescuentosBean.eliminarVersionListaDescuentos}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabView:panelListaVersionListaDescuentos" process="@this">
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+										</p:outputPanel>
+									</h:panelGrid>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_descuento} (#{msgs.lbl_producto}s)" rendered="#{listaDescuentosBean.listaDescuentos.indicadorDescuentoPorProducto}">
+									<h:panelGrid columns="1" style="width:100%;" cellpadding="0" cellspacing="0">
+
+										<p:outputPanel id="panelDetalleVersionDescuentos">
+
+											<h:panelGroup>
+												<p:commandButton value="#{msgs.btn_agregar}" rendered="false" id="btnAgregarDetalleVersionListaDescuentos"
+													action="#{listaDescuentosBean.agregarDetalleVersionListaDescuentos}" update=":form:tabView:panelDetalleVersionDescuentos"
+													process="@this,:form:tabView:panelDetalleVersionDescuentos" icon="ui-icon-plus"
+													disabled="#{empty listaDescuentosBean.versionListaDescuentos}" />
+												<p:commandButton value="#{msgs.btn_agregar} (#{msgs.lbl_producto}s)" icon="ui-icon-plus" process="@this"
+													oncomplete="dglModalProducto.show();" disabled="#{empty listaDescuentosBean.versionListaDescuentos}" />
+												<!-- <p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+												<p:dataExporter type="xls" target="tablaDetalleVersionListaPrecio" fileName="tablaDetalleVersionListaPrecio" postProcessor="true"
+													pageOnly="false"  />
+											</p:commandButton> -->
+											</h:panelGroup>
+
+											<p:spacer height="2px" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{listaDescuentosBean.listaDetalleListaDescuentos}"
+												id="tablaDetalleVersionListaPrecio" rowIndexVar="secuencial" binding="#{listaDescuentosBean.dtDetalleVersionListaDescuentos}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleVersionListaDescuentos" paginator="true" paginatorPosition="bottom"
+												style="width:100%" rows="#{listaDescuentosBean.numeroFilas}" rowKey="#{_detalleVersionListaDescuentos.rowKey}" selectionMode="single"
+												rowsPerPageTemplate="#{listaDescuentosBean.numeroFilasPorPagina}">
+
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_titulo_version_lista_precios} (#{listaDescuentosBean.versionListaDescuentos.descripcion})" />
+												</f:facet>
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoBarrasProducto tableCell" headerText="#{msgs.lbl_codigo_barras}"
+													sortBy="#{_detalleVersionListaDescuentos.producto.codigoBarras}" filterBy="#{_detalleVersionListaDescuentos.producto.codigoBarras}"
+													filterMatchMode="contains">
+													<h:outputText styleClass="input-text" value="#{_detalleVersionListaDescuentos.producto.codigoBarras}" id="txtCodigoBarrasProducto"
+														required="true">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}"
+													sortBy="#{_detalleVersionListaDescuentos.producto.codigo}" filterBy="#{_detalleVersionListaDescuentos.producto.codigo}"
+													filterMatchMode="contains">
+													<h:outputText styleClass="input-text" value="#{_detalleVersionListaDescuentos.producto.codigo}" id="txtCodigoProducto" required="true">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" sortBy="#{_detalleVersionListaDescuentos.producto.nombre}"
+													filterBy="#{_detalleVersionListaDescuentos.producto.nombre}" filterMatchMode="contains">
+													<h:outputText styleClass="input-text" value="#{_detalleVersionListaDescuentos.producto.nombre}" id="txtNombreProducto">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto_nombre_comercial}"
+													sortBy="#{_detalleVersionListaDescuentos.producto.nombreComercial}" filterBy="#{_detalleVersionListaDescuentos.producto.nombreComercial}"
+													filterMatchMode="contains">
+													<h:outputText styleClass="input-text" value="#{_detalleVersionListaDescuentos.producto.nombreComercial}" id="txtNombreComercialProducto">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto_categoria_producto}"
+													sortBy="#{_detalleVersionListaDescuentos.producto.subcategoriaProducto.categoriaProducto.nombre}"
+													filterBy="#{_detalleVersionListaDescuentos.producto.subcategoriaProducto.categoriaProducto.nombre}" filterMatchMode="contains">
+													<h:outputText styleClass="input-text" value="#{_detalleVersionListaDescuentos.producto.subcategoriaProducto.categoriaProducto.nombre}"
+														id="txtNombreCategoriaProducto">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_impuesto}">
+													<p:selectBooleanCheckbox value="#{_detalleVersionListaDescuentos.producto.indicadorImpuestos}" disabled="true" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_porcentaje_descuento_maximo}">
+													<p:inputText styleClass="input-text" value="#{_detalleVersionListaDescuentos.porcentajeDescuentoMaximo}"
+														id="txtPorcentajeDescuentoMaximo" required="true">
+														<f:validateBean />
+														<p:ajax process="@this" global="false" />
+													</p:inputText>
+												</p:column>
+
+												<!--<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+												<p:commandLink id="btnReplicar" process="@this,:form:tabView:panelDetalleVersionDescuentos" global="false" title="#{msgs.lbl_replicar}"
+													update=":form:panelContenedor :form:panelListado" action="#{listaDescuentosBean.cargaProductoListaDescuentosVigentes}">
+													<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+
+												</p:commandLink>
+											</p:column>-->
+
+												<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+													<p:commandButton id="btnEliminarDetalle" action="#{listaDescuentosBean.eliminarDetalleVersionListaDescuentos}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" process="@this" update=":form:tabView:panelDetalleVersionDescuentos" />
+												</p:column>
+											</p:dataTable>
+
+										</p:outputPanel>
+
+									</h:panelGrid>
+								</p:tab>
+
+							</p:tabView>
+
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:outputPanel id="panelFiltrosFile">
+						<p:dialog header="#{msgs.lbl_descargar}" widgetVar="dialogFiltrosFile" id="dialogFiltrosFile" modal="true" height="auto" width="510"
+							showEffect="slide" hideEffect="slide">
+							<h:panelGrid columns="2" columnClasses="columnaEtiqueta, columnaValor">
+								<h:outputText value="#{msgs.lbl_producto_categoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCategoriaProducto"
+									value="#{listaDescuentosBean.listaCategoriaProductoSeleccionado}" completeMethod="#{listaDescuentosBean.autocompletarCategoriaProducto}"
+									var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" forceSelection="true" dropdown="true"
+									minQueryLength="2" multiple="true" converter="categoriaProductoConverterMultiple">
+									<p:column>#{_categoriaProducto.codigo}</p:column>
+									<p:column>#{_categoriaProducto.nombre}</p:column>
+									<p:ajax process="@this" global="false" event="itemSelect" update="@this" />
+									<p:ajax process="@this" global="false" event="itemUnselect" update="@this" />
+								</p:autoComplete>
+								<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+									value="#{listaDescuentosBean.listaSubcategoriaProductoSeleccionado}"
+									completeMethod="#{listaDescuentosBean.autocompletarSubcategoriaProducto}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" forceSelection="true" dropdown="true" minQueryLength="2"
+									multiple="true" converter="subcategoriaProductoConverterMultiple">
+									<p:column>#{_subcategoriaProducto.codigo}</p:column>
+									<p:column>#{_subcategoriaProducto.nombre}</p:column>
+									<p:ajax process="@this" global="false" event="itemSelect" update="@this" />
+									<p:ajax process="@this" global="false" event="itemUnselect" update="@this" />
+								</p:autoComplete>
+								<h:outputText value="#{msgs.lbl_saldo} > 0:" />
+								<p:selectBooleanCheckbox value="#{listaDescuentosBean.saldoMayorCero}">
+									<p:ajax process="@this" partialSubmit="true" global="false" />
+								</p:selectBooleanCheckbox>
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton ajax="false" title="#{msgs.lbl_descargar}" value="#{msgs.lbl_descargar}" process="@this">
+										<p:fileDownload value="#{listaDescuentosBean.file}" />
+									</p:commandButton>
+									<p:commandButton value="#{msgs.btn_cancelar}" process="@this" oncomplete="PF('dialogFiltrosFile').hide()" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:outputPanel>
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_lista_descuentos})" rendered="#{!listaDescuentosBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaListasDescuentos" rowIndexVar="secuencialListaDescuentos"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{listaDescuentosBean.listaListaDescuentos}" var="_listaDescuentos" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{listaDescuentosBean.dtListaDescuentos}" rows="#{listaDescuentosBean.numeroFilas}"
+							selection="#{listaDescuentosBean.listaDescuentos}" selectionMode="single" rowKey="#{_listaDescuentos.id}" sortBy="#{_listaDescuentos.codigo}"
+							lazy="true" rowsPerPageTemplate="#{listaDescuentosBean.numeroFilasPorPagina}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialListaDescuentos+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{_listaDescuentos.codigo}" sortBy="#{_listaDescuentos.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_listaDescuentos.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{_listaDescuentos.nombre}" sortBy="#{_listaDescuentos.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_listaDescuentos.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_indicador_por_producto}">
+								<p:selectBooleanCheckbox value="#{_listaDescuentos.indicadorDescuentoPorProducto}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_carga_automatica}:">
+								<p:selectBooleanCheckbox value="#{_listaDescuentos.indicadorCargaAutomatica}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{_listaDescuentos.activo}">
+								<p:selectBooleanCheckbox value="#{_listaDescuentos.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_listaDescuentos.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_listaDescuentos.descripcion}" />
+							</p:column>
+							<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+								<p:commandButton title="#{msgs.lbl_descargar}" icon="action" process="@this" update=":form:panelFiltrosFile"
+									action="#{listaDescuentosBean.seleccionar}" oncomplete="dialogFiltrosFile.show()"
+									rendered="#{_listaDescuentos.indicadorDescuentoPorProducto}">
+								</p:commandButton>
+							</p:column>
+							<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+								<p:commandLink title="#{msgs.lbl_cargar}" rendered="#{_listaDescuentos.indicadorDescuentoPorProducto}" process=":form:panelListado"
+									action="#{listaDescuentosBean.seleccionar}" update=":form:outputCargarListaDescuentos" onclick="dlgCargarListaDescuentos.show()">
+									<h:graphicImage library="images" name="upload.png" style="height : 22px; width : 22px;" />
+								</p:commandLink>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{listaDescuentosBean.listaDescuentos.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{listaDescuentosBean.listaDescuentos.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{listaDescuentosBean.listaDescuentos.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{listaDescuentosBean.listaDescuentos.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

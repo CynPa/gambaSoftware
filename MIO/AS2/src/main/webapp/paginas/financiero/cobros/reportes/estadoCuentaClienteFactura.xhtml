@@ -1,0 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<ui:include src="/template/barraExportar.xhtml">
+				<ui:param name="bean" value="#{reporteEstadoCuentaClienteFacturaBean}" />
+				<ui:param name="tabla" value="tablaEstadoCuenta" />
+				<ui:param name="columnasAExcluir" value="" />
+				<ui:param name="columnasAExcluirPdf" value="" />
+			</ui:include>
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_estado_cuenta_factura}">
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente"
+								value="#{reporteEstadoCuentaClienteFacturaBean.empresa}" completeMethod="#{reporteEstadoCuentaClienteFacturaBean.autocompletarClientes}"
+								var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" listener="#{reporteEstadoCuentaClienteFacturaBean.encerarDatos}" update=":form:outListaEstadoCuentaClienteFactura" />
+
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_factura}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoFactura"
+								value="#{reporteEstadoCuentaClienteFacturaBean.facturaCliente}"
+								completeMethod="#{reporteEstadoCuentaClienteFacturaBean.autocompletarFacturas}" var="_factura" itemLabel="#{_factura.numero}"
+								itemValue="#{_factura}" forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+
+								<p:ajax process="@this" event="itemSelect" listener="#{reporteEstadoCuentaClienteFacturaBean.procesar}"
+									update=":form:outListaEstadoCuentaClienteFactura :form:panelFiltros" />
+
+								<p:column>
+									<h:outputText value="#{_factura.numero}" />
+								</p:column>
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+				</p:outputPanel>
+
+				<ui:include src="/template/listaEstadoCuentaClienteFactura.xhtml">
+					<ui:param name="bean" value="#{reporteEstadoCuentaClienteFacturaBean}" />
+				</ui:include>
+				
+				
+				
+				
+				
+				
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,101 @@
+<p:outputPanel id="panelFiltros" xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+
+	<p:fieldset>
+		<h:panelGrid id="panelDetalle" columns="#{bean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+			<h:outputText value="#{msgs.lbl_bodega}:" />
+			<p:selectOneMenu styleClass="input-text" value="#{bean.bodega}" id="cboBodega">
+				<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+				<f:selectItems value="#{bean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+			</p:selectOneMenu>
+
+			<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+			<p:calendar pattern="#{bean.formatoFecha}" showOn="button" navigator="true" value="#{bean.fechaHasta}" id="calFechaHasta" required="true" />
+
+			<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}" />
+			<p:selectOneMenu value="#{bean.categoriaProductoSeleccionado}">
+				<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+				<f:selectItems value="#{bean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+					itemValue="#{_categoriaProducto}" />
+				<p:ajax process="@this" listener="#{bean.cargarListaSubcategoriaProducto}" update="cboSubcategoriaProducto" />
+			</p:selectOneMenu>
+
+
+			<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}" />
+			<p:selectOneMenu value="#{bean.subcategoriaProductoSeleccionado}" id="cboSubcategoriaProducto">
+				<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+				<f:selectItems value="#{bean.listaSubcategoriaProductos}" var="_subcategoriaProducto" itemLabel="#{_subcategoriaProducto.nombre}"
+					itemValue="#{_subcategoriaProducto}" />
+				<p:ajax process="@this" />
+			</p:selectOneMenu>
+
+			<h:outputText value="#{msgs.lbl_unidad_panel}" />
+			<p:selectOneRadio id="options" value="#{bean.unidad}" required="true">
+				<f:selectItems value="#{bean.listaUnidad}"></f:selectItems>
+			</p:selectOneRadio>
+
+			<h:outputText value="#{msgs.lbl_saldos_iguales_a_cero}:" />
+			<p:selectBooleanCheckbox id="chkSaldoCero" value="#{bean.indicadorSaldoCero}">
+				<p:ajax process="@this" global="false" event="change" update=":form:panelAtributos" />
+			</p:selectBooleanCheckbox>
+
+			<h:outputText value="Por #{msgs.lbl_atributo}:" />
+			<p:selectBooleanCheckbox id="chkAtributo" value="#{bean.indicadorAtributo}">
+				<p:ajax process="@this" global="false" event="change" listener="#{bean.actualizarAtributo}" update=":form:panelAtributos" />
+			</p:selectBooleanCheckbox>
+
+			<h:outputText value="#{msgs.lbl_agrupado}:" />
+			<p:selectBooleanCheckbox id="chkAgrupado" value="#{bean.indicadorAgrupado}">
+				<p:ajax process="@this" global="false" event="change" />
+			</p:selectBooleanCheckbox>
+
+		</h:panelGrid>
+
+		<p:outputPanel id="panelAtributos">
+			<h:panelGrid columns="#{bean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+				rendered="#{bean.indicadorAtributo}">
+
+				<h:outputText value="#{msgs.lbl_atributo} 1:" />
+				<p:selectOneMenu styleClass="input-text" value="#{bean.atributo1}" id="cboAtributo1">
+					<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="#{bean.atributo1}" />
+					<f:selectItems value="#{bean.listaAtributo}" var="_atributo" itemLabel="#{_atributo.nombre}" itemValue="#{_atributo}" />
+					<p:ajax process="@this" update="cboValorAtributo1" global="false" event="change" listener="#{bean.cargarListaValorAtributo1}"></p:ajax>
+				</p:selectOneMenu>
+
+				<h:outputText value="#{msgs.lbl_valor_atributo} 1:" />
+				<p:selectOneMenu styleClass="input-text" value="#{bean.valorAtributo1}" id="cboValorAtributo1">
+					<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+					<f:selectItems value="#{bean.listaValorAtributo1}" />
+					<p:ajax process="@this" global="false" event="change"></p:ajax>
+				</p:selectOneMenu>
+
+				<h:outputText value="#{msgs.lbl_atributo} 2:" />
+				<p:selectOneMenu styleClass="input-text" value="#{bean.atributo2}" id="cboAtributo2">
+					<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+					<f:selectItems value="#{bean.listaAtributo}" var="_atributo" itemLabel="#{_atributo.nombre}" itemValue="#{_atributo}" />
+					<p:ajax process="@this" update="cboValorAtributo2" global="false" event="change" listener="#{bean.cargarListaValorAtributo2}"></p:ajax>
+				</p:selectOneMenu>
+
+				<h:outputText value="#{msgs.lbl_valor_atributo} 2:" />
+				<p:selectOneMenu styleClass="input-text" value="#{bean.valorAtributo2}" id="cboValorAtributo2">
+					<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+					<f:selectItems value="#{bean.listaValorAtributo2}" />
+					<p:ajax process="@this" global="false" event="change"></p:ajax>
+				</p:selectOneMenu>
+
+			</h:panelGrid>
+
+		</p:outputPanel>
+
+		<p:separator />
+
+		<h:panelGrid columns="1" style="text-align:center;">
+			<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+			</p:commandButton>
+		</h:panelGrid>
+
+	</p:fieldset>
+</p:outputPanel>

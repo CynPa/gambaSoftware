@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<!--
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{tarifaOperacionBean}" />
+					<ui:param name="tabla" value="tablaTarifaOperacion" />
+					<ui:param name="columnasAExcluir" value="4" />
+					<ui:param name="columnasAExcluirPdf" value="4" />
+				</ui:include>
+-->
+				<as2:toolBar bean="#{tarifaOperacionBean}">
+					<as2:buttonEliminar bean="#{tarifaOperacionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tarifaOperacionBean.tarifaOperacion.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tarifaOperacionBean.tarifaOperacion.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tarifaOperacionBean}" tabla=":form:tablaTarifaOperacion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{tarifaOperacionBean.editado}" header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_tarifa_operacion} )">
+
+						<h:panelGrid id="panelDetalle" columns="#{tarifaOperacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tarifaOperacionBean.tarifaOperacion.codigo}" id="txtCodigo">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tarifaOperacionBean.tarifaOperacion.nombre}" id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_costo}:" />
+							<p:inputText styleClass="input-text" value="#{tarifaOperacionBean.tarifaOperacion.costo}" id="txtCosto">
+							</p:inputText>
+
+							<!--<h:outputText value="#{msgs.lbl_precio}:" />
+							<p:inputText styleClass="input-text" value="#{tarifaOperacionBean.tarifaOperacion.precio}" id="txtPrecio">
+							</p:inputText>-->
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tarifaOperacionBean.tarifaOperacion.descripcion}" id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{tarifaOperacionBean.tarifaOperacion.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{tarifaOperacionBean.tarifaOperacion.predeterminado}" />
+
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!tarifaOperacionBean.editado}" header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_tarifa_operacion} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTarifaOperacion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tarifaOperacionBean.listaTarifaOperacion}" var="_tarifaOperacion"
+							binding="#{tarifaOperacionBean.dtTarifaOperacion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tarifaOperacionBean.numeroFilas}" rowsPerPageTemplate="#{tarifaOperacionBean.numeroFilasPorPagina}"
+							selection="#{tarifaOperacionBean.tarifaOperacion}" selectionMode="single" rowKey="#{_tarifaOperacion.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_tarifaOperacion.codigo}" sortBy="#{_tarifaOperacion.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaOperacion.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_tarifaOperacion.nombre}" sortBy="#{_tarifaOperacion.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaOperacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor input-text-number tableCell" sortBy="#{_tarifaOperacion.costo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_costo}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaOperacion.costo}">
+									<f:convertNumber pattern="#{tarifaOperacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<!-- <p:column styleClass="columnaDTValor input-text-number tableCell" sortBy="#{_tarifaOperacion.precio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_precio}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaOperacion.precio}">
+									<f:convertNumber pattern="#{tarifaOperacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							 -->
+
+							<p:column sortBy="#{_tarifaOperacion.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tarifaOperacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTPredeterminado" sortBy="#{_tarifaOperacion.predeterminado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tarifaOperacion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_tarifaOperacion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaOperacion.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tarifaOperacionBean.tarifaOperacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tarifaOperacionBean.tarifaOperacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{tarifaOperacionBean.tarifaOperacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tarifaOperacionBean.tarifaOperacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

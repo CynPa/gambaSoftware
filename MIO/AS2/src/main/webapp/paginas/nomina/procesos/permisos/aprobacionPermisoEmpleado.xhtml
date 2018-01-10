@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{aprobacionPermisoEmpleadoBean}">
+
+					<as2:buttonImprimir id="btnImprimirEmpleado" beanReporte="#{reportePermisoEmpleadoBean}" bean="#{aprobacionPermisoEmpleadoBean}"
+						target="#{reportePermisoEmpleadoBean.permisoEmpleado}" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado}" />
+
+					<as2:buttonExportaExcel bean="#{permisoEmpleadoBean}" tabla=":form:tablaPermisoEmpleado" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{aprobacionPermisoEmpleadoBean}" />
+					<ui:param name="objetoActualizar" value="form:txtEmpleado" />
+				</ui:include>
+
+				<p:confirmDialog message="#{msgs.confirmacion_aprobacion_permiso}?" width="200" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="aprobarPermiso">
+					<center>
+						<p:commandButton value="#{msgs.confirmacion_si}" update="panelListado" process="@this"
+							action="#{aprobacionPermisoEmpleadoBean.aprobarPermisoEmpleado}" oncomplete="aprobarPermiso.hide()" />
+						<p:commandButton value="#{msgs.confirmacion_no}" onclick="aprobarPermiso.hide()" />
+					</center>
+				</p:confirmDialog>
+
+				<p:confirmDialog message="#{msgs.confirmacion_anulacion_permiso}?" width="200" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="anularPermiso">
+					<center>
+						<p:commandButton value="#{msgs.confirmacion_si}" update="panelListado" process="@this"
+							action="#{aprobacionPermisoEmpleadoBean.negarPermisoEmpleado}" oncomplete="anularPermiso.hide()" />
+						<p:commandButton value="#{msgs.confirmacion_no}" onclick="anularPermiso.hide()" />
+					</center>
+				</p:confirmDialog>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_permiso_empleado} )" rendered="#{aprobacionPermisoEmpleadoBean.editado}">
+
+						<h:panelGrid id="panelCabecera" columns="#{aprobacionPermisoEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true"
+								value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.documento.idDocumento}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{aprobacionPermisoEmpleadoBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento.idDocumento}" />
+								<p:ajax process="@this" update="txtNumero" listener="#{aprobacionPermisoEmpleadoBean.actualizarDocumento}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputMask styleClass="input-text" id="txtNumero" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.numero}"
+								mask="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.documento.secuencia.patron}">
+								<f:validateBean />
+							</p:inputMask>
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" disabled="#{aprobacionPermisoEmpleadoBean.empleadoSimple}" oncomplete="dglModalEmpleado.show();"
+									update="panelNuevo">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado"
+									value="#{aprobacionPermisoEmpleadoBean.empleadoSession.apellidos} #{aprobacionPermisoEmpleadoBean.empleadoSession.nombres}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar id="calFecha" showOn="button" pattern="#{aprobacionPermisoEmpleadoBean.formatoFecha}"
+								value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.fechaPermiso}">
+								<f:validateBean />
+							</p:calendar>
+
+
+							<h:outputText value="#{msgs.lbl_tipo_permiso}:" />
+							<p:selectOneMenu value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.tipoPermisoEmpleado}" id="cboTipoPermiso" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{aprobacionPermisoEmpleadoBean.listaTipoPermisoEmpleado}" var="_tipoPermisoEmpleado"
+									itemLabel="#{_tipoPermisoEmpleado.nombre}" itemValue="#{_tipoPermisoEmpleado}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_horas}:" />
+							<h:outputText styleClass="negrita" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.horas}" id="txtHoras" />
+
+							<h:outputText value="#{msgs.lbl_dia_desde}:" />
+							<h:panelGrid columns="3" styleClass="input-text" cellpadding="0" cellspacing="0">
+								<p:column>
+									<p:calendar id="calDiaDesde" showOn="button" pattern="#{permisoEmpleadoBean.formatoFecha}"
+										value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.diaDesde}" required="true">
+										<f:validateBean />
+										<p:ajax update=":form:panelTabDetalle txtHoras txtHoras" process="@this calDiaDesde" event="dateSelect" listener="#{aprobacionPermisoEmpleadoBean.crearDetalles}" />
+										<p:ajax update=":form:panelTabDetalle txtHoras txtHoras" process="@this calDiaDesde" event="change" listener="#{aprobacionPermisoEmpleadoBean.crearDetalles}" />
+									</p:calendar>
+								</p:column>
+								<p:column>
+									<h:outputText value="#{msgs.lbl_dia_hasta}:" />
+								</p:column>
+								<p:column>
+									<p:calendar id="calDiaHasta" showOn="button" pattern="#{permisoEmpleadoBean.formatoFecha}"
+										value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.diaHasta}" required="true">
+										<f:validateBean />
+										<p:ajax update=":form:panelTabDetalle txtHoras" process="@this calDiaDesde" event="dateSelect" listener="#{aprobacionPermisoEmpleadoBean.crearDetalles}" />
+										<p:ajax update=":form:panelTabDetalle txtHoras" process="@this calDiaDesde" event="change" listener="#{aprobacionPermisoEmpleadoBean.crearDetalles}" />
+									</p:calendar>
+								</p:column>
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+						<p:outputPanel id="panelTabDetalle">
+
+							<p:tabView cache="true" dynamic="true" id="tvDetallePermiso">
+
+								<p:tab title="#{msgs.lbl_detalle}">
+
+									<p:outputPanel id="panelDetalleFactura">
+
+										<h:panelGrid columns="1" style="width:100%">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobacionPermisoEmpleadoBean.listaDetallePermiso}" id="tablaDetallepermiso"
+												rowIndexVar="secuencial" binding="#{aprobacionPermisoEmpleadoBean.dtDetallePermiso}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePermiso"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{aprobacionPermisoEmpleadoBean.numeroFilas}"
+												rowKey="#{_detallePermiso.rowKey}">
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+												<p:column styleClass="columnaDTFecha tableCell">
+													<f:facet name="header">
+														<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_fecha}" />
+													</f:facet>
+													<h:outputText value="#{_detallePermiso.fechaPermiso}">
+														<f:convertDateTime pattern="#{aprobacionPermisoEmpleadoBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+												<p:column styleClass="tableCell columnaDTValor">
+													<f:facet name="header">
+														<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_horas}" />
+													</f:facet>
+
+													<p:inputText value="#{_detallePermiso.horas}" id="txtHorasDetalle" required="true">
+														<f:validateBean />
+														<p:ajax process="@this" update="@this :form:txtHoras calHoraHasta" listener="#{aprobacionPermisoEmpleadoBean.actualizarDetalle(_detallePermiso)}"/>
+													</p:inputText>
+												</p:column>
+
+
+												<p:column styleClass="tableCell columnaDTFecha">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_hora_desde}:" />
+													</f:facet>
+													<p:calendar id="calHoraDesde" value="#{_detallePermiso.horaDesde}" pattern="HH:mm" minHour="6" maxHour="23" timeOnly="true"
+														required="true">
+														<p:ajax process="@this calHoraDesde txtHorasDetalle" listener="#{aprobacionPermisoEmpleadoBean.actualizarDetalle(_detallePermiso)}"
+															update=":form:panelTabDetalle" event="dateSelect" />
+														<p:ajax process="@this calHoraDesde txtHorasDetalle" listener="#{aprobacionPermisoEmpleadoBean.actualizarDetalle(_detallePermiso)}"
+															update=":form:panelTabDetalle" event="change" />
+														<f:validateBean />
+													</p:calendar>
+												</p:column>
+												<p:column styleClass="tableCell columnaDTFecha">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_hora_hasta}:" />
+													</f:facet>
+													<p:calendar id="calHoraHasta" value="#{_detallePermiso.horaHasta}" pattern="HH:mm" minHour="6" maxHour="23"
+														timeOnly="true" readonly="true" disabled="true">
+														<f:validateBean />
+													</p:calendar>
+												</p:column>
+												<p:column styleClass="tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_descripcion}" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_detallePermiso.descripcion}">
+														<p:ajax process="@this" />
+													</p:inputText>
+												</p:column>
+
+
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_permiso_empleado} )" rendered="#{!aprobacionPermisoEmpleadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaPermisoEmpleado" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{aprobacionPermisoEmpleadoBean.listaAprobacionPermisoEmpleado}" var="_permisoEmpleado"
+							binding="#{aprobacionPermisoEmpleadoBean.dtAprobacionPermisoEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{aprobacionPermisoEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{aprobacionPermisoEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{aprobacionPermisoEmpleadoBean.permisoEmpleado}" selectionMode="single" rowKey="#{_permisoEmpleado.id}"
+							sortBy="#{_permisoEmpleado.numero}" sortOrder="DESCENDING">
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_permisoEmpleado.numero}" filterBy="#{_permisoEmpleado.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_permisoEmpleado.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_permisoEmpleado.fechaPermiso}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_permisoEmpleado.fechaPermiso}">
+									<f:convertDateTime pattern="#{permisoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_permisoEmpleado.historicoEmpleado.empleado.apellidos}"
+								filterBy="#{_permisoEmpleado.historicoEmpleado.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value=" #{_permisoEmpleado.historicoEmpleado.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_permisoEmpleado.historicoEmpleado.empleado.nombres}"
+								filterBy="#{_permisoEmpleado.historicoEmpleado.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_permisoEmpleado.historicoEmpleado.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_horas}" sortBy="#{_permisoEmpleado.horas}">
+								<h:outputText value="#{_permisoEmpleado.horas}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_cargo_vacacion}" sortBy="#{_permisoEmpleado.indicadorCargoVacacion}">
+								<h:selectBooleanCheckbox value="#{_permisoEmpleado.indicadorCargoVacacion}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_estado}" sortBy="#{_permisoEmpleado.estado}">
+								<h:outputText value="#{_permisoEmpleado.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_aprobar}" />
+								</f:facet>
+								<center>
+									<p:commandButton oncomplete="aprobarPermiso.show()" icon="ui-icon-check" process="@this"
+										action="#{aprobacionPermisoEmpleadoBean.permisoEmpleadoSelecionado}" />
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anular}" />
+								</f:facet>
+								<center>
+									<p:commandButton oncomplete="anularPermiso.show()" icon="ui-icon-close" process="@this"
+										action="#{aprobacionPermisoEmpleadoBean.permisoEmpleadoSelecionado}" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{aprobacionPermisoEmpleadoBean.permisoEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

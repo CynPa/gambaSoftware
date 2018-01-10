@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{condicionPagoBean}">
+					<as2:buttonEliminar bean="#{condicionPagoBean}">
+					</as2:buttonEliminar>
+					<as2:buttonExportaExcel bean="#{condicionPagoBean}" tabla=":form:tablaCondicionPagos" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_condicion_pago_titulo2}" rendered="#{condicionPagoBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{condicionPagoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{condicionPagoBean.condicionPago.codigo}" id="txtCodigo" required="true" />
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{condicionPagoBean.condicionPago.nombre}" id="txtNombre" required="true" />
+
+							<h:outputText value="#{msgs.lbl_condicion_pago_dias_plazo}:" />
+							<p:inputText styleClass="input-text" value="#{condicionPagoBean.condicionPago.diasPlazo}" id="txtDiasPlazo" />
+
+							<h:outputText value="#{msgs.lbl_condicion_pago_meses_plazo}:" />
+							<p:inputText styleClass="input-text" value="#{condicionPagoBean.condicionPago.mesesPlazo}" id="txtMesesPlazo" />
+
+							<h:outputText value="#{msgs.lbl_fecha_fija}:" />
+							<p:selectBooleanCheckbox value="#{condicionPagoBean.condicionPago.indicadorFechaFija}">
+								<p:ajax process="@this" update="panelDiaVencimiento">
+									<f:setPropertyActionListener value="0" target="#{condicionPagoBean.condicionPago.diaVencimiento}" />
+								</p:ajax>
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_condicion_pago_dia_vencimiento}:" />
+							<p:outputPanel id="panelDiaVencimiento">
+								<p:inputText styleClass="input-text" value="#{condicionPagoBean.condicionPago.diaVencimiento}" id="txtDiaVencimiento"
+									disabled="#{!condicionPagoBean.condicionPago.indicadorFechaFija}" />
+							</p:outputPanel>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{condicionPagoBean.condicionPago.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{condicionPagoBean.condicionPago.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{condicionPagoBean.condicionPago.descripcion}" id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_peso}:" />
+							<p:inputText styleClass="input-text" value="#{condicionPagoBean.condicionPago.peso}" id="txtPeso" />
+
+
+						</h:panelGrid>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_condicion_pago_titulo2}" rendered="#{!condicionPagoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCondicionPagos" rowIndexVar="secuencialCondicionPago"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{condicionPagoBean.listaCondicionPago}" var="condicionPago"
+							binding="#{condicionPagoBean.dataTableCondicionesPago}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{condicionPagoBean.numeroFilas}" rowsPerPageTemplate="#{condicionPagoBean.numeroFilasPorPagina}"
+							selection="#{condicionPagoBean.condicionPago}" selectionMode="single" rowKey="#{condicionPago.id}" sortBy="#{condicionPago.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialCondicionPago+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{condicionPago.codigo}" sortBy="#{condicionPago.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{condicionPago.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{condicionPago.nombre}" sortBy="#{condicionPago.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{condicionPago.nombre}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number columnaDTNombre" filterBy="#{condicionPago.diasPlazo}" filterMatchMode="contains"
+								sortBy="#{condicionPago.diasPlazo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_condicion_pago_dias_plazo}" />
+								</f:facet>
+								<h:outputText value="#{condicionPago.diasPlazo}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number columnaDTNombre" filterBy="#{condicionPago.mesesPlazo}" sortBy="#{condicionPago.mesesPlazo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_condicion_pago_meses_plazo}" />
+								</f:facet>
+								<h:outputText value="#{condicionPago.mesesPlazo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{condicionPago.activo}">
+								<p:selectBooleanCheckbox value="#{condicionPago.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}" sortBy="#{condicionPago.predeterminado}">
+								<p:selectBooleanCheckbox value="#{condicionPago.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{condicionPago.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{condicionPagoBean.condicionPago.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{condicionPagoBean.condicionPago.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{condicionPagoBean.condicionPago.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{condicionPagoBean.condicionPago.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

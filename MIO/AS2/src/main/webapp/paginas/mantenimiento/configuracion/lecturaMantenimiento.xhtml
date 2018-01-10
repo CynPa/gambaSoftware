@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{lecturaMantenimientoBean}">
+
+					<as2:buttonEliminar bean="#{lecturaMantenimientoBean}">
+						<h:outputText value="#{msgs.lbl_nombre} #{msgs.lbl_componente_equipo}:" />
+						<h:outputText value="#{lecturaMantenimientoBean.lecturaMantenimiento.componenteEquipo.nombre}" />
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{lecturaMantenimientoBean.lecturaMantenimiento.fechaLectura}" />
+						<h:outputText value="#{msgs.lbl_frecuencia}:" />
+						<h:outputText value="#{lecturaMantenimientoBean.lecturaMantenimiento.frecuencia.nombre}" />
+						<h:outputText value="#{msgs.lbl_valor}:" />
+						<h:outputText value="#{lecturaMantenimientoBean.lecturaMantenimiento.valor}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{lecturaMantenimientoBean}" tabla=":form:tablaLecturaMantenimiento" />
+				</as2:toolBar>
+				<p:outputPanel id="panelNuevo">
+
+					<!-- 				DIALOGO PARA AGREGAR COMPONENTE -->
+
+					<p:dialog header=" #{msgs.lbl_agregar} #{msgs.lbl_componente_equipo}" widgetVar="agregarComponente" id="agregarComponente" showEffect="fade"
+						hideEffect="fade" dismissable="false" showCloseIcon="true" modal="true" height="400" width="700">
+						<p:outputPanel id="panelAgregarComponente">
+							<h:panelGrid columns="1" style="width:100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{lecturaMantenimientoBean.listaComponente}" id="tablaComponente"
+									rowIndexVar="secuencial" binding="#{lecturaMantenimientoBean.dtComponenteNoAsignadoPlanMantenimiento}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_componente" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{lecturaMantenimientoBean.numeroFilas}" rowKey="#{_componente.rowKey}">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_componente_equipo}" sortBy="#{_componente.nombre}">
+										<h:outputText value="#{_componente.nombre}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_frecuencia}">
+										<p:selectOneMenu styleClass="input-text" value="#{lecturaMantenimientoBean.lecturaMantenimiento.frecuencia}" id="cboFrecuenciaComb">
+
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{lecturaMantenimientoBean.listaFrecuencia}" var="_frec" itemValue="#{_frec}" itemLabel="#{_frec.nombre}" />
+
+											<p:ajax listener="#{lecturaMantenimientoBean.listenerFrecuencia}" process="@this" />
+
+										</p:selectOneMenu>
+
+									</p:column>
+									<p:column styleClass="columnaDTAccion">
+										<p:commandButton id="btnAgregarPlanMantenimiento" action="#{lecturaMantenimientoBean.agregarComponente}" icon="ui-icon-plus"
+											title="#{msgs.lbl_agregar}" update=":form:panelAgregarComponente, :form:panelComponenteEquipo,cboFrecuenciaComb" process="@this">
+										</p:commandButton>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+
+					</p:dialog>
+
+
+					<p:panel rendered="#{lecturaMantenimientoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_lectura_mantenimiento})">
+						<h:panelGrid id="panelDetalle" columns="#{lecturaMantenimientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+							<h:outputText value="#{msgs.lbl_fecha}:" for="calFechaLectura" />
+							<p:calendar pattern="#{lecturaMantenimientoBean.formatoFecha}" showOn="button" navigator="true" id="calFechaLectura" required="true"
+								value="#{lecturaMantenimientoBean.lecturaMantenimiento.fechaLectura}">
+								<p:ajax event="dateSelect" listener="#{lecturaMantenimientoBean.onDateSelect}" update="panelDetalleComponenteEquipo" />
+							</p:calendar>
+
+							<p:outputLabel for="autoEquipo" value="#{msgs.lbl_equipo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEquipo"
+								value="#{lecturaMantenimientoBean.lecturaMantenimiento.equipo}" completeMethod="#{lecturaMantenimientoBean.autocompletarEquipo}" var="_equipo"
+								itemLabel="#{_equipo.nombre}" itemValue="#{_equipo}" forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_equipo.codigo}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value=" #{_equipo.nombre}" />
+								</p:column>
+								<p:ajax listener="#{lecturaMantenimientoBean.listenerListaComponente}" process="@this" event="itemSelect" update="@this panelComponenteEquipo"></p:ajax>
+							</p:autoComplete>
+
+						</h:panelGrid>
+
+						<p:outputPanel id="panelComponenteEquipo">
+
+							<h:panelGrid columns="1" id="panelDetalleComponenteEquipo" style="width:100%">
+								<p:commandButton value="#{msgs.btn_agregar_detalle}" process="@this" oncomplete="PF('agregarComponente').show()"
+									update=":form:panelAgregarComponente" icon="ui-icon-plus" />
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{lecturaMantenimientoBean.listaLectura}" id="tablaComponenteMantenimiento"
+									rowIndexVar="secuencial" binding="#{lecturaMantenimientoBean.dtComponenteMantenimiento}" emptyMessage="#{msgs.msg_no_hay_datos}"
+									var="_componenteMantenimiento" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{lecturaMantenimientoBean.numeroFilas}"
+									rowsPerPageTemplate="#{lecturaMantenimientoBean.numeroFilasPorPagina}" rowKey="#{_componenteMantenimiento.rowKey}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_componente_equipo}" filterBy="#{_componenteMantenimiento.componenteEquipo.nombre}"
+										sortBy="#{_componenteMantenimiento.componenteEquipo.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_componenteMantenimiento.componenteEquipo.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_frecuencia}" filterBy="#{_componenteMantenimiento.frecuencia.nombre}"
+										sortBy="#{_componenteMantenimiento.frecuencia.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_componenteMantenimiento.frecuencia.nombre}" />
+									</p:column>
+									
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_numero} #{msgs.lbl_lectura}s">
+										<p:outputLabel value="#{_componenteMantenimiento.numeroLecturas}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" sortBy="#{lecturaMantenimiento_.fechaLecturaAnterior}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_ultima_lectura}" />
+										</f:facet>
+										<h:outputText value="#{_componenteMantenimiento.fechaLecturaAnterior}" >
+											<f:convertDateTime pattern="#{lecturaMantenimientoBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_anterior}">
+										<p:outputLabel value="#{_componenteMantenimiento.valorAnterior}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_valor}" filterMatchMode="contains">
+										<p:inputText value="#{_componenteMantenimiento.valor}" id="outValor" disabled="#{_componenteMantenimiento.frecuencia.indicadorAcumulativo}">
+											<p:ajax process="@this" global="false" update="outValorAcumulado"
+												listener="#{lecturaMantenimientoBean.calcularValorAcumulado(_componenteMantenimiento)}" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_acumulado}">
+										<p:inputText value="#{_componenteMantenimiento.valorAcumulado}" id="outValorAcumulado" disabled="#{!_componenteMantenimiento.frecuencia.indicadorAcumulativo}">
+											<p:ajax process="@this" global="false" update="outValor"
+												listener="#{lecturaMantenimientoBean.calcularValorAcumulado(_componenteMantenimiento)}" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!lecturaMantenimientoBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_lectura_mantenimiento})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaLecturaMantenimiento" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{lecturaMantenimientoBean.listaLecturaMantenimiento}" var="lecturaMantenimiento_"
+							binding="#{lecturaMantenimientoBean.dtLecturaMantenimiento}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{lecturaMantenimientoBean.numeroFilas}" rowsPerPageTemplate="#{lecturaMantenimientoBean.numeroFilasPorPagina}"
+							selection="#{lecturaMantenimientoBean.lecturaMantenimiento}" selectionMode="single" rowKey="#{lecturaMantenimiento_.id}"
+							sortBy="#{lecturaMantenimiento.fechaLectura}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha" sortBy="#{lecturaMantenimiento_.fechaLectura}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{lecturaMantenimiento_.fechaLectura}" >
+									<f:convertDateTime pattern="#{lecturaMantenimientoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{lecturaMantenimiento_.equipo.nombre}" filterBy="#{lecturaMantenimiento_.equipo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre} #{msgs.lbl_equipo}" />
+								</f:facet>
+								<h:outputText value="#{lecturaMantenimiento_.equipo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{lecturaMantenimiento_.componenteEquipo.nombre}" filterBy="#{lecturaMantenimiento_.componenteEquipo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre} #{msgs.lbl_componente_equipo}" />
+								</f:facet>
+								<h:outputText value="#{lecturaMantenimiento_.componenteEquipo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{lecturaMantenimiento_.frecuencia.nombre}" filterBy="#{lecturaMantenimiento_.frecuencia.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_frecuencia}" />
+								</f:facet>
+								<h:outputText value="#{lecturaMantenimiento_.frecuencia.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{lecturaMantenimiento_.actividadMantenimiento.nombre}" filterBy="#{lecturaMantenimiento_.actividadMantenimiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_actividad}" />
+								</f:facet>
+								<h:outputText value="#{lecturaMantenimiento_.actividadMantenimiento.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{lecturaMantenimiento_.valor}"
+								filterBy="#{lecturaMantenimiento_.valor}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{lecturaMantenimiento_.valor}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{lecturaMantenimiento_.valorAcumulado}"
+								filterBy="#{lecturaMantenimiento_.valorAcumulado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_acumulado}" />
+								</f:facet>
+								<h:outputText value="#{lecturaMantenimiento_.valorAcumulado}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{lecturaMantenimientoBean.lecturaMantenimiento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{lecturaMantenimientoBean.lecturaMantenimiento.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{lecturaMantenimientoBean.lecturaMantenimiento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{lecturaMantenimientoBean.lecturaMantenimiento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{registroMovilBean}">
+					<as2:buttonExportaExcel bean="#{registroMovilBean}" tabla=":form:tablaRegistroMovil" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{registroMovilBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_registroMovil_panel}">
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!registroMovilBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_registroMovil_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRegistroMovil" rowIndexVar="secuencialRegistroMovil"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{registroMovilBean.listaRegistroMovil}" var="_registroMovil"
+							binding="#{registroMovilBean.dtRegistroMovil}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{registroMovilBean.numeroFilas}" rowsPerPageTemplate="#{registroMovilBean.numeroFilasPorPagina}"
+							selection="#{registroMovilBean.registroMovil}" selectionMode="single" rowKey="#{_registroMovil.id}" sortBy="#{_registroMovil.fecha}"
+							lazy="true" sortOrder="DESCENDING">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialRegistroMovil+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_registroMovil.codigoMovil}" filterBy="#{_registroMovil.codigoMovil}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo} Movil" />
+								</f:facet>
+								<h:outputText value="#{_registroMovil.codigoMovil}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_registroMovil.fecha}">
+								<h:outputText value="#{_registroMovil.fecha}">
+									<f:convertDateTime pattern="#{registroMovilBean.formatoFecha} HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_registroMovil.documentoBase}" headerText="#{msgs.lbl_documento_base}">
+								<h:outputText value="#{_registroMovil.documentoBase.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_numero} AS2" sortBy="#{_registroMovil.numeroAs2}"
+								filterBy="#{_registroMovil.numeroAs2}">
+								<h:outputText value="#{_registroMovil.numeroAs2}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_usuario}" sortBy="#{_registroMovil.usuario}"
+								filterBy="#{_registroMovil.usuario}">
+								<h:outputText value="#{_registroMovil.usuario}" />
+							</p:column>
+
+							<p:column sortBy="#{registroMovil.nota}" filterBy="#{_registroMovil.nota}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_registroMovil.nota}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{registroMovilBean.registroMovil.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{registroMovilBean.registroMovil.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{registroMovilBean.registroMovil.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{registroMovilBean.registroMovil.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

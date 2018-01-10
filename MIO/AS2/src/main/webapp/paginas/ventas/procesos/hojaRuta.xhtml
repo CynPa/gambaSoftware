@@ -1,0 +1,242 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idHojaRuta" value="#{hojaRutaBean.idHojaRuta}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{hojaRutaBean}">
+
+					<as2:buttonImprimir id="btnImprimirFactura" beanReporte="#{reporteHojaRutaBean}" bean="#{hojaRutaBean}" target="#{reporteHojaRutaBean.hojaRuta}"
+						value="#{hojaRutaBean.hojaRuta}" />
+
+					<as2:buttonExportaExcel bean="#{hojaRutaBean}" tabla=":form:tablaHojaRuta" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{hojaRutaBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_hoja_ruta_panel}">
+
+						<p:outputPanel id="panelFiltros">
+
+							<h:panelGrid id="panelCabecera" columns="#{hojaRutaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{hojaRutaBean.sucursal}" id="cboSucursal">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{hojaRutaBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+										itemValue="#{_sucursal}" />
+									<p:ajax process="@this" event="change" update="@none"/>
+								</p:selectOneMenu>
+								
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}" />
+								<p:selectOneMenu styleClass="input-text" value="#{hojaRutaBean.hojaRuta.documento}" id="cboDocumento" required="true" style="width:100%">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{hojaRutaBean.listaDocumentoHojaRuta}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+									<p:ajax process="@this" update="txtNumero" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{hojaRutaBean.hojaRuta.numero}" id="txtNumero"
+									mask="#{hojaRutaBean.hojaRuta.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{hojaRutaBean.formatoFecha}" showOn="button" navigator="true" value="#{hojaRutaBean.hojaRuta.fecha}" id="calFecha"
+									required="true" />
+
+								<h:outputText value="#{msgs.lbl_responsable}:" />
+								<p:inputText styleClass="input-text" value="#{hojaRutaBean.hojaRuta.responsable}" id="txtResponsable">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{hojaRutaBean.hojaRuta.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+							<p:spacer />
+
+
+							<h:panelGrid columns="#{hojaRutaBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+								<p:calendar pattern="#{hojaRutaBean.formatoFecha}" showOn="button" navigator="true" value="#{hojaRutaBean.fechaDesde}" id="calFechaDesde"
+									required="true" />
+
+								<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+								<p:calendar pattern="#{hojaRutaBean.formatoFecha}" showOn="button" navigator="true" value="#{hojaRutaBean.fechaHasta}" id="calFechaHasta"
+									required="true" />
+
+							</h:panelGrid>
+
+							<h:panelGrid columns="1" style="text-align:center;">
+								<p:commandButton styleClass="columnaButton" icon="ejecutar" title="#{msgs.btn_procesar}" process="@this,panelFiltros"
+									update="panelDetalleDespacho" action="#{hojaRutaBean.cargarInformacion}" value="#{msgs.btn_procesar}">
+								</p:commandButton>
+							</h:panelGrid>
+						</p:outputPanel>
+
+
+
+						<p:fieldset>
+							<h:panelGrid columns="1">
+
+								<p:outputPanel id="panelDetalleDespacho">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{hojaRutaBean.listaDetalleHojaRuta}" id="tablaDetalleDespachoCLiente" rowIndexVar="secuencial"
+										binding="#{hojaRutaBean.dtDetalleHojaRuta}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleHojaRuta" paginator="false"
+										style="width:100%" rowKey="#{_detalleHojaRuta.id}">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="No">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_factura}">
+											<h:outputText value="#{_detalleHojaRuta.factura}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_cliente}">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.empresa.nombreFiscal}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_ciudad}" sortBy="#{_detalleHojaRuta.ciudad}">
+											<h:outputText value="#{_detalleHojaRuta.ciudad}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleHojaRuta.despachoCliente.fecha}">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_fecha}" />
+											</f:facet>
+
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.fecha}">
+												<f:convertDateTime pattern="#{hojaRutaBean.formatoFecha}" />
+											</h:outputText>
+										</p:column>
+
+
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+											<h:outputText value="#{_detalleHojaRuta.cantidad}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_piezas}">
+											<h:outputText value="#{_detalleHojaRuta.piezas}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_bultos}">
+											<p:inputText value="#{_detalleHojaRuta.bultos}" id="txtBultos" size="10">
+
+												<f:validateBean />
+												<p:ajax process="@this" global="false"></p:ajax>
+
+											</p:inputText>
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+											<h:outputText value="#{_detalleHojaRuta.descripcion}" id="txtDescripcion" />
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:selectBooleanCheckbox value="#{_detalleHojaRuta.seleccionado}">
+
+												<p:ajax process="@this" global="false"></p:ajax>
+											</p:selectBooleanCheckbox>
+										</p:column>
+
+										<p:columnGroup type="footer" id="panelTotal">
+											<p:row>
+												<p:column colspan="7" footerText="#{msgs.lbl_total}:" style="text-align:right">
+												</p:column>
+												<p:column footerText="total" style="text-align:right" id="txtTotal" />
+												<p:column></p:column>
+												<p:column></p:column>
+											</p:row>
+										</p:columnGroup>
+									</p:dataTable>
+								</p:outputPanel>
+							</h:panelGrid>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!hojaRutaBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_hoja_ruta_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaHojaRuta" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{hojaRutaBean.listaHojaRuta}"
+							var="_hojaRuta" paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{hojaRutaBean.dtHojaRuta}"
+							rows="#{hojaRutaBean.numeroFilas}" rowsPerPageTemplate="#{hojaRutaBean.numeroFilasPorPagina}" selection="#{hojaRutaBean.hojaRuta}"
+							selectionMode="single" rowKey="#{_hojaRuta.id}" sortBy="#{_hojaRuta.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_hojaRuta.numero}" filterBy="#{_hojaRuta.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_hojaRuta.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_hojaRuta.fecha}">
+								<h:outputText value="#{_hojaRuta.fecha}">
+									<f:convertDateTime pattern="#{hojaRutaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_hojaRuta.descripcion}" filterBy="#{_hojaRuta.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_hojaRuta.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{hojaRutaBean.hojaRuta.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{hojaRutaBean.hojaRuta.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{hojaRutaBean.hojaRuta.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{hojaRutaBean.hojaRuta.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:dialog header="#{msgs.lbl_aplicar_rubro_empleados}" widgetVar="empleadosAsignacionRubroDialogo" modal="true" height="auto" width="1000"
+					showEffect="slide" hideEffect="slide">
+					<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpleadosAsignacionRubro" rowIndexVar="secuencialEmpleadosAsignacionRubro"
+						emptyMessage="#{msgs.msg_no_hay_datos}" value="#{procesarHorasExtraBean.listaEmpleadosAsignacionRubro}" var="_rubroEmpleado"
+						binding="#{procesarHorasExtraBean.dtEmpleadoAsignacionRubro}" paginator="true" paginatorPosition="bottom"
+						rows="#{procesarHorasExtraBean.numeroFilas}" rowKey="#{_rubroEmpleado.hashCode}">
+
+						<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+							<h:outputText value="#{secuencialEmpleadosAsignacionRubro + 1}" />
+						</p:column>
+
+						<p:column headerText="#{msgs.lbl_empresa_identificacion}" styleClass="columnaDTCodigo tableCell">
+							<h:outputText value="#{_rubroEmpleado.empleado.empresa.identificacion}" />
+						</p:column>
+
+						<p:column headerText="#{msgs.lbl_empleado}" styleClass="columnaDTNombre tableCell">
+							<h:outputText value="#{_rubroEmpleado.empleado.nombreCompleto}" />
+						</p:column>
+
+						<p:column headerText="#{msgs.lbl_rubro}" styleClass="columnaDTNombre tableCell">
+							<h:outputText value="#{_rubroEmpleado.rubro.nombre}" />
+						</p:column>
+					</p:dataTable>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton id="btnGuardarEmpleadoAsignacionRubro" action="#{procesarHorasExtraBean.guardarEmpleadoAsignacionRubro}"
+								value="#{msgs.btn_guardar}" oncomplete="empleadosAsignacionRubroDialogo.hide();" process="@this">
+							</p:commandButton>
+							<p:commandButton id="btnCancelarEmpleadoAsignacionRubro" value="#{msgs.btn_cancelar}" oncomplete="empleadosAsignacionRubroDialogo.hide();"
+								process="@this" action="#{procesarHorasExtraBean.cancelo}">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:outputPanel id="panelFiltros">
+					<h:panelGrid columns="#{procesarHorasExtraBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<p:outputLabel for="cboDepartamento1" value="#{msgs.lbl_departamento_empleado}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{procesarHorasExtraBean.departamentoSeleccionado}" id="cboDepartamento1">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_todos}" />
+							<f:selectItems value="#{procesarHorasExtraBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+								itemValue="#{_departamento}" />
+							<p:ajax process="@this" update=":form:panelListado" global="false" />
+						</p:selectOneMenu>
+
+						<p:outputLabel value="#{msgs.lbl_rango} #{msgs.lbl_fecha}:" />
+						<h:panelGroup>
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_desde}:" />
+							<p:calendar pattern="#{procesarHorasExtraBean.formatoFecha}" showOn="button" navigator="true" value="#{procesarHorasExtraBean.fechaDesde}"
+								id="calFechaDesde" required="true" disabled="true">
+								<p:ajax event="dateSelect" process="@this" update=":form:panelListado" global="false" />
+								<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+							</p:calendar>
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_hasta}:" />
+							<p:calendar pattern="#{procesarHorasExtraBean.formatoFecha}" showOn="button" navigator="true" value="#{procesarHorasExtraBean.fechaHasta}"
+								id="calFechaHasta" required="true" disabled="true">
+								<p:ajax event="dateSelect" process="@this" update=":form:panelListado" global="false" />
+								<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+							</p:calendar>
+						</h:panelGroup>
+
+						<p:outputLabel for="cboMes" value="#{msgs.lbl_mes}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{procesarHorasExtraBean.mesSeleccionado}" id="cboMes" required="true">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{procesarHorasExtraBean.listaMes}" />
+							<p:ajax process="@this" update=":form:panelFiltros :form:panelListado :form:cboPagoRol" global="false" />
+						</p:selectOneMenu>
+
+						<p:outputLabel for="spAnno" value="#{msgs.lbl_anio}:" />
+						<p:spinner id="spAnno" value="#{procesarHorasExtraBean.anno}" min="2000" max="9999" required="true">
+							<p:ajax process="@this" update=":form:panelFiltros :form:panelListado :form:cboPagoRol" global="false" />
+						</p:spinner>
+
+						<p:outputLabel for="cboPagoRol" value="#{msgs.lbl_fecha_rol}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{procesarHorasExtraBean.pagoRol}" id="cboPagoRol" required="true">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{procesarHorasExtraBean.listaPagoRol}" />
+							<p:ajax process="@this">
+							</p:ajax>
+						</p:selectOneMenu>
+
+					</h:panelGrid>
+				</p:outputPanel>
+
+
+
+				<p:outputPanel id="panelListado">
+					<p:tabView cache="true" dynamic="true" id="tvDetalle">
+<!-- 						<p:ajax event="tabChange" process="@this :form:tvDetalle:test" /> -->
+						<p:tab rendered="#{!procesarHorasExtraBean.editado}" title="#{msgs.lbl_panel_listado} (#{msgs.lbl_hora_extra_empleado})">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaHoraExtraEmpleados" rowIndexVar="secuencialHoraExtraEmpleado"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{procesarHorasExtraBean.listaEmpleadoAsistencia}" var="horaExtraEmpleado"
+								binding="#{procesarHorasExtraBean.dtEmpleadoAsistencia}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{procesarHorasExtraBean.numeroFilas}" rowsPerPageTemplate="#{procesarHorasExtraBean.numeroFilasPorPagina}"
+								rowKey="#{horaExtraEmpleado.id}" filteredValue="#{procesarHorasExtraBean.listaEmpleadoAsistenciaFiltrado}"
+								sortBy="#{horaExtraEmpleado.apellidos}">
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+									<h:outputText value="#{secuencialHoraExtraEmpleado+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTIdentificacion tableCell" headerText="#{msgs.lbl_identificacion}"
+									filterBy="#{horaExtraEmpleado.identificacion}" filterMatchMode="contains">
+									<h:outputText value="#{horaExtraEmpleado.identificacion}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_apellidos}" filterMatchMode="contains"
+									filterBy="#{horaExtraEmpleado.apellidos}">
+									<h:outputText value="#{horaExtraEmpleado.apellidos}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombres}" filterMatchMode="contains"
+									filterBy="#{horaExtraEmpleado.nombres}">
+									<h:outputText value="#{horaExtraEmpleado.nombres}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_departamento}" filterMatchMode="contains"
+									filterBy="#{horaExtraEmpleado.departamento}">
+									<h:outputText value="#{horaExtraEmpleado.departamento}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_rubro} 25" filterBy="#{horaExtraEmpleado.rubro25.nombre}"
+									filterMatchMode="contains">
+									<h:outputText value="#{horaExtraEmpleado.rubro25.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_rubro} 50" filterBy="#{horaExtraEmpleado.rubro50.nombre}"
+									filterMatchMode="contains">
+									<h:outputText value="#{horaExtraEmpleado.rubro50.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_rubro} 100" filterBy="#{horaExtraEmpleado.rubro100.nombre}"
+									filterMatchMode="contains">
+									<h:outputText value="#{horaExtraEmpleado.rubro100.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_horas_extras_25}">
+									<h:outputText value="#{horaExtraEmpleado.totalHoras25Aprobadas}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_horas_extras_50}">
+									<h:outputText value="#{horaExtraEmpleado.totalHoras50Aprobadas}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_horas_extras_100}">
+									<h:outputText value="#{horaExtraEmpleado.totalHoras100Aprobadas}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell">
+									<f:facet name="header">
+										<p:commandButton title="#{msgs.lbl_procesar} #{msgs.lbl_todos}" id="btnProcesarTodos"
+											actionListener="#{procesarHorasExtraBean.procesarTodos}" process="@this :form:cboPagoRol" icon="ui-icon-play" update=":form:panelListado">
+										</p:commandButton>
+									</f:facet>
+									<p:commandButton title="#{msgs.lbl_procesar}" id="btnProcesar" actionListener="#{procesarHorasExtraBean.procesar(horaExtraEmpleado,true)}"
+										process="@this :form:cboPagoRol" icon="ui-icon-play" update=":form:panelListado">
+									</p:commandButton>
+								</p:column>
+
+								<p:columnGroup type="footer" id="panelTotal">
+									<p:row>
+										<p:column colspan="8" footerText="#{msgs.lbl_total}:	" style="text-align:right">
+										</p:column>
+
+										<p:column style="text-align:right">
+											<f:facet name="footer">
+												<h:outputText value="#{procesarHorasExtraBean.cantidadTotal25}" />
+											</f:facet>
+										</p:column>
+										<p:column style="text-align:right">
+											<f:facet name="footer">
+												<h:outputText value="#{procesarHorasExtraBean.cantidadTotal50}" />
+											</f:facet>
+										</p:column>
+										<p:column style="text-align:right">
+											<f:facet name="footer">
+												<h:outputText value="#{procesarHorasExtraBean.cantidadTotal100}" />
+											</f:facet>
+										</p:column>
+										<p:column />
+									</p:row>
+								</p:columnGroup>
+
+							</p:dataTable>
+						</p:tab>
+						<p:tab rendered="#{procesarHorasExtraBean.procesaDiasFalta}" title="#{msgs.lbl_panel_listado} (#{msgs.lbl_dias_falta})">
+							<p:panel id="test">
+							
+							<p:commandButton id="btnGuardarFaltas" action="#{procesarHorasExtraBean.procesarFaltas}" value="#{msgs.btn_procesar}"
+								process="@this">
+							</p:commandButton>
+							
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFaltaEmpleados" rowIndexVar="secuencialFaltaEmpleado"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{procesarHorasExtraBean.listaEmpleadoFaltas}" var="_faltaEmpleado"
+									binding="#{procesarHorasExtraBean.dtFaltaEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{procesarHorasExtraBean.numeroFilas}" rowsPerPageTemplate="#{procesarHorasExtraBean.numeroFilasPorPagina}"
+									rowKey="#{horaExtraEmpleado.id}" sortBy="#{horaExtraEmpleado.apellidos}" filteredValue="#{procesarHorasExtraBean.listaEmpleadoFaltasFiltrado}">
+									
+									<p:column style="width:16px">
+										<p:rowToggler />
+									</p:column>
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencialFaltaEmpleado+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTIdentificacion tableCell" headerText="#{msgs.lbl_identificacion}" filterBy="#{_faltaEmpleado.identificacion}"
+										filterMatchMode="contains">
+										<h:outputText value="#{_faltaEmpleado.identificacion}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_apellidos}" filterMatchMode="contains"
+										filterBy="#{_faltaEmpleado.apellidos}">
+										<h:outputText value="#{_faltaEmpleado.apellidos}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombres}" filterMatchMode="contains"
+										filterBy="#{_faltaEmpleado.nombres}">
+										<h:outputText value="#{_faltaEmpleado.nombres}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_departamento}" filterMatchMode="contains"
+										filterBy="#{_faltaEmpleado.departamento}">
+										<h:outputText value="#{_faltaEmpleado.departamento}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_tipo_falta}" filterBy="#{_faltaEmpleado.tipoFalta.nombre}"
+										filterMatchMode="contains">
+										<h:outputText value="#{_faltaEmpleado.tipoFalta.nombre}" />
+									</p:column>
+									
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_dias_penalizacion}" filterBy="#{_faltaEmpleado.tipoFalta.nombre}"
+										filterMatchMode="contains">
+										<h:outputText value="#{_faltaEmpleado.tipoFalta.numeroDiasFalta != 0 ? _faltaEmpleado.tipoFalta.numeroDiasFalta : 1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_rubro}" filterBy="#{_faltaEmpleado.tipoFalta.rubro.nombre}"
+										filterMatchMode="contains">
+										<h:outputText value="#{_faltaEmpleado.tipoFalta.rubro.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+										<h:outputText value="#{_faltaEmpleado.cantidadDiasFalta}" />
+									</p:column>
+
+									<p:columnGroup type="footer" id="panelTotalFaltas">
+										<p:row>
+											<p:column colspan="8" footerText="#{msgs.lbl_total}:	" style="text-align:right">
+											</p:column>
+
+											<p:column style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{procesarHorasExtraBean.totalDiasFalta}" />
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+
+									<p:rowExpansion>
+
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDiasFalta" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{_faltaEmpleado.listaDiasFalta}" var="_diasFalta" paginator="true"
+											paginatorPosition="bottom" style="width:15%" rows="#{bean.numeroFilas}" sortBy="#{_diasFalta}" sortOrder="ASCENDING">
+											<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_dias}">
+												<h:outputText value="#{_diasFalta}" />
+											</p:column>
+										</p:dataTable>
+									</p:rowExpansion>
+
+								</p:dataTable>
+							</p:panel>
+						</p:tab>
+
+					</p:tabView>
+
+
+					<p:separator />
+
+
+				</p:outputPanel>
+
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,755 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{emisionBonoBean}">
+
+					<as2:buttonEliminar bean="#{emisionBonoBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_bono}:#" />
+						<h:outputText value="#{emisionBonoBean.bonoSeleccionado.referencia}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir id="btnImprimirBono" beanReporte="#{reporteBonoBean}" bean="#{emisionBonoBean}" target="#{reporteBonoBean.bono}"
+						value="#{emisionBonoBean.bonoSeleccionado}" />
+
+					<as2:buttonExportaExcel bean="#{emisionBonoBean}" tabla=":form:tablaFacturaCliente" />
+				</as2:toolBar>
+
+				<p:dialog header="#{msgs.lbl_empresa_titulo_panel}" widgetVar="dglCrearCliente" modal="true" height="250" width="800" showEffect="slide"
+					hideEffect="slide">
+
+					<p:outputPanel id="panelDatosBasicosCliente">
+						<h:panelGrid columns="#{emisionBonoBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+							rendered="#{emisionBonoBean.renderClienteNuevo}">
+
+							<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{emisionBonoBean.tipoIdentificacionCliente}" id="cboTipoIdentificacionCliente" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{emisionBonoBean.listaTipoIdentificacion}" var="_tipoIdentificacion" itemLabel="#{_tipoIdentificacion.nombre}"
+									itemValue="#{_tipoIdentificacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" update=":form:panelValidacionIdentificacion" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empresa_identificacion}:" />
+							<h:panelGroup id="panelValidacionIdentificacion">
+								<p:inputText styleClass="input-text" rendered="#{!emisionBonoBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}"
+									value="#{emisionBonoBean.identificacionCliente}" maxlength="20">
+									<f:validateBean />
+									<p:ajax event="change" process="@this" global="false" />
+								</p:inputText>
+
+								<p:inputMask mask="#{empty emisionBonoBean.tipoIdentificacionCliente ? '' : emisionBonoBean.tipoIdentificacionCliente.mascara}"
+									value="#{emisionBonoBean.identificacionCliente}" styleClass="input-text"
+									rendered="#{emisionBonoBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}">
+									<p:ajax event="change" process="@this" global="false" />
+									<f:validateBean />
+								</p:inputMask>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}:" />
+							<p:inputText styleClass="input-text" id="txtNombreCliente" value="#{emisionBonoBean.nombreCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_ciudad}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCiudad" value="#{emisionBonoBean.ciudad}"
+								completeMethod="#{emisionBonoBean.autocompletarCiudad}" var="_ciudad" itemLabel="#{_ciudad.nombre}" itemValue="#{_ciudad}"
+								forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_ciudad.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_ciudad.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text" id="txtDireccionCliente" value="#{emisionBonoBean.direccionCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}:" />
+							<p:inputText styleClass="input-text" id="txtTelefonoCliente" value="#{emisionBonoBean.telefonoCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}:" />
+							<p:inputText styleClass="input-text" id="txtEmail1" value="#{emisionBonoBean.email}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu value="#{emisionBonoBean.agenteComercial}" id="cboAgenteComercialGenerico" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{emisionBonoBean.listaAgenteComercialCombo}" var="_agenteComercial"
+									itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" action="#{emisionBonoBean.crearCliente}" process="@this,panelDatosBasicosCliente"
+								update="cboDireccionCliente,autoEmpresa,txtEmail" oncomplete="validacionesModal(xhr, status, args, dglCrearCliente)" />
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:outputPanel id="panelNuevo">
+				
+				
+				
+				
+				<!-- INICIO DIALOGO VOUCHE -->
+				<p:dialog header="#{msgs.lbl_voucher}" widgetVar="voucherDialog" id="voucherDialog" modal="true" height="190" width="780" showEffect="slide"
+						hideEffect="slide">
+
+						<p:outputPanel id="panelVoucher">
+
+							<h:panelGroup
+								rendered="#{(not empty emisionBonoBean.detalleFormaCobroSeleccionado) and (emisionBonoBean.detalleFormaCobroSeleccionado.formaPago.indicadorTarjetaCredito)}">
+
+								<h:panelGrid columns="#{emisionBonoBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputLabel value="#{msgs.lbl_estacion}:" />
+									<h:outputLabel styleClass="input-text" value="#{emisionBonoBean.detalleFormaCobroSeleccionado.puntoVenta.codigoAlterno}" id="txtPuntoDeVenta" />
+
+									<h:outputLabel value="#{msgs.lbl_tarjeta_credito}:" for="cboTarjetaCredito" />
+									<p:selectOneMenu styleClass="input-text" value="#{emisionBonoBean.detalleFormaCobroSeleccionado.tarjetaCredito}" id="cboTarjetaCredito"
+										required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{emisionBonoBean.listaTarjetaCredito}" var="_tarjetaCredito" itemLabel="#{_tarjetaCredito.nombre}"
+											itemValue="#{_tarjetaCredito}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" event="change" update="@this cboPlanPago"
+											listener="#{emisionBonoBean.cargarPlanTarjetaListener(emisionBonoBean.detalleFormaCobroSeleccionado)}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputLabel value="#{msgs.lbl_plan_tarjeta_credito}:" for="cboPlanPago" />
+									<p:selectOneMenu styleClass="input-text" rendered="#{empty detalleFormaCobroSeleccionado.cobroTarjeta}"
+										value="#{emisionBonoBean.detalleFormaCobroSeleccionado.planTarjetaCredito}" id="cboPlanPago" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{emisionBonoBean.detalleFormaCobroSeleccionado.tarjetaCredito.listaPlanTarjetaCredito}" var="_plan"
+											itemLabel="#{_plan.codigo}" itemValue="#{_plan}" />
+										<p:ajax process="@this" global="false" event="change" partialSubmit="true" update="@this" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputLabel for="txtNumeroTarjeta" value="#{msgs.lbl_numero_tarjeta}:" />
+									<p:inputText rendered="#{empty emisionBonoBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{emisionBonoBean.detalleFormaCobroSeleccionado.numeroTarjeta}" id="txtNumeroTarjeta" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputLabel value="#{msgs.lbl_interes}:" />
+									<p:inputText rendered="#{empty emisionBonoBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{emisionBonoBean.detalleFormaCobroSeleccionado.interes}">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputLabel for="txtLote" value="#{msgs.lbl_lote}:" />
+									<p:inputText rendered="#{empty detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{emisionBonoBean.detalleFormaCobroSeleccionado.lote}" id="txtLote" required="true">
+										<f:validateBean />
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+									</p:inputText>
+
+									<h:outputLabel value="#{msgs.lbl_sri_base_diferente_cero}:" />
+									<h:outputLabel styleClass="input-text" value="#{emisionBonoBean.detalleFormaCobroSeleccionado.baseImponibleDiferenteCero}"
+										id="txtBaseImponibleDiferenteCero" />
+
+									<h:outputLabel value="#{msgs.lbl_sri_base_cero}:" />
+									<h:outputLabel styleClass="input-text" value="#{emisionBonoBean.detalleFormaCobroSeleccionado.baseImponibleTarifaCero}"
+										id="txtBaseImponibleTarifaCero" />
+
+									<h:outputLabel value="#{msgs.lbl_sri_monto_iva}:" />
+									<h:outputLabel styleClass="input-text" value="#{emisionBonoBean.detalleFormaCobroSeleccionado.montoIva}" id="txtMontoIva" />
+
+								</h:panelGrid>
+
+							</h:panelGroup>
+						</p:outputPanel>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_procesar}" process="@this :form:panelVoucher" update="@this :form:panelVoucher"
+									oncomplete="validacionesModal(xhr, status, args, voucherDialog)" icon="ui-icon-plus" />
+							</center>
+						</f:facet>
+
+					</p:dialog>
+					<!-- FIN DIALOGO VOUCHE -->
+				
+				
+				
+				
+				
+				
+				
+				
+				
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_bono}" rendered="#{emisionBonoBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{emisionBonoBean}" />
+							<ui:param name="objetoActualizar" value=":form:tvDetalleFactura" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{emisionBonoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{emisionBonoBean.facturaCliente.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{emisionBonoBean.listaDocumentoCliente}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+									<p:ajax update="txtNumero calFecha txtEmail" event="change" global="false" listener="#{emisionBonoBean.actualizarDocumento}" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{emisionBonoBean.facturaCliente.numero}" id="txtNumero"
+									mask="#{empty emisionBonoBean.facturaCliente.documento ? '' : emisionBonoBean.facturaCliente.documento.secuencia.patron}"
+									disabled="#{emisionBonoBean.facturaCliente.idFacturaCliente == 0 and (emisionBonoBean.indicadorAutoimpresor or emisionBonoBean.facturaCliente.documento.indicadorDocumentoElectronico or !facturaClienteBean.secuenciaEditable)}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{emisionBonoBean.formatoFecha}" showOn="button" navigator="true"
+									disabled="emisionBonoBean.facturaCliente.idFacturaCliente == 0" value="#{emisionBonoBean.facturaCliente.fecha}" id="calFecha" required="true">
+									<p:ajax listener="#{emisionBonoBean.dateSelect}" process="@this cboCondicionPago" event="dateSelect" global="false" />
+									<p:ajax listener="#{emisionBonoBean.cargarCuentaPorCobrar}" process="@this cboCondicionPago" event="change" global="false" />
+								</p:calendar>
+
+								<p:commandLink onclick="dglCrearCliente.show();" update="panelDatosBasicosCliente" process="@this">
+									<h:outputText value="#{msgs.lbl_cliente}:" />
+									<f:setPropertyActionListener target="#{emisionBonoBean.renderClienteNuevo}" value="true" />
+								</p:commandLink>
+
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+									value="#{emisionBonoBean.facturaCliente.empresa}" completeMethod="#{emisionBonoBean.autocompletarClientes}" var="_cliente"
+									itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{emisionBonoBean.actualizarClienteListener}" process="@this" event="itemSelect"
+										update=":form:tvDetalleFactura:panelDetalleFactura :form:cboDireccionCliente,cboCondicionPago,:form:txtEmail" />
+								</p:autoComplete>
+
+								<p:outputLabel for="cboDireccionCliente" value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{emisionBonoBean.facturaCliente.direccionEmpresa}" id="cboDireccionCliente" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{emisionBonoBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{emisionBonoBean.facturaCliente.descripcion}" id="txtDescripcionCabecera">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<p:outputLabel for="txtEmail" value="#{msgs.lbl_email}:" />
+								<p:inputText styleClass="input-text" value="#{emisionBonoBean.facturaCliente.email}" id="txtEmail"
+									required="#{emisionBonoBean.facturaCliente.documento.indicadorDocumentoElectronico}">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="cboCondicionPago" value="#{msgs.lbl_condicion_cobro}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{emisionBonoBean.facturaCliente.condicionPago}" id="cboCondicionPago" required="true"
+									disabled="#{!emisionBonoBean.indicadorUsuarioPOS}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{emisionBonoBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+										itemValue="#{_condicionPago}" />
+									<f:validateBean />
+									<p:ajax listener="#{emisionBonoBean.cargarCuentaPorCobrar}" process="@this calFecha" event="change" global="false" />
+								</p:selectOneMenu>
+
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer />
+
+						<p:tabView cache="true" dynamic="false" id="tvDetalleFactura">
+
+							<p:tab title="#{msgs.lbl_detalle_factura}">
+
+								<p:outputPanel id="panelDetalleFactura">
+
+									<h:panelGrid columns="1" style="width:100%">
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{emisionBonoBean.agregarDetalleFactura}"
+												update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura" process="@this" icon="ui-icon-plus" />
+
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+										</h:panelGroup>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{emisionBonoBean.detalleFacturaCliente}" id="tablaDetalleFacturaCLiente"
+											rowIndexVar="secuencial" binding="#{emisionBonoBean.dtDetalleBono}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleFacturaCliente"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{emisionBonoBean.numeroFilas}"
+											rowsPerPageTemplate="#{emisionBonoBean.numeroFilasPorPagina}" rowKey="#{_detalleFacturaCliente.id}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+												<p:inputText value="#{_detalleFacturaCliente.producto.codigo}" id="txtCodigoProducto">
+
+													<p:ajax listener="#{emisionBonoBean.actualizarProductoListener}" process="@this :form:calFecha" event="change" global="false"
+														update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura" />
+
+													<f:validateBean for="txtCodigoProducto" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText id="txtNombreProducto" value="#{_detalleFacturaCliente.producto.nombre}" />
+											</p:column>
+
+
+											<p:column styleClass="columnaDTNombre tableCell">
+
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_medico}" />
+													<p:commandLink id="btnCopiar" process="@this" global="false" title="#{msgs.lbl_copiar}"
+														update=":form:tvDetalleFactura:tablaDetalleFacturaCLiente" action="#{emisionBonoBean.copiarMedicos}">
+														<h:graphicImage library="images" name="copiar.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+												</f:facet>
+
+
+												<p:autoComplete required="true" queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoMedico"
+													value="#{_detalleFacturaCliente.medico}" completeMethod="#{emisionBonoBean.autocompletarMedico}" var="_medico"
+													itemLabel="#{_medico.nombres} #{_medico.apellidos}" itemValue="#{_medico}" forceSelection="true" dropdown="false" minQueryLength="2">
+													<p:column headerText="#{msgs.lbl_nombres}">#{_medico.nombres}</p:column>
+													<p:column headerText="#{msgs.lbl_apellidos}">#{_medico.apellidos}</p:column>
+													<p:ajax process="@this autoEmpresaBono" event="itemSelect" global="false" partialSubmit="true"  
+														update=":form:tvDetalleFactura:tablaDetalleFacturaCLiente" listener="#{emisionBonoBean.cargarTipoBono}" />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column id="colEspecialidad" styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_especialidad}">
+												<p:autoComplete required="true" queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoTipoBono"
+													value="#{_detalleFacturaCliente.tipoBono}" completeMethod="#{emisionBonoBean.autocompletarTipoBono}" var="_tipoBono"
+													itemLabel="#{_tipoBono.codigo} #{_tipoBono.nombre}" itemValue="#{_tipoBono}" forceSelection="true" dropdown="false" minQueryLength="2">
+													<p:column headerText="#{msgs.lbl_codigo}">#{_tipoBono.codigo}</p:column>
+													<p:column headerText="#{msgs.lbl_nombre}">#{_tipoBono.nombre}</p:column>
+													<p:ajax process="@this" event="itemSelect" global="false" partialSubmit="true" listener="#{emisionBonoBean.cargarTipoBono}" />
+													
+												</p:autoComplete>
+
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+												<p:inputText value="#{_detalleFacturaCliente.precio}" id="txtPrecio" size="10"
+													disabled="#{emisionBonoBean.organizacionTextilPadilla or !emisionBonoBean.facturaCliente.empresaFinal.cliente.indicadorEditarPrecio}">
+													<f:validateBean />
+													<p:ajax listener="#{emisionBonoBean.totalizar}" process="@this" event="change" global="false"
+														update=":form:tvDetalleFactura:tablaDetalleFacturaCLiente,:form:tvDetalleFactura:panelImpuestoDetalleFactura" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_cliente}">
+												<p:autoComplete required="true"  queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresaBono" 
+													value="#{_detalleFacturaCliente.empresaBono}" completeMethod="#{emisionBonoBean.autocompletarClientes}" var="_cliente"
+													itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="false" minQueryLength="2">
+
+													<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+													<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+													<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+													<p:ajax process="@this" event="itemSelect" global="false" partialSubmit="true"  />
+													<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+												</p:autoComplete>
+
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nota}">
+												<p:inputText styleClass="input-text100" value="#{_detalleFacturaCliente.descripcion}" id="txtDescripcion">
+													<p:ajax process="@this" global="false" />
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" action="#{emisionBonoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura" process="@this">
+
+												</p:commandButton>
+											</p:column>
+
+											<p:columnGroup type="footer" id="panelTotal">
+												<p:row>
+													<p:column colspan="5" footerText="#{msgs.lbl_subtotal}:" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotal">
+															<h:outputText value="#{emisionBonoBean.facturaCliente.total}" style="text-align:right">
+																<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="5" footerText="#{msgs.lbl_descuento}:" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{emisionBonoBean.facturaCliente.descuento}" style="text-align:right">
+																<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="5" footerText="#{msgs.lbl_producto_indicador_impuestos}" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtImpuesto">
+															<h:outputText value="#{emisionBonoBean.facturaCliente.impuesto}" style="text-align:right">
+																<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="5" footerText="#{msgs.lbl_total}:" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtSubtotal">
+															<h:outputText value="#{emisionBonoBean.facturaCliente.totalFactura}" style="text-align:right">
+																<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_detalle_impuesto}" id="tabImpuestoDetalleFactura">
+
+								<p:outputPanel id="panelImpuestoDetalleFactura">
+
+									<h:panelGrid columns="1" id="panelImpuestoDetalle" style="width:100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{emisionBonoBean.listaImpuestoProductoFacturaCliente}"
+											id="tablaImpuestoDetalleFacturaCLiente" rowIndexVar="secuencial" binding="#{emisionBonoBean.dtImpuestoDetalleFacturaCliente}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_impuestoDetalleFacturaCliente" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{emisionBonoBean.numeroFilas}" rowsPerPageTemplate="#{emisionBonoBean.numeroFilasPorPagina}"
+											rowKey="#{_impuestoDetalleFacturaCliente.id}">
+
+											<p:column headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.detalleFacturaCliente.producto.nombreComercial}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre_impuesto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.impuesto.nombre}" id="txtNombreProductoImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_porcentaje_impuesto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.porcentajeImpuesto}" id="txtPorcentajeProductoImpuesto" style="text-align:right">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_base_imponible}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.detalleFacturaCliente.baseImponible}" id="txtBaseImpuesto" style="text-align:right">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor_impuesto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.impuestoProducto}" id="txtImpuestoProducto" style="text-align:right">
+												</h:outputText>
+											</p:column>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_forma_cobro}" id="tabFormaCobroFactura">
+
+								<h:panelGrid id="panelCabecera" columns="6" style="text-align:left;">
+
+									<p:commandButton process="@this,tablaDetalleFormaCobro" value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalleFormaCobro"
+										update=":form:tvDetalleFactura:panelDetalleFormaCobroLista,btnAgregarDetalleFormaCobro" action="#{emisionBonoBean.crearDetalleFormaCobro}" />
+									<h:outputText value="" />
+
+									<h:outputText value="#{msgs.lbl_documento}" />
+									<h:panelGroup>
+										<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{emisionBonoBean.documento.idDocumento}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{emisionBonoBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+												itemValue="#{_documento.idDocumento}" />
+											<p:ajax process="@this" listener="#{emisionBonoBean.actualizarDocumentoCobro}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_total}" />
+									<p:outputPanel id="totalFactura" autoUpdate="true">
+										<h:outputText value="#{emisionBonoBean.facturaCliente.totalFactura}">
+											<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+										</h:outputText>
+									</p:outputPanel>
+
+								</h:panelGrid>
+
+								<p:outputPanel id="panelDetFormaCobro">
+									<h:panelGrid columns="1" id="panelDetalleFormaCobroLista" width="100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaCobro" rowIndexVar="secuencialFormaCobro"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{emisionBonoBean.listaDetalleFormaCobro}" var="_formaCobro"
+											binding="#{emisionBonoBean.dtDetalleFormaCobro}" paginator="false" style="width:100%" rows="#{emisionBonoBean.numeroFilas}"
+											rowKey="#{_formaCobro.hashCode}">
+
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencialFormaCobro+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_depositar_en}">
+												<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" value="#{_formaCobro.cuentaBancariaOrganizacion}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{emisionBonoBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+														itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+													<f:validateBean />
+													<p:ajax process="@this" update="cboFormaPago,txtCuentaContableBanco" global="false"
+														listener="#{emisionBonoBean.actualizarCuentaBancaria}" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cuenta_contable}">
+												<p:outputPanel id="txtCuentaContableBanco">
+
+													<h:outputText value="#{_formaCobro.cuentaContableFormaCobro.codigo}" rendered="#{!_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}"
+														title="#{_formaCobro.cuentaContableFormaCobro.nombre}">
+													</h:outputText>
+
+													<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaCobro" required="true" value="#{_formaCobro.cuentaContableFormaCobro}"
+														rendered="#{_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+															var="_cuentaContableFormaCobro"
+															itemLabel="#{_cuentaContableFormaCobro.cuentaContable.codigo}   #{_cuentaContableFormaCobro.cuentaContable.nombre}"
+															itemValue="#{_cuentaContableFormaCobro.cuentaContable}" />
+														<p:ajax process="@this" global="false" update=":form:tvDetalleFactura:panelDetFormaCobro" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:outputPanel>
+
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}">
+												<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{_formaCobro.formaPago}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+														itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+													<f:validateBean />
+													<p:ajax process="@this" global="false" update=":form:tvDetalleFactura:panelDetFormaCobro"
+														listener="#{emisionBonoBean.actualizarFormaPago}" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}">
+												<p:inputText styleClass="input-text" id="txtValorFormaCobro" value="#{_formaCobro.valor}" disabled="#{_formaCobro.cobro.id > 0}">
+													<p:ajax event="change" update=":form:tvDetalleFactura:panelDetFormaCobro" global="false" process="@this"
+														oncomplete="nextFocus('#{p:component('txtReferenciaFormaCobro')}')"></p:ajax>
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}">
+												<p:inputText styleClass="input-text" id="txtReferenciaFormaCobro" value="#{_formaCobro.documentoReferencia}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false"></p:ajax>
+												</p:inputText>
+											</p:column>
+											
+											<p:column headerText="#{msgs.lbl_voucher}" styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnVoucher" rendered="#{_formaCobro.formaPago.indicadorTarjetaCredito}"
+													action="#{emisionBonoBean.actualizarVoucher}" icon="ui-icon-document" title="#{msgs.lbl_datos_voucher}" update=":form:panelVoucher"
+													process="@this txtValorFormaCobro" oncomplete="voucherDialog.show();">
+												</p:commandButton>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarFormaCobro" action="#{emisionBonoBean.eliminarFormaCobro}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tvDetalleFactura:panelDetalleFormaCobroLista" process="@this" />
+											</p:column>
+
+											<p:columnGroup type="footer">
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_total}" style="text-align:right" />
+													<p:column style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{emisionBonoBean.totalLiquidarFormaCobro}" style="text-align:right">
+																<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+
+										</p:dataTable>
+
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+
+						</p:tabView>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_bono}" rendered="#{!emisionBonoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturaCliente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{emisionBonoBean.listaBono}" var="_bono" paginator="true" binding="#{emisionBonoBean.dtBono}"
+							rows="#{emisionBonoBean.numeroFilas}" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{emisionBonoBean.numeroFilasPorPagina}" selection="#{emisionBonoBean.bonoSeleccionado}" selectionMode="single"
+							rowKey="#{_bono.id}" sortBy="idDetalleFacturaCliente" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_numero} #{msgs.lbl_factura}"
+								sortBy="#{_bono.facturaCliente.numero}" filterBy="#{_bono.facturaCliente.numero}">
+								<h:link target="_blank" outcome="/paginas/ventas/procesos/facturaCliente.xhtml" includeViewParams="true"
+									value="#{_bono.facturaCliente.numero}">
+									<f:param name="idFacturaCliente" value="#{_bono.facturaCliente.idFacturaCliente}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empresa_nombre_fiscal}" sortBy="#{_bono.empresaBono.nombreFiscal}"
+								filterBy="#{_bono.empresaBono.nombreFiscal}">
+								<h:outputText value="#{_bono.empresaBono.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="facturaCliente.fecha">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_factura}" />
+								</f:facet>
+								<h:outputText value="#{_bono.facturaCliente.fecha}">
+									<f:convertDateTime pattern="#{emisionBonoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_bono}" sortBy="#{_bono.referencia}" filterBy="#{_bono.referencia}">
+								<h:outputText value="#{_bono.referencia}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_subtotal}">
+								<h:outputText value="#{_bono.precio}">
+									<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento}">
+								<h:outputText value="#{_bono.descuento}">
+									<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_factura_cliente_total1}">
+								<h:outputText value="#{_bono.precioLinea}">
+									<f:convertNumber pattern="#{emisionBonoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_nota}">
+								<h:outputText value="#{_bono.descripcion}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_bono.estado}" filterBy="#{_bono.estado}"
+								filterOptions="#{emisionBonoBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado_bono}" />
+								</f:facet>
+								<h:outputText value="#{_bono.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_bono.facturaCliente.estado}" filterBy="#{_bono.facturaCliente.estado}"
+								filterOptions="#{emisionBonoBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_bono.facturaCliente.estado.nombre}" />
+							</p:column>
+
+
+
+						</p:dataTable>
+
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{emisionBonoBean.facturaCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{emisionBonoBean.facturaCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{emisionBonoBean.facturaCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{emisionBonoBean.facturaCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

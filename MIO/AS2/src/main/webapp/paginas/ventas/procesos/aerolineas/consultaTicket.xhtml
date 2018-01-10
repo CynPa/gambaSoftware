@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+	
+	
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_voucher}">
+
+
+
+				<p:outputPanel id="panelFiltros">
+					<tnt:panelImprimir entidadDestino="" bean="#{consultaTicketBean}" entidadOrigen=""></tnt:panelImprimir>
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor" style="width: 50%;">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{consultaTicketBean.formatoFecha}" showOn="button" navigator="true" value="#{consultaTicketBean.fechaDesde}"
+								id="calFechaDesde">
+								<p:ajax process="@this" update=":form:panelTicket" event="dateSelect"></p:ajax>
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{consultaTicketBean.formatoFecha}" showOn="button" navigator="true" value="#{consultaTicketBean.fechaHasta}"
+								id="calFechaHasta">
+								<p:ajax process="@this" update=":form:panelTicket" event="dateSelect"></p:ajax>
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputText value="#{consultaTicketBean.numeroTicket}">
+								<p:ajax process="@this" global="false" update=":form:panelTicket"></p:ajax>
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_operacion}:" />
+							<p:inputText value="#{consultaTicketBean.operacion}">
+								<p:ajax process="@this" global="false" update=":form:panelTicket"></p:ajax>
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_agencia}:" />
+							<p:inputText value="#{consultaTicketBean.agencia}">
+								<p:ajax process="@this" global="false" update=":form:panelTicket"></p:ajax>
+							</p:inputText>
+
+							<h:outputText value="Tipo Reporte" />
+							<p:selectOneRadio id="optionsTipoReporte" value="#{consultaTicketBean.tipoReporte}" required="true">
+								<f:selectItems value="#{consultaTicketBean.listaTipoReporte}"></f:selectItems>
+								<p:ajax process="@this" global="false" ></p:ajax>
+							</p:selectOneRadio>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+					<h:panelGrid columns="1" style="text-align:left;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+					<p:separator />
+					<p:outputPanel id="panelTicket">
+						<p:dataTable id="anexo" filterDelay="#{sesionControler.retrasoFiltro}" value="#{consultaTicketBean.listaTicket}" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" var="_bsp" paginator="true" paginatorPosition="bottom" style="width:2500px"
+							rows="#{consultaTicketBean.numeroFilas}" rowsPerPageTemplate="#{consultaTicketBean.numeroFilasPorPagina}" rowKey="#{_bsp.id}" lazy="true"
+							sortBy="#{_bsp.numero}" sortOrder="DESCENDING">
+
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Ticket" sortBy="#{_bsp.numero}" filterBy="#{_bsp.numero}"
+								filterMatchMode="contains">
+								<h:outputText value="#{_bsp.numero}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Agencia" sortBy="#{_bsp.aerolinea}" filterBy="#{_bsp.aerolinea}" filterMatchMode="contains">
+								<h:outputText value="#{_bsp.aerolinea}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Perido">
+								<h:outputText value="#{_bsp.periodo}">
+									<f:convertDateTime pattern="#{consultaTicketBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Tipo">
+								<h:outputText value="#{_bsp.tipo}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Moneda">
+								<h:outputText value="#{_bsp.moneda}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Operacion" filterBy="#{_bsp.operacion}" filterMatchMode="contains">
+								<h:outputText value="#{_bsp.operacion}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha">
+								<h:outputText value="#{_bsp.fecha}">
+									<f:convertDateTime pattern="#{consultaTicketBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Bruto">
+								<h:outputText value="#{_bsp.bruto}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Credito">
+								<h:outputText value="0" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Por Comision">
+								<h:outputText value="#{_bsp.porComision}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Comision">
+								<h:outputText value="#{_bsp.comision}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Iva">
+								<h:outputText value="#{_bsp.iva}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Neto">
+								<h:outputText value="#{_bsp.neto}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Tarifa Moneda">
+								<h:outputText value="#{_bsp.tarifaMoneda}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Tarifa">
+								<h:outputText value="#{_bsp.tarifa}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Emisor">
+								<h:outputText value=" " />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Tarjeta">
+								<h:outputText value="#{_bsp.tarjeta}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Usuario">
+								<h:outputText value="#{_bsp.usuario}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha Computador">
+								<h:outputText value="#{_bsp.fechaComputador}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Ticket Cnj">
+								<h:outputText value="#{_bsp.ticketCnj}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Penalty">
+								<h:outputText value="#{_bsp.penalty}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Referencia">
+								<h:outputText value="#{_bsp.referencia}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Impuesto Extranjero">
+								<h:outputText value="#{_bsp.impuestoExtranjero}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Pasajero">
+								<h:outputText value="#{_bsp.pasajero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="Ruta">
+								<h:outputText value="#{_bsp.ruta}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Valex">
+								<h:outputText value="#{_bsp.valex}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Vale">
+								<h:outputText value="0" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Iva Comision">
+								<h:outputText style="width: 50px;" value="#{_bsp.ivaComision}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Retencion Ica">
+								<h:outputText value="#{_bsp.retencionIca}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Retencion Iva Com ">
+								<h:outputText value="#{_bsp.retencionIvaCom}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Retencion Fte ">
+								<h:outputText value="#{_bsp.retencionFte}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="WT">
+								<h:outputText value="#{_bsp.wt}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="ED">
+								<h:outputText value="#{_bsp.ed}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="YQ">
+								<h:outputText value="#{_bsp.yq}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="QB">
+								<h:outputText value="#{_bsp.qb}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="QI">
+								<h:outputText value="#{_bsp.qi}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="YR">
+								<h:outputText value="#{_bsp.yr}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="E2">
+								<h:outputText value="#{_bsp.e2}">
+									<f:convertNumber pattern="#{consultaTicketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Fecha Viaje">
+								<h:outputText value="#{_bsp.fechaViaje}">
+									<f:convertDateTime pattern="#{consultaTicketBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

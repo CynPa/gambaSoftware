@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{nivelCentroCostoBean}">
+					<as2:buttonEliminar bean="#{nivelCentroCostoBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{nivelCentroCostoBean.nivelCentroCosto.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{nivelCentroCostoBean.nivelCentroCosto.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{nivelCentroCostoBean}" tabla=":form:tablaNivelCentroCosto"/>
+				</as2:toolBar>
+				
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{nivelCentroCostoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_nivel_centro_costo_panel}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{nivelCentroCostoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{nivelCentroCostoBean.nivelCentroCosto.codigo}"
+								id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{nivelCentroCostoBean.nivelCentroCosto.nombre}"
+								id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_longitud}:" />
+							<p:inputText styleClass="input-text"
+								value="#{nivelCentroCostoBean.nivelCentroCosto.longitud}"
+								id="txtLongitud" />
+
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:" />
+							<p:selectBooleanCheckbox
+								value="#{nivelCentroCostoBean.nivelCentroCosto.indicadorMovimiento}" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{nivelCentroCostoBean.nivelCentroCosto.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{nivelCentroCostoBean.nivelCentroCosto.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{nivelCentroCostoBean.nivelCentroCosto.descripcion}"
+								id="txtDescripcion" />
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!nivelCentroCostoBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_nivel_centro_costo_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaNivelCentroCosto" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{nivelCentroCostoBean.listaNivelCentroCosto}"
+							var="_nivelCentroCosto"
+							binding="#{nivelCentroCostoBean.dtNivelCentroCosto}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{nivelCentroCostoBean.numeroFilas}"
+							selection="#{nivelCentroCostoBean.nivelCentroCosto}"
+							selectionMode="single" rowKey="#{_nivelCentroCosto.id}"
+							sortBy="#{_nivelCentroCosto.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigoCuenta" filterBy="#{_nivelCentroCosto.codigo}"
+								sortBy="#{_nivelCentroCosto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_nivelCentroCosto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" filterBy="#{_nivelCentroCosto.nombre}"
+								sortBy="#{_nivelCentroCosto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_nivelCentroCosto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor" sortBy="#{_nivelCentroCosto.longitud}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_longitud}" />
+								</f:facet>
+								<h:outputText value="#{_nivelCentroCosto.longitud}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_nivelCentroCosto.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_nivelCentroCosto.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_nivelCentroCosto.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_nivelCentroCosto.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{nivelCentroCostoBean.nivelCentroCosto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{nivelCentroCostoBean.nivelCentroCosto.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{nivelCentroCostoBean.nivelCentroCosto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{nivelCentroCostoBean.nivelCentroCosto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

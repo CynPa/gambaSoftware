@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{cierreCajaBean}">
+					<as2:buttonEliminar bean="#{cierreCajaBean}" titulo="#{msgs.btn_anular}" />
+					<as2:buttonExportaExcel bean="#{cierreCajaBean}" tabla=":form:tablaCierreCaja" />
+					<as2:buttonImprimir bean="#{cierreCajaBean}" beanReporte="#{reporteCierreCajaBean}" value="#{cierreCajaBean.cierreCaja}"
+						target="#{reporteCierreCajaBean.cierreCaja}" visibleNuevo= "true"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:outputPanel id="panelRegistroDenominacionFormaCobro" rendered="#{cierreCajaBean.renderRegistroDenominacionFormaCobro}">
+						<p:dialog header="#{msgs.lbl_registro_denominacion_froma_cobro}" id="dialogRegistroDenominacionFormaCobro"
+							widgetVar="dialogRegistroDenominacionFormaCobro" modal="true" height="auto" width="500" showEffect="slide" hideEffect="slide" closable="false">
+							<p:outputPanel id="panelDatos" >
+									<p:commandButton value="#{msgs.btn_agregar}" process="@this" partialSubmit="true" actionListener="#{cierreCajaBean.agregarDenominacion}"
+										update=":form:tablaDetalleDenominaciones">
+									</p:commandButton>
+									<p:spacer />
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleDenominaciones" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cierreCajaBean.listDetalleDenominacionFormaCobro}" var="_detalleDenominacion"
+										paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{cierreCajaBean.numeroFilas}"
+										rowsPerPageTemplate="#{cierreCajaBean.numeroFilasPorPagina}">
+
+										<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+										<p:column headerText="#{msgs.lbl_denominacion_forma_cobro}" styleClass="tableCell">
+											<p:selectOneMenu styleClass="input-text" value="#{_detalleDenominacion.denominacionFormaCobro}" required="true">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{cierreCajaBean.listDenominaciones}" var="_denominacion"
+													itemLabel="#{_denominacion.codigo} - #{_denominacion.nombre}" itemValue="#{_denominacion}" />
+												<f:validateBean />
+												<p:ajax process="@this" update="@this :form:tablaDetalleDenominaciones" />
+											</p:selectOneMenu>
+										</p:column>
+										<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+											<h:outputText value="#{_detalleDenominacion.denominacionFormaCobro.valor}">
+												<f:convertNumber pattern="#{cierreCajaBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_cantidad}" styleClass="columnaDTValor tableCell">
+											<p:inputText value="#{_detalleDenominacion.cantidad}" styleClass="input-text">
+												<f:validateBean />
+												<p:ajax listener="#{cierreCajaBean.totalizarDenominaciones}" process="@this" update="@this :form:tablaDetalleDenominaciones"
+													event="change" global="false" />
+											</p:inputText>
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_total}" styleClass="columnaDTValor tableCell">
+											<h:outputText value="#{_detalleDenominacion.total}" rendered="#{_detalleDenominacion.denominacionFormaCobro.valor>0}">
+												<f:convertNumber pattern="#{cierreCajaBean.formatoDinero}" />
+											</h:outputText>
+											<p:inputText value="#{_detalleDenominacion.total}" styleClass="input-text"
+												rendered="#{_detalleDenominacion.denominacionFormaCobro.valor le 0}">
+												<f:validateBean />
+												<p:ajax listener="#{cierreCajaBean.totalizarDenominaciones}" process="@this" update="@this :form:tablaDetalleDenominaciones"
+													event="change" global="false" />
+											</p:inputText>
+										</p:column>
+
+										<p:columnGroup type="footer">
+											<p:row>
+												<p:column colspan="4" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+												<p:column styleClass="columnaDTValor">
+													<f:facet name="footer">
+														<h:outputText value="#{cierreCajaBean.cierreCaja.totalUsuario}" style="text-align:right">
+															<f:convertNumber pattern="#{cierreCajaBean.formatoDinero}" />
+														</h:outputText>
+													</f:facet>
+												</p:column>
+											</p:row>
+
+										</p:columnGroup>
+									</p:dataTable>
+
+							</p:outputPanel>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_guardar}" process="@this :form:panelDatos" action="#{cierreCajaBean.guardar}" 
+										oncomplete="validacionesModal(xhr, status, args, dialogRegistroDenominacionFormaCobro)" update=":form:panelDatos" />
+									<p:commandButton value="#{msgs.btn_cancelar}" process="@this" oncomplete="dialogRegistroDenominacionFormaCobro.hide()">
+										<f:setPropertyActionListener value="false" target="#{cierreCajaBean.renderRegistroDenominacionFormaCobro}" />
+									</p:commandButton>
+								</center>
+							</f:facet>
+						</p:dialog></p:outputPanel>
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_cierre_caja} )" rendered="#{cierreCajaBean.editado}">
+						<p:outputPanel id="panelDetalleListado">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleCierreCaja" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+								value="#{cierreCajaBean.cierreCaja.listaDetalleCierreCaja}" var="_detalle_cierre_caja" paginator="true" paginatorPosition="bottom"
+								style="width:100%" rows="#{cierreCajaBean.numeroFilas}" rowsPerPageTemplate="#{cierreCajaBean.numeroFilasPorPagina}">
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column  headerText="# #{msgs.lbl_cobro}" styleClass="columnaDTNumeroDocumento tableCell" filterMatchMode="contains">
+									<h:link disabled="#{cierreCajaBean.cierreCajaPorDenominacionFormaCobro}" rendered="#{not empty _detalle_cierre_caja.detalleFormaCobro}"
+										target="_blank" outcome="/paginas/financiero/cobros/procesos/cobro" includeViewParams="true"
+										value="#{_detalle_cierre_caja.detalleFormaCobro.cobro}">
+										<f:param name="numero" value="#{_detalle_cierre_caja.detalleFormaCobro.cobro.numero}" />
+									</h:link>
+
+									<h:link disabled="#{cierreCajaBean.cierreCajaPorDenominacionFormaCobro}" rendered="#{not empty _detalle_cierre_caja.anticipoCliente}"
+										target="_blank" outcome="/paginas/financiero/cobros/procesos/anticipoCliente" includeViewParams="true"
+										value="#{_detalle_cierre_caja.anticipoCliente.numero}">
+										<f:param name="numeroAnticipo" value="#{_detalle_cierre_caja.anticipoCliente.numero}" />
+									</h:link>
+
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cliente}" styleClass="tableCell" filterMatchMode="contains"
+									filterBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cobro.empresa.nombreFiscal : _detalle_cierre_caja.anticipoCliente.empresa.nombreFiscal}"
+									sortBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cobro.empresa.nombreFiscal : _detalle_cierre_caja.anticipoCliente.empresa.nombreFiscal}">
+									<h:outputText
+										value="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cobro.empresa.nombreFiscal : _detalle_cierre_caja.anticipoCliente.empresa.nombreFiscal}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_forma_cobro}" styleClass="columnaDTNombreCorto tableCell" filterMatchMode="contains"
+									filterBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.formaPago.nombre : _detalle_cierre_caja.anticipoCliente.formaPago.nombre}"
+									sortBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.formaPago.nombre : _detalle_cierre_caja.anticipoCliente.formaPago.nombre}" >
+									<h:outputText
+										value="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.formaPago.nombre : _detalle_cierre_caja.anticipoCliente.formaPago.nombre}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_banco}" styleClass="tableCell" filterMatchMode="contains"
+									filterBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre : _detalle_cierre_caja.anticipoCliente.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}"
+									sortBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre : _detalle_cierre_caja.anticipoCliente.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}">
+									<h:outputText
+										value="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre : _detalle_cierre_caja.anticipoCliente.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_fecha}" styleClass="columnaDTFecha tableCell"
+									sortBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cobro.fecha : _detalle_cierre_caja.anticipoCliente.fecha}">
+									<h:outputText
+										value="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.cobro.fecha : _detalle_cierre_caja.anticipoCliente.fecha}">
+										<f:convertDateTime pattern="#{cierreCajaBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell" filterMatchMode="contains"
+									sortBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.documentoReferencia :  _detalle_cierre_caja.anticipoCliente.documentoReferencia}"
+									filterBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.documentoReferencia :  _detalle_cierre_caja.anticipoCliente.documentoReferencia}">
+									<h:outputText
+										value="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.documentoReferencia :  _detalle_cierre_caja.anticipoCliente.documentoReferencia }" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell" rendered="#{!cierreCajaBean.cierreCajaPorDenominacionFormaCobro}"
+									sortBy="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.valor : _detalle_cierre_caja.anticipoCliente.valor}">
+									<h:outputText
+										value="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.valor : _detalle_cierre_caja.anticipoCliente.valor}">
+										<f:convertNumber pattern="#{cierreCajaBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+									<h:outputText
+										value="#{not empty _detalle_cierre_caja.detalleFormaCobro ? _detalle_cierre_caja.detalleFormaCobro.descripcion : _detalle_cierre_caja.anticipoCliente.descripcion}" />
+								</p:column>
+
+								<p:columnGroup type="footer" rendered="#{!cierreCajaBean.cierreCajaPorDenominacionFormaCobro}">
+									<p:row>
+										<p:column colspan="7" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+										<p:column styleClass="columnaDTValor">
+											<f:facet name="footer">
+												<h:outputText value="#{cierreCajaBean.cierreCaja.valor}" style="text-align:right">
+													<f:convertNumber pattern="#{cierreCajaBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+
+								</p:columnGroup>
+							</p:dataTable>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_cierre_caja} )" rendered="#{!cierreCajaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCierreCaja" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cierreCajaBean.listaCierreCaja}"
+							var="_cierre_caja" paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{cierreCajaBean.dtCierreCaja}"
+							rows="#{cierreCajaBean.numeroFilas}" rowsPerPageTemplate="#{cierreCajaBean.numeroFilasPorPagina}" selection="#{cierreCajaBean.cierreCaja}"
+							selectionMode="single" rowKey="#{_cierre_caja.idCierreCaja}" sortBy="#{_cierre_caja.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_cierre_caja.numero}" filterBy="#{_cierre_caja.numero}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_cierre_caja.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_cierre_caja.usuario.nombreUsuario}" filterBy="#{_cierre_caja.usuario.nombreUsuario}"
+								styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_usuario}" />
+								</f:facet>
+								<h:outputText value="#{_cierre_caja.usuario.nombreUsuario}" />
+							</p:column>
+
+
+							<p:column sortBy="#{_cierre_caja.fechaHasta}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_hasta}" />
+								</f:facet>
+
+								<h:outputText value="#{_cierre_caja.fechaHasta}">
+									<f:convertDateTime pattern="#{cierreCajaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_cierre_caja.valor}" styleClass="columnaDTValor input-text-number tableCell" rendered="#{!cierreCajaBean.cierreCajaPorDenominacionFormaCobro}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_cierre_caja.valor}">
+									<f:convertNumber pattern="#{cierreCajaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_estado}" sortBy="#{_cierre_caja.estado}" filterBy="#{_cierre_caja.estado}"
+								filterOptions="#{cierreCajaBean.listaEstadoItem}" styleClass="columnaDTEstado tableCell">
+								<h:outputText value="#{_cierre_caja.estado}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{cierreCajaBean.cierreCaja.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{cierreCajaBean.cierreCaja.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{cierreCajaBean.cierreCaja.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{cierreCajaBean.cierreCaja.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

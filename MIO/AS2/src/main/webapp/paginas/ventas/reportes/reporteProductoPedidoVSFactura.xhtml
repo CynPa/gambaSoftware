@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_pedido_cliente_resumido}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteProductoPedidoVSFacturaBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteProductoPedidoVSFacturaBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteProductoPedidoVSFacturaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteProductoPedidoVSFacturaBean.fechaDesde}" id="calFechaDesde" required="true"
+								maxdate="#{reporteProductoPedidoVSFacturaBean.fechaHasta}">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteProductoPedidoVSFacturaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteProductoPedidoVSFacturaBean.fechaHasta}" id="calFechaHasta" required="true"
+								mindate="#{reporteProductoPedidoVSFacturaBean.fechaDesde}">
+							</p:calendar>
+							
+							<p:outputLabel for="cboDocumentoBase" value="#{msgs.lbl_documento_documentoBase}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteProductoPedidoVSFacturaBean.documentoBase}" id="cboDocumentoBase">
+								<f:selectItems value="#{reporteProductoPedidoVSFacturaBean.listaDocumentoBaseCombo}" var="_documentoBase" itemLabel="#{_documentoBase.nombre}"
+									itemValue="#{_documentoBase}"/>
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_categoria_empresa_titulo_panel}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteProductoPedidoVSFacturaBean.idCategoriaEmpresa}" id="cboCategoriaEmpresa">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteProductoPedidoVSFacturaBean.listaCategoriaEmpresaCombo}" var="_categoriaEmpresa" itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa.idSucursal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente"
+								value="#{reporteProductoPedidoVSFacturaBean.empresa}" completeMethod="#{reporteProductoPedidoVSFacturaBean.autocompletarClientes}" var="_cliente"
+								itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteProductoPedidoVSFacturaBean.idSucursal}" id="cboSucursal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteProductoPedidoVSFacturaBean.listaSucursalCombo}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal.idSucursal}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteProductoPedidoVSFacturaBean.idVendedor}" id="cboVendedor">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteProductoPedidoVSFacturaBean.listaVendedorCombo}" var="_vendedor" itemLabel="#{_vendedor.nombre1}"
+									itemValue="#{_vendedor.idUsuario}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_zona}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteProductoPedidoVSFacturaBean.idZona}" id="cboZona">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteProductoPedidoVSFacturaBean.listaZonaCombo}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona.idZona}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_canal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteProductoPedidoVSFacturaBean.idCanal}" id="cboCanal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteProductoPedidoVSFacturaBean.listaCanalCombo}" var="_canal" itemLabel="#{_canal.nombre}"
+									itemValue="#{_canal.idCanal}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

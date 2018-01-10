@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<as2:panelImprimir entidadDestino="" bean="#{impresionEtiquetaBean}" entidadOrigen="" />
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{impresionEtiquetaBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelContenedor" />
+				</ui:include>
+
+				<p:panel header="#{msgs.lbl_impresion_etiquetas}">
+
+					<p:outputPanel id="panelFiltros">
+						<h:panelGrid columns="#{impresionEtiquetaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu value="#{impresionEtiquetaBean.indicadorPorMovimiento}" id="cboTipoResporte">
+								<f:selectItems value="#{impresionEtiquetaBean.listaTipoReporte}" />
+								<p:ajax update="@this :form:panelContenedor" event="change" process="@this" global="false"
+									listener="#{impresionEtiquetaBean.actualizarFiltros}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="" />
+							<h:outputText value="" />
+
+							<h:outputText value="#{msgs.lbl_documento}:" rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<p:selectOneMenu value="#{impresionEtiquetaBean.documento}" id="cboDocumento" required="#{empty impresionEtiquetaBean.producto}"
+								rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{impresionEtiquetaBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+								<p:ajax update="@this autoNumero" event="change" process="@this" global="false" listener="#{impresionEtiquetaBean.reiniciarNumero}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero}:" rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoNumero"
+								value="#{impresionEtiquetaBean.numeroDocumento}" completeMethod="#{impresionEtiquetaBean.autocompletarNumeroMovimiento}" forceSelection="true"
+								required="#{empty impresionEtiquetaBean.producto}" minQueryLength="2" dropdown="true"
+								rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:ajax process="@this" global="false" event="itemSelect" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_desde}:" rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<p:inputText styleClass="input-text" value="#{impresionEtiquetaBean.numeroLoteDesde}"
+								rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:ajax process="@this" partialSubmit="true" global="false" />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_hasta}:" rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<p:inputText styleClass="input-text" value="#{impresionEtiquetaBean.numeroLoteHasta}"
+								rendered="#{impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:ajax process="@this" partialSubmit="true" global="false" />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_producto_categoria_producto}:" rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCategoriaProducto"
+								value="#{impresionEtiquetaBean.categoriaProducto}" completeMethod="#{impresionEtiquetaBean.autocompletarCategoriaProducto}"
+								var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" forceSelection="true" dropdown="true"
+								minQueryLength="2" rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:column>#{_categoriaProducto.codigo}</p:column>
+								<p:column>#{_categoriaProducto.nombre}</p:column>
+								<p:ajax process="@this" global="false" event="itemSelect" update="@this" />
+								<p:ajax process="@this" global="false" event="itemUnselect" update="@this" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}:" rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+								value="#{impresionEtiquetaBean.subcategoriaProducto}" completeMethod="#{impresionEtiquetaBean.autocompletarSubcategoriaProducto}"
+								var="_subcategoriaProducto" itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" forceSelection="true"
+								dropdown="true" minQueryLength="2" rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:column>#{_subcategoriaProducto.codigo}</p:column>
+								<p:column>#{_subcategoriaProducto.nombre}</p:column>
+								<p:ajax process="@this" global="false" event="itemSelect" update="@this" />
+								<p:ajax process="@this" global="false" event="itemUnselect" update="@this" />
+							</p:autoComplete>
+
+							<p:outputLabel value="#{msgs.lbl_producto}:" rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<h:panelGroup rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:commandButton process="@this" onclick="dglModalProducto.show();" icon="ui-icon ui-icon-newwin" title="#{msgs.lbl_listado}" />
+								<h:outputText value="#{impresionEtiquetaBean.producto.codigo} #{impresionEtiquetaBean.producto.nombre}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_impresion_etiquetas_por_unidad}:" />
+							<p:selectBooleanCheckbox value="#{impresionEtiquetaBean.indicadorImprimirPorUnidad}" id="#{!impresionEtiquetaBean.indicadorPorMovimiento}"
+								disabled="#{!impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:ajax process="@this" partialSubmit="true" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_saldo} > 0:" rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}" />
+							<p:selectBooleanCheckbox value="#{impresionEtiquetaBean.saldoMayorCero}" rendered="#{!impresionEtiquetaBean.indicadorPorMovimiento}">
+								<p:ajax process="@this" partialSubmit="true" global="false" update="lblBodega cboBodega" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputPanel id="lblBodega">
+								<h:outputText value="#{msgs.lbl_bodega}:" rendered="#{impresionEtiquetaBean.saldoMayorCero and !impresionEtiquetaBean.indicadorPorMovimiento}" />
+							</p:outputPanel>
+							<p:outputPanel id="cboBodega">
+								<p:selectOneMenu styleClass="input-text" value="#{impresionEtiquetaBean.bodega}"
+									rendered="#{impresionEtiquetaBean.saldoMayorCero and !impresionEtiquetaBean.indicadorPorMovimiento}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{impresionEtiquetaBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<p:ajax process="@this" partialSubmit="true" global="false" />
+								</p:selectOneMenu>
+							</p:outputPanel>
+
+							<p:spacer height="10px" />
+							<p:spacer />
+							<!-- 
+									<h:outputText value="#{msgs.lbl_lote}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" size="15" value="#{impresionEtiquetaBean.lote}"
+										completeMethod="#{impresionEtiquetaBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+										forceSelection="true" dropdown="true" minQueryLength="2">
+
+										<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+										<p:ajax event="itemSelect" process="@this" update=":form:panelFiltros" />
+
+										<p:ajax event="itemSelect" process="@this" update=":form:panelFiltros" />
+									</p:autoComplete>
+ 									-->
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print" />
+								</center>
+							</f:facet>
+						</h:panelGrid>
+					</p:outputPanel>
+
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

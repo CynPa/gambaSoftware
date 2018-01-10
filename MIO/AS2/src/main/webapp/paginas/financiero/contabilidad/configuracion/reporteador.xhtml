@@ -1,0 +1,330 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{reporteadorBean}">
+
+					<as2:buttonEliminar bean="#{reporteadorBean}">
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{reporteadorBean.reporteador.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{reporteadorBean}" tabla=":form:tablaReporteador" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_reporteador} )" rendered="#{reporteadorBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{reporteadorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{reporteadorBean.reporteador.nombre}" id="txtNombre" required="true">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtReporte" value="#{msgs.lbl_reporte}:" />
+								<p:inputText styleClass="input-text" value="#{reporteadorBean.reporteador.ficheroReporte}" id="txtReporte" required="true">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="cbPeriodo" value="#{msgs.lbl_periodo}:" />
+								<p:selectOneMenu value="#{reporteadorBean.reporteador.periodicidad}" id="cbPeriodo" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{reporteadorBean.listaPeriodicidad}" />
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{reporteadorBean.reporteador.activo}">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<p:outputLabel value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{reporteadorBean.reporteador.predeterminado}">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{reporteadorBean.reporteador.descripcion}" id="txtDescripcion">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:tabView cache="true" dynamic="true" id="tvDetalles">
+							<p:tab title="#{msgs.lbl_campos}">
+								<h:panelGrid columns="1" id="panelDetalleReporte">
+									<h:panelGroup>
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" icon="ui-icon-plus"
+											action="#{reporteadorBean.agregarDetalleReporte(null)}" update=":form:tvDetalles:panelDetalleReporte"
+											process="@this,:form:tvDetalles:panelDetalleReporte" />
+
+										<p:commandButton value="#{msgs.lbl_ordenar}" title="#{msgs.lbl_ordenar}" id="btnOrdenar" icon="ui-icon-refresh"
+											action="#{reporteadorBean.ordenar(null)}" update=":form:tvDetalles:panelDetalleReporte"
+											process="@this,:form:tvDetalles:panelDetalleReporte" />
+									</h:panelGroup>
+									<p:treeTable value="#{reporteadorBean.root}" var="_detalleReporte" binding="#{reporteadorBean.dtTreeTable}"
+										rowStyleClass="#{_detalleReporte.nivel == reporteadorBean.nivelMaximo ? null : _detalleReporte.nivel == 1 ? 'fondo_azul' : _detalleReporte.nivel == 2 ? 'fondo_verde' :  _detalleReporte.nivel == 3 ? 'fondo_amarillo' : 'fondo_gris'}">
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nivel}">
+											<h:outputText value="#{msgs.lbl_nivel} #{_detalleReporte.nivel}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_orden}">
+											<p:inputText styleClass="input-text-col" value="#{_detalleReporte.orden}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+											<p:inputText styleClass="input-text-col" value="#{_detalleReporte.nombre}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_activo}">
+											<p:selectBooleanCheckbox value="#{_detalleReporte.activo}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:selectBooleanCheckbox>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text-col" value="#{_detalleReporte.descripcion}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton action="#{reporteadorBean.agregarNodo}" icon="ui-icon-plus" title="#{msgs.lbl_agregar_campo}"
+												update=":form:tvDetalles:panelDetalleReporte" process="@this" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_formula}">
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text-col"
+												value="#{_detalleReporte.detalleReporteadorVariable}" id="autoFormula" completeMethod="#{reporteadorBean.autocompletarFormula}"
+												var="_formula"
+												itemLabel="#{empty _formula ? '' : !_formula.indicadorFormula ? _formula.codigo : _formula.codigo.concat(' = ').concat(_formula.expresion)}"
+												itemValue="#{_formula}" forceSelection="true" dropdown="true" minQueryLength="2" required="false">
+
+												<p:column headerText="#{msgs.lbl_codigo}">#{_formula.codigo}</p:column>
+												<p:column headerText="#{msgs.lbl_expresion}">#{_formula.expresion}</p:column>
+												<p:column headerText="#{msgs.lbl_descripcion}">#{_formula.descripcion}</p:column>
+
+												<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" update="#{cc.attrs.update}" />
+											</p:autoComplete>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_eliminar}">
+											<p:commandButton id="btnEliminarDetalleReporte" action="#{reporteadorBean.eliminarDetalleReporte}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalles:panelDetalleReporte" process="@this" />
+										</p:column>
+
+									</p:treeTable>
+								</h:panelGrid>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_variables}">
+								<h:panelGrid columns="1" id="panelDetalleVariable">
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarVariable" icon="ui-icon-plus"
+										action="#{reporteadorBean.agregarVariable(false)}" update=":form:tvDetalles:panelDetalleVariable"
+										process="@this,:form:tvDetalles:panelDetalleVariable" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaVariable" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteadorBean.listaVariables}" var="_variable" binding="#{reporteadorBean.dtVariable}"
+										paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{reporteadorBean.numeroFilas}"
+										rowsPerPageTemplate="#{reporteadorBean.numeroFilasPorPagina}" rowKey="#{_variable.rowKey}" lazy="false">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+											<p:inputText styleClass="input-text-col" value="#{_variable.codigo}" required="true">
+												<p:ajax process="@this" global="false" update=":form:tvDetalles:panelDetalleReporte" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton value="..." process="@this" partialSubmit="true"
+												actionListener="#{reporteadorBean.listaCuentaContableBean.listarCuentaContable}">
+												<p:ajax event="dialogReturn" partialSubmit="true" listener="#{reporteadorBean.seleccionarCuentaContable}"
+													update=":form:tvDetalles:panelDetalleVariable" />
+												<f:setPropertyActionListener target="#{reporteadorBean.detalleVariableSeleccionada}" value="#{_variable}" />
+												<f:setPropertyActionListener target="#{reporteadorBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+											</p:commandButton>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTCodigoCuenta" headerText="#{msgs.lbl_codigo} #{msgs.lbl_cuenta_contable}">
+											<p:inputText styleClass="input-text" value="#{_variable.cuentaContable.codigo != null ? _variable.cuentaContable.codigo :''}" id="txtCodigoCuenta" required="true">
+												<p:ajax listener="#{reporteadorBean.buscarCuentaContable}" process="@this" update="txtCodigoCuenta txtNombreCuenta" event="change"
+													partialSubmit="true" global="false" />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cuenta_contable}">
+											<h:outputText id="txtNombreCuenta" value="#{_variable.cuentaContable.nombre}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_tipo_calculo}">
+											<p:selectOneMenu value="#{_variable.tipoCalculo}" id="cboTipoCalculo" required="true">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{reporteadorBean.listaTipoCalculo}" var="_tipoCalculo" itemLabel="#{_tipoCalculo.nombre}"
+													itemValue="#{_tipoCalculo}" />
+												<f:validateBean />
+												<p:ajax event="change" partialSubmit="true" process="@this" />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_valor_calculo}">
+											<p:selectOneMenu value="#{_variable.valoresCalculo}" id="cboValoresCalculo" required="true">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{reporteadorBean.listaValoresCalculo}" var="_valorCalculo" itemLabel="#{_valorCalculo.nombre}"
+													itemValue="#{_valorCalculo}" />
+												<f:validateBean />
+												<p:ajax event="change" partialSubmit="true" process="@this" />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text-col" value="#{_variable.descripcion}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_eliminar}">
+											<p:commandButton id="btnEliminarVariable" action="#{reporteadorBean.eliminarVariable(false)}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalles:panelDetalleVariable" process="@this" />
+										</p:column>
+
+									</p:dataTable>
+								</h:panelGrid>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_formula}s">
+								<h:panelGrid columns="1" id="panelDetalleFormula">
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarFormula" icon="ui-icon-plus"
+										action="#{reporteadorBean.agregarVariable(true)}" update=":form:tvDetalles:panelDetalleFormula"
+										process="@this,:form:tvDetalles:panelDetalleFormula" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFormula" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteadorBean.listaFormulas}" var="_formula" binding="#{reporteadorBean.dtFormula}"
+										paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{reporteadorBean.numeroFilas}"
+										rowsPerPageTemplate="#{reporteadorBean.numeroFilasPorPagina}" rowKey="#{_formula.rowKey}" lazy="false">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+											<p:inputText styleClass="input-text-col" value="#{_formula.codigo}" required="true">
+												<p:ajax process="@this" global="false" update=":form:tvDetalles:panelDetalleReporte" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_expresion}">
+											<p:inputText styleClass="input-text-col" value="#{_formula.expresion}" required="true">
+												<p:ajax process="@this" global="false" listener="#{reporteadorBean.validaFormula}" update=":form:tvDetalles:panelDetalleReporte" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text-col" value="#{_formula.descripcion}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_eliminar}">
+											<p:commandButton id="btnEliminarFormula" action="#{reporteadorBean.eliminarVariable(true)}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalles:panelDetalleFormula :form:tvDetalles:panelDetalleReporte" process="@this" />
+										</p:column>
+
+									</p:dataTable>
+								</h:panelGrid>
+							</p:tab>
+						</p:tabView>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_reporteador} )" rendered="#{!reporteadorBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaReporteador" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteadorBean.listaReporteador}" var="_reporte" binding="#{reporteadorBean.dtReporte}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{reporteadorBean.numeroFilas}"
+							rowsPerPageTemplate="#{reporteadorBean.numeroFilasPorPagina}" selection="#{reporteadorBean.reporteador}" selectionMode="single"
+							rowKey="#{_reporte.rowKey}" sortBy="#{_reporte.nombre}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}" sortBy="#{_reporte.nombre}" filterBy="#{_reporte.nombre}">
+								<h:outputText value="#{_reporte.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_reporte}" sortBy="#{_reporte.ficheroReporte}"
+								filterBy="#{_reporte.ficheroReporte}">
+								<h:outputText value="#{_reporte.ficheroReporte}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_periodo}" sortBy="#{_reporte.periodicidad}">
+								<h:outputText value="#{_reporte.periodicidad}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_reporte.activo}">
+								<p:selectBooleanCheckbox value="#{_reporte.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_predeterminado}" sortBy="#{_reporte.predeterminado}">
+								<p:selectBooleanCheckbox value="#{_reporte.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_reporte.descripcion}" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_reporte.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{reporteadorBean.reporteador.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{reporteadorBean.reporteador.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{reporteadorBean.reporteador.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{reporteadorBean.reporteador.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

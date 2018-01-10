@@ -1,0 +1,247 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{categoriaImpuestoBean}">
+					<as2:buttonEliminar bean="#{categoriaImpuestoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{categoriaImpuestoBean.categoriaImpuesto.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{categoriaImpuestoBean.categoriaImpuesto.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{categoriaImpuestoBean}" tabla=":form:tablaCategoriaImpuesto"/>
+				</as2:toolBar>
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{categoriaImpuestoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_categoria_impuesto_panel}">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+								<h:panelGrid id="panelCabecera"
+									columns="#{categoriaImpuestoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text"
+										value="#{categoriaImpuestoBean.categoriaImpuesto.codigo}"
+										id="txtCodigo" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text"
+										value="#{categoriaImpuestoBean.categoriaImpuesto.nombre}"
+										id="txtNombre">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox
+										value="#{categoriaImpuestoBean.categoriaImpuesto.estado}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox
+										value="#{categoriaImpuestoBean.categoriaImpuesto.predeterminado}" />
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text"
+										value="#{categoriaImpuestoBean.categoriaImpuesto.descripcion}"
+										id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:fieldset legend="#{msgs.lbl_asignacion_impuestos}"
+								toggleable="false">
+
+								<p:commandButton value="#{msgs.lbl_ver_impuestos}"
+									oncomplete="impuestosDialog.show()" process="@this"
+									update=":form:panelImpuestosAsignar" />
+
+								<p:dialog modal="true" showEffect="fade" hideEffect="explode"
+									widgetVar="impuestosDialog" width="400"
+									header="#{msgs.lbl_panel_listado} #{msgs.lbl_titulo_impuesto}">
+
+									<p:outputPanel id="panelImpuestosAsignar" autoUpdate="true">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+											value="#{categoriaImpuestoBean.listaImpuestosNoAsignados}"
+											id="tablaImpuestos" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_impuesto"
+											paginator="true" paginatorPosition="bottom"
+											style="width:100%" rowKey="#{_impuesto.id}"
+											rows="#{categoriaImpuestoBean.numeroFilas}"
+											selection="#{categoriaImpuestoBean.impuestosSeleccionados}" lazy="true">
+
+											<p:column styleClass="tableCell columnaDTAccion" selectionMode="multiple" />
+
+											<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_impuesto.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_impuesto.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_estado}">
+												<p:selectBooleanCheckbox value="#{_impuesto.estado}"
+													disabled="true" />
+											</p:column>
+
+										</p:dataTable>
+									</p:outputPanel>
+
+									<f:facet name="footer">
+										<center>
+											<p:commandButton value="#{msgs.lbl_seleccionar}"
+												action="#{categoriaImpuestoBean.asignarImpuestos}"
+												process="@this :form:panelImpuestosAsignar"
+												update=":form:panelmpuestosAsignados"
+												onclick="impuestosDialog.hide()" />
+										</center>
+									</f:facet>
+								</p:dialog>
+
+								<h:panelGrid columns="1" id="panelmpuestosAsignados"
+									width="100%">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{categoriaImpuestoBean.listaImpuesto}"
+										id="tablaImpuestosAsignados" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_impuesto"
+										paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_impuesto.id}" rows="#{impuestoBean.numeroFilas}"
+										rowsPerPageTemplate="#{categoriaImpuestoBean.numeroFilasPorPagina}"
+										binding="#{categoriaImpuestoBean.dtImpuesto}" lazy="true">
+
+										<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+											<h:outputText value="#{_impuesto.codigo}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_nombre}">
+											<h:outputText value="#{_impuesto.nombre}" />
+										</p:column>									
+
+										<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_estado}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_impuesto.estado}"
+													disabled="true" />
+											</center>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTActivo"
+											headerText="#{msgs.lbl_indicador_impuesto_tributario}">
+												<p:selectBooleanCheckbox
+													value="#{_impuesto.indicadorImpuestoTributario}"
+													disabled="true" />
+										</p:column>
+										
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<h:outputText value="#{_impuesto.descripcion}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton
+												actionListener="#{categoriaImpuestoBean.eliminarDetalle}"
+												icon="ui-icon-trash" process="@this :form:panelmpuestosAsignados"
+												update=":form:panelImpuestosAsignar :form:panelmpuestosAsignados" />
+										</p:column>
+									</p:dataTable>
+								</h:panelGrid>
+
+							</p:fieldset>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!categoriaImpuestoBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_categoria_impuesto_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCategoriaImpuesto" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{categoriaImpuestoBean.listaCategoriaImpuesto}"
+							var="_categoria" paginator="true" paginatorPosition="bottom"
+							style="width:100%"
+							binding="#{categoriaImpuestoBean.dtCategoriaImpuesto}"
+							rows="#{categoriaImpuestoBean.numeroFilas}"
+							rowsPerPageTemplate="#{categoriaImpuestoBean.numeroFilasPorPagina}"
+							selection="#{categoriaImpuestoBean.categoriaImpuesto}"
+							selectionMode="single" rowKey="#{_categoria.id}"
+							sortBy="#{_categoria.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" filterBy="#{_categoria.codigo}"
+								sortBy="#{_categoria.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_categoria.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" filterBy="#{_categoria.nombre}"
+								sortBy="#{_categoria.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_categoria.nombre}" />
+							</p:column>						
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_categoria.estado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+									<p:selectBooleanCheckbox value="#{_categoria.estado}"
+										disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell" sortBy="#{_categoria.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_categoria.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{categoriaImpuestoBean.categoriaImpuesto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{categoriaImpuestoBean.categoriaImpuesto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion"
+							value="#{categoriaImpuestoBean.categoriaImpuesto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{categoriaImpuestoBean.categoriaImpuesto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

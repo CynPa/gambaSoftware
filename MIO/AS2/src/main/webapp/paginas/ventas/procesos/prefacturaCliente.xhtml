@@ -1,0 +1,699 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{prefacturaClienteBean}">
+
+					<as2:buttonImprimir beanReporte="#{reportePrefacturaClienteBean}" bean="#{prefacturaClienteBean}"
+						target="#{reportePrefacturaClienteBean.prefacturaCliente}" value="#{prefacturaClienteBean.prefacturaCliente}" />
+
+					<as2:buttonEliminar bean="#{prefacturaClienteBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{prefacturaClienteBean.prefacturaCliente.fecha}">
+							<f:convertDateTime pattern="#{prefacturaClienteBean.formatoFecha}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{prefacturaClienteBean.prefacturaCliente.numero}" />
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<h:outputText value="#{prefacturaClienteBean.prefacturaCliente.empresa.nombreComercial}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{prefacturaClienteBean}" tabla=":form:tablaPrefacturaCliente" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{prefacturaClienteBean}" />
+					<ui:param name="objetoActualizar" value=":form:tvDetallePrefactura:panelDetalleAjustePrefactura" />
+					<ui:param name="listadoFiltrado" value="true" />
+					<ui:param name="mostrarCantidad" value="true" />
+				</ui:include>
+
+
+				<p:dialog header="#{msgs.lbl_despacho}s" widgetVar="dglModalDespachos" modal="true" height="400" showEffect="slide" hideEffect="slide" width="800"
+					rendered="#{prefacturaClienteBean.editado}">
+					<p:outputPanel id="panelDialogDespacho">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaListadoDespachos" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{prefacturaClienteBean.listaDespachoClienteNoAsignados}" var="_despacho" binding="#{prefacturaClienteBean.dtDespachoCliente}"
+							paginator="true" paginatorPosition="bottom" rows="10" rowsPerPageTemplate="#{prefacturaClienteBean.numeroFilasPorPagina}"
+							selection="#{prefacturaClienteBean.despachoClienteSeleccionados}" rowKey="#{_despacho.id}" style="font-size:10px;" sortBy="#{_despacho.numero}"
+							sortOrder="ASCENDING">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_despacho.numero}" filterBy="#{_despacho.numero}"
+								filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_despacho.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_despacho.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_despacho.fecha}">
+									<f:convertDateTime pattern="#{prefacturaClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column filterBy="#{_despacho.empresa.nombreFiscal}" sortBy="#{_despacho.empresa.nombreFiscal}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_despacho.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_despacho.descripcion}" filterBy="#{_despacho.descripcion}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText style="white-space:normal !important;" value="#{_despacho.descripcion}" />
+							</p:column>
+
+							<p:column selectionMode="multiple" style="width:18px" />
+
+						</p:dataTable>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_agregar}" action="#{prefacturaClienteBean.cargarProductosDesdeDespachos}"
+								process="@this, :form:panelDialogDespacho"
+								update=":form:tvDetallePrefactura:panelDetalleAjustePrefactura :form:tvDetallePrefactura:panelImpuestoDetalle"
+								oncomplete="dglModalDespachos.hide()" icon="ui-icon-plus" />
+
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<!-- INICIO DIALOG VISUALIZAR AJUSTES -->
+				<p:dialog header="#{msgs.lbl_ajustes_prefacturas}" widgetVar="ajustePrefacturaClienteDialog" id="ajustePrefacturaClienteDialog" modal="true"
+					height="300" width="600" showEffect="slide" hideEffect="slide">
+					<p:outputPanel id="panelDialogAjusteCliente">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAjustePrefacturaCliente" rowIndexVar="secuencial" binding="#{prefacturaClienteBean.dtAjustePrefactura}"
+							emptyMessage="#{msgs.msg_no_hay_datos}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							value="#{prefacturaClienteBean.listaAjustePrefacturaCliente}" var="_ajustePrefacturaCliente" rowKey="#{_ajustePrefacturaCliente.id}"
+							rows="#{prefacturaClienteBean.numeroFilas}" rowsPerPageTemplate="#{prefacturaClienteBean.numeroFilasPorPagina}"
+							sortBy="#{_ajustePrefacturaCliente.fecha}" sortOrder="DESCENDING">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajustePrefacturaCliente.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_ajustePrefacturaCliente.fecha}">
+									<f:convertDateTime pattern="#{prefacturaClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="input-text-number" headerText="#{msgs.lbl_subtotal}">
+								<h:outputText value="#{_ajustePrefacturaCliente.total}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number" headerText="#{msgs.lbl_descuento}">
+								<h:outputText value="#{_ajustePrefacturaCliente.descuento}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number" headerText="#{msgs.lbl_producto_indicador_impuestos}">
+								<h:outputText value="#{_ajustePrefacturaCliente.impuesto}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number" headerText="#{msgs.lbl_total}">
+								<h:outputText value="#{_ajustePrefacturaCliente.totalPrefactura}" />
+							</p:column>
+
+							<p:column sortBy="#{_ajustePrefacturaCliente.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _ajustePrefacturaCliente.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_ajustePrefacturaCliente.asiento.numero}">
+									<f:param name="idAsiento" value="#{_ajustePrefacturaCliente.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+						</p:dataTable>
+
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG VISUALIZAR AJUSTES -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_prefactura_cliente})" rendered="#{prefacturaClienteBean.editado}">
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{prefacturaClienteBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_sucursal}" />
+								<p:selectOneMenu styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.sucursal}" id="cboSucursal" required="true"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prefacturaClienteBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_documento}" />
+								<p:selectOneMenu styleClass="input-text" disabled="#{prefacturaClienteBean.indicadorAjuste}"
+									value="#{prefacturaClienteBean.prefacturaCliente.documento.idDocumento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prefacturaClienteBean.listaDocumentoCliente}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+									<p:ajax update="txtNumero" event="change" global="false" listener="#{prefacturaClienteBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.numero}" id="txtNumero"
+									mask="#{prefacturaClienteBean.prefacturaCliente.documento.secuencia.patron}" disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{prefacturaClienteBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{prefacturaClienteBean.ajustePrefacturaCliente.fecha}" id="calFecha">
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_cliente}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.empresa}"
+									completeMethod="#{prefacturaClienteBean.autocompletarClientes}" var="_cliente" disabled="#{prefacturaClienteBean.indicadorAjuste}"
+									itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{prefacturaClienteBean.actualizarCliente}" process="@this" event="itemSelect"
+										update="cboDireccionCliente,cboAgenteComercial,cboCondicionPago,txtNumeroCuotas,cboZona,cboSubempresa,:form:panelDialogDespacho" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_subcliente}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.subempresa}" id="cboSubempresa"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prefacturaClienteBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+										itemLabel="#{_subempresa.empresaFinal}" />
+									<p:ajax event="change" listener="#{prefacturaClienteBean.actualizarSubclienteListener}" process="@this"
+										update="cboDireccionCliente,cboAgenteComercial,cboZona,cboCondicionPago,txtNumeroCuotas"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.direccionEmpresa}" id="cboDireccionCliente"
+									required="true" disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prefacturaClienteBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+								<p:selectOneMenu value="#{prefacturaClienteBean.prefacturaCliente.agenteComercial}" id="cboAgenteComercial" required="false"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{prefacturaClienteBean.listaAgenteComercialCombo}" var="_agenteComercial"
+										itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_condicion_pago}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.condicionPago}" id="cboCondicionPago"
+									required="true" disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prefacturaClienteBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+										itemValue="#{_condicionPago}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_factura_cliente_cuotas}:" />
+								<p:inputText styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.numeroCuotas}" id="txtNumeroCuotas"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_zona}:" />
+								<p:selectOneMenu value="#{prefacturaClienteBean.prefacturaCliente.zona}" id="cboZona" disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{prefacturaClienteBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_canal}" />
+								<p:selectOneMenu styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.canal}" id="cboCanal" required="false"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prefacturaClienteBean.listaCanal}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_bodega}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.bodega}" id="cboBodega"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prefacturaClienteBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.descripcion}" id="txtDescripcion"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_nota} 2:" />
+								<p:inputTextarea styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.descripcion2}" id="txtDescripcion2"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_mso}:" />
+								<p:inputText styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.mso}" id="txtMSO" maxlength="20"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_guia}:" />
+								<p:inputText styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.guia}" id="txtGuia" maxlength="20"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor} #{msgs.lbl_factura_proveedor_bono}:" />
+								<p:inputText styleClass="input-text" value="#{prefacturaClienteBean.prefacturaCliente.valorBono}" id="txtValorBono"
+									disabled="#{prefacturaClienteBean.indicadorAjuste}">
+									<f:validateBean />
+								</p:inputText>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<!-- INICIO MENU DETALLE-->
+
+						<p:tabView cache="true" dynamic="true" id="tvDetallePrefactura">
+
+							<p:tab title="#{msgs.lbl_detalle_prefactura}" id="tabDetalleAjustePrefactura">
+
+								<p:outputPanel id="panelDetalleAjustePrefactura">
+
+									<h:panelGrid columns="1" id="panelDetalle" style="width:100%">
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.lbl_cargar_despachos}" icon="ui-icon-plus" onclick="dglModalDespachos.show();" process="@this"
+												update=":form:panelDialogDespacho" action="#{prefacturaClienteBean.cargarDespachosNoAsignados}" />
+
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+										</h:panelGroup>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{prefacturaClienteBean.listaDetalleAjustePrefacturaCliente}" id="tablaDetalleAjustePrefacturaCLiente"
+											rowIndexVar="secuencial" binding="#{prefacturaClienteBean.dtDetalleAjustePrefacturaCliente}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detalleAjustePrefacturaCliente" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_detalleAjustePrefacturaCliente.id}" rows="#{prefacturaClienteBean.numeroFilas}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+
+												<h:outputText rendered="#{not empty _detalleAjustePrefacturaCliente.detalleDespachoCliente}"
+													value="#{_detalleAjustePrefacturaCliente.producto.codigo}" />
+
+												<p:inputText rendered="#{empty _detalleAjustePrefacturaCliente.detalleDespachoCliente}"
+													value="#{_detalleAjustePrefacturaCliente.producto.codigo}" id="txtCodigoProducto">
+
+													<p:ajax listener="#{prefacturaClienteBean.actualizarProductoListener}" process="@this" event="change" global="false"
+														oncomplete="nextFocus('#{p:component('txtCantidad')}')"
+														update=":form:tvDetallePrefactura:panelDetalleAjustePrefactura,:form:tvDetallePrefactura:panelImpuestoDetalle" />
+
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_detalleAjustePrefacturaCliente.producto.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_producto}">
+												<h:outputText value="#{_detalleAjustePrefacturaCliente.unidadVenta.nombre}" id="txtUnidadProducto">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_despacho}">
+												<h:outputText value="#{_detalleAjustePrefacturaCliente.detalleDespachoCliente.despachoCliente.numero}" id="txtNumeroDespacho">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+												<h:outputText rendered="#{not empty _detalleAjustePrefacturaCliente.detalleDespachoCliente}"
+													value="#{_detalleAjustePrefacturaCliente.cantidad}" />
+
+												<p:inputText rendered="#{empty _detalleAjustePrefacturaCliente.detalleDespachoCliente}"
+													value="#{_detalleAjustePrefacturaCliente.cantidad}" id="txtCantidad">
+													<f:validateBean />
+													<p:ajax listener="#{prefacturaClienteBean.totalizar}" process="@this txtDescripcion" event="change" global="false"
+														update=":form:tvDetallePrefactura:panelDetalleAjustePrefactura,:form:tvDetallePrefactura:panelImpuestoDetalle"
+														oncomplete="nextFocus('#{p:component('txtPrecio')}')" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<p:inputText value="#{_detalleAjustePrefacturaCliente.descripcion}" id="txtDescripcion" styleClass="input-text100">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+												<p:inputText value="#{_detalleAjustePrefacturaCliente.precio}" id="txtPrecio">
+													<f:validateBean />
+													<p:ajax listener="#{prefacturaClienteBean.totalizar}" process="@this,txtDescripcion"
+														update=":form:tvDetallePrefactura:panelDetalleAjustePrefactura,:form:tvDetallePrefactura:panelImpuestoDetalle" event="change"
+														global="false" oncomplete="nextFocus('#{p:component('txtPorcentajeDescuento')}')" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_unitario}">
+												<h:outputText value="#{_detalleAjustePrefacturaCliente.descuento}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTPorcentaje tableCell" headerText="#{msgs.lbl_porcentaje_descuento}">
+												<p:inputText value="#{_detalleAjustePrefacturaCliente.porcentajeDescuento}" id="txtPorcentajeDescuento" size="5">
+													<p:ajax listener="#{prefacturaClienteBean.actualizarPorcentajeDescuento}" process="@this,txtCantidad,txtDescripcion,txtPrecio"
+														update=":form:tvDetallePrefactura:panelDetalleAjustePrefactura,:form:tvDetallePrefactura:panelImpuestoDetalle"
+														oncomplete="nextFocus('#{p:component('txtCodigoProducto')}')" event="change" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_linea}">
+												<h:outputText value="#{_detalleAjustePrefacturaCliente.descuentoLinea}" id="lblDescuentoLinea">
+													<f:convertNumber pattern="#{prefacturaClienteBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_linea}">
+												<h:outputText value="#{_detalleAjustePrefacturaCliente.precioLinea}" id="lblPrecioLinea">
+													<f:convertNumber pattern="#{prefacturaClienteBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" action="#{prefacturaClienteBean.eliminarDetalle}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}"
+													update=":form:tvDetallePrefactura:panelDetalleAjustePrefactura,:form:tvDetallePrefactura:panelImpuestoDetalle" process="@this">
+												</p:commandButton>
+											</p:column>
+
+											<p:columnGroup type="footer" id="panelTotal">
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_subtotal}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{prefacturaClienteBean.ajustePrefacturaCliente.total}" id="txtTotal" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_descuento}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{prefacturaClienteBean.ajustePrefacturaCliente.descuento}" id="txtDescuentoPrefactura" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_producto_indicador_impuestos}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{prefacturaClienteBean.ajustePrefacturaCliente.impuesto}" id="txtImpuesto" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_total}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{prefacturaClienteBean.ajustePrefacturaCliente.totalPrefactura}" id="txtSubtotal" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+										</p:dataTable>
+
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_detalle_impuesto}" id="tabImpuestoDetalleAjustePrefactura">
+
+								<p:outputPanel id="panelImpuestoDetalle">
+
+									<h:panelGrid columns="1" style="width:100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{prefacturaClienteBean.listaImpuestoProductoPrefacturaCliente}" id="tablaImpuestoDetalleAjustePrefactura"
+											rowIndexVar="secuencial" binding="#{prefacturaClienteBean.dtImpuestoDetalleAjustePrefactura}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_impuestoDetalleAjustePrefactura" style="width:100%" rowKey="#{_impuestoDetalleAjustePrefactura.id}"
+											rows="#{prefacturaClienteBean.numeroFilas}" rowsPerPageTemplate="#{prefacturaClienteBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_producto_nombre_comercial}">
+												<h:outputText value="#{_impuestoDetalleAjustePrefactura.detalleAjustePrefacturaCliente.producto.nombreComercial}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre_impuesto}">
+												<h:outputText value="#{_impuestoDetalleAjustePrefactura.impuesto.nombre}" id="txtNombreProductoImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_porcentaje_impuesto}">
+												<h:outputText value="#{_impuestoDetalleAjustePrefactura.porcentajeImpuesto}" id="txtPorcentajeProductoImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_base_imponible}">
+												<h:outputText value="#{_impuestoDetalleAjustePrefactura.detalleAjustePrefacturaCliente.baseImponible}" id="txtBaseImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor_impuesto}">
+												<h:outputText value="#{_impuestoDetalleAjustePrefactura.impuestoProducto}" id="txtImpuestoProducto">
+												</h:outputText>
+											</p:column>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+						</p:tabView>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_prefactura_cliente})" rendered="#{!prefacturaClienteBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPrefacturaCliente" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{prefacturaClienteBean.listaPrefacturaCliente}" var="_prefacturaCliente" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{prefacturaClienteBean.dtPrefacturaCliente}" rows="#{prefacturaClienteBean.numeroFilas}"
+							rowsPerPageTemplate="#{prefacturaClienteBean.numeroFilasPorPagina}" selection="#{prefacturaClienteBean.prefacturaCliente}"
+							selectionMode="single" rowKey="#{_prefacturaCliente.id}" sortBy="#{_prefacturaCliente.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_prefacturaCliente.numero}" filterBy="#{_prefacturaCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_prefacturaCliente.empresa.nombreFiscal}" filterBy="#{_prefacturaCliente.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_prefacturaCliente.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.fecha}">
+									<f:convertDateTime pattern="#{prefacturaClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_prefacturaCliente.total}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.total}">
+									<f:convertNumber pattern="#{prefacturaClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_prefacturaCliente.descuento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.descuento}">
+									<f:convertNumber pattern="#{prefacturaClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_prefacturaCliente.impuesto}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_indicador_impuestos}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.impuesto}">
+									<f:convertNumber pattern="#{prefacturaClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.total-_prefacturaCliente.descuento+_prefacturaCliente.impuesto}">
+									<f:convertNumber pattern="#{prefacturaClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_prefacturaCliente.estado}" filterBy="#{_prefacturaCliente.estado}"
+								filterOptions="#{prefacturaClienteBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_factura}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _prefacturaCliente.facturaCliente}" target="_blank" outcome="/paginas/ventas/procesos/facturaCliente"
+									includeViewParams="true" value="#{_prefacturaCliente.facturaCliente.numero}">
+									<f:param name="idFacturaCliente" value="#{_prefacturaCliente.facturaCliente.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_prefacturaCliente.indicadorGeneradoDespacho}"
+								filterBy="#{_prefacturaCliente.indicadorGeneradoDespacho}" filterOptions="#{prefacturaClienteBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_despacho}" />
+								</f:facet>
+								<h:selectBooleanCheckbox value="#{_prefacturaCliente.indicadorGeneradoDespacho}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_prefacturaCliente.descripcion}" filterBy="#{_prefacturaCliente.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_prefacturaCliente.descripcion}" title="#{_prefacturaCliente.descripcion}">
+									<f:attribute name="limit" value="10" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombreCorto tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ajustes}" />
+								</f:facet>
+
+								<p:commandButton title="#{msgs.btn_nuevo}" disabled="#{_prefacturaCliente.estado!='ELABORADO'}" ajax="false" icon="ui-icon-document"
+									action="#{prefacturaClienteBean.cargarPrefacturaConDetalle}" process="@this"
+									update="#{p:component('panelNuevo')}, :form:tvDetallePrefactura:panelDetalleAjustePrefactura, :form:tvDetallePrefactura:panelImpuestoDetalle" />
+
+								<p:spacer width="5px" />
+
+								<p:commandButton title="#{msgs.lbl_ver_ajustes_prefacturas}" process="@this" icon="ui-icon-search"
+									action="#{prefacturaClienteBean.cargarAjustesPorPrefactura}" oncomplete="ajustePrefacturaClienteDialog.show()"
+									update=":form:panelDialogAjusteCliente">
+								</p:commandButton>
+
+								<p:spacer width="5px" />
+
+								<p:commandButton disabled="#{_prefacturaCliente.indicadorSaldoInicial or _prefacturaCliente.estado=='ANULADO'}"
+									title="#{msgs.lbl_contabilizar}" process="@this :form:panelListado" icon="ui-icon-refresh"
+									action="#{prefacturaClienteBean.contabilizar(_prefacturaCliente)}" update="@none">
+								</p:commandButton>
+
+							</p:column>							
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{prefacturaClienteBean.prefacturaCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{prefacturaClienteBean.prefacturaCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{prefacturaClienteBean.prefacturaCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{prefacturaClienteBean.prefacturaCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

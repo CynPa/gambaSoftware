@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{iBPCapacidadBean}">
+					<as2:buttonEliminar bean="#{iBPCapacidadBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{iBPCapacidadBean.ibpCapacidad.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{iBPCapacidadBean.ibpCapacidad.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{iBPCapacidadBean}" tabla=":form:tablaIBPCapacidad" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_ibpCapacidad_panel}" rendered="#{iBPCapacidadBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{iBPCapacidadBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputMask styleClass="input-text" value="#{iBPCapacidadBean.ibpCapacidad.codigo}" id="txtCodigo" mask="999999" required="true">
+								<f:validateBean />
+							</p:inputMask>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{iBPCapacidadBean.ibpCapacidad.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox id="ckActivo" value="#{iBPCapacidadBean.ibpCapacidad.activo}" />
+
+							<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox id="ckPredeterminado" value="#{iBPCapacidadBean.ibpCapacidad.predeterminado}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea id="txtDescripcion" styleClass="input-text" value="#{iBPCapacidadBean.ibpCapacidad.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_ibpCapacidad_panel}" rendered="#{!iBPCapacidadBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaIBPCapacidad" rowIndexVar="secuencialIBPCapacidad"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{iBPCapacidadBean.listaIBPCapacidad}" var="ibpCapacidad" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{iBPCapacidadBean.dataTableIBPCapacidad}" rows="#{iBPCapacidadBean.numeroFilas}"
+							rowsPerPageTemplate="#{iBPCapacidadBean.numeroFilasPorPagina}" selection="#{iBPCapacidadBean.ibpCapacidad}" selectionMode="single"
+							rowKey="#{ibpCapacidad.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialIBPCapacidad+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{ibpCapacidad.codigo}" sortBy="#{ibpCapacidad.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{ibpCapacidad.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{ibpCapacidad.nombre}" sortBy="#{ibpCapacidad.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{ibpCapacidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{ibpCapacidad.activo}">
+								<p:selectBooleanCheckbox value="#{ibpCapacidad.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{ibpCapacidad.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{ibpCapacidad.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{iBPCapacidadBean.ibpCapacidad.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{iBPCapacidadBean.ibpCapacidad.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{iBPCapacidadBean.ibpCapacidad.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{iBPCapacidadBean.ibpCapacidad.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

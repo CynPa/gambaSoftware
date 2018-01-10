@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{contratoPolizaBean}" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}?" width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaContratoPoliza,mensajes" process="@this"
+						actionListener="#{contratoPolizaBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_contrato}"
+						rendered="#{contratoPolizaBean.editado}">
+
+						<h:panelGrid id="panelTipoAsegurado"
+							columns="#{contratoPolizaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{contratoPolizaBean.contratoPoliza.codigo}"
+								id="txtCodigo">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{contratoPolizaBean.contratoPoliza.nombre}"
+								id="txtNombre">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{contratoPolizaBean.contratoPoliza.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{contratoPolizaBean.contratoPoliza.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{contratoPolizaBean.contratoPoliza.descripcion}"
+								id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_contrato}"
+						rendered="#{!contratoPolizaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaContratoPoliza" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{contratoPolizaBean.listaContratoPoliza}"
+							var="_contratoPoliza"
+							binding="#{contratoPolizaBean.dtContratoPoliza}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{contratoPolizaBean.numeroFilas}"
+							selection="#{contratoPolizaBean.contratoPoliza}"
+							selectionMode="single" rowKey="#{_contratoPoliza.id}">
+
+							<p:column headerText="No">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_codigo}"
+								sortBy="#{_contratoPoliza.codigo}"
+								filterBy="#{_contratoPoliza.codigo}">
+								<h:outputText value="#{_contratoPoliza.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombre}"
+								sortBy="#{_contratoPoliza.nombre}"
+								filterBy="#{_contratoPoliza.nombre}">
+								<h:outputText value="#{_contratoPoliza.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_contratoPoliza.descripcion}"
+								headerText="#{msgs.lbl_descripcion}">
+								<f:facet name="header"></f:facet>
+								<h:outputText value="#{_contratoPoliza.descripcion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_contratoPoliza.activo}"
+									disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{contratoPolizaBean.contratoPoliza.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{contratoPolizaBean.contratoPoliza.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{contratoPolizaBean.contratoPoliza.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{contratoPolizaBean.contratoPoliza.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{bodegaBean}">
+					<as2:buttonEliminar bean="#{bodegaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{bodegaBean.bodega.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{bodegaBean.bodega.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{bodegaBean}" tabla=":form:tablaBodega" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_bodega_panel}" rendered="#{bodegaBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{bodegaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel value="#{msgs.lbl_sucursal}" for="cboSucursal" />
+							<p:selectOneMenu value="#{bodegaBean.bodega.sucursal}" id="cboSucursal" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{bodegaBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{bodegaBean.bodega.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{bodegaBean.bodega.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboTipoBodega" value="#{msgs.lbl_bodega_tipo_bodega}" />
+							<p:selectOneMenu value="#{bodegaBean.bodega.tipoBodega}" id="cboTipoBodega" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{bodegaBean.listaTipoBodega}" var="_tipoBodega" itemLabel="#{_tipoBodega.nombre}" itemValue="#{_tipoBodega}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_clase_bodega}:" />
+							<p:selectOneMenu value="#{bodegaBean.bodega.claseBodega}" id="cboClaseBodega">
+								<f:selectItems value="#{bodegaBean.listaClaseBodega}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<ui:include src="/template/direccion.xhtml">
+								<ui:param name="bean" value="#{bodegaBean}" />
+								<ui:param name="objeto" value="#{bodegaBean.bodega}" />
+							</ui:include>
+
+							<h:outputText value="#{msgs.lbl_titulo_recepcion_proveedores}:" />
+							<p:selectBooleanCheckbox value="#{bodegaBean.bodega.indicadorRecepcionBodega}" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{bodegaBean.bodega.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{bodegaBean.bodega.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{bodegaBean.bodega.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_bodega_panel}" rendered="#{!bodegaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaBodega" rowIndexVar="secuencialBodega"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{bodegaBean.listaBodega}" var="bodega" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{bodegaBean.dataTableBodega}" rows="#{bodegaBean.numeroFilas}"
+							rowsPerPageTemplate="#{bodegaBean.numeroFilasPorPagina}" selection="#{bodegaBean.bodega}" selectionMode="single" rowKey="#{bodega.id}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialBodega+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{bodega.codigo}" sortBy="#{bodega.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{bodega.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{bodega.nombre}" sortBy="#{bodega.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{bodega.nombre}" />
+							</p:column>
+
+							<p:column filterBy="tipoBodega.nombre" sortBy="tipoBodega.nombre" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo}" />
+								</f:facet>
+								<h:outputText value="#{bodega.tipoBodega.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{bodega.activo}">
+								<p:selectBooleanCheckbox value="#{bodega.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{bodega.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{bodega.descripcion}" />
+
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{bodegaBean.bodega.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{bodegaBean.bodega.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{bodegaBean.bodega.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{bodegaBean.bodega.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

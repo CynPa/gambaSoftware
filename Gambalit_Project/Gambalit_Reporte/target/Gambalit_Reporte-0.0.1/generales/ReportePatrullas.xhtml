@@ -1,0 +1,90 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
+
+<h:head></h:head>
+<h:body>
+	<ui:composition template="../WEB-INF/template/principal.xhtml">
+		<ui:define name="content">
+			<h:form id="form">
+			<p:panel   id="panel12" style="margin-bottom:10px;font-size:x-small;">
+					<p:fileUpload id="fileIdPhoto"
+						fileUploadListener="#{fileUploadView.uploadPhoto}" mode="advanced"
+						dragDropSupport="false" multiple="true"
+						update="messages,:form:tbFile,:form:panel12" sizeLimit="10000000" fileLimit="3"
+						allowTypes="/(\.|\/)(xlsx)$/" />
+
+					<p:messages id="messages" autoUpdate="true" closable="true" />
+				
+				</p:panel>
+			<p:panel style="margin-bottom:10px;font-size:x-small;">
+			
+			<p:outputLabel value="Fecha desde:" ></p:outputLabel>  <p:calendar style="font-size:x-small;" id="fechaI" value="#{fileUploadView.fechaIni}" pattern="yyyy-MM-dd"></p:calendar> 
+			<p:outputLabel value="Fecha hasta:" ></p:outputLabel> <p:calendar style="font-size:x-small;" id="fechaF" value="#{fileUploadView.fechaFin}" pattern="yyyy-MM-dd"></p:calendar>
+
+						<p:commandButton icon="ui-icon-search" value="Buscar"
+							action="#{fileUploadView.buscar}" update=":form:tbFile" />
+							<p:commandButton value="Actualizar" action="#{fileUploadView.actualizar}" update=":form:tbFile" ></p:commandButton>
+			</p:panel>
+
+				<p:panel>
+					<p:dataTable id="tbFile" widgetVar="tbFile"
+						value="#{fileUploadView.patrullas}" var="patrulla"
+						style="margin-bottom:10px;font-size:x-small;"
+						rowsPerPageTemplate="30,31,360,1000,2000,5000" paginator="true"
+					rows="20">
+						<p:column headerText="ZONA 1">
+							<p:outputLabel value="#{patrulla.ruta}"></p:outputLabel>
+
+						</p:column>
+						<p:column headerText="BASTON">
+							<p:outputLabel value="#{patrulla.device_number}"></p:outputLabel>
+						</p:column>
+						<p:column headerText="RONDA">
+							<p:outputLabel value="#{patrulla.tiempoPlaneado}"></p:outputLabel>
+						</p:column>
+						<p:column headerText="ZONA2">
+							<p:outputLabel value="#{patrulla.guardia}"></p:outputLabel>
+						</p:column>
+						<p:column headerText="PUNTO">
+							<p:outputLabel value="#{patrulla.puntoChequeo}"></p:outputLabel>
+						</p:column>
+						<p:column headerText="FECHA">
+							<p:outputLabel
+								value="#{patrulla.tiempoRealArrivo == null?'FALTANTE':patrulla.tiempoRealArrivo}">
+								<f:convertDateTime type="date" dateStyle="short"
+								pattern="yyyy/MM/dd" /></p:outputLabel>
+						</p:column>
+						<p:column headerText="FECHA Y HORA">
+							<p:outputLabel
+								value="#{patrulla.tiempoRealArrivo == null?'FALTANTE':patrulla.tiempoRealArrivo}">
+								<f:convertDateTime type="date" dateStyle="short"
+								pattern="yyyy/MM/dd HH:mm:ss"  /></p:outputLabel>
+						</p:column>
+						<p:column headerText="EVENTO">
+							<p:outputLabel value="#{patrulla.evento}"></p:outputLabel>
+						</p:column>
+
+
+					</p:dataTable>
+					<h:commandLink>
+						<p:graphicImage url="/images/excel.ico" height="20" width="30"
+							style="font-size:small" />
+						<p:dataExporter type="xls" target="tbFile"
+							postProcessor="#{fileUploadView.postProcessXLS}"
+							fileName="ReportePatrulla" pageOnly="true" />
+					</h:commandLink>
+					<h:commandLink>
+						<p:graphicImage url="/images/pdf.jpg" height="20" width="30" />
+						<p:dataExporter type="pdf" target="tbFile"
+							fileName="ReportePatrulla" pageOnly="true" />
+					</h:commandLink>
+				</p:panel>
+			</h:form>
+		</ui:define>
+	</ui:composition>
+</h:body>
+</html>

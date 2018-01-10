@@ -1,0 +1,677 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<f:metadata>
+	<f:viewParam name="idContratoVenta" value="#{contratoVentaBean.idContratoVenta}" />
+</f:metadata>
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<p:confirmDialog id="dlgCerrar" header="#{msgs.btn_cerrar}" widgetVar="dlgCerrar" height="80" width="300" appendTo="@(body)"
+					message="#{msgs.confirmacion_msg_cerrar}">
+
+					<p:outputPanel id="panelCerrar" autoUpdate="true">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_numero}:#" />
+							<h:outputText value="#{contratoVentaBean.contratoVenta.numero}" />
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<h:outputText value="#{contratoVentaBean.contratoVenta.empresa.nombreFiscal}" />
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<center>
+						<p:commandButton value="#{msgs.btn_cerrar}" action="#{contratoVentaBean.cerrar}" process="@this :form:panelContenedor"
+							update="@this :form:panelContenedor" partialSubmit="true" onclick="dlgCerrar.hide()" id="CERRAR">
+						</p:commandButton>
+
+						<p:commandButton process="@this" value="#{msgs.btn_cancelar}" partialSubmit="true" onclick="dlgCerrar.hide()" />
+					</center>
+				</p:confirmDialog>
+
+				<as2:toolBar bean="#{contratoVentaBean}">
+					<as2:buttonEliminar bean="#{contratoVentaBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_numero}:#" />
+						<h:outputText value="#{contratoVentaBean.contratoVenta.numero}" />
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<h:outputText value="#{contratoVentaBean.contratoVenta.empresa.nombreFiscal}" />
+					</as2:buttonEliminar>
+
+					<p:commandButton value="#{msgs.btn_cerrar}" oncomplete="dlgCerrar.show();" title="#{msgs.btn_cerrar}" process="@this :form:panelListado" />
+
+					<as2:buttonImprimir id="btnImprimirContratoVenta" beanReporte="#{reporteContratoVentaBean}" bean="#{contratoVentaBean}"
+						target="#{reporteContratoVentaBean.contratoVenta}" value="#{contratoVentaBean.contratoVenta}" />
+					<as2:buttonImprimir id="btnImprimirFacturadoVSNoFacturado" beanReporte="#{reporteFacturadoVSNoFacturadoBean}" bean="#{contratoVentaBean}"
+						target="#{reporteFacturadoVSNoFacturadoBean.contratoVenta}" value="#{contratoVentaBean.contratoVenta}"
+						etiquetaImprimir="#{msgs.lbl_facturadoVSNoFacturado}" />
+						
+						
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado" action="#{contratoVentaBean.copiar}"
+						update=":form:panelContenedor" rendered="#{!contratoVentaBean.editado}">
+					</p:commandButton>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_contrato_venta}" rendered="#{contratoVentaBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{contratoVentaBean}" />
+							<ui:param name="objetoActualizar" value=":form:tvDetalleContratoVenta:panelDetalleContratoVenta" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<!-- DETALLE CONTRATO VENTA -->
+						<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgDetalleContratoVenta" modal="true" height="400" width="600" showEffect="clip"
+							hideEffect="clip" resizable="false">
+							<p:outputPanel id="outputFacturaDetalleContratoVenta" autoUpdate="true">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturaDetalleContratoVenta"
+									value="#{contratoVentaBean.listaContratoVentaFacturaContratoVenta}" var="_contratoVentaFacturaContratoVenta"
+									emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20">
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencia+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+										<h:outputText value="#{_contratoVentaFacturaContratoVenta.detalleContratoVenta.producto.nombre}" />
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha_desde}" />
+										</f:facet>
+										<h:outputText value="#{_contratoVentaFacturaContratoVenta.detalleContratoVenta.fechaDesde}">
+											<f:convertDateTime pattern="#{contratoVentaBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha_hasta}" />
+										</f:facet>
+										<h:outputText value="#{_contratoVentaFacturaContratoVenta.detalleContratoVenta.fechaHasta}">
+											<f:convertDateTime pattern="#{contratoVentaBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_precio_linea}">
+										<h:inputText styleClass="input-text" value="#{_contratoVentaFacturaContratoVenta.valor}" required="true">
+											<f:validateBean />
+											<p:ajax listener="#{contratoVentaBean.actualizarTotalFacturaContratoVenta}" process="@this"
+												update="@this, :form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta" event="change" global="false" />
+										</h:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_asignar}">
+										<h:outputText value="#{_contratoVentaFacturaContratoVenta.valorTotal}" />
+									</p:column>
+
+								</p:dataTable>
+
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_salir}" process="@this" oncomplete="dlgDetalleContratoVenta.hide()" icon="ui-icon-circle-close" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- FIN DETALLE CONTRATO VENTA -->
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{contratoVentaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{contratoVentaBean.contratoVenta.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{contratoVentaBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+									<p:ajax update="txtNumero" event="change" process="@this" global="false" listener="#{contratoVentaBean.actualizarDocumento}" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{contratoVentaBean.contratoVenta.numero}" id="txtNumero"
+									mask="#{contratoVentaBean.contratoVenta.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha_emision}:" />
+								<p:calendar pattern="#{contratoVentaBean.formatoFecha}" showOn="button" navigator="true" value="#{contratoVentaBean.contratoVenta.fecha}"
+									id="calFechaEmision" disabled="#{contratoVentaBean.contratoVenta.cuotasFacturadas}">
+									<p:ajax process="@this" update="@this" event="change" global="false" partialSubmit="true" />
+									<p:ajax process="@this" update="@this" event="dateSelect" global="false" partialSubmit="true" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_fecha_vencimiento}:" />
+								<p:calendar pattern="#{contratoVentaBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{contratoVentaBean.contratoVenta.fechaVencimiento}" id="calFechaVencimiento">
+									<p:ajax process="@this" update="@this" event="change" global="false" partialSubmit="true" />
+									<p:ajax process="@this" update="@this" event="dateSelect" global="false" partialSubmit="true" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_cliente}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{contratoVentaBean.contratoVenta.empresa}"
+									completeMethod="#{contratoVentaBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+									forceSelection="true" size="50" dropdown="true" minQueryLength="2" required="true">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+									<p:ajax listener="#{contratoVentaBean.actualizarClienteListener}" process="@this" event="itemSelect"
+										update="cboDireccionCliente,cboAgenteComercial,cboZona,cboCondicionPago,cboSubempresa, txtEmail" />
+
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_subcliente}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{contratoVentaBean.contratoVenta.subempresa}" id="cboSubempresa">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{contratoVentaBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+										itemLabel="#{_subempresa.empresaFinal}" />
+									<p:ajax event="change" listener="#{contratoVentaBean.actualizarSubclienteListener}" process="@this"
+										update="cboDireccionCliente,cboAgenteComercial,cboZona,cboCondicionPago" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{contratoVentaBean.contratoVenta.direccionEmpresa}" id="cboDireccionCliente" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{contratoVentaBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_condicion_cobro}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{contratoVentaBean.contratoVenta.condicionPago}" id="cboCondicionPago" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{contratoVentaBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+										itemValue="#{_condicionPago}" />
+									<f:validateBean />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_zona}:" />
+								<p:selectOneMenu value="#{contratoVentaBean.contratoVenta.zona}" id="cboZona" required="false">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{contratoVentaBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_canal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{contratoVentaBean.contratoVenta.canal}" id="cboCanal" required="false">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{contratoVentaBean.listaCanal}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+								<p:outputPanel id="ouputPanelAgenteComercial">
+									<p:selectOneMenu value="#{contratoVentaBean.contratoVenta.agenteComercial}" id="cboAgenteComercial" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{contratoVentaBean.listaAgenteComercialCombo}" var="_agenteComercial"
+											itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+									</p:selectOneMenu>
+								</p:outputPanel>
+
+								<h:outputText value="#{msgs.lbl_email}:" />
+								<p:inputText styleClass="input-text" value="#{contratoVentaBean.contratoVenta.email}" id="txtEmail">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_saldo_inicial}:" />
+								<p:selectBooleanCheckbox value="#{contratoVentaBean.contratoVenta.indicadorSaldoInicial}" disabled="#{contratoVentaBean.contratoVenta.cuotasFacturadas}">
+									<p:ajax process="@this" listener="#{contratoVentaBean.actualizarSaldoInicial}"
+										update="@this, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta  :form:panelDetallesContratoVenta txtNumeroCuotas"
+										event="change" global="false" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_maneja_cuotas}:" />
+								<h:panelGroup id="grupoCuotas">
+									<h:panelGrid columns="4">
+										<p:selectBooleanCheckbox value="#{contratoVentaBean.contratoVenta.indicadorManejaCuotas}" disabled="#{contratoVentaBean.contratoVenta.cuotasFacturadas}">
+											<p:ajax process="@this" update="outCantFacturas outCantCuotas txtCuotasAnteriores grupoCuotas grupoFacturas" global="false" />
+										</p:selectBooleanCheckbox>
+										<h:outputText value="#{msgs.lbl_cuotas_anteriores}:" rendered="#{contratoVentaBean.contratoVenta.indicadorManejaCuotas}" />
+										<p:inputText style="width: 90%;" value="#{contratoVentaBean.contratoVenta.cuotasAnteriores}" id="txtCuotasAnteriores"
+											rendered="#{contratoVentaBean.contratoVenta.indicadorManejaCuotas}">
+											<p:ajax process="@this" event="change" global="false" listener="#{contratoVentaBean.actualizarIndicadorEditarValores}" partialSubmit="true"
+												update=":form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+										</p:inputText>
+									</h:panelGrid>
+								</h:panelGroup>
+
+								<h:panelGroup id="grupoFacturas">
+									<h:outputText value="#{msgs.lbl_cantidad_facturas}:" rendered="#{!contratoVentaBean.contratoVenta.indicadorManejaCuotas}"
+										id="outCantFacturas" />
+									<h:outputText value="#{msgs.lbl_cantidad_cuotas}:" rendered="#{contratoVentaBean.contratoVenta.indicadorManejaCuotas}" id="outCantCuotas" />
+								</h:panelGroup>
+								<p:inputText styleClass="input-text" value="#{contratoVentaBean.contratoVenta.numeroCuotas}" id="txtNumeroCuotas"
+									disabled="#{contratoVentaBean.contratoVenta.indicadorSaldoInicial}">
+									<p:ajax listener="#{contratoVentaBean.cargarDetallesFacturaContratoVnta}" process="@this"
+										update=":form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta,"
+										event="change" global="false" partialSubmit="true" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_mostrar_periodo}:" />
+								<p:selectBooleanCheckbox value="#{contratoVentaBean.contratoVenta.indicadorMostrarPeriodo}">
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" value="#{contratoVentaBean.contratoVenta.descripcion}" id="txtDescripcion" maxlength="200">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<!-- INICIO MENU DETALLE-->
+						<p:outputPanel id="panelDetallesContratoVenta">
+							<p:tabView cache="true" dynamic="true" id="tvDetalleContratoVenta">
+
+								<p:tab title="#{msgs.lbl_detalle_contrato}">
+
+									<p:outputPanel id="panelDetalleContratoVenta">
+
+										<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+
+											<h:panelGroup>
+												<!--<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" icon="ui-icon-plus" action="#{contratoVentaBean.agregarDetalle}" 
+													update=":form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" process="@this, :form:tvDetalleContratoVenta:panelDetalleContratoVenta" />-->
+
+												<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" disabled="#{contratoVentaBean.contratoVenta.cuotasFacturadas}"/>
+											</h:panelGroup>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{contratoVentaBean.detalleContratoVenta}"
+												id="tablaDetalleContratoVenta" rowIndexVar="secuencial" binding="#{contratoVentaBean.dtDetalleContratoVenta}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleContratoVenta" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detalleContratoVenta.id}" rows="#{contratoVentaBean.numeroFilas}"
+												rowsPerPageTemplate="#{contratoVentaBean.numeroFilasPorPagina}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+													<p:inputText value="#{_detalleContratoVenta.producto.codigo}" id="txtCodigoProducto">
+														<p:ajax listener="#{contratoVentaBean.actualizarProductoListener}" process="@this" event="change" global="false"
+															update=":form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+
+														<f:validateBean for="txtCodigoProducto" />
+													</p:inputText>
+
+													<h:outputText value="#{_detalleContratoVenta.producto.codigo}" rendered="#{empty _detalleContratoVenta.producto}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="tableCell">
+													<h:outputText id="txtNombreProducto" value="#{_detalleContratoVenta.producto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+													<p:inputText value="#{_detalleContratoVenta.cantidad}" id="txtCantidad" size="8">
+														<f:validateBean />
+														<p:ajax listener="#{contratoVentaBean.totalizar}" process="@this" event="change" global="false"
+															update=":form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+													<h:outputText value="#{_detalleContratoVenta.precio}" id="lblPrecio">
+														<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor">
+													<f:facet name="header">
+														<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_precio_linea}" />
+													</f:facet>
+													<p:inputText value="#{_detalleContratoVenta.precioLinea}" id="txtPrecioLinea">
+														<f:validateBean />
+														<p:ajax listener="#{contratoVentaBean.totalizar}" process="@this" event="change" global="false"
+															update=":form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+													</p:inputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_fecha_desde}" styleClass="tableCell columnaDTFechaInput">
+													<p:calendar pattern="#{contratoVentaBean.formatoFecha}" showOn="button" navigator="true" value="#{_detalleContratoVenta.fechaDesde}"
+														id="calFechaDesde" size="10" disabled="#{contratoVentaBean.contratoVenta.cuotasFacturadas}">
+														<p:ajax listener="#{contratoVentaBean.totalizar}" process="@this" event="dateSelect" global="false"
+															update=":form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+														<p:ajax listener="#{contratoVentaBean.totalizar}" process="@this" event="change" global="false"
+															update=":form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+													</p:calendar>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_fecha_hasta}" styleClass="tableCell columnaDTFechaInput">
+													<p:calendar pattern="#{contratoVentaBean.formatoFecha}" showOn="button" navigator="true" value="#{_detalleContratoVenta.fechaHasta}"
+														id="calFechaHasta" size="10">
+														<p:ajax listener="#{contratoVentaBean.totalizar}" process="@this" event="dateSelect" global="false"
+															update=":form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+														<p:ajax listener="#{contratoVentaBean.totalizar}" process="@this" event="change" global="false"
+															update=":form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+													</p:calendar>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{contratoVentaBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tvDetalleContratoVenta:panelDetalleContratoVenta, :form:tvDetalleContratoVenta:panelDetallesFacturaContratoVenta, :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta"
+														process="@this" disabled="#{contratoVentaBean.contratoVenta.cuotasFacturadas}">
+													</p:commandButton>
+												</p:column>
+
+												<!-- TOTALES -->
+												<p:columnGroup type="footer" id="panelTotal">
+													<p:row>
+														<p:column colspan="7" footerText="#{msgs.lbl_subtotal}" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer" colspan="8" style="text-align:right" id="txtTotal">
+																<h:outputText value="#{contratoVentaBean.contratoVenta.totalContratoVenta}">
+																	<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+													<p:row>
+														<p:column colspan="7" footerText="#{msgs.lbl_total}" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer" colspan="8" style="text-align:right" id="txtSubtotal">
+																<h:outputText value="#{contratoVentaBean.contratoVenta.totalContratoVenta}">
+																	<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+												</p:columnGroup>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+
+									</p:outputPanel>
+
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_detalle_factura}" rendered="#{ !contratoVentaBean.contratoVenta.indicadorSaldoInicial}" id="tabDetallefactura">
+
+									<p:outputPanel id="panelDetallesFacturaContratoVenta">
+
+										<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{contratoVentaBean.listaDetallesFacturaContratoVenta}"
+												id="tablaDetallesFacturaContratoVenta" rowIndexVar="secuencial" binding="#{contratoVentaBean.dtDetallesFacturaContratoVenta}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallesFacturaContratoVenta" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detallesFacturaContratoVenta.id}" rows="#{contratoVentaBean.numeroFilas}"
+												rowsPerPageTemplate="#{contratoVentaBean.numeroFilasPorPagina}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_fecha_cuota}" styleClass="tableCell columnaDTFechaInput">
+													<p:calendar pattern="#{contratoVentaBean.formatoFecha}" showOn="button" navigator="true" value="#{_detallesFacturaContratoVenta.fecha}"
+														id="calFecha" size="10" disabled="#{_detallesFacturaContratoVenta.indicadorFacturado}">
+														<p:ajax process="@this" global="false" />
+													</p:calendar>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_valor}" styleClass="tableCell columnaDTValor">
+													<h:outputText value="#{_detallesFacturaContratoVenta.valor}" id="txtValor">
+														<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nota}" styleClass="tableCell">
+													<p:inputText styleClass="input-text" value="#{_detallesFacturaContratoVenta.descripcion}" id="txtDescripcion" maxlength="200"
+														disabled="#{_detallesFacturaContratoVenta.indicadorFacturado}">
+														<f:validateBean />
+														<p:ajax process="@this" update="@this" global="false" />
+													</p:inputText>
+												</p:column>
+
+												<p:column headerText="Detalle Contrato Venta" styleClass="tableCell columnaDTAccion">
+													<p:commandButton value="..." oncomplete="dlgDetalleContratoVenta.show()" process="@this"
+														actionListener="#{contratoVentaBean.seleccionarContratoVentaFacturaContratoVenta(_detallesFacturaContratoVenta)}"
+														disabled="#{_detallesFacturaContratoVenta.indicadorFacturado}">
+													</p:commandButton>
+												</p:column>
+
+												<!-- TOTALES -->
+												<p:columnGroup type="footer" id="panelTotal">
+													<p:row>
+														<p:column colspan="2" footerText="#{msgs.lbl_total}" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer" colspan="3" style="text-align:right" id="txtSubtotal">
+																<h:outputText value="#{contratoVentaBean.contratoVenta.totalContratoVenta}">
+																	<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column />
+														<p:column />
+													</p:row>
+
+													<p:row>
+														<p:column colspan="2" footerText="#{msgs.lbl_diferencia}" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer" colspan="3" style="text-align:right" id="txtDiferencia">
+																<h:outputText value="#{contratoVentaBean.contratoVenta.totalContratoVenta-contratoVentaBean.totalDetalleFacturaContratoVenta}">
+																	<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+														<p:column />
+														<p:column />
+													</p:row>
+
+												</p:columnGroup>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+
+									</p:outputPanel>
+
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_detalle_valores}">
+
+									<p:outputPanel id="panelDetalleValoresContratoVenta">
+
+										<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{contratoVentaBean.detalleValoresContratoVenta}"
+												id="tablaDetalleValoresContratoVenta" rowIndexVar="secuencial" binding="#{contratoVentaBean.dtDetalleValoresContratoVenta}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleValoresContratoVenta" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detalleValoresContratoVenta.id}" rows="#{contratoVentaBean.numeroFilas}"
+												rowsPerPageTemplate="#{contratoVentaBean.numeroFilasPorPagina}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_fecha_servicio}">
+													<h:outputText value="#{_detalleValoresContratoVenta.fecha}" id="txtMes">
+														<f:convertDateTime pattern="#{contratoVentaBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_servicio}" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_detalleValoresContratoVenta.valor}" id="txtValorProporcionalInput"
+														rendered="#{contratoVentaBean.indicadorEditarValores}" disabled="#{_detalleValoresContratoVenta.indicadorFacturado}">
+														<p:ajax process="@this" global="false" partialSubmit="true" update=":form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" />
+													</p:inputText>
+													<h:outputText value="#{_detalleValoresContratoVenta.valor}" id="txtValorProporcional"
+														rendered="#{!contratoVentaBean.indicadorEditarValores}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<f:facet name="header">
+														<p:selectBooleanCheckbox value="#{contratoVentaBean.indicadorEditarValores}" itemLabel="#{msgs.btn_editar}">
+															<p:ajax process="@this" update="@this :form:tvDetalleContratoVenta:panelDetalleValoresContratoVenta" event="change" global="false" />
+														</p:selectBooleanCheckbox>
+
+													</f:facet>
+												</p:column>
+
+												<!-- TOTALES -->
+												<p:columnGroup type="footer" id="panelTotal">
+													<p:row>
+														<p:column colspan="2" footerText="#{msgs.lbl_total}" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer" colspan="3" style="text-align:right" id="txtDiferencia">
+																<h:outputText value="#{contratoVentaBean.totalDetalleValorContratoVenta}">
+																	<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+												</p:columnGroup>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+
+									</p:outputPanel>
+
+								</p:tab>
+
+							</p:tabView>
+
+						</p:outputPanel>
+
+
+
+					</p:panel>
+
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_contrato_venta}" rendered="#{!contratoVentaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaContratoVenta" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{contratoVentaBean.listaContratoVenta}" var="_contratoVenta" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{contratoVentaBean.dtContratoVenta}" rows="#{contratoVentaBean.numeroFilas}"
+							selection="#{contratoVentaBean.contratoVenta}" rowsPerPageTemplate="#{contratoVentaBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_contratoVenta.id}" sortBy="#{_contratoVenta.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento" sortBy="#{_contratoVenta.numero}" filterBy="#{_contratoVenta.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_contratoVenta.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_contratoVenta.empresa.nombreFiscal}" filterBy="#{_contratoVenta.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_contratoVenta.empresa.nombreFiscal}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell0" sortBy="#{_contratoVenta.subempresa.empresa.nombreFiscal}"
+								filterBy="#{_contratoVenta.subempresa.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subcliente}" />
+								</f:facet>
+								<h:outputText value="#{empty _contratoVenta.subempresa ? '' :_contratoVenta.subempresa.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_contratoVenta.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_emision}" />
+								</f:facet>
+								<h:outputText value="#{_contratoVenta.fecha}">
+									<f:convertDateTime pattern="#{contratoVentaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_contratoVenta.fechaVencimiento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_vencimiento}" />
+								</f:facet>
+								<h:outputText value="#{_contratoVenta.fechaVencimiento}">
+									<f:convertDateTime pattern="#{contratoVentaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_contratoVenta.totalContratoVenta}">
+									<f:convertNumber pattern="#{contratoVentaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="estado" filterBy="estado" filterOptions="#{contratoVentaBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_contratoVenta.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="descripcion" filterBy="descripcion">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_contratoVenta.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_saldo_inicial}" exportable="false">
+								<center>
+									<p:commandButton icon="ui-icon-gear" action="#{contratoVentaBean.procesarSaldoInicial}" process="@this" update=":form:panelListado"
+										disabled="#{(_contratoVenta.estado != 'ELABORADO') or (!_contratoVenta.indicadorSaldoInicial)}" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{contratoVentaBean.contratoVenta.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{contratoVentaBean.contratoVenta.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{contratoVentaBean.contratoVenta.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{contratoVentaBean.contratoVenta.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

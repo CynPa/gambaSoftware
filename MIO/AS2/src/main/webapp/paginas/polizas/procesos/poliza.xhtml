@@ -1,0 +1,455 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{polizaBean}" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<as2:uploadFile bean="#{polizaBean}" formatos="/(\.|\/)(pdf)$/"
+					label="#{msgs.btn_cargar_pdf}"></as2:uploadFile>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}?" width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaPoliza,mensajes" process="@this"
+						actionListener="#{polizaBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_poliza}"
+						rendered="#{polizaBean.editado}">
+
+						<h:panelGrid id="panelTipoAsegurado"
+							columns="#{polizaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputText styleClass="input-text"
+								value="#{polizaBean.poliza.numero}" id="txtNumero">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_departamento}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.poliza.departamento.idDepartamento}"
+									id="cboDepartamento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{polizaBean.listaDepartamento}"
+										var="_departamento" itemLabel="#{_departamento.nombre}"
+										itemValue="#{_departamento.idDepartamento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboDepartamento" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_contrato}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.contratoPolizaSeleccionado}"
+									id="cboContratoPoliza" required="false">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{polizaBean.listaContratoPoliza}"
+										var="_contratoPoliza" itemLabel="#{_contratoPoliza.nombre}"
+										itemValue="#{_contratoPoliza.idContratoPoliza}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_tipo_poliza}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.poliza.tipoPoliza.idTipoPoliza}"
+									id="cboTipoPoliza" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{polizaBean.listaTipoPoliza}"
+										var="_tipoPoliza" itemLabel="#{_tipoPoliza.nombre}"
+										itemValue="#{_tipoPoliza.idTipoPoliza}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboTipoPoliza" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_numero_renegociacion}:" />
+							<h:outputText value="#{polizaBean.poliza.numeroRenegociacion}"
+								id="txtnumeroRenegociacion" styleClass="input-text" />
+
+							<h:outputText value="#{msgs.lbl_numero_anexo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{polizaBean.poliza.numeroAnexo}" id="txtNumeroAnexo">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_solicitud}:" />
+							<h:panelGroup>
+								<p:calendar pattern="#{polizaBean.formatoFecha}" showOn="button"
+									navigator="true" value="#{polizaBean.poliza.fechaSolicitud}"
+									id="calFechaSolicitud" required="true">
+								</p:calendar>
+								<p:message for="calFechaSolicitud" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_plazo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{polizaBean.poliza.plazo}" id="txtPlazo">
+								<p:ajax listener="#{polizaBean.actualizarFechaVencimiento}"
+									process="@this calFechaPoliza" event="change"
+									update="txtFechaVencimiento" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_poliza}:" />
+							<h:panelGroup>
+								<p:calendar pattern="#{polizaBean.formatoFecha}" showOn="button"
+									navigator="true" value="#{polizaBean.poliza.fecha}"
+									id="calFechaPoliza" required="true">
+									<p:ajax listener="#{polizaBean.dateSelect}"
+										process="@this txtPlazo" event="dateSelect"
+										update="txtFechaVencimiento" />
+									<p:ajax listener="#{polizaBean.actualizarFechaVencimiento}"
+										process="@this txtPlazo" event="change"
+										update="txtFechaVencimiento" />
+								</p:calendar>
+								<p:message for="calFechaPoliza" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_hora}:" />
+							<p:calendar value="#{polizaBean.poliza.hora}" pattern="HH:mm:ss"
+								timeOnly="true" />
+
+							<h:outputText value="#{msgs.lbl_fecha_vencimiento}:" />
+							<h:outputText value="#{polizaBean.poliza.fechaVencimiento}"
+								id="txtFechaVencimiento">
+								<f:convertDateTime pattern="#{polizaBean.formatoFecha}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_hora_vencimiento}:" />
+							<p:calendar value="#{polizaBean.poliza.horaVencimiento}"
+								pattern="HH:mm:ss" timeOnly="true" />
+
+							<h:outputText value="#{msgs.lbl_aseguradora}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.poliza.aseguradora.idAseguradora}"
+									id="cboAseguradora" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{polizaBean.listaAseguradora}"
+										var="_aseguradora" itemLabel="#{_aseguradora.nombre}"
+										itemValue="#{_aseguradora.idAseguradora}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboAseguradora" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_asegurado}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.poliza.asegurado.idAsegurado}"
+									id="cboAsegurado" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{polizaBean.listaAsegurado}"
+										var="_asegurado" itemLabel="#{_asegurado.nombre}"
+										itemValue="#{_asegurado.idAsegurado}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboAsegurado" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_broker}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.poliza.broker.idBroker}" id="cboBroker"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{polizaBean.listaBroker}" var="_broker"
+										itemLabel="#{_broker.nombres} #{_broker.apellidos}"
+										itemValue="#{_broker.idBroker}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboBroker" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_afianzado}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.poliza.afianzado.idAfianzado}"
+									id="cboAfianzado" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{polizaBean.listaAfianzado}"
+										var="_afianzado"
+										itemLabel="#{_afianzado.nombres} #{_afianzado.apellidos}"
+										itemValue="#{_afianzado.idAfianzado}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboAfianzado" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_estado}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{polizaBean.poliza.estado}" id="cboEstado"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{polizaBean.listaEstado}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboEstado" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_valor_asegurado}:" />
+							<p:inputText styleClass="input-text"
+								value="#{polizaBean.poliza.valorAsegurado}"
+								id="txtValorAsegurado">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_valor_prima}:" />
+							<p:inputText styleClass="input-text"
+								value="#{polizaBean.poliza.valorPrima}" id="txtValorPrima">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_valor_otros}:" />
+							<p:inputText styleClass="input-text"
+								value="#{polizaBean.poliza.valorOtro}" id="txtValorOtros">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_valor_poliza}:" />
+							<p:inputText styleClass="input-text"
+								value="#{polizaBean.poliza.valorPoliza}" id="txtValorPoliza">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_indicador_emision}:" />
+							<p:selectBooleanCheckbox
+								value="#{polizaBean.poliza.indicadorEmision}">
+								<p:ajax process="@this" event="change" update="panelFactura" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{polizaBean.poliza.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+
+						<p:outputPanel id="panelFactura">
+
+							<p:fieldset legend="#{msgs.lbl_factura}" toggleable="false"
+								rendered="#{polizaBean.poliza.indicadorEmision}"
+								id="fieldsetFactura">
+
+								<h:panelGrid columns="#{polizaBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_numero_factura}:" />
+									<h:panelGrid columns="3">
+
+										<p:inputMask mask="999" styleClass="input-text"
+											value="#{polizaBean.poliza.establecimientoFactura}" size="3"
+											id="txtEstablecimiento" />
+
+										<p:inputMask mask="999" styleClass="input-text"
+											value="#{polizaBean.poliza.puntoFactura}" size="3"
+											id="txtPunto" />
+
+										<p:spinner styleClass="input-text" id="txtNumeroFactura"
+											value="#{polizaBean.poliza.numeroFactura}" max="999999999" />
+
+									</h:panelGrid>
+
+									<h:outputText value="#{msgs.lbl_fecha_factura}:" />
+									<h:panelGroup>
+										<p:calendar pattern="#{polizaBean.formatoFecha}"
+											showOn="button" navigator="true"
+											value="#{polizaBean.poliza.fechaFactura}"
+											id="calFechaFactura">
+										</p:calendar>
+										<p:message for="calFechaFactura" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_valor_factura}:" />
+									<p:inputText styleClass="input-text"
+										value="#{polizaBean.poliza.valorFactura}" id="txtValorFactura">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGrid>
+
+							</p:fieldset>
+
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_poliza}"
+						rendered="#{!polizaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPoliza" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{polizaBean.listaPoliza}" var="_poliza"
+							binding="#{polizaBean.dtPoliza}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{polizaBean.numeroFilas}" selection="#{polizaBean.poliza}"
+							selectionMode="single" rowKey="#{_poliza.id}">
+
+							<p:column headerText="No">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_numero}"
+								sortBy="#{_poliza.numero}" filterBy="#{_poliza.numero}">
+								<h:outputText value="#{_poliza.numero}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_tipo_poliza}"
+								sortBy="#{_poliza.tipoPoliza.nombre}"
+								filterBy="#{_poliza.tipoPoliza.nombre}">
+								<h:outputText value="#{_poliza.tipoPoliza.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_asegurado}"
+								sortBy="#{_poliza.asegurado.nombre}"
+								filterBy="#{_poliza.asegurado.nombre}">
+								<h:outputText value="#{_poliza.asegurado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_poliza.aseguradora.nombre}"
+								filterBy="#{_poliza.aseguradora.nombre}"
+								headerText="#{msgs.lbl_aseguradora}">
+								<h:outputText value="#{_poliza.aseguradora.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_poliza.afianzado.apellidos}"
+								filterBy="#{_poliza.afianzado.apellidos}"
+								headerText="#{msgs.lbl_afianzado}">
+								<h:outputText
+									value="#{_poliza.afianzado.apellidos} #{_poliza.afianzado.nombres}" />
+							</p:column>
+
+							<p:column sortBy="#{_poliza.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_poliza.fecha}">
+									<f:convertDateTime pattern="#{polizaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_poliza.fechaSolicitud}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_solicitud}" />
+								</f:facet>
+								<h:outputText value="#{_poliza.fechaSolicitud}">
+									<f:convertDateTime pattern="#{polizaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_poliza.fechaVencimiento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_vencimiento}" />
+								</f:facet>
+								<h:outputText value="#{_poliza.fechaVencimiento}">
+									<f:convertDateTime pattern="#{polizaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_poliza.estado}" filterBy="#{_poliza.estado}"
+								headerText="#{msgs.lbl_estado}">
+								<h:outputText value="#{_poliza.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_poliza.plazo}"
+								headerText="#{msgs.lbl_plazo}">
+								<h:outputText value="#{_poliza.plazo}" />
+							</p:column>
+
+							<p:column sortBy="#{_poliza.numeroRenegociacion}"
+								headerText="#{msgs.lbl_renegociacion}">
+								<h:outputText value="#{_poliza.numeroRenegociacion}" />
+							</p:column>
+
+							<p:column sortBy="#{_poliza.valorAsegurado}"
+								headerText="#{msgs.lbl_valor_asegurado}">
+								<h:outputText value="#{_poliza.valorAsegurado}" />
+							</p:column>
+
+							<p:column>
+								<p:commandButton action="#{polizaBean.renovar}"
+									icon="ui-icon-newwin" title="#{msgs.btn_renovar}"
+									process="@this panelListado"
+									update="panelNuevo panelListado panelbotones"
+									disabled="#{!_poliza.indicadorVigente}" />
+							</p:column>
+
+							<p:column>
+								<p:commandLink immediate="true" ajax="false"
+									action="#{polizaBean.processDownload}">
+									<h:graphicImage library="images" name="pdf.png"
+										style="height : 16px; width : 16px;" />
+								</p:commandLink>
+							</p:column>
+
+							<p:column>
+								<p:commandLink process="panelListado"
+									action="#{polizaBean.seleccionar}"
+									onclick="dglUploadFile.show()">
+									<h:graphicImage library="images" name="upload.png"
+										style="height : 22px; width : 22px;" />
+								</p:commandLink>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{polizaBean.poliza.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{polizaBean.poliza.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{polizaBean.poliza.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{polizaBean.poliza.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

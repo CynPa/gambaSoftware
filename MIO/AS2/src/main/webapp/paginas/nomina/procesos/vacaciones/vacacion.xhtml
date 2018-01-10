@@ -1,0 +1,190 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:toolbar>
+					<p:toolbarGroup>
+
+						<p:commandButton value="#{msgs.btn_procesar}" action="#{vacacionBean.generarVacaciones}" update="panelListado,btnVacacionAnticipo">
+						</p:commandButton>
+
+						<p:commandButton id="btnVacacionAnticipo" value="#{msgs.lbl_anticipo_vacacion}" onclick="dialogVacacionAnticipada.show()"
+							disabled="#{vacacionBean.indicadorAnticipoVacacion}" update="panelVacacionAnticipada">
+						</p:commandButton>
+
+					</p:toolbarGroup>
+
+				</p:toolbar>
+
+				<p:dialog header="#{msgs.lbl_anticipo_vacacion}" widgetVar="dialogVacacionAnticipada" modal="true" height="100" width="800" showEffect="slide"
+					hideEffect="slide">
+					<p:outputPanel id="panelVacacionAnticipada">
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{vacacionBean.empresa}"
+								completeMethod="#{vacacionBean.autocompletarEmpleados}" var="_empresa" itemLabel="#{_empresa.empleado.apellidos} #{_empresa.empleado.nombres}"
+								itemValue="#{_empresa}" forceSelection="true" dropdown="true" minQueryLength="2" id="autEmpleado">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_empresa.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_apellidos}">#{_empresa.empleado.apellidos}</p:column>
+								<p:column headerText="#{msgs.lbl_nombres}">#{_empresa.empleado.nombres}</p:column>
+
+								<p:ajax listener="#{vacacionBean.generarAnticipo}" process="@this" event="itemSelect" global="false" update=":form:panelVacacionAnticipada" />
+								<p:message for="autEmpleado" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_dias_dias}" />
+							<h:outputText value="#{vacacionBean.vacacion.dias}" id="txtDiasVacacion" />
+
+							<h:outputText value="#{msgs.lbl_dias_adicionales}" />
+							<h:outputText value="#{vacacionBean.vacacion.diasAdicionales}" />
+
+							<h:outputText value="#{msgs.lbl_fecha_inicio_periodo}:" />
+							<h:outputText value="#{vacacionBean.vacacion.fechaInicioPeriodo}">
+								<f:convertDateTime pattern="#{vacacionBean.formatoFecha}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_fin_periodo}:" />
+							<h:outputText value="#{vacacionBean.vacacion.fechaFinPeriodo}">
+								<f:convertDateTime pattern="#{vacacionBean.formatoFecha}" />
+							</h:outputText>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_guardar}" action="#{vacacionBean.guardar}" process="@this" oncomplete="dialogVacacionAnticipada.hide()"
+								update="panelListado">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_vacacion})" rendered="#{!vacacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaVacacion" rowIndexVar="secuencialVacacion"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{vacacionBean.listaVacacion}" var="_vacacion" binding="#{vacacionBean.dtVacacion}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{vacacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{vacacionBean.numeroFilasPorPagina}" rowKey="#{_vacacion.idVacacion}"
+							sortBy="#{_vacacion.historicoEmpleado.empleado.empresa.nombreComercial}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialVacacion+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_vacacion.historicoEmpleado.empleado.apellidos}"
+								filterBy="#{_vacacion.historicoEmpleado.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.historicoEmpleado.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_vacacion.historicoEmpleado.empleado.nombres}"
+								filterBy="#{_vacacion.historicoEmpleado.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.historicoEmpleado.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_vacacion.historicoEmpleado.fechaIngreso}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_ingreso_empleado}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.historicoEmpleado.fechaIngreso}">
+									<f:convertDateTime pattern="#{vacacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_vacacion.fechaInicioPeriodo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_inicio_periodo}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.fechaInicioPeriodo}">
+									<f:convertDateTime pattern="#{vacacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_vacacion.fechaFinPeriodo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_fin_periodo}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.fechaFinPeriodo}">
+									<f:convertDateTime pattern="#{vacacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_vacacion.dias}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_dias_dias}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.dias}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_vacacion.diasAdicionales}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_dias_adicionales}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.diasAdicionales}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_vacacion.diasTomados}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_dias_tomados}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.diasTomados}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_dias_pendientes}" />
+								</f:facet>
+								<h:outputText value="#{_vacacion.dias+_vacacion.diasAdicionales-_vacacion.diasTomados}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anticipo_vacacion}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_vacacion.indicadorAnticipoVacacion}" disabled="true"></p:selectBooleanCheckbox>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" filterBy="#{_vacacion.historicoEmpleado.fechaSalida}" filterOptions="#{listaEmpleadoBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox disabled="true" value="#{empty _vacacion.historicoEmpleado.fechaSalida ? true : false}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{vacacionBean.vacacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{vacacionBean.vacacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{vacacionBean.vacacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{vacacionBean.vacacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

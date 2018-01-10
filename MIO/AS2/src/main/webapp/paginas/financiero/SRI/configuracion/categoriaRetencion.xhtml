@@ -1,0 +1,164 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{categoriaRetencionBean}">
+					<as2:buttonEliminar bean="#{categoriaRetencionBean}" />
+					<as2:buttonExportaExcel bean="#{categoriaRetencionBean}" tabla=":form:tablaCategoriaRetencion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_categoria_retencion} )" rendered="#{categoriaRetencionBean.editado}">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+								<h:panelGrid id="panelCabecera" columns="#{categoriaRetencionBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{categoriaRetencionBean.categoriaRetencion.codigo}" id="txtCodigo">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{categoriaRetencionBean.categoriaRetencion.nombre}" id="txtNombre">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{categoriaRetencionBean.categoriaRetencion.descripcion}" id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{categoriaRetencionBean.categoriaRetencion.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{categoriaRetencionBean.categoriaRetencion.predeterminado}" />
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:fieldset>
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.lbl_agregar_detalle}" id="btnAgregarDetalle" action="#{categoriaRetencionBean.agregarDetalle}"
+										update=":form:panelDetalleCategoriaRetencion" process="@this :form:tablaDetalleCategoriaRetencion" icon="ui-icon-plus" />
+								</h:panelGroup>
+
+								<p:outputPanel id="panelCategoriaRetencion">
+
+									<h:panelGrid columns="1" id="panelDetalleCategoriaRetencion" style="width:100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{categoriaRetencionBean.listaDetalleCategoriaRetencion}" id="tablaDetalleCategoriaRetencion" rowIndexVar="secuencial"
+											binding="#{categoriaRetencionBean.dtDetalleCategoriaRetencion}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleCategoriaRetencion"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{categoriaRetencionBean.numeroFilas}"
+											rowsPerPageTemplate="#{categoriaRetencionBean.numeroFilasPorPagina}" rowKey="#{_detalleCategoriaRetencion.id}" lazy="true">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_concepto_retencion}" styleClass="tableCell">
+												<p:selectOneMenu styleClass="input-text100" value="#{_detalleCategoriaRetencion.conceptoRetencionSRI.idConceptoRetencionSRI}"
+													id="cboConceptoRetencion" required="false">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{categoriaRetencionBean.listaConceptoRetencionSRI}" var="_conceptoRetencion"
+														itemLabel="#{_conceptoRetencion.codigo} | #{_conceptoRetencion.nombre}" itemValue="#{_conceptoRetencion.idConceptoRetencionSRI}" />
+													<p:ajax listener="#{categoriaRetencionBean.actualizarCategoriaRetencion}" process="@this"
+														update="txtTipoProducto"  />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_producto_tipo_producto}" />
+												</f:facet>
+												<p:outputPanel id="txtTipoProducto">
+													<h:outputText value="#{_detalleCategoriaRetencion.conceptoRetencionSRI.tipoProducto.nombre}" />
+												</p:outputPanel>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" action="#{categoriaRetencionBean.eliminarDetalle}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:panelDetalleCategoriaRetencion" process="@this" />
+											</p:column>
+
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:fieldset>
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_categoria_retencion} )" rendered="#{!categoriaRetencionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCategoriaRetencion" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{categoriaRetencionBean.listaCategoriaRetencion}" var="_categoriaRetencion" binding="#{categoriaRetencionBean.dtCategoriaRetencion}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{categoriaRetencionBean.numeroFilas}"
+							rowsPerPageTemplate="#{categoriaRetencionBean.numeroFilasPorPagina}" selection="#{categoriaRetencionBean.categoriaRetencion}"
+							selectionMode="single" rowKey="#{_categoriaRetencion.idCategoriaRetencion}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_categoriaRetencion.codigo}" filterBy="#{_categoriaRetencion.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_categoriaRetencion.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_categoriaRetencion.nombre}" filterBy="#{_categoriaRetencion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_categoriaRetencion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_categoriaRetencion.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_categoriaRetencion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_categoriaRetencion.predeterminado}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_categoriaRetencion.predeterminado}" disabled="true" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{categoriaRetencionBean.categoriaRetencion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{categoriaRetencionBean.categoriaRetencion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{categoriaRetencionBean.categoriaRetencion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{categoriaRetencionBean.categoriaRetencion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

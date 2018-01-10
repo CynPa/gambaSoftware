@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_panel_reporte_produccion}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteProduccionBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteProduccionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputLabel for="items" value="#{msgs.lbl_tipo}:" />
+							<p:selectOneMenu value="#{reporteProduccionBean.tipoReporte}" id="items">
+								<f:selectItems value="#{reporteProduccionBean.listaTipoReporte}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+								<p:ajax process="@this" update=":form:panelFiltros @this" event="change" global="false" partialSubmit="true"></p:ajax>
+							</p:selectOneMenu>
+
+							<p:spacer />
+							<p:spacer />
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteProduccionBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteProduccionBean.fechaDesde}"
+								id="calFechaDesde" required="true">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteProduccionBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteProduccionBean.fechaHasta}"
+								id="calFechaHasta" required="true">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_bodega}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteProduccionBean.bodega}" id="cboBodega">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteProduccionBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}:" />
+							<p:selectOneMenu value="#{reporteProduccionBean.categoriaProductoSeleccionado}" id="cboCategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteProduccionBean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+									itemValue="#{_categoriaProducto}" />
+								<p:ajax process="@this" listener="#{reporteProduccionBean.cargarListaSubcategoriaProducto}" update="cboSubcategoriaProducto" />
+							</p:selectOneMenu>
+
+
+							<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}:" />
+							<p:selectOneMenu value="#{reporteProduccionBean.subcategoriaProductoSeleccionado}" id="cboSubcategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteProduccionBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<p:outputLabel rendered="#{reporteProduccionBean.tipoReporte!='GENERAL'}" for="cboPersonaResponsable" value="#{msgs.lbl_responsable}:" />
+							<p:selectOneMenu rendered="#{reporteProduccionBean.tipoReporte!='GENERAL'}" styleClass="input-text" id="cboPersonaResponsable"
+								value="#{reporteProduccionBean.personaResponsable}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.listaPersonaResponsable}" var="_personaResponsable"
+									itemLabel="#{_personaResponsable.nombres} #{_personaResponsable.apellidos}" itemValue="#{_personaResponsable}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel rendered="#{reporteProduccionBean.tipoReporte!='GENERAL'}" for="cboMaquina" value="#{msgs.lbl_maquina}:" />
+							<p:selectOneMenu rendered="#{reporteProduccionBean.tipoReporte!='GENERAL'}" styleClass="input-text" id="cboMaquina"
+								value="#{reporteProduccionBean.maquina}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.listaMaquina}" var="_maquina" itemLabel="#{_maquina.nombre}" itemValue="#{_maquina}" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributoOrdenFabricacion and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributoOrdenFabricacion.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributoOrdenFabricacion and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributoOF}" id="cboAtributo1">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributoOrdenFabricacion.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}"
+									itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo1 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo1.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo1 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo1}" id="cboAtributo2">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo1.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo2 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo2.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo2 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo2}" id="cboAtributo3">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo2.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo3 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo3.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo3 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo3}" id="cboAtributo4">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo3.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo4 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo4.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo4 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo4}" id="cboAtributo5">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo4.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo5 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo5.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo5 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo5}" id="cboAtributo6">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo5.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo6 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo6.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo6 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo6}" id="cboAtributo7">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo6.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo7 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo7.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo7 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo7}" id="cboAtributo8">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo7.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo8 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo8.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo8 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo8}" id="cboAtributo9">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo8.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputText rendered="#{not empty reporteProduccionBean.atributo9 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.atributo9.nombre}:" />
+							<p:selectOneMenu rendered="#{not empty reporteProduccionBean.atributo9 and reporteProduccionBean.tipoReporte!='GENERAL'}"
+								styleClass="input-text" value="#{reporteProduccionBean.valorAtributo9}" id="cboAtributo10">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteProduccionBean.atributo9.listaValorAtributo}" var="_valor" itemLabel="#{_valor.nombre}" itemValue="#{_valor}" />
+								<p:ajax process="@this" event="change" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_agrupado}:" rendered="#{reporteProduccionBean.tipoReporte!='GENERAL'}" />
+							<p:selectBooleanCheckbox rendered="#{reporteProduccionBean.tipoReporte!='GENERAL'}"
+								value="#{reporteProduccionBean.agrupado}">
+								<p:ajax process="@this" update="@this" global="false" ></p:ajax>
+							</p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this calFechaDesde calFechaHasta cboBodega cboCategoriaProducto cboSubcategoriaProducto"
+								oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+
+					</p:fieldset>
+				</p:outputPanel>
+
+			</p:panel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

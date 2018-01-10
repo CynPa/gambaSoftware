@@ -1,0 +1,311 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{planMaestroProduccionBean}">
+
+					<as2:buttonEliminar bean="#{planMaestroProduccionBean}" titulo="#{msgs.btn_eliminar}">
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{planMaestroProduccionBean.planMaestroProduccion.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{planMaestroProduccionBean}" tabla=":form:tablaPlanMaestroProduccion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{planMaestroProduccionBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_titulo_plan_maestro_produccion})">
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{planMaestroProduccionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{planMaestroProduccionBean.planMaestroProduccion.nombre}" id="txtNombre">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_fecha_inicio}:" />
+								<p:calendar pattern="#{planMaestroProduccionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{planMaestroProduccionBean.planMaestroProduccion.fechaInicio}" id="calFechaInicio" required="true" styleClass="input-text" />
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{planMaestroProduccionBean.planMaestroProduccion.activo}" />
+
+								<h:outputText value="#{msgs.lbl_fecha_vencimiento}:" />
+								<p:calendar pattern="#{planMaestroProduccionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{planMaestroProduccionBean.planMaestroProduccion.fechaFin}" id="calFechaFin" required="true" styleClass="input-text" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{planMaestroProduccionBean.planMaestroProduccion.predeterminado}" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{planMaestroProduccionBean.planMaestroProduccion.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" width="100%">
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.btn_cargar_productos}" id="btnCargarProductos" action="#{planMaestroProduccionBean.cargarProductos}"
+										update=":form:panelDetallePlanMaestroProduccion" process="@this,:form:panelDetallePlanMaestroProduccion" icon="ui-icon-plus" />
+
+									<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this :form:panelDetallePlanMaestroProduccion"
+										action="#{planMaestroProduccionBean.copiarDetalle}" update=":form:panelDetallePlanMaestroProduccion">
+									</p:commandButton>
+								</h:panelGroup>
+
+								<p:outputPanel id="panelDetallePlanMaestroProduccion">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{planMaestroProduccionBean.listaDetallePlanMaestroProduccion}"
+										id="tablaDetalleDespachoCLiente" rowIndexVar="secuencial" binding="#{planMaestroProduccionBean.dtDetallePlanMaestroProduccion}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePlanMaestroProduccion" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_detallePlanMaestroProduccion.rowKey}" rows="#{planMaestroProduccionBean.numeroFilas}"
+										rowsPerPageTemplate="#{planMaestroProduccionBean.numeroFilasPorPagina}"
+										selection="#{planMaestroProduccionBean.detallePlanMaestroProduccionSeleccionado}" selectionMode="single"
+										filteredValue="#{planMaestroProduccionBean.listaDetallePlanMaestroProduccionFiltrados}">
+
+										<p:columnGroup type="header">
+											<p:row>
+												<p:column colspan="1" rowspan="2" headerText="Nº" />
+												<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_ruta_fabricacion}" />
+												<p:column colspan="5" headerText="#{msgs.lbl_producto}" />
+												<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_meses}" />
+												<p:column colspan="7" headerText="#{msgs.lbl_proporcion}" />
+												<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_dias_stock}" />
+												<p:column colspan="1" rowspan="2" />
+											</p:row>
+											<p:row>
+												<p:column headerText="#{msgs.lbl_codigo}" filterBy="#{_detallePlanMaestroProduccion.producto.codigo}" filterMatchMode="contains" />
+												<p:column headerText="#{msgs.lbl_nombre}" filterBy="#{_detallePlanMaestroProduccion.producto.nombre}" filterMatchMode="contains" />
+												<p:column headerText="#{msgs.lbl_producto_categoria_producto}"
+													filterBy="#{_detallePlanMaestroProduccion.producto.subcategoriaProducto.categoriaProducto.nombre}" filterMatchMode="contains" />
+												<p:column headerText="#{msgs.lbl_producto_subcategoria_producto}"
+													filterBy="#{_detallePlanMaestroProduccion.producto.subcategoriaProducto.nombre}" filterMatchMode="contains" />
+												<p:column headerText="#{msgs.lbl_cantidad_produccion}" />
+
+												<p:column headerText="L" />
+												<p:column headerText="M" />
+												<p:column headerText="X" />
+												<p:column headerText="J" />
+												<p:column headerText="V" />
+												<p:column headerText="S" />
+												<p:column headerText="D" />
+											</p:row>
+										</p:columnGroup>
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell">
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+												value="#{_detallePlanMaestroProduccion.rutaFabricacion}" completeMethod="#{planMaestroProduccionBean.autocompletarRutaFabricacion}"
+												var="_rutaFabricacion" itemLabel="#{_rutaFabricacion.nombre}" itemValue="#{_rutaFabricacion}" dropdown="true" minQueryLength="2">
+												<p:column headerText="#{msgs.lbl_codigo}">#{_rutaFabricacion.codigo}</p:column>
+												<p:column headerText="#{msgs.lbl_nombre}">#{_rutaFabricacion.nombre}</p:column>
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:autoComplete>
+										</p:column>
+
+										<p:column styleClass="columnaDTCodigoProducto tableCell" filterBy="#{_detallePlanMaestroProduccion.producto.codigo}"
+											filterMatchMode="contains">
+											<h:outputText value="#{_detallePlanMaestroProduccion.producto.codigo}" id="outCodigoProducto">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" filterBy="#{_detallePlanMaestroProduccion.producto.nombre}" filterMatchMode="contains">
+											<h:outputText value="#{_detallePlanMaestroProduccion.producto.nombre}" id="txtNombreProducto">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell">
+											<h:outputText value="#{_detallePlanMaestroProduccion.producto.subcategoriaProducto.categoriaProducto.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell">
+											<h:outputText value="#{_detallePlanMaestroProduccion.producto.subcategoriaProducto.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<h:outputText value="#{_detallePlanMaestroProduccion.producto.cantidadProduccion}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell">
+											<p:selectCheckboxMenu label="#{msgs.lbl_meses}" filter="true" filterMatchMode="startsWith" styleClass="input-text100"
+												value="#{_detallePlanMaestroProduccion.mesesSeleccionados}" id="cbMes" required="false">
+												<f:selectItems value="#{planMaestroProduccionBean.listaMes}" />
+												<p:ajax process="@this" global="false" partialSubmit="true" />
+											</p:selectCheckboxMenu>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.proporcionLunes}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.proporcionMartes}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.proporcionMiercoles}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.proporcionJueves}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.proporcionViernes}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.proporcionSabado}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.proporcionDomingo}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorCorto tableCell">
+											<p:inputText size="5" value="#{_detallePlanMaestroProduccion.cantidadDiasStock}">
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion">
+											<p:commandButton id="btnEliminarDetalle" action="#{planMaestroProduccionBean.eliminarDetalle}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:panelDetallePlanMaestroProduccion" process="@this" />
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+							</h:panelGrid>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!planMaestroProduccionBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_titulo_plan_maestro_produccion})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlanMaestroProduccion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{planMaestroProduccionBean.listaPlanMaestroProduccion}" var="_planMaestroProduccion"
+							paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{planMaestroProduccionBean.dtPlanMaestroProduccion}"
+							rows="#{planMaestroProduccionBean.numeroFilas}" selection="#{planMaestroProduccionBean.planMaestroProduccion}"
+							rowsPerPageTemplate="#{planMaestroProduccionBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_planMaestroProduccion.id}"
+							sortBy="#{_planMaestroProduccion.nombre}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_planMaestroProduccion.nombre}" filterBy="#{_planMaestroProduccion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+
+								<h:outputText value="#{_planMaestroProduccion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_inicio}" sortBy="#{_planMaestroProduccion.fechaInicio}">
+								<h:outputText value="#{_planMaestroProduccion.fechaInicio}">
+									<f:convertDateTime pattern="#{planMaestroProduccionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_vencimiento}" sortBy="#{_planMaestroProduccion.fechaFin}">
+								<h:outputText value="#{_planMaestroProduccion.fechaFin}">
+									<f:convertDateTime pattern="#{planMaestroProduccionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_planMaestroProduccion.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_planMaestroProduccion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_planMaestroProduccion.predeterminado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_planMaestroProduccion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_planMaestroProduccion.descripcion}" filterBy="#{_planMaestroProduccion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_planMaestroProduccion.descripcion}">
+								</h:outputText>
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{planMaestroProduccionBean.planMaestroProduccion.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{planMaestroProduccionBean.planMaestroProduccion.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{planMaestroProduccionBean.planMaestroProduccion.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{planMaestroProduccionBean.planMaestroProduccion.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

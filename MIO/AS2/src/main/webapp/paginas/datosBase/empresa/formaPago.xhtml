@@ -1,0 +1,188 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<as2:toolBar bean="#{formaPagoBean}">
+
+					<as2:buttonEliminar bean="#{formaPagoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{formaPagoBean.formaPago.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{formaPagoBean.formaPago.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{formaPagoBean}" tabla=":form:tablaFormaPago" />
+
+				</as2:toolBar>
+				
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_formaPago_panel}" rendered="#{formaPagoBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{formaPagoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{formaPagoBean.formaPago.codigo}" id="txtCodigo" required="true"/>
+							
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo_alterno}:" />
+							<p:inputText styleClass="input-text" value="#{formaPagoBean.formaPago.codigoAlterno}" id="txtCodigoAlterno" required="true"/>
+							
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{formaPagoBean.formaPago.nombre}" id="txtNombre" required="true" />
+							
+							<h:outputText value="#{msgs.lbl_formaPago_indicador_retencion_fuente}:" />
+							<h:panelGrid columns="3" columnClasses="columnaEtiqueta,columnaEtiqueta">
+								<p:selectBooleanCheckbox value="#{formaPagoBean.formaPago.indicadorRetencionFuente}">
+									<p:ajax process="@this" update=":form:panelNuevo" listener="#{formaPagoBean.actualizarIndicadores('fuente')}" />
+								</p:selectBooleanCheckbox>
+								<p:outputPanel id="_lblPorcentajeRetencionRenta">
+									<h:outputText value="#{msgs.lbl_porcentaje_retencion}:"
+										rendered="#{formaPagoBean.formaPago.indicadorRetencionFuente}" />
+								</p:outputPanel>
+								<p:outputPanel id="_txtPorcentajeRetencionRenta">
+									<p:inputText value="#{formaPagoBean.formaPago.porcentajeRetencion}"
+										rendered="#{formaPagoBean.formaPago.indicadorRetencionFuente}" styleClass="input-text"/>
+								</p:outputPanel>
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_formaPago_indicador_retencion_iva}:" />
+							<h:panelGrid columns="3" columnClasses="columnaEtiqueta,columnaEtiqueta">
+								<p:selectBooleanCheckbox value="#{formaPagoBean.formaPago.indicadorRetencionIva}">
+									<p:ajax process="@this" update=":form:panelNuevo" listener="#{formaPagoBean.actualizarIndicadores('iva')}" />
+								</p:selectBooleanCheckbox>
+								<p:outputPanel id="_lblPorcentajeRetencionIva">
+									<h:outputText value="#{msgs.lbl_porcentaje_retencion}:"
+										rendered="#{formaPagoBean.formaPago.indicadorRetencionIva}" />
+								</p:outputPanel>
+								<p:outputPanel id="_txtPorcentajeRetencionIva">
+									<p:inputText value="#{formaPagoBean.formaPago.porcentajeRetencion}"
+										rendered="#{formaPagoBean.formaPago.indicadorRetencionIva}" styleClass="input-text"/>
+								</p:outputPanel>
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_formaPago_indicador_deposito_automatico}:" />
+							<p:selectBooleanCheckbox value="#{formaPagoBean.formaPago.indicadorDepositoAutomatico}">
+								<p:ajax process="@this" update=":form:panelNuevo" listener="#{formaPagoBean.actualizarIndicadores('deposito')}" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_cheque}:" />
+							<p:selectBooleanCheckbox value="#{formaPagoBean.formaPago.indicadorCheque}">
+								<p:ajax process="@this" update=":form:panelNuevo" listener="#{formaPagoBean.actualizarIndicadores('cheque')}" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_tarjeta_credito}:" />
+							<h:panelGrid columns="5"
+								columnClasses="columnaValor,columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								
+								<p:selectBooleanCheckbox value="#{formaPagoBean.formaPago.indicadorTarjetaCredito}">
+									<p:ajax process="@this" update=":form:panelNuevo" listener="#{formaPagoBean.actualizarIndicadores('tarjeta')}" />
+								</p:selectBooleanCheckbox>
+								
+								<p:outputPanel id="lblPorcentajeRetencionRenta">
+									<h:outputText value="% #{msgs.lbl_formaPago_indicador_retencion_fuente}:"	rendered="#{formaPagoBean.formaPago.indicadorTarjetaCredito}" />
+								</p:outputPanel>
+								
+								<p:outputPanel id="txtPorcentajeRetencionRenta">
+									<p:inputText value="#{formaPagoBean.formaPago.porcentajeRetencionRenta}" rendered="#{formaPagoBean.formaPago.indicadorTarjetaCredito}" />
+								</p:outputPanel>
+								
+								<p:outputPanel id="lblPorcentajeRetencionIva">
+									<h:outputText value="% #{msgs.lbl_formaPago_indicador_retencion_iva}:"	rendered="#{formaPagoBean.formaPago.indicadorTarjetaCredito}" />
+								</p:outputPanel>
+								
+								<p:outputPanel id="txtPorcentajeRetencionIva">
+									<p:inputText value="#{formaPagoBean.formaPago.porcentajeRetencionIva}" rendered="#{formaPagoBean.formaPago.indicadorTarjetaCredito}" />
+								</p:outputPanel>
+							
+							</h:panelGrid>
+							
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{formaPagoBean.formaPago.activo}">
+								<p:ajax process="@this" update="@this" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{formaPagoBean.formaPago.predeterminado}">
+								<p:ajax process="@this" update="@this" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{formaPagoBean.formaPago.descripcion}" id="txtDescripcion" />
+							
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_formaPago_panel}" rendered="#{!formaPagoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFormaPago" rowIndexVar="secuencialFormaPago" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{formaPagoBean.listaFormaPago}" var="formaPago" binding="#{formaPagoBean.dtFormaPago}" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{formaPagoBean.numeroFilas}" rowsPerPageTemplate="#{formaPagoBean.numeroFilasPorPagina}"
+							selection="#{formaPagoBean.formaPago}" selectionMode="single" rowKey="#{formaPago.id}" sortBy="#{formaPago.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialFormaPago+1}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{formaPago.codigo}" filterBy="#{formaPago.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{formaPago.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{formaPago.nombre}" filterBy="#{formaPago.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{formaPago.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{formaPago.activo}">
+								<p:selectBooleanCheckbox value="#{formaPago.activo}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{formaPago.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{formaPago.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{formaPago.descripcion}" />
+							</p:column>
+
+							
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{formaPagoBean.formaPago.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{formaPagoBean.formaPago.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{formaPagoBean.formaPago.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{formaPagoBean.formaPago.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_garantia_cliente}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteGarantiaClienteListaBean}" entidadOrigen=""></tnt:panelImprimir>
+				<p:outputPanel id="panelFiltros">
+					<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+						<p:calendar pattern="#{reporteGarantiaClienteListaBean.formatoFecha}" showOn="button" navigator="true"
+							value="#{reporteGarantiaClienteListaBean.fechaIngresoDesde}" id="calFechaIngresoDesde" required="false"
+							maxdate="#{reporteGarantiaClienteListaBean.fechaIngresoHasta}">
+							<p:ajax event="dateSelect" update=":form:calFechaIngresoHasta"></p:ajax>
+							<p:ajax event="change" update=":form:calFechaIngresoHasta"></p:ajax>
+						</p:calendar>
+
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<p:calendar pattern="#{reporteGarantiaClienteListaBean.formatoFecha}" showOn="button" navigator="true"
+							value="#{reporteGarantiaClienteListaBean.fechaIngresoHasta}" id="calFechaIngresoHasta" required="false"
+							mindate="#{reporteGarantiaClienteListaBean.fechaIngresoDesde}">
+							<p:ajax event="dateSelect" update=":form:calFechaIngresoDesde"></p:ajax>
+							<p:ajax event="change" update=":form:calFechaIngresoDesde"></p:ajax>
+						</p:calendar>
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente" value="#{reporteGarantiaClienteListaBean.empresa}"
+							completeMethod="#{reporteGarantiaClienteListaBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+							itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+							<p:column>#{_cliente.identificacion}</p:column>
+							<p:column>#{_cliente.nombreFiscal}</p:column>
+							<p:column>#{_cliente.nombreComercial}</p:column>
+						</p:autoComplete>
+
+						<h:outputText value="#{msgs.lbl_sucursal}:" />
+						<p:selectOneMenu value="#{reporteGarantiaClienteListaBean.sucursal}" required="false">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{reporteGarantiaClienteListaBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+								itemValue="#{_sucursal}" id="cboSucursal" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_estado}:" />
+						<p:selectOneMenu value="#{reporteGarantiaClienteListaBean.estadoGarantiaCliente}" required="false">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{reporteGarantiaClienteListaBean.listaEstadoGarantiaCliente}" var="_estadoGarantiaCliente"
+								itemLabel="#{_estadoGarantiaCliente.nombre}" itemValue="#{_estadoGarantiaCliente}" id="cboEstado" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_tipo_garantia_cliente}:" />
+						<p:selectOneMenu value="#{reporteGarantiaClienteListaBean.tipoGarantiaCliente}" required="false">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{reporteGarantiaClienteListaBean.listaTipoGarantiaCliente}" var="_tipoGarantiaCliente"
+								itemLabel="#{_tipoGarantiaCliente.nombre}" itemValue="#{_tipoGarantiaCliente}" id="cboTipoGarantiaCliente" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_fecha_registro}:" />
+						<p:selectBooleanCheckbox id="chkFechaRegistro" value="#{reporteGarantiaClienteListaBean.indicadorFechaRegistro}">
+							<p:ajax process="@this" global="false" />
+						</p:selectBooleanCheckbox>
+
+						<h:outputText value="#{msgs.lbl_agrupado}:" />
+						<p:selectBooleanCheckbox id="chkAgrupado" value="#{reporteGarantiaClienteListaBean.indicadorAgrupado}">
+							<p:ajax process="@this" global="false" />
+						</p:selectBooleanCheckbox>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()"
+									icon="print">
+								</p:commandButton>
+							</center>
+						</f:facet>
+
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

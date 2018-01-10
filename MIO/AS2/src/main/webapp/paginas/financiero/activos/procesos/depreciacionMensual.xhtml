@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{depreciacionMensualBean}">
+					<as2:buttonEliminar bean="#{depreciacionMensualBean}" titulo="#{msgs.btn_anular}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{depreciacionMensualBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{depreciacionMensualBean.historicoDepreciacion.asientoFiscal}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento_depreciacion}"/>										
+					<as2:buttonImprimir beanReporte="#{reporteAsientoSecundarioBean}" bean="#{depreciacionMensualBean}" target="#{reporteAsientoSecundarioBean.asiento}"
+						value="#{depreciacionMensualBean.historicoDepreciacion.asientoNIIF}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento_ajuste}"/>										
+					<as2:buttonExportaExcel bean="#{depreciacionMensualBean}" tabla=":form:tablaDepreciacion" />
+					<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar" oncomplete="confirmacionProcesar.show()" process="@this :form:panelNuevo"
+						disabled="#{!depreciacionMensualBean.editado}" update=":form:panelProcesar " icon="ui-icon-arrowrefresh-1-e" />
+				</as2:toolBar>
+
+				<p:confirmDialog message="#{msgs.confirmacion_depreciar}?" height="60" width="300" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionProcesar">
+					<p:outputPanel id="panelProcesar" autoUpdate="true">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_anio}:" />
+							<h:outputText value="#{depreciacionMensualBean.historicoDepreciacion.anio}" />
+
+							<h:outputText value="#{msgs.lbl_mes}:" />
+							<h:outputText value="#{depreciacionMensualBean.historicoDepreciacion.traNombreMes}" />
+						</h:panelGrid>
+
+						<h:panelGroup>
+							<center>
+								<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelNuevo :form:panelListado" process="@this"
+									actionListener="#{depreciacionMensualBean.depreciar}" oncomplete="confirmacionProcesar.hide()" />
+								<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionProcesar.hide()" />
+							</center>
+						</h:panelGroup>
+
+					</p:outputPanel>
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_depreciacion_mensual} )" rendered="#{depreciacionMensualBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{depreciacionMensualBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtAnio" value="#{msgs.lbl_anio}:" />
+								<p:inputMask id="txtAnio" mask="9999" value="#{depreciacionMensualBean.historicoDepreciacion.anio}" required="true"
+									disabled="#{depreciacionMensualBean.historicoDepreciacion.id>0}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:outputLabel for="cboMes" value="#{msgs.lbl_mes}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{depreciacionMensualBean.historicoDepreciacion.mes}" id="cboMes" required="true"
+									disabled="#{depreciacionMensualBean.historicoDepreciacion.id>0}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{depreciacionMensualBean.listaMesCombo}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_depreciacion_mensual} )" rendered="#{!depreciacionMensualBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDepreciacion" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{depreciacionMensualBean.listaHistoricoDepreciacion}" var="_historicoDepreciacion"
+							binding="#{depreciacionMensualBean.dtDepreciacionMensual}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{depreciacionMensualBean.numeroFilas}" rowsPerPageTemplate="#{depreciacionMensualBean.numeroFilasPorPagina}"
+							selection="#{depreciacionMensualBean.historicoDepreciacion}" selectionMode="single" rowKey="#{_historicoDepreciacion.id}" lazy="true">
+
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_historicoDepreciacion.anio}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anio}" />
+								</f:facet>
+								<h:outputText value="#{_historicoDepreciacion.anio}" />
+							</p:column>
+
+							<p:column sortBy="#{_historicoDepreciacion.mes}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_mes}" />
+								</f:facet>
+								<h:outputText value="#{_historicoDepreciacion.traNombreMes}" />
+							</p:column>
+
+							<p:column sortBy="#{_historicoDepreciacion.asientoFiscal.numero}" filterBy="#{_historicoDepreciacion.asientoFiscal.numero}"
+								styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento} #{msgs.lbl_depreciacion}" />
+								</f:facet>
+								<h:link rendered="#{not empty _historicoDepreciacion.asientoFiscal}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_historicoDepreciacion.asientoFiscal.numero}">
+									<f:param name="idAsiento" value="#{_historicoDepreciacion.asientoFiscal.idAsiento}" />
+								</h:link>
+
+							</p:column>
+
+							<p:column sortBy="#{_historicoDepreciacion.asientoNIIF.numero}" filterBy="#{_historicoDepreciacion.asientoNIIF.numero}"
+								styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento} #{msgs.lbl_ajuste}" />
+								</f:facet>
+								<h:link rendered="#{not empty _historicoDepreciacion.asientoNIIF}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_historicoDepreciacion.asientoNIIF.numero}">
+									<f:param name="idAsiento" value="#{_historicoDepreciacion.asientoNIIF.idAsiento}" />
+								</h:link>
+
+							</p:column>
+
+							<p:column sortBy="#{_historicoDepreciacion.estado}" filterBy="#{_historicoDepreciacion.estado}"
+								filterOptions="#{depreciacionMensualBean.listaEstadoItem}" styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_historicoDepreciacion.estado.nombre}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{depreciacionMensualBean.historicoDepreciacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{depreciacionMensualBean.historicoDepreciacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{depreciacionMensualBean.historicoDepreciacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{depreciacionMensualBean.historicoDepreciacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

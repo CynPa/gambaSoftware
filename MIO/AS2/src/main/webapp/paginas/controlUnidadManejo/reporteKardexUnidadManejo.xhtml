@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<ui:include src="/template/barraReportes.xhtml">
+				<ui:param name="bean" value="#{reporteKardexUnidadManejoBean}" />
+				<ui:param name="btnImprimir" value="false" />
+				<ui:param name="tabla" value=":form:tablaAuxiliar" />
+				<ui:param name="columnasAExcluir" value="" />
+				<ui:param name="columnasAExcluirPdf" value="" />
+				<ui:param name="ocultarBtnExportarTabla" value="true" />
+
+			</ui:include>
+			<p:panel header="#{msgs.lbl_reporte} #{msgs.lbl_saldo_unidad_manejo}">
+
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteKardexUnidadManejoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteKardexUnidadManejoBean.fechaDesde}" id="calFechaDesde" />
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteKardexUnidadManejoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteKardexUnidadManejoBean.fechaHasta}" id="calFechaHasta" />
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteKardexUnidadManejoBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteKardexUnidadManejoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<p:ajax process="@this" event="change" update="@none" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteKardexUnidadManejoBean.transportista}" id="cboTransportista">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="null" />
+								<f:selectItems value="#{reporteKardexUnidadManejoBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+									itemValue="#{_transportista}" />
+								<p:ajax process="@this" event="change" update="@none" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente"
+								value="#{reporteKardexUnidadManejoBean.empresa}" completeMethod="#{reporteKardexUnidadManejoBean.autocompletarClientes}" var="_cliente"
+								itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+								<p:ajax listener="#{reporteKardexUnidadManejoBean.actualizarCliente}" process="@this" event="itemSelect" global="false" update="cboSubempresa" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_subcliente}:" />
+							<p:selectOneMenu  styleClass="input-text"
+								value="#{reporteKardexUnidadManejoBean.subempresa}" id="cboSubempresa">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteKardexUnidadManejoBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+									itemLabel="#{_subempresa.empresaFinal}" />
+								<p:ajax process="@this" event="change" global="false" update="@this" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboUnidadManejo" value="#{msgs.lbl_unidad_manejo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteKardexUnidadManejoBean.unidadManejo}" id="cboUnidadManejo">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="null" />
+								<f:selectItems value="#{reporteKardexUnidadManejoBean.listaUnidadManejo}" var="_transportista" itemLabel="#{_transportista.nombre}"
+									itemValue="#{_transportista}" />
+								<p:ajax process="@this" event="change" update="@none" />
+							</p:selectOneMenu>
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+				</p:outputPanel>
+				<p:spacer height="4px" />
+
+
+				<p:outputPanel id="panelConsulta">
+					<h:panelGrid columns="1">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{reporteKardexUnidadManejoBean.listaResult}" id="tablaAuxiliar"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_unidadManejo" style="width:100%" lazy="true">
+
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column headerText="#{msgs.lbl_fecha}" />
+									<p:column headerText="#{msgs.lbl_numero}" />
+									<p:column headerText="#{msgs.lbl_descripcion}" />
+									<p:column headerText="#{msgs.lbl_sucursal}" />
+									<p:column headerText="#{msgs.lbl_transportista}" />
+									<p:column headerText="#{msgs.lbl_cliente}" />
+									<p:column headerText="#{msgs.lbl_ingreso}" />
+									<p:column headerText="#{msgs.lbl_egreso}" />
+									<p:column headerText="#{msgs.lbl_saldo}" />
+
+								</p:row>
+							</p:columnGroup>
+
+							<p:subTable value="#{_unidadManejo.listaDetalleMovimientoUnidadManejo}" var="_detalle">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_unidad_manejo}: #{_unidadManejo.codigo} - #{_unidadManejo.nombre}" />
+								</f:facet>
+
+								<p:column styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_detalle.movimientoUnidadManejo.fecha}">
+										<f:convertDateTime pattern="#{reporteKardexUnidadManejoBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_detalle.movimientoUnidadManejo.numero}" />
+								</p:column>
+								
+								<p:column styleClass="columnaDTNombreLargo tableCell">
+									<h:outputText value="#{_detalle.movimientoUnidadManejo.descripcion}" />
+								</p:column>
+
+								<p:column>
+									<h:outputText value="#{_detalle.movimientoUnidadManejo.sucursal.nombre}" />
+								</p:column>
+
+								<p:column>
+									<h:outputText value="#{_detalle.movimientoUnidadManejo.transportista.nombre}" />
+								</p:column>
+
+								<p:column>
+									<h:outputText value="#{_detalle.descripcion!=null?_detalle.descripcion:_detalle.movimientoUnidadManejo.subempresa==null?_detalle.movimientoUnidadManejo.empresa.nombreComercial:_detalle.movimientoUnidadManejo.subempresa.empresaFinal}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor">
+									<h:outputText
+										value="#{_detalle.descripcion!=null? _detalle.cantidad:_detalle.operacion==1? _detalle.cantidad:''}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor">
+									<h:outputText
+										value="#{_detalle.descripcion!=null? _detalle.cantidadCliente:_detalle.operacion==-1? _detalle.cantidad:''}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor">
+									<h:outputText value="#{_detalle.saldo}" />
+								</p:column>
+							</p:subTable>
+						</p:dataTable>
+					</h:panelGrid>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

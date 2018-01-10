@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{tipoSubsidioBean}">
+					<as2:buttonEliminar bean="#{tipoSubsidioBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoSubsidioBean.tipoSubsidio.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoSubsidioBean.tipoSubsidio.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tipoSubsidioBean}" tabla=":form:tablaTipoSubsidio"/>
+				</as2:toolBar>
+
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_tipo_subsidio} )"
+						rendered="#{tipoSubsidioBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera"
+								columns="#{tipoSubsidioBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoSubsidioBean.tipoSubsidio.codigo}" id="txtCodigo">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoSubsidioBean.tipoSubsidio.nombre}" id="txtNombre">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_porcentaje}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoSubsidioBean.tipoSubsidio.porcentajeSubsidio}"
+									id="txtPorcentajeSubsidio">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_dias}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoSubsidioBean.tipoSubsidio.dias}" id="txtDias">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_meses}:" />
+								<p:inputText styleClass="input-text"
+									value="#{tipoSubsidioBean.tipoSubsidio.meses}" id="txtMeses">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_rubro_empleado}:" />
+								<p:selectOneMenu styleClass="input-text"
+									value="#{tipoSubsidioBean.rubroSelecionado}" id="cboRubro"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{tipoPrestamoBean.listaRubro}"
+										var="_rubro" itemLabel="#{_rubro.nombre}"
+										itemValue="#{_rubro.idRubro}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_horas} (0 = Todo El dia)" />
+								<p:inputText styleClass="input-text" value="#{tipoSubsidioBean.tipoSubsidio.horasSubsidio}" />
+
+								<h:outputText value="Vespertino" />
+								<p:selectBooleanCheckbox value="#{tipoSubsidioBean.tipoSubsidio.indicadorSubsidioVespertino}" />
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox
+									value="#{tipoSubsidioBean.tipoSubsidio.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox
+									value="#{tipoSubsidioBean.tipoSubsidio.predeterminado}" />
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_tipo_subsidio} )"
+						rendered="#{!tipoSubsidioBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoSubsidio" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tipoSubsidioBean.listaTipoSubsidio}" var="_tipoSubsidio"
+							binding="#{tipoSubsidioBean.dtTipoSubsidio}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoSubsidioBean.numeroFilas}"
+							rowsPerPageTemplate="#{tipoSubsidioBean.numeroFilasPorPagina}"
+							selection="#{tipoSubsidioBean.tipoSubsidio}"
+							selectionMode="single" rowKey="#{_tipoSubsidio.idTipoSubsidio}"
+							sortBy="#{_tipoSubsidio.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_tipoSubsidio.codigo}"
+								filterBy="#{_tipoSubsidio.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipoSubsidio.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_tipoSubsidio.nombre}"
+								filterBy="#{_tipoSubsidio.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoSubsidio.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTCantidad" sortBy="#{_tipoSubsidio.horasSubsidio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas}" />
+								</f:facet>
+								<h:outputText value="#{_tipoSubsidio.horasSubsidio}" />
+							</p:column>
+														
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_tipoSubsidio.indicadorSubsidioVespertino}">
+								<f:facet name="header">
+									<h:outputText value="Vespertino" />
+								</f:facet>
+								<h:outputText value="#{_tipoSubsidio.indicadorSubsidioVespertino}" />
+							</p:column>
+														
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_tipoSubsidio.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox
+									value="#{_tipoSubsidio.activo}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass=" tableCell columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox
+									value="#{_tipoSubsidio.predeterminado}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{tipoSubsidioBean.tipoSubsidio.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{tipoSubsidioBean.tipoSubsidio.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{tipoSubsidioBean.tipoSubsidio.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{tipoSubsidioBean.tipoSubsidio.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

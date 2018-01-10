@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte} #{msgs.lbl_rubro_empleado} #{msgs.lbl_empleado}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteRubroEmpleadoBean}" />
+					<ui:param name="objetoActualizar" value="txtEmpleado" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteRubroEmpleadoBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+
+
+				<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_rubro}" widgetVar="dialogRubro" modal="true" height="400" width="840" showEffect="slide"
+					hideEffect="slide">
+					<p:outputPanel id="panelRubro">
+						<h:panelGrid>
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRubro" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteRubroEmpleadoBean.listaRubro}"
+								var="_rubro" binding="#{reporteRubroEmpleadoBean.dtRubro}" paginator="true" paginatorPosition="bottom" style="width:100%" rows="10"
+								selection="#{reporteRubroEmpleadoBean.rubrosSeleccionados}" rowKey="#{_rubro.idRubro}" sortOrder="ASCENDING" sortBy="#{_rubro.codigo}">
+
+								<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_rubro.codigo}" filterBy="#{_rubro.codigo}" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_rubro.codigo}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_rubro.nombre}" filterBy="#{_rubro.nombre}" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_rubro.nombre}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTNombreCorto">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_tipo_rubro}" />
+									</f:facet>
+									<h:outputText value="#{_rubro.tipoRubro.nombre}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_rubro.operacion}" headerText="#{msgs.lbl_operacion}">
+									<h:outputText value="#{_rubro.operacion==1 ? msgs.lbl_ingreso_inventario : msgs.lbl_egreso_inventario}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTActivo">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_indicador_provision}" />
+									</f:facet>
+									<p:selectBooleanCheckbox value="#{_rubro.indicadorImpresionSobre}" disabled="true" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTActivo">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_indicador_calculo_iess}" />
+									</f:facet>
+									<p:selectBooleanCheckbox value="#{_rubro.indicadorCalculoIESS}" disabled="true" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_activo}">
+									<center>
+										<p:selectBooleanCheckbox value="#{_rubro.activo}" disabled="true" />
+									</center>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+									<h:outputText value="#{_rubro.descripcion}" />
+								</p:column>
+
+								<p:column selectionMode="multiple" style="width:18px" />
+
+							</p:dataTable>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_seleccionar}" process="@this, :form:panelRubro" icon="ui-icon-plus" onclick="dialogRubro.hide()" />
+
+							<p:commandButton value="#{msgs.lbl_limpiar}" action="#{reporteRubroEmpleadoBean.limpiarRubro}" update=":form:panelRubro"
+								process="@this, :form:panelRubro" />
+
+							<p:commandButton value="#{msgs.btn_cancelar}" process="@this, :form:panelRubro" onclick="dialogRubro.hide()" />
+
+						</center>
+					</f:facet>
+
+				</p:dialog>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteRubroEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_rol} #{msgs.lbl_desde}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteRubroEmpleadoBean.pagoRolDesde}" id="cboPagoRolDesde" required="true">
+								<f:selectItems value="#{reporteRubroEmpleadoBean.listaPagoRolDesde}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha_rol} #{msgs.lbl_hasta}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteRubroEmpleadoBean.pagoRolHasta}" id="cboPagoRolHasta" required="true">
+								<f:selectItems value="#{reporteRubroEmpleadoBean.listaPagoRolHasta}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteRubroEmpleadoBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteRubroEmpleadoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteRubroEmpleadoBean.departamento}" id="cboDepartamento">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteRubroEmpleadoBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show()" update="panelListaEmpleado">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado" value="#{reporteRubroEmpleadoBean.empleado.apellidos} #{reporteRubroEmpleadoBean.empleado.nombres}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_rubro}:" />
+							<p:commandButton value="..." process="@this" oncomplete="dialogRubro.show();" update=":form:panelListaEmpleado">
+							</p:commandButton>
+
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteRubroEmpleadoBean.movimiento}" id="cboMovimiento">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItem itemLabel="#{msgs.lbl_ingreso_inventario}" itemValue="1" />
+								<f:selectItem itemLabel="#{msgs.lbl_egreso_inventario}" itemValue="-1" />
+							</p:selectOneMenu>
+
+							<h:outputText value="Por #{msgs.lbl_empresa_indicador_empleado}:" />
+							<p:selectBooleanCheckbox value="#{reporteRubroEmpleadoBean.indicadorRubroEmpleado}" />
+
+							<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteRubroEmpleadoBean.categoriaEmpresa}"
+								id="cboCategoriaEmpresa">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems
+									value="#{reporteRubroEmpleadoBean.listaCategoriaEmpresa}"
+									var="_categoriaEmpresa"
+									itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value=" #{msgs.lbl_indicador_provision}:" />
+							<p:selectBooleanCheckbox value="#{reporteRubroEmpleadoBean.indicadorRubroProvisionEmpleado}" />
+
+							<h:outputText value="#{msgs.lbl_tipo} #{msgs.lbl_reporte}:" />
+							<p:selectOneMenu value="#{reporteRubroEmpleadoBean.tipoReporte}" required="true" id="cboTipoReporte">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteRubroEmpleadoBean.listaItems}" var="_tipoReporte" itemLabel="#{_tipoReporte.label}"
+									itemValue="#{_tipoReporte.value}">
+								</f:selectItems>
+							</p:selectOneMenu>
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this, panelFiltros" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

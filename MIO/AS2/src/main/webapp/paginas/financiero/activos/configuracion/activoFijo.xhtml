@@ -1,0 +1,737 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{activoFijoBean}">
+					<as2:buttonEliminar bean="#{activoFijoBean}" />
+					<as2:buttonExportaExcel bean="#{activoFijoBean}" tabla=":form:tablaActivoFijo" />
+					<as2:buttonImprimir bean="#{activoFijoBean}" beanReporte="#{reporteActivoFijoBean}" value="#{activoFijoBean.activoFijo}"
+						target="#{reporteActivoFijoBean.activoFijo}" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProducto.xhtml">
+					<ui:param name="bean" value="#{activoFijoBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtProducto" />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+				</ui:include>
+
+				<!-- Inicio Dialog Detalle depreciacion Activo Fijo -->
+
+				<p:dialog header="#{msgs.lbl_detalle_depreciacion}" widgetVar="detalleDepreciacionDialog" id="detalleDepreciacionDialog" modal="true" height="500"
+					width="500" showEffect="slide" hideEffect="slide">
+
+					<p:outputPanel id="panelDetalleDepreciacion">
+
+						<h:panelGrid columns="1" id="panelGridDetalleDepreciacion">
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleDepreciacion" rowIndexVar="secuencial"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{activoFijoBean.listaDetalleDepreciacion}" var="_detalleDepreciacion"
+								binding="#{activoFijoBean.dtDetalleDepreciacion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{activoFijoBean.numeroFilas}" rowsPerPageTemplate="#{activoFijoBean.numeroFilasPorPagina}" rowKey="#{_detalleDepreciacion.id}">
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column sortBy="#{_detalleDepreciacion.traCadenaMes}" filterBy="#{_detalleDepreciacion.traCadenaMes}" filterMatchMode="contains"
+									styleClass="tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_mes}" />
+									</f:facet>
+									<h:outputText value="#{_detalleDepreciacion.traCadenaMes}" />
+								</p:column>
+
+								<p:column sortBy="#{_detalleDepreciacion.anio}" filterBy="#{_detalleDepreciacion.anio}" filterMatchMode="contains"
+									styleClass="columnaDTCodigo tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_anio}" />
+									</f:facet>
+									<h:outputText value="#{_detalleDepreciacion.anio}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor}" style="text-align:right" sortBy="#{_detalleDepreciacion.valor}"
+									styleClass="columnaDTValorGrande tableCell">
+									<h:outputText style="text-align:right" value="#{_detalleDepreciacion.valor}" id="txtValorDepreciacion">
+									</h:outputText>
+								</p:column>
+
+								<p:columnGroup type="footer" id="panelTotal">
+									<p:row>
+										<p:column colspan="3" footerText="#{msgs.lbl_total}:" style="text-align:right">
+										</p:column>
+										<p:column footerText="#{activoFijoBean.totalDepreciacion}" style="text-align:right" id="txtTotal" />
+									</p:row>
+								</p:columnGroup>
+
+							</p:dataTable>
+
+						</h:panelGrid>
+
+					</p:outputPanel>
+
+				</p:dialog>
+
+				<!-- Fin Dialog Detalle depreciacion Activo Fijo -->
+
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_activo_fijo} )" rendered="#{activoFijoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{activoFijoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_codigo_barras}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.codigoBarras}" id="txtCodigoBarras">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_activo_fijo_principal}:" />
+								<!--<p:selectOneMenu styleClass="input-text" value="#{activoFijoBean.activoPrincipal}" id="cboActivoFijoPrincipal" required="false"
+									disabled="#{activoFijoBean.activoFijo.traEsEditable}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{activoFijoBean.listaActivoFijoPrincipal}" var="_activoFijoPrincipal" itemLabel="#{_activoFijoPrincipal.nombre}"
+										itemValue="#{_activoFijoPrincipal}" />
+								</p:selectOneMenu>-->
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoAFT" value="#{activoFijoBean.activoPrincipal}"
+									completeMethod="#{activoFijoBean.autocompletarAFT}" var="_activoFijoPrincipal" itemLabel="#{_activoFijoPrincipal.nombre}"
+									itemValue="#{_activoFijoPrincipal}" forceSelection="true" minQueryLength="2" effect="blind">
+
+								</p:autoComplete>
+
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="cboCategoriaActivo" value="#{msgs.lbl_categoria_activo}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{activoFijoBean.activoFijo.categoriaActivo}" id="cboCategoriaActivo" required="true"
+									disabled="#{activoFijoBean.activoFijo.traEsEditable}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{activoFijoBean.listaCategoriaActivo}" var="_categoriaActivo" itemLabel="#{_categoriaActivo.nombre}"
+										itemValue="#{_categoriaActivo}" />
+									<p:ajax update="@this :form:cboSubcategoriaActivo" event="change" listener="#{activoFijoBean.actualizarCategoriaActivo}" process="@this"
+										global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboSubcategoriaActivo" value="#{msgs.lbl_subcategoria_activos}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{activoFijoBean.activoFijo.subcategoriaActivo}" id="cboSubcategoriaActivo" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{activoFijoBean.activoFijo.categoriaActivo.listaSubcategoriaActivo}" var="_subcategoriaActivo"
+										itemLabel="#{_subcategoriaActivo.codigo} #{_subcategoriaActivo.nombre}" itemValue="#{_subcategoriaActivo}" />
+									<p:ajax update="@this" event="change" process="@this" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{activoFijoBean.activoFijo.sucursal}" id="cboSucursal">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{activoFijoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboDepartamento" value="#{msgs.lbl_departamento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{activoFijoBean.activoFijo.departamento}" id="cboDepartamento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{activoFijoBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+										itemValue="#{_departamento}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_producto}:" rendered="false" />
+								<h:panelGroup rendered="false">
+									<p:commandButton value="..." process="@this" oncomplete="dglModalProducto.show();" update=":form:panelListaProducto">
+									</p:commandButton>
+									<h:outputText id="txtProducto" value="#{activoFijoBean.activoFijo.producto.nombreComercial}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_numero_parte}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.numeroParte}" id="txtNumeroParte">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_numero_serie}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.numeroSerie}" id="txtNumeroSerie">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="calFechaFacturaProveedor" value="#{msgs.lbl_fecha_factura_proveedor}:" />
+								<p:calendar pattern="#{activoFijoBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{activoFijoBean.activoFijo.fechaFacturaProveedor}" id="calFechaFacturaProveedor" required="true">
+									<f:validateBean />
+								</p:calendar>
+
+								<p:outputLabel for="txtNumeroFacturaProveedor" value="#{msgs.lbl_factura_proveedor}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.numeroFacturaProveedor}" id="txtNumeroFacturaProveedor">
+
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_activo}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.valorActivo}" id="txtValorActivo" required="true"
+									disabled="#{activoFijoBean.activoFijo.traEsEditable}">
+									<p:ajax process="@this" event="change" global="false" listener="#{activoFijoBean.generarDepreciacion}"
+										update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_compra_relacionada}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.valorCompraRelacionada}" id="txtValorCompraRelacionada"
+									required="true" disabled="#{activoFijoBean.activoFijo.traEsEditable}">
+									<p:ajax process="@this" event="change" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_adicional}:" />
+								<p:inputText styleClass="input-text" value="#{activoFijoBean.activoFijo.valorAdicional}" id="txtValorAdicional" required="true"
+									disabled="#{activoFijoBean.activoFijo.traEsEditable}">
+									<p:ajax process="@this" event="change" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{activoFijoBean.activoFijo.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_imagen}" />
+								<p:graphicImage value="/images/dynamic/?file=#{activoFijoBean.activoFijo.imagen}" width="10%" height="10%" id="imgProducto" />
+
+								<h:outputText value="#{msgs.lbl_depreciar}:" />
+								<p:selectBooleanCheckbox id="chkIndicadorDepreciacion" value="#{activoFijoBean.activoFijo.indicadorDepreciar}"
+									disabled="#{activoFijoBean.activoFijo.id > 0}">
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectBooleanCheckbox>
+
+								<p:outputLabel for="calFechaInicioDepreciacion" value="#{msgs.lbl_fecha_inicio_depreciacion}:" />
+								<p:calendar pattern="#{activoFijoBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{activoFijoBean.activoFijo.traFechaInicioDepreciacion}" id="calFechaInicioDepreciacion" required="#{activoFijoBean.activoFijo.indicadorDepreciar}">
+									<f:validateBean />
+									<p:ajax process="@this" event="change" global="false" listener="#{activoFijoBean.generarDepreciacion}"
+										update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+									<p:ajax process="@this" event="dateSelect" global="false" listener="#{activoFijoBean.dateSelect}"
+										update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_centro_costo}:" />
+								<p:outputPanel id="panelCentroCosto">
+									<as2:autoCompletarCentroCosto value="#{activoFijoBean.activoFijo.centroCosto}" />
+								</p:outputPanel>
+
+							</h:panelGrid>
+
+							<p:fileUpload fileUploadListener="#{activoFijoBean.processUpload}" mode="advanced" update=":form:imgProducto" auto="true" sizeLimit="1000000"
+								allowTypes="/(\.|\/)(gif|jpe?g|png)$/" label="#{msgs.btn_examinar}" process="@this" />
+
+						</p:fieldset>
+
+
+
+						<p:fieldset>
+
+							<p:tabView cache="true" dynamic="true" id="tabView">
+								<p:tab title="#{msgs.lbl_depreciacion_fiscal}" id="tabDepreciacionFiscal">
+									<p:outputPanel id="panelDepreciacionFiscal" autoUpdate="true">
+
+										<h:panelGrid columns="1" id="panelGridDepreciacionFiscal">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{activoFijoBean.listaDepreciacionFiscal}" id="tablaDepreciacionFiscal"
+												rowIndexVar="secuencial" binding="#{activoFijoBean.dtDepreciacionFiscal}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_depreciacion"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_depreciacion.id}" rows="#{activoFijoBean.numeroFilas}"
+												rowsPerPageTemplate="#{activoFijoBean.numeroFilasPorPagina}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_activo}" />
+													</f:facet>
+													<h:outputText styleClass="input-text" value="#{_depreciacion.valorActivo}" id="txtValorActivoDepreciacionFiscal">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_depreciado}" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_depreciacion.valorDepreciado}" id="txtValorDepreciado" required="true"
+														disabled="#{activoFijoBean.activoFijo.traEsEditable}">
+														<p:ajax process="@this" global="false" event="change" listener="#{activoFijoBean.generarDepreciacion}"
+															update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_fecha_inicio}" />
+													</f:facet>
+													<h:outputText value="#{_depreciacion.fechaInicioDepreciacion}">
+														<f:convertDateTime pattern="#{activoFijoBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_fecha_fin}" />
+													</f:facet>
+
+													<h:outputText value="#{_depreciacion.fechaFinDepreciacion}">
+														<f:convertDateTime pattern="#{activoFijoBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_residual}" />
+													</f:facet>
+													<h:panelGroup rendered="#{_depreciacion.traEsEditable}">
+														<p:inputText styleClass="input-text" value="#{_depreciacion.valorResidual}" id="txtValorResidualFiscal" required="true">
+															<p:ajax process="@this" event="change" global="false" listener="#{activoFijoBean.generarDepreciacion}"
+																update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+															<f:validateBean />
+														</p:inputText>
+													</h:panelGroup>
+													<h:panelGroup rendered="#{!_depreciacion.traEsEditable}">
+														<h:outputText styleClass="input-text" value="#{_depreciacion.valorResidual}">
+														</h:outputText>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigo tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_vida_util} (#{msgs.lbl_meses})" />
+													</f:facet>
+													<h:panelGroup>
+														<h:panelGroup rendered="#{_depreciacion.traEsEditable}">
+															<p:inputText styleClass="input-text" value="#{_depreciacion.vidaUtil}" id="txtVidaUtilFiscal" required="true">
+																<p:ajax process="@this" event="change" listener="#{activoFijoBean.generarDepreciacion}" global="false"
+																	update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+																<f:validateBean />
+															</p:inputText>
+														</h:panelGroup>
+														<h:panelGroup rendered="#{!_depreciacion.traEsEditable}">
+															<h:outputText styleClass="input-text" value="#{_depreciacion.vidaUtil}">
+															</h:outputText>
+														</h:panelGroup>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_vida_util} (#{msgs.lbl_informativo})" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_depreciacion.vidaUtilInformativa}" id="txtValorUtilFiscalInformativo">
+													</p:inputText>
+												</p:column>
+												
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_a_depreciar}" />
+													</f:facet>
+													<h:outputText styleClass="input-text" value="#{_depreciacion.valorADepreciar}" id="txtValorADepreciarFiscal">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell">
+													<p:commandLink title="#{msgs.lbl_generar_detalle_depreciacion}" process="@this"
+														action="#{activoFijoBean.generarListaDetalleDepreciacionFiscal}" oncomplete="detalleDepreciacionDialog.show();"
+														update=":form:panelDetalleDepreciacion">
+														<h:graphicImage library="images" name="preview.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+												</p:column>
+
+												<p:column styleClass="tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_descripcion}" />
+													</f:facet>
+													<h:panelGroup rendered="#{_depreciacion.traEsEditable}">
+														<p:inputText styleClass="input-text" value="#{_depreciacion.descripcion}" id="txtDescripcionFiscal">
+															<f:validateBean />
+														</p:inputText>
+														<p:message for="txtDescripcionFiscal" />
+													</h:panelGroup>
+													<h:panelGroup rendered="#{!_depreciacion.traEsEditable}">
+														<h:outputFormat styleClass="input-text" value="#{_depreciacion.descripcion}">
+														</h:outputFormat>
+													</h:panelGroup>
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+
+								<p:tab title="#{msgs.lbl_depreciacion_NIIF}" id="tabDepreciacionNIIF">
+									<p:outputPanel id="panelDepreciacionNIIF" autoUpdate="true">
+
+										<h:panelGrid columns="1" id="panelGridDepreciacionNIIF">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{activoFijoBean.listaDepreciacionNIIF}" id="tablaDepreciacionNIIF"
+												rowIndexVar="secuencial" binding="#{activoFijoBean.dtDepreciacionNIIF}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_depreciacion"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_depreciacion.id}" rows="#{activoFijoBean.numeroFilas}"
+												rowsPerPageTemplate="#{activoFijoBean.numeroFilasPorPagina}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_activo}" />
+													</f:facet>
+													<h:outputText styleClass="input-text" value="#{_depreciacion.valorActivo}" id="txtValorActivoDepreciacionNIIF">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_depreciado}" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_depreciacion.valorDepreciado}" id="txtValorDepreciado" required="true"
+														disabled="#{activoFijoBean.activoFijo.traEsEditable}">
+														<p:ajax process="@this" global="false" event="change" listener="#{activoFijoBean.generarDepreciacion}"
+															update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_fecha_inicio}" />
+													</f:facet>
+													<h:panelGroup rendered="true">
+														<h:outputText value="#{_depreciacion.fechaInicioDepreciacion}">
+															<f:convertDateTime pattern="#{activoFijoBean.formatoFecha}" />
+														</h:outputText>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_fecha_fin}" />
+													</f:facet>
+
+													<h:outputText value="#{_depreciacion.fechaFinDepreciacion}">
+														<f:convertDateTime pattern="#{activoFijoBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_residual}" />
+													</f:facet>
+													<h:panelGroup>
+														<h:panelGroup rendered="#{_depreciacion.traEsEditable}">
+															<p:inputText styleClass="input-text" value="#{_depreciacion.valorResidual}" id="txtValorResidualNIIF" required="true">
+																<p:ajax process="@this" event="change" global="false" listener="#{activoFijoBean.generarDepreciacion}"
+																	update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+																<f:validateBean />
+															</p:inputText>
+															<p:message for="txtValorResidualNIIF" />
+														</h:panelGroup>
+														<h:panelGroup rendered="#{!_depreciacion.traEsEditable}">
+															<h:outputText styleClass="input-text" value="#{_depreciacion.valorResidual}">
+															</h:outputText>
+														</h:panelGroup>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigo tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_vida_util} (#{msgs.lbl_meses})" />
+													</f:facet>
+													<h:panelGroup>
+														<h:panelGroup rendered="#{_depreciacion.traEsEditable}">
+															<p:inputText styleClass="input-text" value="#{_depreciacion.vidaUtil}" id="txtVidaUtilNIIF" required="true">
+																<p:ajax process="@this" event="change" global="false" listener="#{activoFijoBean.generarDepreciacion}"
+																	update=":form:tabView:panelDepreciacionFiscal :form:tabView:panelDepreciacionNIIF" />
+																<f:validateBean />
+															</p:inputText>
+															<p:message for="txtVidaUtilNIIF" />
+														</h:panelGroup>
+														<h:panelGroup rendered="#{!_depreciacion.traEsEditable}">
+															<h:outputText styleClass="input-text" value="#{_depreciacion.vidaUtil}">
+															</h:outputText>
+															<p:message for="txtVidaUtilNIIF" />
+														</h:panelGroup>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_vida_util} (#{msgs.lbl_informativo})" />
+													</f:facet>
+													<p:inputText styleClass="input-text" value="#{_depreciacion.vidaUtilInformativa}" id="txtValorUtilNIIFInformativo">
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTValorGrande tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_valor_a_depreciar}" />
+													</f:facet>
+													<h:panelGroup>
+														<h:outputText styleClass="input-text" value="#{_depreciacion.valorADepreciar}" id="txtValorADepreciarNIIF">
+														</h:outputText>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell">
+													<p:commandLink title="#{msgs.lbl_generar_detalle_depreciacion}" process="@this"
+														action="#{activoFijoBean.generarListaDetalleDepreciacionNIIF}" oncomplete="detalleDepreciacionDialog.show();"
+														update=":form:panelDetalleDepreciacion">
+														<h:graphicImage library="images" name="preview.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+												</p:column>
+
+												<p:column styleClass="tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_descripcion}" />
+													</f:facet>
+													<h:panelGroup>
+														<h:panelGroup rendered="#{_depreciacion.traEsEditable}">
+															<p:inputText styleClass="input-text" value="#{_depreciacion.descripcion}" id="txtDescripcionNIIF">
+																<f:validateBean />
+															</p:inputText>
+															<p:message for="txtDescripcionNIIF" />
+														</h:panelGroup>
+														<h:panelGroup rendered="#{!_depreciacion.traEsEditable}">
+															<h:outputFormat styleClass="input-text" value="#{_depreciacion.descripcion}">
+															</h:outputFormat>
+														</h:panelGroup>
+													</h:panelGroup>
+												</p:column>
+
+											</p:dataTable>
+										</h:panelGrid>
+
+									</p:outputPanel>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_panel_listado} #{msgs.lbl_activos_relacionados}">
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{activoFijoBean.listaActivoFijoRelacionado}"
+										id="tablaActivoFijoRelacionado" rowIndexVar="secuencial" binding="#{activoFijoBean.dtActivoFijoRelacionado}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_activoFijoRelacionado" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_activoFijoRelacionado.id}" rows="#{activoFijoBean.numeroFilas}" rowsPerPageTemplate="#{activoFijoBean.numeroFilasPorPagina}">
+
+										<p:column styleClass="columnaDTCodigo tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_codigo}" />
+											</f:facet>
+											<h:outputText value="#{_activoFijoRelacionado.codigo}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_nombre}" />
+											</f:facet>
+											<h:outputText value="#{_activoFijoRelacionado.nombre}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_numero_serie}" />
+											</f:facet>
+											<h:outputText value="#{_activoFijoRelacionado.numeroSerie}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNumeroFactura tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_factura_proveedor}" />
+											</f:facet>
+											<h:outputText value="#{_activoFijoRelacionado.numeroFacturaProveedor}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTFecha tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_fecha_factura_proveedor}" />
+											</f:facet>
+											<h:outputText value="#{_activoFijoRelacionado.fechaFacturaProveedor}">
+												<f:convertDateTime pattern="#{activoFijoBean.formatoFecha}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_valor_activo}" />
+											</f:facet>
+											<h:outputText value="#{_activoFijoRelacionado.valorActivo}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValorGrande tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_valor_depreciado}" />
+											</f:facet>
+											<h:outputText value="#{_activoFijoRelacionado.valorDepreciado}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+											<h:outputText value="#{_activoFijoRelacionado.descripcion}" />
+										</p:column>
+
+									</p:dataTable>
+
+								</p:tab>
+
+							</p:tabView>
+
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_activo_fijo} )" rendered="#{!activoFijoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaActivoFijo" rowIndexVar="secuencialActivoFijo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{activoFijoBean.listaActivoFijo}" var="_activoFijo" binding="#{activoFijoBean.dtActivoFijo}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{activoFijoBean.numeroFilas}"
+							rowsPerPageTemplate="#{activoFijoBean.numeroFilasPorPagina}" selection="#{activoFijoBean.activoFijo}" selectionMode="single"
+							rowKey="#{_activoFijo.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialActivoFijo+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.codigo}" filterBy="#{_activoFijo.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.nombre}" filterBy="#{_activoFijo.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.categoriaActivo.nombre}" filterBy="#{_activoFijo.categoriaActivo.nombre}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_categoria_activo}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.categoriaActivo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.subcategoriaActivo.nombre}" filterBy="#{_activoFijo.subcategoriaActivo.nombre}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subcategoria_activos}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.subcategoriaActivo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.numeroSerie}" filterBy="#{_activoFijo.numeroSerie}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_serie}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.numeroSerie}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.numeroFacturaProveedor}" filterBy="#{_activoFijo.numeroFacturaProveedor}"
+								styleClass="columnaDTNumeroFactura tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_factura}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.numeroFacturaProveedor}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.fechaFacturaProveedor}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.fechaFacturaProveedor}">
+									<f:convertDateTime pattern="#{activoFijoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.valorActivo}" styleClass="input-text-number columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_activo}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.valorActivo}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.valorDepreciado}" styleClass="input-text-number columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_depreciado}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.valorDepreciado}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.custodioActivoFijo.ubicacionActivo.sucursal.nombre}"
+								filterBy="#{_activoFijo.custodioActivoFijo.ubicacionActivo.sucursal.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.custodioActivoFijo.ubicacionActivo.sucursal.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.custodioActivoFijo.empleado.empresa.nombreComercial}"
+								filterBy="#{_activoFijo.custodioActivoFijo.empleado.empresa.nombreComercial}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_responsable}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.custodioActivoFijo.empleado.empresa.nombreComercial}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.custodioActivoFijo.ubicacionActivo.departamento.nombre}"
+								filterBy="#{_activoFijo.custodioActivoFijo.ubicacionActivo.departamento.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_departamento}" />
+								</f:facet>
+								<h:outputText value="#{_activoFijo.custodioActivoFijo.ubicacionActivo.departamento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_activoFijo.indicadorDepreciar}" filterBy="#{_activoFijo.indicadorDepreciar}" styleClass="columnaDTNombre tableCell"
+								filterOptions="#{activoFijoBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_depreciar}" />
+								</f:facet>
+								<h:selectBooleanCheckbox value="#{_activoFijo.indicadorDepreciar}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<as2:inputTextNota value="#{_activoFijo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{activoFijoBean.activoFijo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{activoFijoBean.activoFijo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{activoFijoBean.activoFijo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{activoFijoBean.activoFijo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

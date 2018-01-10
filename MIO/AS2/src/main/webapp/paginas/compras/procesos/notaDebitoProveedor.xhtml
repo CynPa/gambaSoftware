@@ -1,0 +1,676 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define enctype="multipart/form-data" name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{notaDebitoProveedorBean}" />
+					<ui:param name="tabla" value="tablaFacturaProveedor" />
+					<ui:param name="btnAnular" value="true" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="btnCopiar" value="true" />
+					<ui:param name="btnEmitirRetencion" value="true" />
+					<ui:param name="btnImprimirRetencion" value="true" />
+					<ui:param name="columnasAExcluir" value="14" />
+					<ui:param name="columnasAExcluirPdf" value="14" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<as2:panelEliminar bean="#{notaDebitoProveedorBean}"
+					action="eliminar" id="confirmacionEliminar">
+					<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+					<h:outputText
+						value="#{notaDebitoProveedorBean.facturaProveedor.numero}" />
+
+					<h:outputText value="#{msgs.lbl_proveedor}:" />
+					<h:outputText
+						value="#{notaDebitoProveedorBean.facturaProveedor.empresa.nombreComercial}" />
+
+					<h:outputText value="#{msgs.lbl_valor}:" />
+					<h:outputText
+						value="#{notaDebitoProveedorBean.facturaProveedor.totalFactura}" />
+				</as2:panelEliminar>
+
+				<p:spacer />
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{notaDebitoProveedorBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{notaDebitoProveedorBean}" />
+							<ui:param name="objetoActualizar" value="panelDetalleFactura" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera"
+								columns="#{notaDebitoProveedorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}" />
+								<p:outputPanel autoUpdate="true">
+									<h:panelGroup>
+										<p:selectOneMenu styleClass="input-text"
+											value="#{notaDebitoProveedorBean.facturaProveedor.documento.idDocumento}"
+											id="cboDocumento" required="true">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems
+												value="#{notaDebitoProveedorBean.listaDocumentoFactura}"
+												var="_documento" itemLabel="#{_documento.nombre}"
+												itemValue="#{_documento.idDocumento}" />
+											<f:validateBean />
+											<p:ajax process="@this,calFecha"
+												update="txtNumero,panelCabeceraFacturaSRI" event="change"
+												global="false"
+												listener="#{notaDebitoProveedorBean.actualizarDocumento}" />
+										</p:selectOneMenu>
+										<p:message for="cboDocumento" />
+									</h:panelGroup>
+								</p:outputPanel>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<h:panelGroup>
+									<p:inputMask styleClass="input-text"
+										value="#{notaDebitoProveedorBean.facturaProveedor.numero}"
+										id="txtNumero"
+										mask="#{notaDebitoProveedorBean.facturaProveedor.documento.secuencia.patron}"
+										disabled="#{!notaDebitoProveedorBean.secuenciaEditable}">
+										<f:validateBean />
+									</p:inputMask>
+									<p:message for="txtNumero" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_fecha_registro}:" />
+								<h:panelGroup>
+									<p:calendar pattern="#{notaDebitoProveedorBean.formatoFecha}"
+										showOn="button" navigator="true"
+										value="#{notaDebitoProveedorBean.facturaProveedor.fecha}"
+										id="calFecha" required="true">
+										<p:ajax listener="#{notaDebitoProveedorBean.dateSelect}"
+											process="@this,cboCondicionPago,txtNumeroCuotas,autProveedor"
+											event="dateSelect" global="false"
+											update="panelCuentasPorPagar" />
+										<p:ajax
+											listener="#{notaDebitoProveedorBean.cargarCuentaPorPagar}"
+											process="@this,cboCondicionPago,txtNumeroCuotas,autProveedor"
+											event="change" global="false" update="panelCuentasPorPagar" />
+									</p:calendar>
+									<p:message for="calFecha" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_factura_proveedor_bono}:" />
+								<h:panelGroup>
+									<p:inputText id="txtBono"
+										value="#{notaDebitoProveedorBean.facturaProveedor.bono}">
+										<f:validateBean for="txtBono" />
+									</p:inputText>
+									<p:message for="txtBono" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_proveedor}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+									value="#{notaDebitoProveedorBean.facturaProveedor.empresa}"
+									completeMethod="#{notaDebitoProveedorBean.autocompletarProveedores}"
+									var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+									itemValue="#{_proveedor}" forceSelection="true" dropdown="true"
+									minQueryLength="2" id="autProveedor"
+									disabled="#{not empty notaDebitoProveedorBean.facturaProveedor.recepcionProveedor}">
+
+									<p:column>#{_proveedor.identificacion}</p:column>
+									<p:column>#{_proveedor.nombreFiscal}</p:column>
+									<p:column>#{_proveedor.nombreComercial}</p:column>
+
+									<p:ajax
+										listener="#{notaDebitoProveedorBean.actualizarProveedorListener}"
+										process="@this,calFecha" event="itemSelect" global="false"
+										update="cboDireccionProveedor,txtAutorizacion,lblSaldoAnticiposProveedor,cboCondicionPago,txtNumeroCuotas,cboPedido" />
+									<p:message for="autProveedor" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_direccion}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text"
+										value="#{notaDebitoProveedorBean.facturaProveedor.direccionEmpresa}"
+										id="cboDireccionProveedor" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:validateBean />
+										<f:selectItems
+											value="#{notaDebitoProveedorBean.listaDireccionEmpresa}"
+											var="_dir" itemValue="#{_dir}"
+											itemLabel="#{_dir.direccionCompleta}" />
+									</p:selectOneMenu>
+									<p:message for="cboDireccionProveedor" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_condicion_pago}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text"
+										value="#{notaDebitoProveedorBean.facturaProveedor.condicionPago}"
+										id="cboCondicionPago" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems
+											value="#{notaDebitoProveedorBean.listaCondicionPago}"
+											var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+											itemValue="#{_condicionPago}" />
+										<f:validateBean />
+										<p:ajax
+											listener="#{notaDebitoProveedorBean.cargarCuentaPorPagar}"
+											process="@this,txtNumeroCuotas,calFecha" event="change"
+											global="false" update="panelCuentasPorPagar" />
+									</p:selectOneMenu>
+									<p:message for="cboCondicionPago" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_numero_cuotas}:" />
+								<h:panelGroup>
+									<p:inputText styleClass="input-text"
+										value="#{notaDebitoProveedorBean.facturaProveedor.numeroCuotas}"
+										id="txtNumeroCuotas">
+										<f:validateBean />
+										<p:ajax
+											listener="#{notaDebitoProveedorBean.cargarCuentaPorPagar}"
+											process="@this,cboCondicionPago,calFecha" event="change"
+											global="false" update="panelCuentasPorPagar" />
+									</p:inputText>
+									<p:message for="txtNumeroCuotas" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_factura}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoFactura"
+									value="#{notaDebitoProveedorBean.facturaProveedor.facturaProveedorPadre}"
+									completeMethod="#{notaDebitoProveedorBean.autocompletarFacturas}"
+									var="_factura" itemLabel="#{_factura.numero}"
+									itemValue="#{_factura}" forceSelection="true" dropdown="true"
+									minQueryLength="2" required="true">
+
+									<p:column>
+										<h:outputText value="#{_factura.numero}" />
+									</p:column>
+
+									<p:column>
+										<h:outputText value=" #{_factura.fecha}">
+											<f:convertDateTime
+												pattern="#{notaDebitoClienteBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:message for="autoFactura" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<h:panelGroup>
+									<p:inputTextarea styleClass="input-text"
+										value="#{notaDebitoProveedorBean.facturaProveedor.descripcion}"
+										id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+									<p:message for="txtDescripcion" />
+								</h:panelGroup>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:outputPanel id="panelDetalleFacturaProveedor">
+
+							<p:tabView cache="true">
+
+								<p:ajax event="tabChange"
+									update="panelContabilidad,panelDetalleGasto" global="false" />
+
+								<p:tab title="#{msgs.lbl_detalle_factura}"
+									id="tabDetalleFactura">
+
+									<h:panelGrid columns="1" width="100%">
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}"
+												id="btnAgregarDetalle"
+												action="#{notaDebitoProveedorBean.agregarDetalle}"
+												update="panelDetalleFactura"
+												process="@this,panelDetalleFactura" icon="ui-icon-plus" />
+
+											<p:commandButton value="#{msgs.lbl_listar_producto}"
+												icon="ui-icon-plus" onclick="dglModalProducto.show();"
+												type="button" />
+										</h:panelGroup>
+
+										<p:outputPanel id="panelDetalleFactura">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{notaDebitoProveedorBean.listaDetalleFacturaProveedor}"
+												id="tablaDetalleFacturaProveedor" rowIndexVar="secuencial"
+												binding="#{notaDebitoProveedorBean.dtDetalleFacturaProveedor}"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_detalleFacturaProveedor" paginator="true"
+												paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detalleFacturaProveedor.id}"
+												rows="#{notaDebitoProveedorBean.numeroFilas}"
+												columnClasses="rowIndex">
+
+												<p:column headerText="No">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_codigo_producto}">
+													<p:inputText id="txtCodigoProducto"
+														value="#{_detalleFacturaProveedor.producto.codigo}"
+														rendered="#{empty _detalleFacturaProveedor.detalleRecepcionProveedor and empty _detalleFacturaProveedor.detallePedidoProveedor}">
+														<p:ajax
+															listener="#{notaDebitoProveedorBean.actualizarProductoListener}"
+															process="@this" event="change" global="false"
+															update="#{p:component('panelDetalleFactura')}"
+															oncomplete="nextFocus('#{p:component('txtCantidad')}')" />
+														<f:validateBean for="txtCodigoProducto" />
+													</p:inputText>
+													<p:message for="txtCodigoProducto" />
+
+													<h:outputText
+														value="#{_detalleFacturaProveedor.producto.codigo}"
+														rendered="#{not empty _detalleFacturaProveedor.detalleRecepcionProveedor or not empty _detalleFacturaProveedor.detallePedidoProveedor}" />
+
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre_producto}">
+													<h:outputText
+														value="#{_detalleFacturaProveedor.producto.nombre}"
+														id="txtNombreProducto" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_unidad_compra}">
+													<h:outputText
+														value="#{_detalleFacturaProveedor.unidadCompra.nombre}"
+														id="txtUnidadCompraProducto" />
+												</p:column>
+
+												<p:column
+													headerText="#{msgs.lbl_producto_indicador_impuestos}">
+													<p:selectBooleanCheckbox id="chkIndicadorImpuestos"
+														value="#{_detalleFacturaProveedor.indicadorImpuestos}"
+														disabled="#{empty _detalleFacturaProveedor.producto.categoriaImpuesto}">
+
+														<p:ajax
+															listener="#{notaDebitoProveedorBean.actualizarImpuesto}"
+															process="@this"
+															update="#{p:component('panelDetalleFactura')}"
+															global="false" />
+													</p:selectBooleanCheckbox>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_cantidad}">
+													<p:inputText value="#{_detalleFacturaProveedor.cantidad}"
+														id="txtCantidad"
+														rendered="#{empty _detalleFacturaProveedor.detalleRecepcionProveedor}">
+														<f:validateBean />
+														<p:ajax listener="#{notaDebitoProveedorBean.totalizar}"
+															process="@this txtDescripcion txtMontoIVA txtBaseDiferenteCero txtBaseCero
+														txtMontoICE lblDescuentoLinea"
+															update="#{p:component('panelDetalleFactura')}"
+															event="change" global="false"
+															oncomplete="nextFocus('#{p:component('txtPrecio')}')" />
+													</p:inputText>
+													<p:message for="txtCantidad" />
+
+													<h:outputText value="#{_detalleFacturaProveedor.cantidad}"
+														rendered="#{not empty _detalleFacturaProveedor.detalleRecepcionProveedor}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_precio_unitario}">
+													<p:inputText value="#{_detalleFacturaProveedor.precio}"
+														id="txtPrecio">
+														<f:validateBean />
+														<p:ajax listener="#{notaDebitoProveedorBean.totalizar}"
+															process="@this txtDescripcion txtMontoIVA txtBaseDiferenteCero txtBaseCero
+														txtMontoICE txtValor"
+															update="#{p:component('panelDetalleFactura')}"
+															event="change" global="false"
+															oncomplete="nextFocus('#{p:component('txtDescuento')}')" />
+													</p:inputText>
+													<p:message for="txtPrecio" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_precio_linea}">
+													<h:outputText
+														value="#{_detalleFacturaProveedor.precioLinea}"
+														id="lblPrecioLinea" style="text-align:right" />
+												</p:column>
+
+												<p:column>
+													<h:outputText
+														value="#{not empty _detalleFacturaProveedor.detallePedidoProveedor ? _detalleFacturaProveedor.detallePedidoProveedor.pedidoProveedor.numero : _detalleFacturaProveedor.detalleRecepcionProveedor.recepcionProveedor.numero}" />
+												</p:column>
+
+												<p:column>
+													<p:commandButton id="btnEliminarDetalle"
+														action="#{notaDebitoProveedorBean.eliminarDetalle}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update="#{p:component('panelDetalleFactura')}"
+														process="@this">
+													</p:commandButton>
+												</p:column>
+
+												<p:columnGroup type="footer" id="panelTotal">
+													<p:row>
+														<p:column colspan="7" footerText="#{msgs.lbl_subtotal}:"
+															style="text-align:right">
+														</p:column>
+														<p:column
+															footerText=" #{notaDebitoProveedorBean.facturaProveedor.total}"
+															style="text-align:right" id="txtTotal" />
+														<p:column></p:column>
+														<p:column></p:column>
+													</p:row>
+													<p:row>
+														<p:column colspan="7"
+															footerText="#{msgs.lbl_producto_indicador_impuestos}:"
+															style="text-align:right">
+														</p:column>
+														<p:column
+															footerText=" #{notaDebitoProveedorBean.facturaProveedor.impuesto}"
+															style="text-align:right" id="txtImpuesto" />
+														<p:column></p:column>
+														<p:column></p:column>
+													</p:row>
+													<p:row>
+														<p:column colspan="7" footerText="#{msgs.lbl_total}:"
+															style="text-align:right">
+														</p:column>
+														<p:column
+															footerText="#{notaDebitoProveedorBean.facturaProveedor.totalFactura}"
+															style="text-align:right" id="txtSubtotal" />
+														<p:column></p:column>
+														<p:column></p:column>
+													</p:row>
+												</p:columnGroup>
+
+											</p:dataTable>
+										</p:outputPanel>
+									</h:panelGrid>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_detalle_impuesto}"
+									id="tabImpuestoDetalleFactura">
+
+									<p:outputPanel id="panelImpuestoDetalleFactura"
+										autoUpdate="true" style="width:100%">
+
+										<h:panelGrid columns="1" id="panelImpuestoDetalle"
+											width="100%">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{notaDebitoProveedorBean.listaImpuestoProductoFacturaProveedor}"
+												id="tablaImpuestoDetalleFacturaProveedor"
+												rowIndexVar="secuencial"
+												binding="#{notaDebitoProveedorBean.dtImpuestoDetalleFacturaProveedor}"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_impuestoDetalleFacturaProveedor" paginator="true"
+												paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_impuestoDetalleFacturaProveedor.id}"
+												rows="#{notaDebitoProveedorBean.numeroFilas}"
+												columnClasses="rowIndex">
+
+												<p:column headerText="No">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_codigo_producto}:">
+													<h:outputText
+														value="#{_impuestoDetalleFacturaProveedor.detalleFacturaProveedor.producto.codigo}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre_producto}">
+													<h:outputText
+														value="#{_impuestoDetalleFacturaProveedor.detalleFacturaProveedor.producto.nombreComercial}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre_impuesto}">
+													<h:outputText
+														value="#{_impuestoDetalleFacturaProveedor.impuesto.nombre}"
+														id="txtNombreProductoImpuesto">
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_porcentaje_impuesto}">
+													<h:outputText
+														value="#{_impuestoDetalleFacturaProveedor.porcentajeImpuesto}"
+														id="txtPorcentajeProductoImpuesto"
+														style="text-align:right">
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_base_imponible}">
+													<h:outputText
+														value="#{_impuestoDetalleFacturaProveedor.detalleFacturaProveedor.baseImponible}"
+														id="txtBaseImpuesto" style="text-align:right">
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_valor_impuesto}">
+													<h:outputText
+														value="#{_impuestoDetalleFacturaProveedor.impuestoProducto}"
+														id="txtImpuestoProducto" style="text-align:right">
+													</h:outputText>
+												</p:column>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+
+									</p:outputPanel>
+
+								</p:tab>
+
+							</p:tabView>
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_factura_proveedor}"
+						rendered="#{!notaDebitoProveedorBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturaProveedor" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{notaDebitoProveedorBean.listaFacturaProveedor}"
+							var="_facturaProveedor" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{notaDebitoProveedorBean.numeroFilasPorPagina}"
+							binding="#{notaDebitoProveedorBean.dtFacturaProveedor}"
+							rows="#{notaDebitoProveedorBean.numeroFilas}"
+							selection="#{notaDebitoProveedorBean.facturaProveedor}"
+							selectionMode="single" rowKey="#{_facturaProveedor.id}"
+							columnClasses="rowIndex" sortBy="#{_facturaProveedor.numero}"
+							sortOrder="DESCENDING">
+
+							<p:column headerText="No">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.numero}"
+								filterBy="#{_facturaProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaProveedor.numero}" />
+							</p:column>
+
+							<p:column
+								sortBy="#{_facturaProveedor.facturaProveedorSRI.numero}"
+								filterBy="#{_facturaProveedor.facturaProveedorSRI.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_factura}" />
+								</f:facet>
+								<h:outputText
+									value="#{_facturaProveedor.facturaProveedorSRI.establecimiento}-#{_facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_facturaProveedor.facturaProveedorSRI.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.empresa.nombreFiscal}"
+								filterBy="#{_facturaProveedor.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedor.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.fecha}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaProveedor.fecha}">
+									<f:convertDateTime
+										pattern="#{notaDebitoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.total}"
+								styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaProveedor.total}" />
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.descuento}"
+								styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaProveedor.descuento}" />
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.impuesto}"
+								styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_indicador_impuestos}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaProveedor.impuesto}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaProveedor.totalFactura}" />
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.asiento.numero}"
+								filterBy="#{_facturaProveedor.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true"
+									value="#{_facturaProveedor.asiento.numero}">
+									<f:param name="idAsiento" 
+										value="#{_facturaProveedor.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.recepcionProveedor.numero}"
+								filterBy="#{_facturaProveedor.recepcionProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_recepcion}" />
+								</f:facet>
+
+								<h:link target="_blank"
+									outcome="/paginas/compras/procesos/recepcionProveedor"
+									value="#{_facturaProveedor.recepcionProveedor.numero}"
+									includeViewParams="true">
+									<f:param name="idRecepcionProveedor"
+										value="#{_facturaProveedor.recepcionProveedor.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_facturaProveedor.estado}"
+								filterBy="#{_facturaProveedor.estado}"
+								filterOptions="#{notaDebitoProveedorBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedor.estado.nombre}" />
+							</p:column>
+
+							<p:column
+								sortBy="#{_facturaProveedor.facturaProveedorSRI.indicadorRetencionEmitida}"
+								filterBy="#{_facturaProveedor.facturaProveedorSRI.indicadorRetencionEmitida}"
+								filterOptions="#{notaDebitoProveedorBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText
+										value="#{msgs.lbl_factura_proveedor_indicador_retencion_emitida}" />
+								</f:facet>
+								<h:selectBooleanCheckbox
+									value="#{_facturaProveedor.facturaProveedorSRI.indicadorRetencionEmitida}"
+									disabled="true" />
+							</p:column>
+
+							<p:column filterBy="#{_facturaProveedor.descripcion}"
+								sortBy="#{_facturaProveedor.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_facturaProveedor.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion"
+						value="#{notaDebitoProveedorBean.facturaProveedor.fechaCreacion}" />
+					<ui:param name="usuarioCreacion"
+						value="#{notaDebitoProveedorBean.facturaProveedor.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion"
+						value="#{notaDebitoProveedorBean.facturaProveedor.fechaModificacion}" />
+					<ui:param name="usuarioModificacion"
+						value="#{notaDebitoProveedorBean.facturaProveedor.usuarioModificacion}" />
+
+				</ui:include>
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

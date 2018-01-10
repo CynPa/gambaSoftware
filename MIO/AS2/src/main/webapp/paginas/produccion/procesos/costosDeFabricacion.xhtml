@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{costosDeFabricacionBean}">
+					<as2:buttonEliminar bean="#{costosDeFabricacionBean}">
+						<h:outputText value="#{msgs.lbl_anio}: " />
+						<h:outputText value="#{costosDeFabricacionBean.costosDeFabricacion.anio}" />
+
+						<h:outputText value="#{msgs.lbl_mes}: " />
+						<h:outputText value="#{costosDeFabricacionBean.nombreMes}" />
+					</as2:buttonEliminar>
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{costosDeFabricacionBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{costosDeFabricacionBean.costosDeFabricacion.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+
+					<as2:buttonExportaExcel bean="#{costosDeFabricacionBean}" tabla=":form:tablaCostosFabricacion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_costos_de_fabricacion})" rendered="#{costosDeFabricacionBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{costosDeFabricacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtAnio" value="#{msgs.lbl_anio}:" />
+							<p:inputText value="#{costosDeFabricacionBean.costosDeFabricacion.anio}" id="txtAnio" required="true"
+								disabled="#{costosDeFabricacionBean.costosDeFabricacion.id != 0}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboMes" value="#{msgs.lbl_mes}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{costosDeFabricacionBean.costosDeFabricacion.mes}" id="cboMes" required="true"
+								disabled="#{costosDeFabricacionBean.costosDeFabricacion.id != 0}">
+								<p:ajax process="@this" global="false" />
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{costosDeFabricacionBean.listaSelectItemMes}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_costos_materiales}:" />
+							<h:outputText value="#{costosDeFabricacionBean.costosDeFabricacion.costoMateriales}" />
+
+							<p:outputLabel value="#{msgs.lbl_costos_mano_de_obra}:" />
+							<h:outputText value="#{costosDeFabricacionBean.costosDeFabricacion.costoManoDeObra}" />
+
+							<p:outputLabel value="#{msgs.lbl_costos_depreciaciones}:" />
+							<h:outputText value="#{costosDeFabricacionBean.costosDeFabricacion.costoDepreciaciones}" />
+
+							<p:outputLabel value="#{msgs.lbl_costos_indirectos}:" />
+							<h:outputText value="#{costosDeFabricacionBean.costosDeFabricacion.costoIndirectos}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{costosDeFabricacionBean.costosDeFabricacion.descripcion}" id="txtDescripcion">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+						<p:outputPanel id="panelDetalles">
+
+							<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar" action="#{costosDeFabricacionBean.procesar}" update=":form:panelNuevo"
+								process="@this" icon="ui-icon-refresh" partialSubmit="true" />
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalles" rowIndexVar="secuencia"
+								emptyMessage="#{msgs.msg_no_hay_datos}" binding="#{costosDeFabricacionBean.dtProducto}"
+								value="#{costosDeFabricacionBean.listaProducto}" var="_producto" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rowsPerPageTemplate="#{costosDeFabricacionBean.numeroFilasPorPagina}" rows="#{costosDeFabricacionBean.numeroFilas}"
+								rowKey="#{_producto.rowKey}" columnClasses="rowIndex" lazy="false" filteredValue="#{costosDeFabricacionBean.listaProductoFiltrado}">
+
+								<p:column styleClass="columnaDTAccion tableCell0">
+									<p:rowToggler>
+									</p:rowToggler>
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencia+1}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo}" filterBy="#{_producto.codigo}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_producto.codigo}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto}" filterBy="#{_producto.nombre}" filterMatchMode="contains">
+									<h:outputText value="#{_producto.nombre}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_cantidad}" sortBy="#{_producto.cantidadFabricada}">
+									<h:outputText value="#{_producto.cantidadFabricada}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costo_unitario}" sortBy="#{_producto.costoUnitario}">
+									<h:outputText value="#{_producto.costoUnitario}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_materiales}" sortBy="#{_producto.costoMateriales}">
+									<h:outputText value="#{_producto.costoMateriales}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_mano_de_obra}" sortBy="#{_producto.costoManoObra}">
+									<h:outputText value="#{_producto.costoManoObra}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_depreciaciones}"
+									sortBy="#{_producto.costoDepreciaciones}">
+									<h:outputText value="#{_producto.costoDepreciaciones}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_indirectos}" sortBy="#{_producto.costoIndirecto}">
+									<h:outputText value="#{_producto.costoIndirecto}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_total}" sortBy="#{_producto.costoTotal}">
+									<h:outputText value="#{_producto.costoTotal}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_total} #{msgs.lbl_asignado}"
+									sortBy="#{_producto.costoTotalAsignado}">
+									<h:outputText value="#{_producto.costoTotalAsignado}" />
+								</p:column>
+
+								<p:columnGroup type="footer" id="panelTotal">
+									<p:row>
+										<p:column colspan="6" footerText="#{msgs.lbl_total}:" style="text-align:right">
+										</p:column>
+										<p:column footerText="#{costosDeFabricacionBean.costoMaterialesCalculo}" style="text-align:right" />
+										<p:column footerText="#{costosDeFabricacionBean.costoManoObraCalculo}" style="text-align:right" />
+										<p:column footerText="#{costosDeFabricacionBean.costoDepreciacionesCalculo}" style="text-align:right" />
+										<p:column footerText="#{costosDeFabricacionBean.costoIndirectosCalculo}" style="text-align:right" />
+										<p:column footerText="#{costosDeFabricacionBean.total}" style="text-align:right" />
+										<p:column footerText="#{costosDeFabricacionBean.costoTotalAsignado}" style="text-align:right" />
+									</p:row>
+								</p:columnGroup>
+
+								<p:rowExpansion>
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalles" rowIndexVar="secuencia"
+										emptyMessage="#{msgs.msg_no_hay_datos}" binding="#{costosDeFabricacionBean.dtOrdenFabricacion}"
+										value="#{_producto.listaDetalleCostoFabricacion}" var="_detalle" paginator="false" style="width:100%" rowKey="#{_detalle.rowKey}"
+										columnClasses="rowIndex" lazy="false" filteredValue="#{costosDeFabricacionBean.listaDetalleCostoFabricacionFiltrado}">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencia+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_detalle.ordenFabricacion.fecha}">
+											<h:outputText value="#{_detalle.ordenFabricacion.fecha}">
+												<f:convertDateTime pattern="#{costosDeFabricacionBean.formatoFecha}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_numero}" sortBy="#{_detalle.ordenFabricacion.numero}" filterBy="#{_detalle.ordenFabricacion.numero}" filterMatchMode="contains">
+											<h:outputText value="#{_detalle.ordenFabricacion.numero}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_cantidad}" sortBy="#{_detalle.cantidadFabricadaMes}">
+											<h:outputText value="#{_detalle.cantidadFabricadaMes}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costo_unitario}" sortBy="#{_detalle.costoUnitarioAsignado}">
+											<h:outputText value="#{_detalle.costoUnitarioAsignado}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_materiales}" sortBy="#{_detalle.costoMaterialesMes}">
+											<h:outputText value="#{_detalle.costoMaterialesMes}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_mano_de_obra}" sortBy="#{_detalle.costoManoObraMes}">
+											<h:outputText value="#{_detalle.costoManoObraMes}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_depreciaciones}"
+											sortBy="#{_detalle.costoDepreciacionMes}">
+											<h:outputText value="#{_detalle.costoDepreciacionMes}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costos_indirectos}" sortBy="#{_detalle.costoIndirectosMes}">
+											<h:outputText value="#{_detalle.costoIndirectosMes}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_total}" sortBy="#{_detalle.costoTotalMes}">
+											<h:outputText value="#{_detalle.costoTotalMes}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_total} #{msgs.lbl_asignado}"
+											sortBy="#{_detalle.costoTotalAsignadoMes}">
+											<h:outputText value="#{_detalle.costoTotalAsignadoMes}" />
+										</p:column>
+									</p:dataTable>
+								</p:rowExpansion>
+
+
+							</p:dataTable>
+						</p:outputPanel>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_costos_de_fabricacion})" rendered="#{!costosDeFabricacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCostosFabricacion" rowIndexVar="secuencialBodega"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{costosDeFabricacionBean.listaCostosDeFabricacion}" var="_costo" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{costosDeFabricacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{costosDeFabricacionBean.numeroFilasPorPagina}" selectionMode="single"
+							selection="#{costosDeFabricacionBean.costosDeFabricacion}" rowKey="#{_costo.id}" lazy="true"
+							binding="#{costosDeFabricacionBean.dtCostoDeFabricacion}">
+
+							<p:column headerText="No" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialBodega+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_costo.anio}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anio}" />
+								</f:facet>
+								<h:outputText value="#{_costo.anio}" />
+							</p:column>
+
+							<p:column sortBy="#{_costo.mes}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_mes}" />
+								</f:facet>
+								<h:outputText value="#{_costo.mes}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_costos_materiales}" />
+								</f:facet>
+								<h:outputText value="#{_costo.costoMateriales}">
+									<f:convertNumber pattern="#{costosDeFabricacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_costos_mano_de_obra}" />
+								</f:facet>
+								<h:outputText value="#{_costo.costoManoDeObra}">
+									<f:convertNumber pattern="#{costosDeFabricacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_costos_indirectos}" />
+								</f:facet>
+								<h:outputText value="#{_costo.costoIndirectos}">
+									<f:convertNumber pattern="#{costosDeFabricacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_costos_depreciaciones}" />
+								</f:facet>
+								<h:outputText value="#{_costo.costoDepreciaciones}">
+									<f:convertNumber pattern="#{costosDeFabricacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_costo.estado}" filterBy="#{_costo.estado}" filterOptions="#{costosDeFabricacionBean.listaEstadoItem}"
+								styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_costo.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_costo.asiento.numero}" filterBy="#{_costo.asiento.numero}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _costo.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_costo.asiento.numero}">
+									<f:param name="idAsiento" value="#{_costo.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_costo.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="action" id="btnContabilizar" title="#{msgs.lbl_contabilizar}"
+										actionListener="#{costosDeFabricacionBean.contabilizar(_costo)}" update=":form:panelListado" process="@this,:form:panelListado" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{costosDeFabricacionBean.costosDeFabricacion.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{costosDeFabricacionBean.costosDeFabricacion.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{costosDeFabricacionBean.costosDeFabricacion.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{costosDeFabricacionBean.costosDeFabricacion.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

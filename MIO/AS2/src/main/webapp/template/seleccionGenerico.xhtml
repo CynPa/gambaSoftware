@@ -1,0 +1,96 @@
+<p:outputPanel id="panelListaObjetos"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+	<p:outputPanel id="panelObjetoSeleccionadoLista">
+
+		<p:dialog header="#{msgs.lbl_panel_listado}"
+			widgetVar="listadoDialog" id="listadoDialog" modal="true"
+			height="350" width="700" showEffect="slide" hideEffect="slide">
+
+			<p:fieldset>
+
+				<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaObjeto" rowIndexVar="secuencia"
+					emptyMessage="#{msgs.msg_no_hay_datos}" value="#{lista}"
+					var="_objeto" binding="#{bean.dtObjeto}" paginator="true"
+					paginatorPosition="bottom" style="width:100%"
+					rowsPerPageTemplate="#{bean.numeroFilasPorPagina}" rows="10"
+					rowKey="#{_objeto.id}" selection="#{objeto}" selectionMode="single">
+
+					<p:column headerText="No">
+						<h:outputText value="#{secuencia+1}" />
+					</p:column>
+
+					<p:column sortBy="#{_objeto.codigo}" filterBy="#{_objeto.codigo}">
+						<f:facet name="header">
+							<h:outputText value="#{msgs.lbl_codigo}" />
+						</f:facet>
+
+						<p:commandLink action="#{bean.cargarObjeto}"
+							title="#{msgs.lbl_seleccionar}" process="@this tablaObjeto"
+							oncomplete="listadoDialog.hide()"
+							update="#{p:component('panelObjetoSeleccionadoCombo')}"
+							icon="ui-icon-plus">
+
+							<h:outputText value="#{_objeto.codigo}" />
+						</p:commandLink>
+
+
+					</p:column>
+
+					<p:column sortBy="#{_objeto.nombre}" filterBy="#{_objeto.nombre}">
+						<f:facet name="header">
+							<h:outputText value="#{msgs.lbl_nombre}" />
+						</f:facet>
+
+						<h:outputText value="#{_objeto.nombre}" title="#{_objeto.nombre}">
+							<f:attribute name="limit" value="40" />
+							<f:converter converterId="stringLimitConverter" />
+						</h:outputText>
+					</p:column>
+
+				</p:dataTable>
+			</p:fieldset>
+
+			<f:facet name="footer">
+				<center>
+					<p:commandButton value="#{msgs.btn_cancelar}"
+						oncomplete="listadoDialog.hide()" />
+				</center>
+			</f:facet>
+
+		</p:dialog>
+
+	</p:outputPanel>
+
+
+	<p:outputPanel id="panelObjetoSeleccionadoCombo">
+
+		<div>
+			<table>
+				<tr>
+					<td style="width: 100px"><p:selectOneMenu value="#{objeto}"
+							id="cboObjeto" required="true" onchange="">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{lista}" var="_objeto"
+								itemValue="#{_objeto}" itemLabel="#{_objeto.nombre}">
+							</f:selectItems>
+							<f:validateBean />
+							<p:ajax process="@this">
+								<f:setPropertyActionListener target="#{objeto}" value="_objeto" />
+							</p:ajax>
+						</p:selectOneMenu> <p:message for="cboObjeto" /></td>
+
+
+					<td><p:commandButton value="..." id="btnSeleccionar"
+							process="@this" oncomplete="listadoDialog.show();" /></td>
+				</tr>
+			</table>
+		</div>
+	</p:outputPanel>
+
+</p:outputPanel>

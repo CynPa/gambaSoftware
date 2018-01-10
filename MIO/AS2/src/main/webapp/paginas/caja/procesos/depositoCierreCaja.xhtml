@@ -1,0 +1,320 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{depositoCierreCajaBean}">
+					<as2:buttonImprimir bean="#{depositoCierreCajaBean}" beanReporte="#{reporteDepositoCierreCajaBean}"
+						value="#{depositoCierreCajaBean.interfazContableProceso}" target="#{reporteDepositoCierreCajaBean.interfazContableProceso}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{depositoCierreCajaBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{depositoCierreCajaBean.interfazContableProceso.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>										
+					<as2:buttonExportaExcel bean="#{depositoCierreCajaBean}" tabla=":form:tablaInterfazContableProceso" />
+					<as2:buttonEliminar bean="#{depositoCierreCajaBean}" titulo="#{msgs.btn_anular}" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelContabilizarDeposito">
+
+					<p:dialog message="#{msgs.confirmacion_contabilizar_deposito}?" width="400" height="150" modal="true" showEffect="explode" hideEffect="explode"
+						severity="alert" widgetVar="contabilizarDeposito" rendered="#{depositoCierreCajaBean.indicadorRender}">
+
+						<h:panelGrid columns="2">
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{depositoCierreCajaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{depositoCierreCajaBean.interfazContableProceso.fechaContabilizacion}" id="calFecha" required="true">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_depositar_en}" />
+							<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion"
+								value="#{depositoCierreCajaBean.interfazContableProceso.cuentaBancariaOrganizacion}" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{depositoCierreCajaBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" update=":form:cboFormaPago" listener="#{depositoCierreCajaBean.actualizarCuentaBancaria}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_forma_cobro}" />
+							<p:selectOneMenu styleClass="input-text" id="cboFormaPago" value="#{depositoCierreCajaBean.interfazContableProceso.formaPago}" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{depositoCierreCajaBean.interfazContableProceso.cuentaBancariaOrganizacion.listaFormaPago}"
+									var="_formaPagoCuentaBancaria" itemLabel="#{_formaPagoCuentaBancaria.formaPago.nombre}" itemValue="#{_formaPagoCuentaBancaria.formaPago}" />
+								<f:validateBean />
+								<p:ajax process="@this, :form:calFecha" update=":form:txtDocumentoReferencia" global="false"
+									listener="#{depositoCierreCajaBean.actualizarFormaPago}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_documento_referencia}:" />
+							<p:inputText styleClass="input-text" value="#{depositoCierreCajaBean.interfazContableProceso.documentoReferencia}" id="txtDocumentoReferencia" />
+
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelListado" process="@this :form:panelContabilizarDeposito"
+									action="#{depositoCierreCajaBean.contabilizar}" oncomplete="contabilizarDeposito.hide()" />
+
+								<p:commandButton value="#{msgs.confirmacion_no}" onclick="contabilizarDeposito.hide()" />
+							</center>
+						</f:facet>
+
+					</p:dialog>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_deposito_cierre_caja} )" rendered="#{depositoCierreCajaBean.editado}">
+						<h:panelGrid id="panelCabecera" columns="#{depositoCierreCajaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{depositoCierreCajaBean.interfazContableProceso.documento}" id="cboDocumento" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{depositoCierreCajaBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+								<f:validateBean />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{depositoCierreCajaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{depositoCierreCajaBean.interfazContableProceso.fechaHasta}" id="calenFecha">
+								<p:ajax process="@this" global="false" />
+							</p:calendar>
+
+
+							<h:outputText value="#{msgs.lbl_valor_depositar}:" />
+							<h:outputText styleClass="input-text-number" style="font-weight: bold;" value="#{depositoCierreCajaBean.interfazContableProceso.valor}"
+								id="txtValor">
+								<f:convertNumber pattern="#{depositoCierreCajaBean.formatoDinero}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_seleccionado}:" />
+							<p:selectBooleanCheckbox value="#{depositoCierreCajaBean.filtroSeleccionados}">
+								<p:ajax process="@this" update=":form:panelDetalleListado" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_nota}:" />
+							<p:inputTextarea styleClass="input-text" value="#{depositoCierreCajaBean.interfazContableProceso.observacion}" id="txtObservacion" />
+
+							<h:outputText value="" />
+							<h:outputText value="" />
+
+						</h:panelGrid>
+
+						<p:spacer height="4px" />
+
+						<p:outputPanel id="panelDetalleListadoSeleccionado">
+						</p:outputPanel>
+
+						<p:outputPanel id="panelDetalleListado">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCierreCaja" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+								value="#{depositoCierreCajaBean.listaDetalleCierreCaja}" filteredValue="#{depositoCierreCajaBean.listaDetalleCierreCajaFiltrado}"
+								var="_depositoCierreCaja" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{depositoCierreCajaBean.numeroFilas}"
+								rowsPerPageTemplate="#{depositoCierreCajaBean.numeroFilasPorPagina}" rowKey="#{_depositoCierreCaja.rowKey}"
+								binding="#{depositoCierreCajaBean.dtDetalleCierreCaja}">
+
+								<p:column headerText="#{msgs.lbl_fecha_cierre}" sortBy="#{_depositoCierreCaja.cierreCaja.fechaHasta}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_depositoCierreCaja.cierreCaja.fechaHasta}">
+										<f:convertDateTime pattern="#{depositoCierreCajaBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cierre_caja}" styleClass="columnaDTNombreCorto tableCell" sortBy="#{_depositoCierreCaja.cierreCaja.numero}">
+									<p:commandLink value="#{_depositoCierreCaja.cierreCaja.numero}" action="#{depositoCierreCajaBean.seleccionarTodoElCierreCaja}"
+										process="@this" update=":form:panelDetalleListado :form:txtValor :form:panelDetalleListadoSeleccionado">
+										<f:setPropertyActionListener target="#{depositoCierreCajaBean.detalleCierreCaja}" value="#{_depositoCierreCaja}" />
+									</p:commandLink>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_fecha_cobro}"
+									sortBy="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.fecha : _depositoCierreCaja.anticipoCliente.fecha}"
+									styleClass="columnaDTFecha tableCell">
+									<h:outputText
+										value="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.fecha : _depositoCierreCaja.anticipoCliente.fecha}">
+										<f:convertDateTime pattern="#{depositoCierreCajaBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column
+									filterBy="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.numero : _depositoCierreCaja.anticipoCliente.numero}"
+									sortBy="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.numero : _depositoCierreCaja.anticipoCliente.numero}"
+									filterMatchMode="contains" styleClass="columnaDTNombreCorto tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_cobro}" />
+									</f:facet>
+									<h:outputText
+										value="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.numero : _depositoCierreCaja.anticipoCliente.numero}">
+										<f:convertNumber pattern="#{depositoCierreCajaBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column
+									filterBy="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.empresa.nombreFiscal : _depositoCierreCaja.anticipoCliente.empresa.nombreFiscal}"
+									sortBy="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.empresa.nombreFiscal : _depositoCierreCaja.anticipoCliente.empresa.nombreFiscal}"
+									filterMatchMode="contains" styleClass="tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_cliente}" />
+									</f:facet>
+									<h:outputText
+										value="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.cobro.empresa.nombreFiscal : _depositoCierreCaja.anticipoCliente.empresa.nombreFiscal}" />
+								</p:column>
+
+								<p:column
+									filterBy="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.formaPago.nombre : _depositoCierreCaja.anticipoCliente.formaPago.nombre}"
+									sortBy="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.formaPago.nombre : _depositoCierreCaja.anticipoCliente.formaPago.nombre}"
+									filterMatchMode="contains" styleClass="columnaDTNombre tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_forma_cobro}" />
+									</f:facet>
+									<h:outputText
+										value="#{not empty _depositoCierreCaja.detalleFormaCobro ? _depositoCierreCaja.detalleFormaCobro.formaPago.nombre : _depositoCierreCaja.anticipoCliente.formaPago.nombre}" />
+								</p:column>
+
+								<p:column filterBy="#{_depositoCierreCaja.cierreCaja.usuario.nombreUsuario}" filterMatchMode="contains"
+									orderBy="#{_depositoCierreCaja.cierreCaja.usuario.nombreUsuario}" sortBy="#{_depositoCierreCaja.cierreCaja.usuario.nombreUsuario}"
+									styleClass="columnaDTNombreCorto tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_usuario}" />
+									</f:facet>
+									<h:outputText value="#{_depositoCierreCaja.cierreCaja.usuario.nombreUsuario}" />
+								</p:column>
+
+								<p:column filterBy="#{_depositoCierreCaja.documentoReferencia}" filterMatchMode="contains" sortBy="#{_depositoCierreCaja.documentoReferencia}"
+									styleClass="columnaDTNumeroDocumento tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_documento_referencia}" />
+									</f:facet>
+									<h:outputText value="#{_depositoCierreCaja.documentoReferencia}" />
+								</p:column>
+
+								<p:column filterBy="#{_depositoCierreCaja.valor}" orderBy="#{_depositoCierreCaja.valor}" sortBy="#{_depositoCierreCaja.valor}"
+									styleClass="columnaDTValorGrande input-text-number tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_valor}" />
+									</f:facet>
+									<h:outputText value="#{_depositoCierreCaja.valor}">
+										<f:convertNumber pattern="#{depositoCierreCajaBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+								<p:column styleClass="columnaDTActivo tableCell">
+									<f:facet name="header">
+										<p:selectBooleanCheckbox value="#{depositoCierreCajaBean.seleccionTodos}">
+											<p:ajax process="@this :form:panelDetalleListado" update=":form:panelDetalleListado :form:txtValor :form:panelDetalleListadoSeleccionado"
+												listener="#{depositoCierreCajaBean.seleccionarTodos}" />
+										</p:selectBooleanCheckbox>
+									</f:facet>
+									<center>
+										<p:selectBooleanCheckbox value="#{_depositoCierreCaja.seleccionado}" id="chkConciliarDesconciliar">
+											<p:ajax process="@this :form:panelDetalleListado" update=":form:panelDetalleListado :form:txtValor :form:panelDetalleListadoSeleccionado"
+												listener="#{depositoCierreCajaBean.calcularTotales}" />
+										</p:selectBooleanCheckbox>
+									</center>
+								</p:column>
+							</p:dataTable>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_deposito_cierre_caja} )" rendered="#{!depositoCierreCajaBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaInterfazContableProceso" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{depositoCierreCajaBean.listaInterfazContableProceso}" var="_interfazContableProceso" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{depositoCierreCajaBean.numeroFilas}" rowsPerPageTemplate="#{depositoCierreCajaBean.numeroFilasPorPagina}"
+							selection="#{depositoCierreCajaBean.interfazContableProceso}" selectionMode="single"
+							rowKey="#{_interfazContableProceso.idInterfazContableProceso}" sortBy="#{_interfazContableProceso.numero}" sortOrder="descending" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_interfazContableProceso.numero}" sortBy="#{_interfazContableProceso.numero}"
+								styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_interfazContableProceso.valor}" styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.valor}">
+									<f:convertNumber pattern="#{depositoCierreCajaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_fecha_hasta}" styleClass="columnaDTFecha tableCell" sortBy="#{_interfazContableProceso.fechaHasta}">
+								<h:outputText value="#{_interfazContableProceso.fechaHasta}">
+									<f:convertDateTime pattern="#{depositoCierreCajaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_fecha_contabilizacion}" styleClass="columnaDTFecha tableCell"
+								sortBy="#{_interfazContableProceso.fechaContabilizacion}">
+								<h:outputText value="#{_interfazContableProceso.fechaContabilizacion}">
+									<f:convertDateTime pattern="#{depositoCierreCajaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_interfazContableProceso.asiento.numero}" filterBy="#{_interfazContableProceso.asiento.numero}"
+								styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _interfazContableProceso.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_interfazContableProceso.asiento}">
+									<f:param name="idAsiento" value="#{_interfazContableProceso.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_interfazContableProceso.estado}" filterBy="#{_interfazContableProceso.estado}"
+								filterOptions="#{depositoCierreCajaBean.listaEstadoItem}" styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<p:commandButton oncomplete="contabilizarDeposito.show()" icon="ui-icon-arrowthickstop-1-n" process="@this"
+									update=":form:panelContabilizarDeposito" disabled="#{_interfazContableProceso.estado != 'ELABORADO'}"
+									action="#{depositoCierreCajaBean.cargarDatosContabilizar}">
+									<f:setPropertyActionListener target="#{depositoCierreCajaBean.interfazContableProceso}" value="#{_interfazContableProceso}" />
+									<f:setPropertyActionListener target="#{depositoCierreCajaBean.indicadorRender}" value="true" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nota}" styleClass="tableCell">
+								<h:outputText value="#{_interfazContableProceso.observacion}" title="#{_interfazContableProceso.observacion}">
+									<f:attribute name="limit" value="60" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{depositoCierreCajaBean.interfazContableProceso.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{depositoCierreCajaBean.interfazContableProceso.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{depositoCierreCajaBean.interfazContableProceso.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{depositoCierreCajaBean.interfazContableProceso.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

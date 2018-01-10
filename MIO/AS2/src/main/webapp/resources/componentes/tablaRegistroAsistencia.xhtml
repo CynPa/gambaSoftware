@@ -1,0 +1,582 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:composite="http://java.sun.com/jsf/composite" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:p="http://primefaces.org/ui">
+
+<!-- INTERFACE -->
+<composite:interface displayName="Asistencia">
+	<composite:attribute required="true" name="lista" />
+	<composite:attribute required="true" name="bean" />
+	<composite:attribute required="true" name="agrupado" />
+	<composite:attribute required="true" name="id" />
+	<composite:attribute required="true" name="filteredValue" />
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation>
+	<p:confirmDialog id="dialogEliminar" header="#{msgs.lbl_eliminar}" widgetVar="dialogEliminar" height="80" width="300"
+		message="#{msgs.confirmacion_msg}">
+
+		<p:outputPanel id="panelEliminar" autoUpdate="true">
+			<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+
+				<h:outputText value="#{msgs.lbl_empleado}:" />
+				<h:outputText value="#{cc.attrs.bean.asistencia.empleado.apellidos} #{cc.attrs.bean.asistencia.empleado.nombres}" />
+
+				<h:outputText value="#{msgs.lbl_fecha}:" />
+				<h:outputText value="#{cc.attrs.bean.asistencia.fecha}" />
+			</h:panelGrid>
+		</p:outputPanel>
+
+		<center>
+			<p:commandButton value="#{msgs.lbl_eliminar}" action="#{cc.attrs.bean.eliminar}" process="@this" update="@this :form:panelListado"
+				partialSubmit="true" onclick="dialogEliminar.hide()">
+			</p:commandButton>
+
+			<p:commandButton process="@this" value="#{msgs.btn_cancelar}" partialSubmit="true" onclick="dialogEliminar.hide()" />
+		</center>
+	</p:confirmDialog>
+	<p:outputPanel id="panelListadoAsistencia">
+
+		<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="#{cc.attrs.id}" rowIndexVar="secuencialAsistencia"
+			emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cc.attrs.lista}" var="asistencia"
+			binding="#{!cc.attrs.agrupado ? registroAsistenciaBean.dtAsistencia : registroAsistenciaBean.dtAsistenciaResumido }" paginator="true"
+			paginatorPosition="bottom" style="font-size: 11px !important;" rows="#{cc.attrs.bean.numeroFilas}"
+			rowsPerPageTemplate="#{cc.attrs.bean.numeroFilasPorPagina}" selection="#{cc.attrs.bean.asistencia}" selectionMode="single"
+			rowKey="#{asistencia.id}" lazy="#{!cc.attrs.agrupado}" filteredValue="#{cc.attrs.filteredValue}" rowStyleClass="#{asistencia.styleClass}">
+
+			<p:column width="20" styleClass="tableCell" headerText="Nº">
+				<h:outputText value="#{secuencialAsistencia+1}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTNombre tableCell0 #{asistencia.indicadorPagoHorasSuplementarias == true ? 'color_pagoSuplementarias' : ''}"
+				headerText="#{msgs.lbl_apellidos}" filterBy="#{asistencia.empleado.apellidos}" rendered="#{!cc.attrs.agrupado}">
+				<h:outputText value="#{asistencia.empleado.apellidos}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTNombre tableCell0" headerText="#{msgs.lbl_nombres}" filterBy="#{asistencia.empleado.nombres}"
+				rendered="#{!cc.attrs.agrupado}">
+				<h:outputText value="#{asistencia.empleado.nombres}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTFecha tableCell0" headerText="#{msgs.lbl_fecha}">
+				<h:outputText value="#{asistencia.fecha}">
+					<f:convertDateTime pattern="#{cc.attrs.bean.formatoFecha}" />
+				</h:outputText>
+			</p:column>
+			
+			<p:column styleClass="columnaDTNombre tableCell0" headerText="#{msgs.lbl_tipo_falta}" filterBy="#{asistencia.tipoFalta.nombre}"
+				rendered="#{!cc.attrs.agrupado}">
+				<h:outputText value="#{asistencia.tipoFalta.nombre}" rendered="#{!cc.attrs.bean.indicadorEditable}"/>
+				<p:selectOneMenu value="#{asistencia.tipoFalta}" id="cboTipoFalta"
+					rendered="#{cc.attrs.bean.indicadorEditable and empty asistencia.marcacionEntrada and empty asistencia.marcacionSalida and !asistencia.indicadorVacacion}">
+					<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+					<f:selectItems value="#{cc.attrs.bean.listaTipoFalta}" var="_tipoFalta" itemLabel="#{_tipoFalta.nombre}" itemValue="#{_tipoFalta}" />
+					<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}" update="@this" global="false" />
+				</p:selectOneMenu>
+			</p:column>
+			
+			<p:column styleClass="columnaDTActivo tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_paga_horas_extra_adelantadas}" />
+				</f:facet>
+				<p:selectBooleanCheckbox value="#{asistencia.indicadorHorasAdelantoExtra}" disabled="#{!cc.attrs.bean.indicadorEditable}">
+					<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+						update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+						global="false" />
+				</p:selectBooleanCheckbox>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_entrada}" />
+				</f:facet>
+				<p:outputPanel id="panelEntrada">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual1 == true ? 'color_verde' : ''}" value="#{asistencia.entrada}"
+						rendered="#{!cc.attrs.bean.indicadorEditable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.entrada}" rendered="#{cc.attrs.bean.indicadorEditable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,1)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,1)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_entrada}" />
+				</f:facet>
+				<p:outputPanel id="panelMEntrada">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual2 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionEntrada}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+					<p:calendar size="5" value="#{asistencia.marcacionEntrada}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,2)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,2)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_receso_salida}" />
+				</f:facet>
+				<p:outputPanel id="panelSalidaReceso">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual3 == true ? 'color_verde' : ''}" value="#{asistencia.salidaReceso}"
+						rendered="#{!cc.attrs.bean.indicadorEditable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.salidaReceso}" rendered="#{cc.attrs.bean.indicadorEditable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,3)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,3)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_receso_salida}" />
+				</f:facet>
+				<p:outputPanel id="panelMSalidaReceso">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual4 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionSalidaReceso}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.marcacionSalidaReceso}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}"
+						pattern="HH:mm" timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,4)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,4)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_receso_entrada}" />
+				</f:facet>
+				<p:outputPanel id="panelEntradaReceso">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual5 == true ? 'color_verde' : ''}" value="#{asistencia.entradaReceso}"
+						rendered="#{!cc.attrs.bean.indicadorEditable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.entradaReceso}" rendered="#{cc.attrs.bean.indicadorEditable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,5)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,5)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_receso_entrada}" />
+				</f:facet>
+				<p:outputPanel id="panelMEntradaReceso">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual6 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionEntradaReceso}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.marcacionEntradaReceso}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}"
+						pattern="HH:mm" timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,6)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,6)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_salida}" />
+				</f:facet>
+				<p:outputPanel id="panelSalida">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual7 == true ? 'color_verde' : ''}" value="#{asistencia.salida}"
+						rendered="#{!cc.attrs.bean.indicadorEditable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.salida}" rendered="#{cc.attrs.bean.indicadorEditable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,7)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,7)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_salida}" />
+				</f:facet>
+				<p:outputPanel id="panelMSalida">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual8 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionSalida}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.marcacionSalida}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,8)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,8)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0" rendered="#{cc.attrs.bean.mostrarReingresos}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_entrada_reingreso} 1" />
+				</f:facet>
+				<p:outputPanel id="panelReingreso1Entrada">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual9 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionEntradaReingreso1}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.marcacionEntradaReingreso1}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,9)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,9)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+			
+			<p:column styleClass="columnaDTValorCorto tableCell0" rendered="#{cc.attrs.bean.mostrarReingresos}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_salida_reingreso} 1" />
+				</f:facet>
+				<p:outputPanel id="panelReingreso1Salida">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual10 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionSalidaReingreso1}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.marcacionSalidaReingreso1}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,10)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,10)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+			
+			<p:column styleClass="columnaDTValorCorto tableCell0" rendered="#{cc.attrs.bean.mostrarReingresos}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_entrada_reingreso} 2" />
+				</f:facet>
+				<p:outputPanel id="panelReingreso2Entrada">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual11 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionEntradaReingreso2}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.marcacionEntradaReingreso2}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,11)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,11)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+			
+			<p:column styleClass="columnaDTValorCorto tableCell0" rendered="#{cc.attrs.bean.mostrarReingresos}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_salida_reingreso} 2" />
+				</f:facet>
+				<p:outputPanel id="panelReingreso2Salida">
+					<h:outputText styleClass="#{asistencia.indicadorModificadoManual12 == true ? 'color_verde' : ''}" value="#{asistencia.marcacionSalidaReingreso2}"
+						rendered="#{!cc.attrs.bean.indicadorEditable or !asistencia.editable}">
+						<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+					</h:outputText>
+
+					<p:calendar size="5" value="#{asistencia.marcacionSalidaReingreso2}" rendered="#{cc.attrs.bean.indicadorEditable and asistencia.editable}" pattern="HH:mm"
+						timeOnly="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,12)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+						<p:ajax process="@this" event="dateSelect" listener="#{cc.attrs.bean.guardarAsistencia(asistencia,12)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:calendar>
+				</p:outputPanel>
+			</p:column>
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_falta}" />
+				</f:facet>
+				<p:outputPanel id="panelHFalta">
+					<h:outputText rendered="#{asistencia.horasFalta > 0}" value="#{asistencia.horasFalta}" />
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<p:commandLink process="@this" global="true" title="#{msgs.btn_actualizar}" update=":form:panelListado"
+						action="#{cc.attrs.bean.actualizarPermiso}">
+						<h:graphicImage library="images" name="generate.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+					<br />
+					<h:outputText value="#{msgs.lbl_horas_permiso}" />
+				</f:facet>
+				<p:outputPanel id="panelHPermiso">
+					<h:outputText value="#{asistencia.horasPermiso}" rendered="#{asistencia.horasPermiso > 0}" />
+
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_subsidio}" />
+				</f:facet>
+				<p:outputPanel id="panelHSubsidio">
+					<h:outputText rendered="#{asistencia.horasSubsidio != 0}" value="#{asistencia.horasSubsidio}" />
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTNombreCorto tableCell0">
+				<f:facet name="header">
+					<p:commandLink process="@this" global="true" title="#{msgs.btn_actualizar}" update=":form:panelListado"
+						action="#{cc.attrs.bean.actualizarSubsidio}">
+						<h:graphicImage library="images" name="generate.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+					<br />
+					<h:outputText value="#{msgs.lbl_tipo_subsidio}" />
+				</f:facet>
+				<p:outputPanel id="panelSubsidioEmpleado">
+					<h:outputText value="#{asistencia.subsidioEmpleado.tipoSubsidio.nombre}" />
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTActivo tableCell0">
+				<f:facet name="header">
+					<p:commandLink process="@this" global="true" title="#{msgs.btn_actualizar}" update=":form:panelListado"
+						action="#{cc.attrs.bean.actualizarVacacion}">
+						<h:graphicImage library="images" name="generate.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+					<br />
+					<h:outputText style="font-size: 9px !important;" value="Dia Vacacion" title="#{msgs.lbl_vacacion}" />
+				</f:facet>
+				<p:outputPanel id="panelIVacacion">
+					<p:selectBooleanCheckbox value="#{asistencia.indicadorVacacion}" disabled="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:selectBooleanCheckbox>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTActivo tableCell0">
+				<f:facet name="header">
+					<p:commandLink process="@this" global="true" title="#{msgs.btn_actualizar}" update=":form:panelListado"
+						action="#{cc.attrs.bean.actualizarDiasFestivos}">
+						<h:graphicImage library="images" name="generate.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+					<br />
+					<h:outputText value="#{msgs.lbl_dia_festivo}" />
+				</f:facet>
+				<p:outputPanel id="panelIDiaFestivo">
+					<p:selectBooleanCheckbox value="#{asistencia.indicadorDiaFestivo}" disabled="true">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE25, panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:selectBooleanCheckbox>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_25}" />
+				</f:facet>
+				<p:outputPanel id="panelHE25">
+					<h:outputText value="#{asistencia.horasExtras25}" />
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_50}" />
+				</f:facet>
+				<p:outputPanel id="panelHE50">
+					<h:outputText value="#{asistencia.horasExtras50}" />
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_100}" />
+				</f:facet>
+				<p:outputPanel id="panelHE100">
+					<h:outputText value="#{asistencia.horasExtras100}" />
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_100_feriado}" />
+				</f:facet>
+				<p:outputPanel id="panelHE100Feriado">
+					<h:outputText value="#{cc.attrs.bean.apruebaHorasExtra100Feriado ? asistencia.horasExtras100Feriado:asistencia.horasExtras100FeriadoAprobadas}" />
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0" rendered="false">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_25} #{msgs.lbl_aprobadas}" />
+				</f:facet>
+				<p:inputText size="5" value="#{asistencia.horasExtras25Aprobadas}" disabled="#{!asistencia.editable}">
+					<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+						update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+						global="false" />
+				</p:inputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_50} #{msgs.lbl_aprobadas}" />
+				</f:facet>
+				<p:outputPanel id="panelHE50Aprobadas">
+					<p:inputText size="5" value="#{asistencia.horasExtras50Aprobadas}" disabled="#{!asistencia.editable}">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:inputText>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_100} #{msgs.lbl_aprobadas}" />
+				</f:facet>
+				<p:outputPanel id="panelHE100Aprobadas">
+					<p:inputText size="5" value="#{asistencia.horasExtras100Aprobadas}" disabled="#{!asistencia.editable}">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:inputText>
+				</p:outputPanel>
+			</p:column>
+			
+			<p:column styleClass="columnaDTValorCorto tableCell0" rendered="#{cc.attrs.bean.apruebaHorasExtra100Feriado}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_horas_extras_100_feriado} #{msgs.lbl_aprobadas}" />
+				</f:facet>
+				<p:outputPanel id="panelHE100FeriadoAprobadas">
+					<p:inputText size="5" value="#{asistencia.horasExtras100FeriadoAprobadas}" disabled="#{!asistencia.editable}">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion,panelHE100FeriadoAprobadas"
+							global="false" />
+					</p:inputText>
+				</p:outputPanel>
+			</p:column>
+			
+			<p:column styleClass="columnaDTNombreCorto tableCell0">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_descripcion}" />
+				</f:facet>
+				<p:outputPanel id="panelDescripcion">
+					<p:inputText styleClass="input-text100" value="#{asistencia.descripcion}">
+						<p:ajax process="@this" event="change" listener="#{cc.attrs.bean.guardarAsistencia(asistencia)}"
+							update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion"
+							global="false" />
+					</p:inputText>
+				</p:outputPanel>
+			</p:column>
+
+			<p:column width="50" styleClass="tableCell0">
+				<f:facet name="header">
+					<h:panelGroup>
+						<p:commandLink rendered="#{!cc.attrs.agrupado}" id="btnAprobarTodos" process="@this :form:panelListado"
+							title="#{msgs.btn_aprobar} #{msgs.lbl_todos}" update=":form:panelListado" action="#{cc.attrs.bean.aprobarCancelarTodoHorasExtras(true)}">
+							<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+						</p:commandLink>
+
+						<p:commandLink rendered="#{!cc.attrs.agrupado}" id="btnLimpiarTodos" process="@this :form:panelListado"
+							title="#{msgs.btn_limpiar} #{msgs.lbl_todos}" update=":form:panelListado" action="#{cc.attrs.bean.aprobarCancelarTodoHorasExtras(false)}">
+							<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+						</p:commandLink>
+					</h:panelGroup>
+				</f:facet>
+
+				<h:panelGroup>
+					<p:commandLink id="btnAprobar" process="@this :form:panelListado" global="false" title="#{msgs.btn_aprobar}"
+						update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion,panelHE100FeriadoAprobadas"
+						action="#{cc.attrs.bean.aprobarCancelarHorasExtras(asistencia,true,false)}">
+						<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+
+					<p:commandLink id="btnLimpiar" process="@this :form:panelListado" global="false" title="#{msgs.btn_limpiar}"
+						update="panelEntrada,panelMEntrada,panelSalidaReceso,panelMSalidaReceso,panelEntradaReceso,panelMEntradaReceso,panelSalida,panelMSalida,panelHFalta,panelHSubsidio,panelSubsidioEmpleado,panelIVacacion,panelIDiaFestivo,panelHPermiso,panelHE50,panelHE100,panelHE100Feriado, panelHE50Aprobadas, panelHE100Aprobadas,panelDescripcion,panelHE100FeriadoAprobadas"
+						action="#{cc.attrs.bean.aprobarCancelarHorasExtras(asistencia,false,false)}">
+						<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+				</h:panelGroup>
+
+			</p:column>
+
+			<p:column width="20" styleClass="tableCell0">
+				<f:facet name="header">
+
+				</f:facet>
+				<center>
+					<p:commandButton id="btnEliminar" process="@this :form:panelListado" global="false" title="#{msgs.btn_eliminar}" update=":form:panelListado"
+						oncomplete="dialogEliminar.show()" icon="ui-icon-trash">
+						<f:setPropertyActionListener target="#{cc.attrs.bean.asistencia}" value="#{asistencia}" />
+						<!-- <h:graphicImage  value="ui-icon-close" style="height : 16px; width : 16px;" /> -->
+					</p:commandButton>
+				</center>
+			</p:column>
+
+
+		</p:dataTable>
+	</p:outputPanel>
+</composite:implementation>
+</html>

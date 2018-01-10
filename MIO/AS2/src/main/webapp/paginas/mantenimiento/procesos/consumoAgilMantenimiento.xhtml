@@ -1,0 +1,223 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{consumoAgilMantenimientoBean}" />
+					<ui:param name="btnImprimir" value="false" />
+					<ui:param name="tabla" value="tablaInventarioProducto" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+					<ui:param name="ocultarBtnExportarTabla" value="true" />
+				</ui:include>
+				<p:outputPanel id="panelConsulta" />
+				<p:outputPanel id="panelFiltros">
+					<!-- 				<p:outputPanel id="panelNuevo"> -->
+					<p:panel rendered="#{consumoAgilMantenimientoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_consumo_agil})">
+						<h:panelGrid id="panelDetalle" columns="#{consumoAgilMantenimientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+
+							<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{consumoAgilMantenimientoBean.consumoAgilMantenimiento.documento.idDocumento}"
+								id="cboDocumento" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{consumoAgilMantenimientoBean.listaDocumentoCombo}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento.idDocumento}" />
+								<p:ajax listener="#{consumoAgilMantenimientoBean.guardarConsumoAgilMantenimiento}" process="@this" event="change" global="false" />
+								<!-- 									<p:ajax listener="#{consumoBodegaBean.actualizarDocumento}" process="@this" event="change" update="cboDocumento,txtNumero" /> -->
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboDocumento" value="#{msgs.lbl_orden_trabajo_mantenimiento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{consumoAgilMantenimientoBean.consumoAgilMantenimiento.documentoOrden}" id="cboDocumentoOrden"
+								required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{consumoAgilMantenimientoBean.listaDocumentoOrden}" var="_documento_orden" itemLabel="#{_documento_orden.nombre}"
+									itemValue="#{_documento_orden}" />
+								<p:ajax listener="#{consumoAgilMantenimientoBean.guardarConsumoAgilMantenimiento}" process="@this" event="change" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{consumoAgilMantenimientoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{consumoAgilMantenimientoBean.consumoAgilMantenimiento.fecha}" id="calFecha" required="true">
+								<p:ajax listener="#{consumoAgilMantenimientoBean.guardarConsumoAgilMantenimiento}" process="@this" event="dateSelect" global="false" />
+							</p:calendar>
+
+							<p:outputLabel value="#{msgs.lbl_responsable_consumo_bodega}:" />
+							<p:selectOneMenu styleClass="input-text-col" value="#{consumoAgilMantenimientoBean.consumoAgilMantenimiento.responsableSalidaMercaderia}"
+								id="cboResponsable" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{consumoAgilMantenimientoBean.listaResponsableCombo}" var="_responsable"
+									itemLabel="#{_responsable.nombres} #{_responsable.apellidos}" itemValue="#{_responsable}" />
+								<p:ajax listener="#{consumoAgilMantenimientoBean.guardarConsumoAgilMantenimiento}" process="@this" event="change" global="false"
+									update="cboResponsable" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+
+							<p:outputLabel value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{consumoAgilMantenimientoBean.consumoAgilMantenimiento.descripcion}" id="txtDescripcion">
+								<p:ajax process="@this" global="false" listener="#{consumoAgilMantenimientoBean.guardarConsumoAgilMantenimiento}" event="change" />
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{consumoAgilMantenimientoBean}" />
+							<ui:param name="objetoActualizar" value=":form:tabViewDetalles:panelMateriales" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+
+						<p:tabView id="tabViewDetalles">
+
+							<p:tab title="#{msgs.lbl_material}es" id="tabMaterial">
+								<p:outputPanel id="panelMateriales">
+									<h:panelGrid columns="1" style="width:100%">
+
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" update="form:tabViewDetalles:panelMateriales" process="@this" icon="ui-icon-plus"
+												id="dummyBtn" type="button" actionListener="#{consumoAgilMantenimientoBean.agregarDetalleConsumoAgilMantenimiento()}"
+												style="display:none;" />
+											<p:defaultCommand target="dummyBtn" />
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" update=":form:tabViewDetalles:panelMateriales" process=":form" icon="ui-icon-plus"
+												id="dummyBtn2" action="#{consumoAgilMantenimientoBean.agregarDetalleConsumoAgilMantenimiento}" />
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" id="btn" />
+										</h:panelGroup>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{consumoAgilMantenimientoBean.listaDetalleComsumoAgilMantenimietno}"
+											id="tablaMaterial" rowIndexVar="secuencial" binding="#{consumoAgilMantenimientoBean.dtMaterial}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalle.rowKey}"
+											rows="#{consumoAgilMantenimientoBean.numeroFilas}" rowsPerPageTemplate="#{consumoAgilMantenimientoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="N°">
+												<p:outputLabel value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_equipo}">
+												<p:selectOneMenu styleClass="input-text-col" value="#{_detalle.equipo}" id="cboEquipo">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{consumoAgilMantenimientoBean.listaEquipoCombo}" var="_equipo" itemLabel="#{_equipo.nombre}"
+														itemValue="#{_equipo}" />
+													<p:ajax listener="#{consumoAgilMantenimientoBean.guardarDetalle}" process="@this" update="cboComponenteEquipo" event="change"
+														global="false" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_componente_equipo}">
+												<p:selectOneMenu styleClass="input-text-col" value="#{_detalle.componenteEquipo}" id="cboComponenteEquipo">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{_detalle.equipo.listaComponenteEquipo}" var="_componente" itemLabel="#{_componente.componenteEquipo.nombre}"
+														itemValue="#{_componente.componenteEquipo}" />
+													<p:ajax listener="#{consumoAgilMantenimientoBean.guardarDetalle}" process="@this" event="change" global="false" partialSubmit="true" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_actividad}">
+												<p:selectOneMenu styleClass="input-text-col" value="#{_detalle.actividadMantenimiento}" id="cboActividad">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{consumoAgilMantenimientoBean.listaActividadCombo}" var="_actividad" itemLabel="#{_actividad.nombre}"
+														itemValue="#{_actividad}" />
+													<p:ajax listener="#{consumoAgilMantenimientoBean.guardarDetalle}" process="@this" event="change" global="false" partialSubmit="true" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}">
+												<p:inputText styleClass="input-text-col" value="#{_detalle.material.codigo}" id="txtCodigoProducto" required="true">
+													<p:ajax listener="#{consumoAgilMantenimientoBean.actualizarProducto}" process="@this" event="change" global="false"
+														oncomplete="nextFocus('#{p:component('txtCantidad')}')" update="txtCodigoProducto,txtNombreProducto,txtUnidadProducto" />
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="tableCell">
+												<h:outputText value="#{_detalle.material.nombre}" id="txtNombreProducto">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTBodega" headerText="#{msgs.lbl_bodega}">
+												<p:selectOneMenu value="#{_detalle.bodegaOrigen}" id="cboBodega" required="false">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{consumoAgilMantenimientoBean.listaBodegaCombo}" var="_bodega" itemLabel="#{_bodega.nombre}"
+														itemValue="#{_bodega}" />
+													<p:ajax listener="#{consumoAgilMantenimientoBean.guardarDetalle}" process="@this" global="false" event="change" update="cboBodega" />
+													<p:ajax listener="#{consumoAgilMantenimientoBean.actualizarSaldo}" process="@this" global="false" event="change" update="txtSaldo" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_unidad}" styleClass="columnaDTUnidad tableCell">
+												<p:outputLabel value="#{_detalle.material.unidad.nombre}" id="txtUnidadProducto">
+												</p:outputLabel>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_saldo}" styleClass="tableCell columnaDTValor">
+												<h:outputText value="#{_detalle.saldo}" id="txtSaldo" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cantidad}" styleClass="columnaDTValor tableCell">
+												<p:inputText styleClass="input-text-col" value="#{_detalle.cantidad}" id="txtCantidad">
+													<p:ajax process="@this" global="false" listener="#{consumoAgilMantenimientoBean.guardarDetalle}" event="change" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTLote" headerText="#{msgs.lbl_lote}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" value="#{_detalle.lote}"
+													completeMethod="#{consumoAgilMantenimientoBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+													forceSelection="true" dropdown="false" minQueryLength="2" rendered="#{_detalle.material.indicadorLote}">
+													<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+													<p:ajax listener="#{consumoAgilMantenimientoBean.guardarDetalle}" event="itemSelect" process="@this"
+														update=":form:tabViewDetalles:panelMateriales" global="false" />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_destino_costo}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acDestinoCosto" styleClass="input-text" value="#{_detalle.destinoCosto}"
+													completeMethod="#{consumoAgilMantenimientoBean.autocompletarDestinoCosto}" var="_destinoCosto" itemLabel="#{_destinoCosto.nombre}"
+													itemValue="#{_destinoCosto}" forceSelection="false" dropdown="false" minQueryLength="1" required="fals">
+
+													<p:column headerText="Nombre">#{_destinoCosto.nombre}</p:column>
+													<p:ajax listener="#{consumoAgilMantenimientoBean.guardarDetalle}" event="itemSelect" process="@this" global="false" />
+													<f:validateBean />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell">
+												<p:commandButton id="btnEliminarMaterial" actionListener="#{consumoAgilMantenimientoBean.eliminarMaterialOrdenTrabajo}"
+													icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tabViewDetalles:panelMateriales" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

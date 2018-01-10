@@ -1,0 +1,121 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{categoriaUnidadManejoBean}">
+					<as2:buttonEliminar bean="#{categoriaUnidadManejoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{categoriaUnidadManejoBean}" tabla=":form:tablaUnidadManejo" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_categoria_unidad_manejo_panel}" rendered="#{categoriaUnidadManejoBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{categoriaUnidadManejoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox id="ckActivo" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.activo}" />
+
+							<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox id="ckPredeterminado" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.predeterminado}" />
+
+							<p:outputLabel for="ckPallet" value="#{msgs.lbl_pallet}:" />
+							<p:selectBooleanCheckbox id="ckPallet" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.indicadorPallet}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea id="txtDescripcion" styleClass="input-text" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_categoria_unidad_manejo_panel}" rendered="#{!categoriaUnidadManejoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUnidadManejo" rowIndexVar="secuencialUnidadManejo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{categoriaUnidadManejoBean.listaCategoriaUnidadManejo}" var="categoriaUnidadManejo"
+							paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{categoriaUnidadManejoBean.dataTableCategoriaUnidadManejo}"
+							rows="#{categoriaUnidadManejoBean.numeroFilas}" rowsPerPageTemplate="#{categoriaUnidadManejoBean.numeroFilasPorPagina}"
+							selection="#{categoriaUnidadManejoBean.categoriaUnidadManejo}" selectionMode="single" rowKey="#{categoriaUnidadManejo.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialUnidadManejo+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{categoriaUnidadManejo.codigo}" sortBy="#{categoriaUnidadManejo.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{categoriaUnidadManejo.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{categoriaUnidadManejo.nombre}" sortBy="#{categoriaUnidadManejo.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{categoriaUnidadManejo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{categoriaUnidadManejo.activo}">
+								<p:selectBooleanCheckbox value="#{categoriaUnidadManejo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{categoriaUnidadManejo.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{categoriaUnidadManejo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{categoriaUnidadManejoBean.categoriaUnidadManejo.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

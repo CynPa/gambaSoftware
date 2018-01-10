@@ -1,0 +1,307 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{movimientoPartidaPresupuestariaBean}">
+					<as2:buttonImprimir beanReporte="#{reporteMovimientoPartidaPresupuestariaBean}" bean="#{movimientoPartidaPresupuestariaBean}"
+						target="#{reporteMovimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria}"
+						value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria}" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{movimientoPartidaPresupuestariaBean.editado}"
+						header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_movimiento_partida_presupuestaria})">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel value="#{msgs.lbl_fecha}" for="fecha" />
+								<p:calendar value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.fecha}" required="true" id="fecha"
+									pattern="#{movimientoPartidaPresupuestariaBean.formatoFecha}" showButtonPanel="true" locale="es" showOn="button">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputLabel for="cboProceso" value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.documento}" id="cboProceso" required="true"
+									style="width:100%">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{movimientoPartidaPresupuestariaBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax process="@this" update="@form" listener="#{movimientoPartidaPresupuestariaBean.actualizarPanelDetalle}" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputLabel for="cboMesOrigen" value="#{msgs.lbl_mes} #{msgs.lbl_origen}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.mesOrigen}"
+									id="cboMesOrigen" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{movimientoPartidaPresupuestariaBean.listaMes}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+									<p:ajax process="@this" update="@this" event="change" global="false"></p:ajax>
+								</p:selectOneMenu>
+
+								<p:spacer rendered="#{!movimientoPartidaPresupuestariaBean.renderColumns}"/>
+								<p:spacer rendered="#{!movimientoPartidaPresupuestariaBean.renderColumns}"/>
+								
+								<h:outputLabel for="cboMesDestino" value="#{msgs.lbl_mes} #{msgs.lbl_destino}:"
+									rendered="#{movimientoPartidaPresupuestariaBean.renderColumns}" />
+								<p:selectOneMenu styleClass="input-text" value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.mesDestino}"
+									rendered="#{movimientoPartidaPresupuestariaBean.renderColumns}" id="cboMesDestino"
+									required="#{movimientoPartidaPresupuestariaBean.renderColumns}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{movimientoPartidaPresupuestariaBean.listaMes}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+									<p:ajax process="@this" update="@this" event="change" global="false"></p:ajax>
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboEjercicio" value="#{msgs.lbl_ejercicio}:" />
+								<p:selectOneMenu styleClass="input-text" required="true"
+									value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.ejercicio}" id="cboEjercicio">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{movimientoPartidaPresupuestariaBean.listaEjercicio}" var="_ejercicio" itemLabel="#{_ejercicio.nombre}"
+										itemValue="#{_ejercicio}" />
+									<p:ajax process="@this" update="@form" event="change" global="false"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.descripcion}"
+									id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+								<h:panelGrid columns="2" cellpadding="0" cellspacing="0">
+									<h:panelGroup>
+										<p:commandButton value="#{msgs.lbl_agregar_detalle}" icon="ui-icon-plus" process="@this" partialSubmit="true"
+											actionListener="#{movimientoPartidaPresupuestariaBean.listaCuentaContableBean.listarCuentaContable}">
+											<p:ajax event="dialogReturn" listener="#{movimientoPartidaPresupuestariaBean.seleccionarCuentaContable}" update=":form:panelDetalle" />
+										</p:commandButton>
+									</h:panelGroup>
+								</h:panelGrid>
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+									value="#{movimientoPartidaPresupuestariaBean.listaDetalleMovimientoPartidaPresupuestaria}" id="tablaDetalleMovimiento"
+									selection="#{movimientoPartidaPresupuestariaBean.detalleMovimientoPartidaPresupuestaria}" selectionMode="single" rowIndexVar="secuencial"
+									binding="#{movimientoPartidaPresupuestariaBean.dtDetalleMovimiento}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallemovimiento"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detallemovimiento.rowKey}"
+									rows="#{movimientoPartidaPresupuestariaBean.numeroFilas}" rowsPerPageTemplate="#{movimientoPartidaPresupuestariaBean.numeroFilasPorPagina}"
+									sortOrder="ASCENDING">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detallemovimiento.cuentaContableOrigen.codigo}"
+										filterMatchMode="contains">
+										<h:outputText styleClass="input-text-col" value="#{_detallemovimiento.cuentaContableOrigen.codigo}" id="txtCodigoCuentaContableOrigen">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell"
+										headerText="#{movimientoPartidaPresupuestariaBean.renderColumns?msgs.lbl_cuenta_origen:msgs.lbl_cuenta_contable}"
+										filterBy="#{_detallemovimiento.cuentaContableOrigen.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_detallemovimiento.cuentaContableOrigen.nombre}">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_dimension_contable}" filterBy="#{_detallemovimiento.dimensionContableOrigen.nombre}"
+										filterMatchMode="contains">
+										<p:selectOneMenu styleClass="input-text" value="#{_detallemovimiento.dimensionContableOrigen}" id="cboDimensionContable">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{movimientoPartidaPresupuestariaBean.listaDimensionContable}" var="_dimensionContable"
+												itemLabel="#{_dimensionContable.codigo} - #{_dimensionContable.nombre}" itemValue="#{_dimensionContable}" />
+											<f:validateBean />
+											<p:ajax process="@this" update=":form:panelDetalle"
+												listener="#{movimientoPartidaPresupuestariaBean.actualizarSaldoOrigen(_detallemovimiento)}" />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_saldo}">
+										<h:outputText value="#{_detallemovimiento.saldoOrigen}">
+											<f:convertNumber pattern="#{movimientoPartidaPresupuestariaBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion" rendered="#{movimientoPartidaPresupuestariaBean.renderColumns}">
+										<p:commandButton icon="ui-icon-plus" process="@this" partialSubmit="true"
+											actionListener="#{movimientoPartidaPresupuestariaBean.listaCuentaContableBean.listarCuentaContable}">
+											<f:setPropertyActionListener target="#{movimientoPartidaPresupuestariaBean.detalleMovimientoPartidaPresupuestaria}"
+												value="#{_detallemovimiento}" />
+											<p:ajax event="dialogReturn" listener="#{movimientoPartidaPresupuestariaBean.seleccionarCuentaContable}" update=":form:panelDetalle" />
+										</p:commandButton>
+									</p:column>
+
+									<p:column rendered="#{movimientoPartidaPresupuestariaBean.renderColumns}" styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}"
+										filterBy="#{_detallemovimiento.cuentaContableDestino.codigo}" filterMatchMode="contains">
+										<h:outputText styleClass="input-text-col" value="#{_detallemovimiento.cuentaContableDestino.codigo}" id="txtCodigoCuentaContableDestino">
+										</h:outputText>
+									</p:column>
+
+									<p:column rendered="#{movimientoPartidaPresupuestariaBean.renderColumns}" styleClass="tableCell" headerText="#{msgs.lbl_cuenta_destino}"
+										filterBy="#{_detallemovimiento.cuentaContableDestino.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_detallemovimiento.cuentaContableDestino.nombre}">
+										</h:outputText>
+									</p:column>
+
+									<p:column rendered="#{movimientoPartidaPresupuestariaBean.renderColumns}" headerText="#{msgs.lbl_dimension_contable}"
+										filterBy="#{_detallemovimiento.dimensionContableDestino.nombre}" filterMatchMode="contains">
+										<p:selectOneMenu value="#{_detallemovimiento.dimensionContableDestino}" id="cboDimensionContableDestino">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{movimientoPartidaPresupuestariaBean.listaDimensionContable}" var="_dimensionContable"
+												itemLabel="#{_dimensionContable.codigo} - #{_dimensionContable.nombre}" itemValue="#{_dimensionContable}" />
+											<f:validateBean />
+											<p:ajax process="@this" update=":form:panelDetalle"
+												listener="#{movimientoPartidaPresupuestariaBean.actualizarSaldoDestino(_detallemovimiento)}" />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column rendered="#{movimientoPartidaPresupuestariaBean.renderColumns}" styleClass="columnaDTCantidad tableCell"
+										headerText="#{msgs.lbl_saldo}">
+										<h:outputText value="#{_detallemovimiento.saldoDestino}">
+											<f:convertNumber pattern="#{movimientoPartidaPresupuestariaBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor}">
+										<p:inputText value="#{_detallemovimiento.valor}">
+											<p:ajax listener="#{movimientoPartidaPresupuestariaBean.totalizar}" process="@this" update=":form:panelDetalle" event="change"
+												global="false" />
+										</p:inputText>
+									</p:column>
+
+									<p:column rendered="#{!movimientoPartidaPresupuestariaBean.renderColumns}" styleClass="columnaDTValor tableCell"
+										headerText="#{msgs.lbl_descripcion}">
+										<p:inputText value="#{_detallemovimiento.descripcion}">
+											<p:ajax process="@this" update="@this" global="false" />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion">
+										<p:commandButton id="btnEliminarDetalle" action="#{movimientoPartidaPresupuestariaBean.eliminarDetalle}" icon="ui-icon-trash"
+											title="#{msgs.lbl_eliminar}" update=":form:panelDetalle" process="@this" />
+									</p:column>
+
+
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="#{movimientoPartidaPresupuestariaBean.renderColumns?10:5}" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+											<p:column footerText="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.valorTotal}" style="text-align:right"
+												id="txtTotal" />
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+
+					</p:panel>
+				</p:outputPanel>
+
+
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!movimientoPartidaPresupuestariaBean.editado}"
+						header="#{msgs.lbl_panel_listado} (#{msgs.lbl_movimiento_partida_presupuestaria})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCass" rowIndexVar="secuencialCass" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{movimientoPartidaPresupuestariaBean.listaMovimientoPartidaPresupuestaria}" var="_movimientoPartidaPresupuestaria" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{movimientoPartidaPresupuestariaBean.numeroFilas}"
+							rowsPerPageTemplate="#{movimientoPartidaPresupuestariaBean.numeroFilasPorPagina}"
+							selection="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria}" selectionMode="single"
+							rowKey="#{_movimientoPartidaPresupuestaria.id}" sortBy="#{_movimientoPartidaPresupuestaria.numero}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialCass+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_numero}" filterBy="#{_movimientoPartidaPresupuestaria.numero}"
+								sortBy="#{_movimientoPartidaPresupuestaria.numero}">
+								<h:outputText value="#{_movimientoPartidaPresupuestaria.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_movimientoPartidaPresupuestaria.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoPartidaPresupuestaria.fecha}">
+									<f:convertDateTime pattern="#{movimientoPartidaPresupuestariaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_movimientoPartidaPresupuestaria.documento.nombre}"
+								filterBy="#{_movimientoPartidaPresupuestaria.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoPartidaPresupuestaria.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_movimientoPartidaPresupuestaria.ejercicio.nombre}"
+								filterBy="#{_movimientoPartidaPresupuestaria.ejercicio.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ejercicio}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoPartidaPresupuestaria.ejercicio.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+
+								<h:outputText value="#{_movimientoPartidaPresupuestaria.valorTotal}">
+									<f:convertNumber pattern="#{movimientoPartidaPresupuestariaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_bsp.estado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_movimientoPartidaPresupuestaria.estado.nombre}" />
+							</p:column>
+
+							<p:column filterBy="#{_movimientoPartidaPresupuestaria.descripcion}" sortBy="#{_movimientoPartidaPresupuestaria.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_movimientoPartidaPresupuestaria.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{movimientoPartidaPresupuestariaBean.movimientoPartidaPresupuestaria.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

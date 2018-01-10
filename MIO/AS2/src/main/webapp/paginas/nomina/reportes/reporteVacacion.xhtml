@@ -1,0 +1,114 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_vacacion}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteVacacionBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteVacacionBean}"
+					entidadOrigen=""></tnt:panelImprimir>
+					
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera" columns="#{reporteVacacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputLabel for="items" value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu value="#{reporteVacacionBean.tipoReporte}" id="items">
+								<f:selectItems value="#{reporteVacacionBean.listaTipoReporte}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+								<p:ajax process="@this" update="@form" event="change"></p:ajax>
+							</p:selectOneMenu>
+							<p:spacer />
+							<p:spacer />
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelListaEmpleado">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado" value="#{reporteVacacionBean.empleado.apellidos} #{reporteVacacionBean.empleado.nombres}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboSucursal" value="#{reporteVacacionBean.sucursal}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteVacacionBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteVacacionBean.departamento.idDepartamento}" id="cboDepartamento" required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteVacacionBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento.idDepartamento}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboFormaPagoEmpleado" value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteVacacionBean.formaPagoEmpleado}" id="cboFormaPagoEmpleado" required="true">
+
+								<f:selectItems value="#{reporteVacacionBean.listaFormaPagoEmpleado}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_resumen}:" rendered="#{reporteVacacionBean.tipoReporte=='GENERAL'}" />
+							<p:selectBooleanCheckbox value="#{reporteVacacionBean.resumido}" rendered="#{reporteVacacionBean.tipoReporte=='GENERAL'}">
+								<p:ajax process="@this" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{reporteVacacionBean.activos}">
+								<p:ajax process="@this" />
+							</p:selectBooleanCheckbox>
+							<h:outputText value="#{msgs.lbl_saldo} > 0:" rendered="#{reporteVacacionBean.tipoReporte=='GENERAL'}" />
+							<p:selectBooleanCheckbox value="#{reporteVacacionBean.saldoMayorCero}" rendered="#{reporteVacacionBean.tipoReporte=='GENERAL'}">
+								<p:ajax process="@this" />
+							</p:selectBooleanCheckbox>
+						</h:panelGrid>
+						<p:fieldset legend="#{msgs.lbl_fecha_inicio}" rendered="#{reporteVacacionBean.tipoReporte=='RANGO_FECHAS'}" id="filtroFecha">
+							<h:panelGrid columns="#{reporteVacacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+								<p:calendar pattern="#{reporteVacacionBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteVacacionBean.fechaDesde}"
+									id="calFechaDesde" maxdate="#{reporteVacacionBean.fechaHasta}">
+									<p:ajax event="dateSelect" update="@this calFechaHasta" process="@this" />
+									<p:ajax event="change" update="@this calFechaHasta" process="@this" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+								<p:calendar pattern="#{reporteVacacionBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteVacacionBean.fechaHasta}"
+									id="calFechaHasta" mindate="#{reporteVacacionBean.fechaDesde}">
+									<p:ajax event="dateSelect" update="@this calFechaDesde" process="@this" />
+									<p:ajax event="change" update="@this calFechaDesde" process="@this" />
+								</p:calendar>
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:fieldset>
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+							process="@this" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

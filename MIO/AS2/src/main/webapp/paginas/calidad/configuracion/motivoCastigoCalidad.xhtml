@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{motivoCastigoCalidadBean}">
+
+					<as2:buttonEliminar bean="#{motivoCastigoCalidadBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{motivoCastigoCalidadBean}" tabla=":form:tablaMotivoCastigoCalidad" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{motivoCastigoCalidadBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_motivo_castigo_calidad}">
+						<h:panelGrid id="panelDetalle" columns="#{motivoCastigoCalidadBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.predeterminado}" />
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!motivoCastigoCalidadBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_motivo_castigo_calidad}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMotivoCastigoCalidad" rowIndexVar="secuencialmotivoCastigoCalidad"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{motivoCastigoCalidadBean.listaMotivoCastigoCalidad}" var="motivoCastigoCalidad"
+							binding="#{motivoCastigoCalidadBean.dtMotivoCastigoCalidad}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{motivoCastigoCalidadBean.numeroFilas}" rowsPerPageTemplate="#{motivoCastigoCalidadBean.numeroFilasPorPagina}"
+							selection="#{motivoCastigoCalidadBean.motivoCastigoCalidad}" selectionMode="single" rowKey="#{motivoCastigoCalidad.id}"
+							sortBy="#{motivoCastigoCalidad.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialmotivoCastigoCalidad+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{motivoCastigoCalidad.codigo}" filterBy="#{motivoCastigoCalidad.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{motivoCastigoCalidad.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{motivoCastigoCalidad.nombre}" filterBy="#{motivoCastigoCalidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{motivoCastigoCalidad.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{motivoCastigoCalidad.descripcion}" filterBy="#{motivoCastigoCalidad.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{motivoCastigoCalidad.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{motivoCastigoCalidad.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{motivoCastigoCalidad.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{motivoCastigoCalidad.predeterminado}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{motivoCastigoCalidadBean.motivoCastigoCalidad.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

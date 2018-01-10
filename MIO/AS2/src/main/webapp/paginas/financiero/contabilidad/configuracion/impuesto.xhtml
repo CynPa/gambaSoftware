@@ -1,0 +1,305 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{impuestoBean}">
+					<as2:buttonEliminar bean="#{impuestoBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{impuestoBean.impuesto.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{impuestoBean.impuesto.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{impuestoBean}" tabla=":form:tablaImpuesto"/>
+				</as2:toolBar>
+
+				<ui:include src="/template/listaCuentaContable.html">
+					<ui:param name="bean" value="#{impuestoBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelContabilidad" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{impuestoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_titulo_impuesto} )">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+
+								<h:panelGrid id="panelDatos"
+									columns="#{impuestoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text"
+										value="#{impuestoBean.impuesto.codigo}" id="txtCodigo" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text"
+										value="#{impuestoBean.impuesto.nombre}" id="txtNombre">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_estado}:" />
+									<p:selectBooleanCheckbox
+										value="#{impuestoBean.impuesto.estado}">
+									</p:selectBooleanCheckbox>
+
+									<h:outputText
+										value="#{msgs.lbl_indicador_impuesto_tributario}:" />
+									<p:selectBooleanCheckbox
+										value="#{impuestoBean.impuesto.indicadorImpuestoTributario}"
+										id="iva">
+										<p:ajax event="change" process="@this"
+											listener="#{impuestoBean.indicadorImpuestoIVA}"
+											update="iva,indicadorNoObjetoIVA" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_indicador_no_objeto_de_IVA}:" />
+									<p:selectBooleanCheckbox
+										value="#{impuestoBean.impuesto.indicadorNoObjetoIVA}"
+										id="indicadorNoObjetoIVA">
+										<p:ajax event="change"
+											listener="#{impuestoBean.indicadorNoObjetoIVA}"
+											update="iva,indicadorNoObjetoIVA" process="@this" />
+									</p:selectBooleanCheckbox>
+									
+									<h:outputText value="#{msgs.lbl_tipo_impuesto}:" />
+									<p:selectOneMenu value="#{impuestoBean.impuesto.tipoImpuesto}" id="cboTipoImpuesto">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{impuestoBean.listaTipoImpuesto}" />
+										<p:ajax process="@this"/>
+										<f:validateBean />
+									</p:selectOneMenu>
+									
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text"
+										value="#{impuestoBean.impuesto.descripcion}"
+										id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+								</h:panelGrid>
+
+								<p:spacer height="10" />
+
+								<p:fieldset>
+
+									<p:outputPanel id="panelContabilidad">
+										<h:panelGrid columns="4"
+											columnClasses="columnaEtiquetaGrande,columnaBoton,columnaValor,columnaValor">
+
+											<h:outputText
+												value="#{msgs.lbl_impuesto_cuenta_contable_venta}:" />
+											
+											<p:commandButton value="..." process="@this" partialSubmit="true" action="#{impuestoBean.actualizarCuentaContableVenta}" actionListener="#{impuestoBean.listaCuentaContableBean.listarCuentaContable}">
+												<p:ajax event="dialogReturn" listener="#{impuestoBean.seleccionarCuentaContable}"
+													update=":form:panelContabilidad"/>												
+											</p:commandButton>
+											
+											
+											<as2:outputTextCuentaContable
+												cuentaContable="#{impuestoBean.impuesto.cuentaContableVenta}" />
+												
+											<p:spacer></p:spacer>
+
+											<h:outputText
+												value="#{msgs.lbl_impuesto_cuenta_contable_compra}:" />
+											
+											<p:commandButton value="..." process="@this" partialSubmit="true" action="#{impuestoBean.actualizarCuentaContableCompra}" actionListener="#{impuestoBean.listaCuentaContableBean.listarCuentaContable}">
+												<p:ajax event="dialogReturn" listener="#{impuestoBean.seleccionarCuentaContable}"
+													update=":form:panelContabilidad"/>												
+											</p:commandButton>
+											
+											<as2:outputTextCuentaContable
+												cuentaContable="#{impuestoBean.impuesto.cuentaContableCompra}" />
+											
+											<p:spacer></p:spacer>
+
+											<h:outputText
+												value="#{msgs.lbl_impuesto_cuenta_contable_redondeo}:" />
+											
+											<p:commandButton value="..." process="@this" partialSubmit="true" action="#{impuestoBean.actualizarCuentaContableRedondeo}" actionListener="#{impuestoBean.listaCuentaContableBean.listarCuentaContable}">
+												<p:ajax event="dialogReturn" listener="#{impuestoBean.seleccionarCuentaContable}"
+													update=":form:panelContabilidad"/>												
+											</p:commandButton>
+											
+											<as2:outputTextCuentaContable
+												cuentaContable="#{impuestoBean.impuesto.cuentaContableRedondeo}" />
+											
+											<p:spacer></p:spacer>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:fieldset>
+							</p:fieldset>
+
+							<p:spacer />
+
+							<p:fieldset>
+								<h:panelGrid columns="1" id="panelDetalle" style="width:100%">
+
+									<p:commandButton value="#{msgs.btn_agregar_detalle}"
+										id="btnAgregarDetalle" action="#{impuestoBean.agregarDetalle}"
+										update=":form:panelDetalle" process="@this :form:panelDetalle"
+										icon="ui-icon-plus" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRangoImpuesto" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}"
+										value="#{impuestoBean.listaRangoImpuesto}" var="_rango"
+										binding="#{impuestoBean.dtRangoImpuesto}" paginator="true"
+										paginatorPosition="bottom" style="width:100%"
+										rows="#{impuestoBean.numeroFilas}"
+										rowsPerPageTemplate="#{impuestoBean.numeroFilasPorPagina}"
+										selection="#{impuestoBean.rangoImpuesto}"
+										selectionMode="single" rowKey="#{_rango.rowKey}" sortBy="#{_rango.fechaDesde}" sortOrder="descending" >
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+
+										<p:column styleClass="tableCell columnaDTFechaInput" headerText="#{msgs.lbl_fecha_desde}">
+											<p:calendar pattern="#{impuestoBean.formatoFecha}" showOn="button" navigator="true" size="10" value="#{_rango.fechaDesde}"
+												id="calenFechaDesde">
+												<p:ajax process="@this" listener="#{impuestoBean.setFechaHasta}" global="false" partialSubmit="true" event="dateSelect"
+													update=":form:panelDetalle" />
+												<p:ajax process="@this" listener="#{impuestoBean.setFechaHasta}" global="false" partialSubmit="true" event="change"
+													update=":form:panelDetalle" />
+												<f:validateBean />
+											</p:calendar>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTFechaInput" headerText="#{msgs.lbl_fecha_hasta}">
+											<p:calendar pattern="#{impuestoBean.formatoFecha}" showOn="button" navigator="true" size="10" value="#{_rango.fechaHasta}"
+												id="calenFechaHasta">
+												<p:ajax process="@this" listener="#{impuestoBean.validacionFechasDesde}" global="false" partialSubmit="true" event="dateSelect"
+													update=":form:panelDetalle" />
+												<p:ajax process="@this" listener="#{impuestoBean.validacionFechasDesde}" global="false" partialSubmit="true" event="change"
+													update=":form:panelDetalle" />
+												<f:validateBean />
+											</p:calendar>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_porcentaje_impuesto}">
+										<p:inputText styleClass="input-text"
+											value="#{_rango.porcentajeImpuesto}"
+											id="txtPorcentajeImpuesto">
+											<f:validateBean />
+										</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_indicador_compra}">
+											<p:selectBooleanCheckbox value="#{_rango.indicadorCompra}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_indicador_venta}">
+											<p:selectBooleanCheckbox value="#{_rango.indicadorVenta}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton id="btnEliminarDetalle"
+												action="#{impuestoBean.eliminarDetalle}"
+												icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+												update=":form:panelDetalle" process="@this" />
+										</p:column>
+
+									</p:dataTable>
+								</h:panelGrid>
+							</p:fieldset>
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!impuestoBean.editado}"
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_titulo_impuesto} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaImpuesto" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{impuestoBean.listaImpuesto}" var="_impuesto"
+							binding="#{impuestoBean.dtImpuesto}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{impuestoBean.numeroFilas}"
+							rowsPerPageTemplate="#{impuestoBean.numeroFilasPorPagina}"
+							selection="#{impuestoBean.impuesto}" selectionMode="single"
+							rowKey="#{_impuesto.id}" sortBy="#{_impuesto.codigo}"
+							sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_impuesto.codigo}"
+								filterBy="#{_impuesto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_impuesto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_impuesto.nombre}"
+								filterBy="#{_impuesto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_impuesto.nombre}" />
+							</p:column>						
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_indicador_impuesto_tributario}">
+								<p:selectBooleanCheckbox
+									value="#{_impuesto.indicadorImpuestoTributario}"
+									disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTEstado" headerText="#{msgs.lbl_estado}">
+								<p:selectBooleanCheckbox value="#{_impuesto.estado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_impuesto.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{impuestoBean.impuesto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{impuestoBean.impuesto.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{impuestoBean.impuesto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{impuestoBean.impuesto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

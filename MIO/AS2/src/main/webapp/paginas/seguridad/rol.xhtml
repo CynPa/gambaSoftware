@@ -1,0 +1,333 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{rolBean}">
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{rolBean.copiar}" update=":form:panelContenedor" disabled="#{rolBean.editado}">
+					</p:commandButton>
+					<as2:buttonExportaExcel bean="#{rolBean}" tabla=":form:tablaRol"></as2:buttonExportaExcel>					
+					<!--<as2:buttonEliminar bean="#{rolBean}"></as2:buttonEliminar>-->
+				</as2:toolBar>
+				<!-- 
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{rolBean}" />
+					<ui:param name="tabla" value="tablaRol" />
+					<ui:param name="columnasAExcluir" value="3,4" />
+					<ui:param name="columnasAExcluirPdf" value="3,4" />
+				</ui:include>
+-->
+
+				<p:outputPanel id="panelPermisosACopiar">
+					<p:dialog header="#{msgs.lbl_rol_copiar_organizacion}" widgetVar="permisosACopiar" id="permisosACopiar" modal="true" height="200" width="300"
+						showEffect="slide" hideEffect="slide">
+
+						<h:panelGrid id="panelGridPermisosACopiar" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOrganizacionACopiar" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+								value="#{rolBean.listaOrganizacion}" var="organizacion" binding="#{rolBean.dtOrganizacionACopiar}" paginator="true"
+								paginatorPosition="bottom" style="width:100%" rows="#{rolBean.numeroFilas}">
+
+								<p:column headerText="Nº">
+									<h:outputText value="#{secuencia+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_nombre}">
+									<h:outputText value="#{organizacion.razonSocial}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_copiar}">
+									<p:selectBooleanCheckbox value="#{organizacion.indicadorCopiar}" disabled="#{organizacion == rolBean.organizacionSeleccionada}">
+										<p:ajax event="change" process="@this" update="@this" />
+									</p:selectBooleanCheckbox>
+								</p:column>
+
+							</p:dataTable>
+
+						</h:panelGrid>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this panelPermisosACopiar panelNuevo"
+									action="#{rolBean.copiarPermisos}" update=":form:panelPermisos" oncomplete="permisosACopiar.hide()">
+								</p:commandButton>
+								<!--<p:commandButton id="btnAgregar" icon="ui-icon-plus" title="#{msgs.lbl_agregar}" process="@this panelPermisosACopiar panelNuevo"
+									action="#{rolBean.agregarPermisos}" update=":form:panelContenedor" oncomplete="permisosACopiar.hide()">
+								</p:commandButton>-->
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+
+				<!-- INICIO DIALOG DE PERMISOS NO ASIGNADOS -->
+				<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_permisos_panel}" widgetVar="permisosDialog" modal="true" height="360" width="840"
+					showEffect="slide" hideEffect="slide">
+
+					<p:outputPanel id="panelPermisosNoAsignados">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPermisosNoAsignados" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{rolBean.listaProcesosNoAsignados}" var="_procesoNoAsignado" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{rolBean.numeroFilas}" rowsPerPageTemplate="#{rolBean.numeroFilasPorPagina}"
+							rowKey="#{_procesoNoAsignado.id}" selection="#{rolBean.listaProcesosSeleccionados}">
+
+							<p:column selectionMode="multiple" styleClass="columnaDTAccion tableCell" />
+
+							<p:column filterBy="#{_procesoNoAsignado.entidadProceso.viewId}" styleClass="tableCell" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_url}" />
+								</f:facet>
+								<h:outputText value="#{_procesoNoAsignado.entidadProceso.viewId}" />
+							</p:column>
+
+							<p:column filterBy="#{_procesoNoAsignado.entidadProceso.viewName}" styleClass="columnaDTNombre tableCell" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_procesoNoAsignado.entidadProceso.viewName}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_agregar}" action="#{rolBean.agregarPermiso}" process="@this :form:panelPermisosNoAsignados"
+								update=":form:panelPermisos :form:panelPermisosNoAsignados" />
+
+							<p:commandButton value="#{msgs.lbl_agregar_salir}" oncomplete="permisosDialog.hide()" action="#{rolBean.agregarPermiso}"
+								process="@this :form:panelPermisosNoAsignados" update=":form:panelPermisos" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<!-- FIN DIALOG DE PERMISOS NO ASIGNADOS -->
+
+				<!-- INICIO DIALOG DE ACCIONES -->
+				<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_acciones_panel}" widgetVar="accionesDialog" modal="true" height="440" width="600"
+					showEffect="slide" hideEffect="slide">
+
+					<h:panelGrid>
+
+						<p:fieldset legend="#{msgs.lbl_acciones_por_asignar}" toggleable="false">
+
+							<p:outputPanel id="panelAccionesNoAsignadas">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAccionesNoAsignadas" rowIndexVar="secuencia"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rolBean.listaAccionesNoAsignadas}" var="_accionNoAsignada" style="width:100%"
+									rows="#{rolBean.numeroFilas}" rowKey="#{_accionNoAsignada.id}" selection="#{rolBean.listaAccionesSeleccionadas}">
+
+									<p:column selectionMode="multiple" styleClass="columnaDTAccion tableCell" />
+
+									<p:column headerText="#{msgs.lbl_nombre}" styleClass="tableCell">
+										<h:outputText value="#{_accionNoAsignada.nombre}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:outputPanel>
+
+							<p:spacer height="4px" />
+							<center>
+								<p:commandButton value="#{msgs.lbl_agregar_accion}" action="#{rolBean.agregarAccion}" process="@this :form:panelAccionesNoAsignadas"
+									update=":form:panelAcciones :form:panelAccionesNoAsignadas" />
+							</center>
+						</p:fieldset>
+
+						<p:fieldset legend="#{msgs.lbl_acciones_asignadas}" toggleable="false">
+							<p:outputPanel id="panelAcciones">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAcciones" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+									value="#{rolBean.listaAccion}" var="_accion" style="width:100%" binding="#{rolBean.dtAccion}" rows="#{rolBean.numeroFilas}"
+									rowKey="#{_accion.id}">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+										<h:outputText value="#{secuencia+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_nombre}" styleClass="tableCell">
+										<h:outputText value="#{_accion.nombre}" />
+									</p:column>
+									<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_asignar_todos}">
+										<p:selectBooleanCheckbox value="#{_accion.asignarTodos}">
+											<p:ajax process="@this" update="@this" event="change"/>
+										</p:selectBooleanCheckbox>
+									</p:column>
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarAccion" action="#{rolBean.eliminarAccion}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelAcciones :form:panelAccionesNoAsignadas" process="@this" />
+									</p:column>
+
+								</p:dataTable>
+							</p:outputPanel>
+						</p:fieldset>
+
+					</h:panelGrid>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_salir}" action="#{rolBean.agregarAcciones}" oncomplete="accionesDialog.hide()" update=":form:panelNuevo" />
+						</center>
+					</f:facet>
+
+				</p:dialog>
+				<!-- FIN DIALOG DE ACCIONES -->
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{rolBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_rol_panel}">
+
+						<h:panelGrid>
+							<p:fieldset>
+								<h:panelGrid id="panelDetalle" columns="#{rolBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{rolBean.entidadRol.nombre}" id="txtNombre" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+
+									<h:outputText value="#{msgs.lbl_sistema}:" />
+									<p:selectOneMenu value="#{rolBean.sistemaSeleccionado}" id="cboSistema">
+										<f:selectItems value="#{rolBean.listaSistema}" var="_sistema" itemLabel="#{_sistema.nombre}" itemValue="#{_sistema}" />
+										<f:validateBean />
+										<p:ajax process="@this" global="false" update=":form:panelPermisos" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{rolBean.entidadRol.descripcion}" id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+									
+									<h:outputText value="#{msgs.lbl_organizacion}:" />
+									<p:selectOneMenu value="#{rolBean.organizacionSeleccionada}" id="cboOrganizacion">
+										<f:selectItems value="#{rolBean.listaOrganizacion}" var="_organizacion" itemLabel="#{_organizacion.razonSocial}" itemValue="#{_organizacion}" />
+										<f:validateBean />
+										<p:ajax process="@this" global="false" listener="#{rolBean.resetFiltros}" update=":form:panelPermisos" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{rolBean.entidadRol.activo}" />
+									
+									<h:outputText value="#{msgs.lbl_rol_copiar_organizacion}:" />
+									<p:selectBooleanCheckbox value="#{rolBean.indicadorCopiar}">
+									<p:ajax event="change" oncomplete="permisosACopiar.show()" process="@this" update="panelPermisosACopiar" />
+									</p:selectBooleanCheckbox>
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:fieldset legend="#{msgs.lbl_asignacion_permisos}" toggleable="false">
+
+								<h:panelGrid>
+
+									<p:commandButton value="#{msgs.btn_agregar}" oncomplete="permisosDialog.show()" action="#{rolBean.cargarPermisosNoAsignados}" process="@this"
+										update=":form:panelPermisosNoAsignados" />
+
+									<p:outputPanel id="panelPermisos">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPermisos" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rolBean.listaPermiso}"
+											var="_permiso" paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{rolBean.dtPermiso}" rows="#{rolBean.numeroFilas}"
+											rowKey="#{_permiso.rowKey}" rowsPerPageTemplate="#{rolBean.numeroFilasPorPagina}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencia+1}" />
+											</p:column>
+
+											<p:column sortBy="#{_permiso.procesoOrganizacion.entidadProceso.viewId}" filterBy="#{_permiso.procesoOrganizacion.entidadProceso.viewId}" filterMatchMode="contains" styleClass="tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_url}" />
+												</f:facet>
+												<h:outputText value="#{_permiso.procesoOrganizacion.entidadProceso.viewId}" />
+											</p:column>
+
+											<p:column sortBy="#{_permiso.procesoOrganizacion.entidadProceso.viewName}" filterBy="#{_permiso.procesoOrganizacion.entidadProceso.viewName}" filterMatchMode="contains"
+												styleClass="columnaDTNombre tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_nombre}" />
+												</f:facet>
+
+												<h:outputText value="#{_permiso.procesoOrganizacion.entidadProceso.viewName}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_acciones}" />
+												</f:facet>
+
+												<h:outputText value="#{_permiso.accionesSiglas}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_agregar_accion}" styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnAgregarAccion" icon="action" oncomplete="accionesDialog.show()" action="#{rolBean.cargarAccionNoAsignada}"
+													title="#{msgs.lbl_agregar_accion}" update=":form:panelAccionesNoAsignadas :form:panelAcciones" process="@this :form:panelPermisos" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarPermiso" action="#{rolBean.eliminarPermiso(_permiso)}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update="@parent:@parent" process="@this" partialSubmit="true" />
+											</p:column>
+										</p:dataTable>
+									</p:outputPanel>
+								</h:panelGrid>
+							</p:fieldset>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!rolBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_rol_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRol" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rolBean.listaEntidadRol}" var="rol"
+							paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{rolBean.dtEntidadRol}" rows="#{rolBean.numeroFilas}"
+							rowsPerPageTemplate="#{rolBean.numeroFilasPorPagina}" selection="#{rolBean.entidadRol}" selectionMode="single" rowKey="#{rol.id}"
+							sortBy="#{rol.nombre}" sortOrder="ASCENDING">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column sortBy="#{rol.nombre}" filterBy="#{rol.nombre}" filterMatchMode="contains" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{rol.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{rol.activo}" headerText="#{msgs.lbl_activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{rol.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{rol.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{rolBean.entidadRol.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{rolBean.entidadRol.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{rolBean.entidadRol.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{rolBean.entidadRol.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

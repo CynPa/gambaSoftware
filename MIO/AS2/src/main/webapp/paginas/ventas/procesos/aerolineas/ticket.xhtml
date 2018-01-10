@@ -1,0 +1,814 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{ticketBean}">
+
+
+				</as2:toolBar>
+
+				<p:dialog header="#{msgs.lbl_autoriza_venta_cupo_disponible}" widgetVar="dlgAutorizaVenta" id="dlgAutorizaVenta" modal="true" height="300"
+					width="500" showEffect="slide" hideEffect="slide">
+					<p:panel header="#{msgs.lbl_autoriza_venta_cupo_disponible}">
+						<p:outputPanel id="panelAutorizaVenta">
+
+							<h:panelGrid columns="2">
+
+								<h:outputText value="#{msgs.lbl_usuario}" />
+								<p:inputText styleClass="input-text" value="#{ticketBean.usuarioAutorizaVenta}" id="txtUsuarioAutoriza">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_clave}:" />
+								<p:password styleClass="input-text" value="#{ticketBean.claveAutorizaVenta}" id="txtClaveAutoriza" feedback="false">
+									<f:validateBean />
+								</p:password>
+
+							</h:panelGrid>
+
+						</p:outputPanel>
+					</p:panel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_autorizar}" process="@this panelAutorizaVenta" action="#{ticketBean.autorizarVenta}"
+								oncomplete="validacionesModal(xhr, status, args, dlgAutorizaVenta)" update="panelAutorizaVenta" icon="ui-icon-plus" />
+						</center>
+					</f:facet>
+				</p:dialog>
+
+
+				<p:dialog header="#{msgs.lbl_empresa_titulo_panel}" widgetVar="dglCrearCliente" modal="true" height="250" width="800" showEffect="slide"
+					hideEffect="slide">
+
+					<p:outputPanel id="panelDatosBasicosCliente">
+						<h:panelGrid columns="#{ticketBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{ticketBean.tipoIdentificacionCliente}" id="cboTipoIdentificacionCliente" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{ticketBean.listaTipoIdentificacion}" var="_tipoIdentificacion" itemLabel="#{_tipoIdentificacion.nombre}"
+									itemValue="#{_tipoIdentificacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" update=":form:panelValidacionIdentificacion" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empresa_identificacion}:" />
+							<h:panelGroup id="panelValidacionIdentificacion">
+								<p:inputText styleClass="input-text" rendered="#{!ticketBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}"
+									value="#{ticketBean.identificacionCliente}" maxlength="20">
+									<f:validateBean />
+									<p:ajax event="change" process="@this" global="false" />
+								</p:inputText>
+
+								<p:inputMask mask="#{empty ticketBean.tipoIdentificacionCliente ? '' : ticketBean.tipoIdentificacionCliente.mascara}"
+									value="#{ticketBean.identificacionCliente}" styleClass="input-text"
+									rendered="#{ticketBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}">
+									<p:ajax event="change" process="@this" global="false" />
+									<f:validateBean />
+								</p:inputMask>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}:" />
+							<p:inputText styleClass="input-text" id="txtNombreCliente" value="#{ticketBean.nombreCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_ciudad}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCiudad" value="#{ticketBean.ciudad}"
+								completeMethod="#{ticketBean.autocompletarCiudad}" var="_ciudad" itemLabel="#{_ciudad.nombre}" itemValue="#{_ciudad}" forceSelection="true"
+								dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_ciudad.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_ciudad.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text" id="txtDireccionCliente" value="#{ticketBean.direccionCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}:" />
+							<p:inputText styleClass="input-text" id="txtTelefonoCliente" value="#{ticketBean.telefonoCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}:" />
+							<p:inputText styleClass="input-text" id="txtEmail1" value="#{ticketBean.email}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu value="#{ticketBean.agenteComercial}" id="cboAgenteComercialGenerico" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{ticketBean.listaAgenteComercialCombo}" var="_agenteComercial"
+									itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" action="#{ticketBean.crearCliente}" process="@this,panelDatosBasicosCliente"
+								update="cboDireccionCliente,autoEmpresa,ouputPanelAgenteComercial,txtEmail" oncomplete="validacionesModal(xhr, status, args, dglCrearCliente)" />
+						</center>
+					</f:facet>
+				</p:dialog>
+
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_ticket})" rendered="#{ticketBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{ticketBean}" />
+							<ui:param name="objetoActualizar"
+								value=":form:tvDetalleFactura:panelDetalleFactura :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros :form:tvDetalleFactura:panelDetalleFacturaImpuestosNacionales" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{ticketBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{ticketBean.facturaCliente.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{ticketBean.listaDocumentoCliente}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+									<p:ajax update="txtNumero calFecha panelTabsFactura txtEmail" event="change" process="@this" global="false"
+										listener="#{ticketBean.actualizarDocumento}" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{ticketBean.facturaCliente.numero}" id="txtNumero"
+									mask="#{empty ticketBean.facturaCliente.documento ? '' : ticketBean.facturaCliente.documento.secuencia.patron}"
+									disabled="#{ticketBean.facturaCliente.idFacturaCliente == 0 and (ticketBean.indicadorAutoimpresor or ticketBean.facturaCliente.documento.indicadorDocumentoElectronico)}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{ticketBean.formatoFecha}" showOn="button" navigator="true" value="#{ticketBean.facturaCliente.fecha}" id="calFecha"
+									required="true"
+									disabled="#{ticketBean.facturaCliente.idFacturaCliente == 0 and (ticketBean.facturaCliente.documento.indicadorDocumentoElectronico)}">
+									<p:ajax listener="#{ticketBean.dateSelect}" process="@this cboCondicionPago" event="dateSelect" global="false"
+										update=":form:tvDetalleFactura:panelCuentasCobrarDetalle" />
+									<p:ajax listener="#{ticketBean.cargarCuentaPorCobrar}" process="@this cboCondicionPago" event="change" global="false"
+										update=":form:tvDetalleFactura:panelCuentasCobrarDetalle" />
+								</p:calendar>
+
+								<p:commandLink onclick="dglCrearCliente.show();" process="@this" id="vinculoEmpresa">
+									<h:outputText value="#{msgs.lbl_cliente}:" />
+									<f:setPropertyActionListener target="#{ticketBean.renderClienteNuevo}" value="true" />
+								</p:commandLink>
+
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+									value="#{ticketBean.facturaCliente.empresa}" completeMethod="#{ticketBean.autocompletarClientes}" var="_cliente"
+									itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2"
+									disabled="#{not empty ticketBean.facturaCliente.despachoCliente}">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{ticketBean.actualizarClienteListener}" process="@this" event="itemSelect"
+										update="cboDireccionCliente,cboAgenteComercial,cboCondicionPago,btnAutorizarVenta, txtEmail" />
+								</p:autoComplete>
+
+
+								<h:outputText value="#{msgs.lbl_fecha_vuelo}:" />
+								<p:calendar pattern="#{ticketBean.formatoFecha}" showOn="button" navigator="true" value="#{ticketBean.facturaCliente.fechaVuelo}"
+									id="calFechaVuelo" required="true">
+									<p:ajax listener="#{ticketBean.dateSelect}" process="@this cboCondicionPago" event="dateSelect" global="false"
+										update=":form:tvDetalleFactura:panelCuentasCobrarDetalle" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+								<p:outputPanel id="ouputPanelAgenteComercial">
+									<p:selectOneMenu value="#{ticketBean.facturaCliente.agenteComercial}" id="cboAgenteComercial" required="false"
+										rendered="#{empty ticketBean.facturaCliente.agenteComercial or !ticketBean.organizacionTextilPadilla}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{ticketBean.listaAgenteComercialCombo}" var="_agenteComercial"
+											itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+									</p:selectOneMenu>
+									<h:outputText id="txtAgenteComercial"
+										value="#{ticketBean.facturaCliente.agenteComercial.nombre2} #{ticketBean.facturaCliente.agenteComercial.nombre1}"
+										rendered="#{not empty ticketBean.facturaCliente.agenteComercial and ticketBean.organizacionTextilPadilla}" />
+								</p:outputPanel>
+
+								<p:outputLabel for="cboDireccionCliente" value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{ticketBean.facturaCliente.direccionEmpresa}" id="cboDireccionCliente" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{ticketBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboCondicionPago" value="#{msgs.lbl_condicion_cobro}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{ticketBean.facturaCliente.condicionPago}" id="cboCondicionPago" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{ticketBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+										itemValue="#{_condicionPago}" />
+									<f:validateBean />
+									<p:ajax listener="#{ticketBean.cargarCuentaPorCobrar}" process="@this calFecha" event="change" global="false"
+										update=":form:tvDetalleFactura:panelCuentasCobrarDetalle" />
+								</p:selectOneMenu>
+
+
+
+								<p:outputLabel for="txtDescripcionCabecera2" value="#{msgs.lbl_pasajero}:" />
+								<p:inputText required="true" styleClass="input-text" value="#{ticketBean.facturaCliente.descripcion2}" id="txtDescripcionCabecera2">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtEmail" value="#{msgs.lbl_email}:" />
+								<p:inputText styleClass="input-text" value="#{ticketBean.facturaCliente.email}" id="txtEmail"
+									required="#{ticketBean.facturaCliente.documento.indicadorDocumentoElectronico}">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{ticketBean.facturaCliente.descripcion}" id="txtDescripcionCabecera">
+									<f:validateBean />
+								</p:inputTextarea>
+
+
+
+
+								<h:panelGroup rendered="#{ticketBean.mostrarSaldoInicial}">
+									<h:panelGrid columns="2">
+										<h:outputText value="#{msgs.lbl_saldo_inicial}:" />
+										<p:selectBooleanCheckbox value="#{ticketBean.facturaCliente.indicadorSaldoInicial}" />
+									</h:panelGrid>
+								</h:panelGroup>
+								<p:spacer />
+							</h:panelGrid>
+
+							<p:outputPanel id="btnAutorizarVenta">
+								<p:commandButton value="#{msgs.lbl_autoriza_venta_cupo_disponible}" rendered="#{ticketBean.mostrarAutorizarVenta}"
+									oncomplete="dlgAutorizaVenta.show();" update="#{p:component('panelAutorizaVenta')}" process="@this" icon="ui-icon-plus" />
+							</p:outputPanel>
+
+						</p:fieldset>
+
+						<p:spacer />
+
+						<p:outputPanel id="panelTabsFactura">
+
+							<p:tabView cache="true" dynamic="true" id="tvDetalleFactura">
+								<p:ajax event="tabChange" process="@this :form:tvDetalleFactura:panelDetalleFactura panelCuentasCobrarDetalle" />
+								<p:tab title="#{msgs.lbl_detalle_ticket}">
+								
+								
+									<p:outputPanel id="panelDetalleFactura">
+										<h:panelGrid columns="1" style="width:100%">
+
+											<h:panelGroup>
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{ticketBean.agregarDetalleFacturaTicket}"
+													update=":form:tvDetalleFactura:panelDetalleFactura"
+													process="@this :form:tvDetalleFactura:panelDetalleFactura" icon="ui-icon-plus" />
+
+												<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" oncomplete="dglModalProducto.show();"
+													actionListener="#{ticketBean.cambiarImpuestoTicket}" process="@this" update=":form:panelListaProducto">
+												</p:commandButton>
+											</h:panelGroup>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{ticketBean.listaDetalleFacturaTicket}" id="tablaDetalleFacturaCLiente"
+												rowIndexVar="secuencial" binding="#{ticketBean.dtDetalleFacturaCliente}" emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_detalleFacturaCliente" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{ticketBean.numeroFilas}"
+												rowKey="#{_detalleFacturaCliente.id}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+													<p:inputText value="#{_detalleFacturaCliente.producto.codigo}" id="txtCodigoProducto">
+														<p:ajax listener="#{ticketBean.actualizarProductoListenerTicket}" process="@this :form:calFecha" event="change" global="false"
+															update=":form:tvDetalleFactura:panelDetalleFactura,
+															 :form:tvDetalleFactura:panelDetalleFacturaImpuestosNacionales,
+															 :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros, 
+															 :form:tvDetalleFactura:panelCuentasCobrarDetalle"
+															oncomplete="nextFocus('#{p:component('txtCantidad')}')" />
+														<f:validateBean for="txtCodigoProducto" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+													<h:outputText id="txtNombreProducto" value="#{_detalleFacturaCliente.producto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+													<h:outputText value="#{_detalleFacturaCliente.cantidad}" id="txtCantidad"
+														rendered="#{empty _detalleFacturaCliente.detalleDespachoCliente}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTCantidad" headerText="#{msgs.lbl_peso}" rendered="#{ticketBean.indicadorManejoPeso}">
+													<p:inputText value="#{_detalleFacturaCliente.peso}" id="txtPeso" rendered="#{empty _detalleFacturaCliente.detalleDespachoCliente}">
+														<f:validateBean />
+														<p:ajax listener="#{ticketBean.totalizar}" process="@this txtDescripcion :form:tvDetalleFactura:panelPagoFactura" event="change"
+															global="false"
+															update=":form:tvDetalleFactura:panelDetalleFactura,
+															:form:tvDetalleFactura:panelCuentasCobrarDetalle, :form:btnAutorizarVenta, :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros"
+															oncomplete="nextFocus('#{p:component('txtPrecio')}')" />
+													</p:inputText>
+													<h:outputText value="#{_detalleFacturaCliente.peso}" rendered="#{not empty _detalleFacturaCliente.detalleDespachoCliente}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText value="#{_detalleFacturaCliente.descripcion}" id="txtDescripcion" styleClass="input-text100">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor">
+													<f:facet name="header">
+														<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_precio_unitario}" />
+													</f:facet>
+
+													<p:inputText value="#{_detalleFacturaCliente.precio}" id="txtPrecio">
+														<f:validateBean />
+														<p:ajax listener="#{ticketBean.totalizar}" process="@this txtDescripcion :form:tvDetalleFactura:panelCuentasCobrarDetalle"
+															event="change" global="false"
+															update=":form:tvDetalleFactura:panelDetalleFactura,
+															:form:tvDetalleFactura:panelCuentasCobrarDetalle, :form:btnAutorizarVenta, :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros @this" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{ticketBean.eliminarDetalleTicket}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}"
+														update=":form:tvDetalleFactura:panelDetalleFactura,
+														:form:tvDetalleFactura:panelCuentasCobrarDetalle, :form:btnAutorizarVenta, :form:autoEmpresa, :form:vinculoEmpresa, :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros"
+														process="@this">
+
+													</p:commandButton>
+												</p:column>
+
+												<p:columnGroup type="footer" id="panelTotal">
+													<p:row>
+														<p:column colspan="6" footerText="#{msgs.lbl_subtotal}:	" style="text-align:right">
+														</p:column>
+
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.total}" style="text-align:right" id="txtTotal">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+													<p:row>
+														<p:column colspan="6" footerText="#{msgs.lbl_iva}:" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.impuesto}" style="text-align:right" id="txtImpuesto">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+													<p:row>
+														<p:column colspan="6" footerText="Impuestos Nacionales:" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.totalImpuestosNacionales}" style="text-align:right" id="txtImpuestoNacional">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+
+													<p:row>
+														<p:column colspan="6" footerText="Impuestos Extranjeros:" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.totalImpuestosExtranjeros}" style="text-align:right" id="txtImpuestoExtranjero">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+													<p:row>
+														<p:column colspan="6" footerText="#{msgs.lbl_total}:	" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.totalFacturaTicket}" style="text-align:right" id="txtSubtotal">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+												</p:columnGroup>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+
+								<p:tab title="#{msgs.lbl_impuestos_nacionales}">
+									<p:outputPanel id="panelDetalleFacturaImpuestosNacionales">
+										<h:panelGrid columns="1" style="width:100%">
+											<h:panelGroup>
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalleIN" action="#{ticketBean.agregarDetalleFacturaImpuestoNacional}"
+													update=":form:tvDetalleFactura:panelDetalleFacturaImpuestosNacionales :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros 
+													:form:tvDetalleFactura:panelDetalleFactura"
+													process="@this" icon="ui-icon-plus" />
+
+												<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" oncomplete="dglModalProducto.show();"
+													actionListener="#{ticketBean.cambiarImpuestoNacional}" process="@this" update=":form:panelListaProducto">
+												</p:commandButton>
+											</h:panelGroup>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{ticketBean.listaDetalleFacturaImpuestoNacional}"
+												id="tablaDetalleFacturaClienteImpuestoNacional" rowIndexVar="secuencial" binding="#{ticketBean.dtDetalleFacturaClienteImpuestoNacional}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleFacturaClienteImpuestoNacional" paginator="true" paginatorPosition="bottom"
+												style="width:100%" rows="#{ticketBean.numeroFilas}" rowKey="#{_detalleFacturaClienteImpuestoNacional.id}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+													<p:inputText value="#{_detalleFacturaClienteImpuestoNacional.producto.codigo}" id="txtCodigoProductoIN">
+														<p:ajax listener="#{ticketBean.actualizarProductoListenerNacional}" process="@this :form:calFecha" event="change" global="false"
+															update=":form:tvDetalleFactura:panelDetalleFactura,
+															 :form:tvDetalleFactura:panelDetalleFacturaImpuestosNacionales,
+															 :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros, 
+															 :form:tvDetalleFactura:panelCuentasCobrarDetalle"
+															oncomplete="nextFocus('#{p:component('txtCantidadIE')}')" />
+														<f:validateBean for="txtCodigoProductoIN" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_impuestos}">
+													<h:outputText id="txtNombreProductoIN" value="#{_detalleFacturaClienteImpuestoNacional.producto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+													<h:outputText value="#{_detalleFacturaClienteImpuestoNacional.cantidad}" id="txtCantidadIN">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText value="#{_detalleFacturaClienteImpuestoNacional.descripcion}" id="txtDescripcionIN" styleClass="input-text100">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor">
+													<f:facet name="header">
+														<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_valor_impuesto}" />
+													</f:facet>
+
+													<p:inputText value="#{_detalleFacturaClienteImpuestoNacional.precio}" id="txtPrecioIN">
+														<f:validateBean />
+														<p:ajax listener="#{ticketBean.totalizar}" process="@this txtDescripcionIN :form:tvDetalleFactura:panelCuentasCobrarDetalle"
+															event="change" global="false"
+															update=":form:tvDetalleFactura:panelDetalleFacturaImpuestosNacionales, :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros,
+															:form:tvDetalleFactura:panelCuentasCobrarDetalle, :form:btnAutorizarVenta :form:tvDetalleFactura:panelDetalleFactura @this" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalleIN" action="#{ticketBean.eliminarDetalleNacional}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}"
+														update=":form:tvDetalleFactura:panelDetalleFacturaImpuestosNacionales, :form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros,
+														:form:tvDetalleFactura:panelCuentasCobrarDetalle, :form:btnAutorizarVenta, :form:autoEmpresa, :form:vinculoEmpresa :form:tvDetalleFactura:panelDetalleFactura"
+														process="@this">
+
+													</p:commandButton>
+												</p:column>
+
+												<p:columnGroup type="footer" id="panelTotalIN">
+													<p:row>
+														<p:column colspan="6" footerText="Impuestos Nacionales:" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.totalImpuestosNacionales}" style="text-align:right" id="txtImpuestoNacionalIN">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+												</p:columnGroup>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+
+								<p:tab title="#{msgs.lbl_impuestos_extranjeros}">
+									<p:outputPanel id="panelDetalleFacturaImpuestosExtranjeros">
+										<h:panelGrid columns="1" style="width:100%">
+											<h:panelGroup>
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalleIE"
+													action="#{ticketBean.agregarDetalleFacturaImpuestoExtranjero}" process="@this"
+													update=":form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros :form:tvDetalleFactura:panelDetalleFactura" icon="ui-icon-plus" />
+
+												<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" oncomplete="dglModalProducto.show();"
+													actionListener="#{ticketBean.cambiarImpuestoExtranjero}" process="@this" update=":form:panelListaProducto"  >
+												</p:commandButton>
+											</h:panelGroup>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{ticketBean.listaDetalleFacturaImpuestoExtranjero}"
+												id="tablaDetalleFacturaClienteImpuestoExtranjer" rowIndexVar="secuencial"
+												binding="#{ticketBean.dtDetalleFacturaClienteImpuestoExtranjero}" emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_detalleFacturaClienteImpuestoExtranjero" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rows="#{ticketBean.numeroFilas}" rowKey="#{_detalleFacturaClienteImpuestoExtranjero.id}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+													<p:inputText value="#{_detalleFacturaClienteImpuestoExtranjero.producto.codigo}" id="txtCodigoProductoIE">
+														<p:ajax listener="#{ticketBean.actualizarProductoListenerExtranjero}" process="@this :form:calFecha" event="change" global="false"
+															update=":form:tvDetalleFactura:panelDetalleFactura, 
+															:form:tvDetalleFactura:panelDetalleFacturaImpuestosNacionales, 
+															:form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros, 
+															:form:tvDetalleFactura:panelCuentasCobrarDetalle"
+															oncomplete="nextFocus('#{p:component('txtCantidadIE')}')" />
+
+														<f:validateBean for="txtCodigoProductoIE" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_impuestos}">
+													<h:outputText id="txtNombreProductoIE" value="#{_detalleFacturaClienteImpuestoExtranjero.producto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+													<h:outputText value="#{_detalleFacturaClienteImpuestoExtranjero.cantidad}" id="txtCantidadIE">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText value="#{_detalleFacturaClienteImpuestoExtranjero.descripcion}" id="txtDescripcionIE" styleClass="input-text100">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor">
+													<f:facet name="header">
+														<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_valor_impuesto}" />
+													</f:facet>
+
+													<p:inputText value="#{_detalleFacturaClienteImpuestoExtranjero.precio}" id="txtPrecioIE">
+														<f:validateBean />
+														<p:ajax listener="#{ticketBean.totalizar}" process="@this txtDescripcionIE :form:tvDetalleFactura:panelCuentasCobrarDetalle"
+															event="change" global="false"
+															update=":form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros,
+															:form:tvDetalleFactura:panelCuentasCobrarDetalle, :form:btnAutorizarVenta :form:tvDetalleFactura:panelDetalleFactura @this" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalleIE" action="#{ticketBean.eliminarDetalleExtranjero}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tvDetalleFactura:panelDetalleFacturaImpuestosExtranjeros,
+														:form:tvDetalleFactura:panelCuentasCobrarDetalle, :form:btnAutorizarVenta, :form:autoEmpresa, :form:vinculoEmpresa :form:tvDetalleFactura:panelDetalleFactura"
+														process="@this">
+
+													</p:commandButton>
+												</p:column>
+
+												<p:columnGroup type="footer" id="panelTotalIE">
+													<p:row>
+														<p:column colspan="6" footerText="Impuestos Extranjeros:" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.totalImpuestosExtranjeros}" style="text-align:right" id="txtImpuestoExtranjeroIE">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+												</p:columnGroup>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_forma_cobro}" id="tabFormaPagoFactura">
+									<p:outputPanel id="panelCuentasCobrarDetalle">
+										<h:panelGrid columns="1" id="panelPagoFactura" style="width:100%">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{ticketBean.listaCuentaPorCobrar}" id="tablaCuentaPorCobrar"
+												rowIndexVar="secuencial" binding="#{ticketBean.dtCuentasPorCobrar}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_formaPago"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_formaPago.id}" rows="#{ticketBean.numeroFilas}"
+												sortBy="#{_formaPago.id}" rowsPerPageTemplate="#{ticketBean.numeroFilasPorPagina}" sortOrder="descending">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{_formaPago.numeroCuota}" id="txtNumeroCuota">
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_fecha_vencimiento}" styleClass="columnaDTFechaInput tableCell">
+													<p:calendar pattern="#{ticketBean.formatoFecha}" showOn="button" navigator="true" value="#{_formaPago.fechaVencimiento}"
+														id="calFechaVencimiento" size="10">
+														<p:ajax process="@this" event="dateSelect" global="false" oncomplete="nextFocus('#{p:component('txtValorCuentaPorCobrar')}')" />
+														<p:ajax process="@this" event="change" global="false" oncomplete="nextFocus('#{p:component('txtValorCuentaPorCobrar')}')" />
+													</p:calendar>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_valor}" styleClass="tableCell">
+													<p:inputText value="#{_formaPago.valor}" id="txtValorCuentaPorCobrar">
+														<f:validateBean />
+														<p:ajax process="@this" event="change" global="false" update=":form:tvDetalleFactura:panelCuentasCobrarDetalle"
+															oncomplete="nextFocus('#{p:component('calFechaVencimiento')}')" />
+													</p:inputText>
+												</p:column>
+
+												<p:summaryRow>
+													<p:column colspan="2" style="text-align:right">
+														<h:outputText value="#{msgs.lbl_total_cpp}" />
+													</p:column>
+													<p:column>
+														<h:outputText value="#{ticketBean.facturaCliente.totalCuentaPorCobrar}" id="txtTotalFormaPago" />
+													</p:column>
+
+												</p:summaryRow>
+
+												<p:columnGroup type="footer" id="panelTotalFormaPago">
+													<p:row>
+														<p:column colspan="2" footerText="#{msgs.lbl_total}" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.totalFacturaTicket}">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+													<p:row>
+														<p:column colspan="2" footerText="#{msgs.lbl_diferencia}" style="text-align:right">
+														</p:column>
+														<p:column>
+															<f:facet name="footer">
+																<h:outputText value="#{ticketBean.facturaCliente.totalFacturaTicket-ticketBean.facturaCliente.totalCuentaPorCobrar}">
+																	<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+																</h:outputText>
+															</f:facet>
+														</p:column>
+													</p:row>
+
+												</p:columnGroup>
+
+
+											</p:dataTable>
+
+										</h:panelGrid>
+
+									</p:outputPanel>
+
+								</p:tab>
+
+							</p:tabView>
+
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_ticket})" rendered="#{!ticketBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturaCliente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{ticketBean.listaFacturaCliente}" var="_facturaCliente" paginator="true"
+							binding="#{ticketBean.dtFacturaCliente}" rows="#{ticketBean.numeroFilas}" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{ticketBean.numeroFilasPorPagina}" selection="#{ticketBean.facturaCliente}" selectionMode="single"
+							rowKey="#{_facturaCliente.id}" sortBy="fechaCreacion" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell" sortBy="numero" filterBy="numero">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaCliente.numero}" />
+
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="empresa.nombreFiscal" filterBy="empresa.nombreFiscal">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="fecha">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.fecha}">
+									<f:convertDateTime pattern="#{ticketBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="total">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.total}">
+									<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_iva}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.impuesto}">
+									<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_impuesto_nacional_extranjero}">
+								<h:outputText value="#{_facturaCliente.valorOtros}">
+									<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.totalFacturaTicket}">
+									<f:convertNumber pattern="#{ticketBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell" rendered="#{sesionControler.manejaProyectos}" filterBy="#{_facturaCliente.proyecto.nombre}"
+								sortBy="#{_facturaCliente.proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proyecto}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.proyecto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="descripcion" filterBy="descripcion">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.descripcion}" />
+							</p:column>
+
+
+
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{ticketBean.facturaCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{ticketBean.facturaCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{ticketBean.facturaCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{ticketBean.facturaCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

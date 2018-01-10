@@ -1,0 +1,78 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_panel_reporte_consumo_materiales}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteConsumoMaterialesBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<ui:include src="/template/listaProductoMultiple.xhtml">
+						<ui:param name="bean" value="#{reporteConsumoMaterialesBean}" />
+						<ui:param name="objetoActualizar" value=":form:panelFiltros" />
+					</ui:include>
+					
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteConsumoMaterialesBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteConsumoMaterialesBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteConsumoMaterialesBean.fechaDesde}" id="calFechaDesde" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteConsumoMaterialesBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteConsumoMaterialesBean.fechaHasta}" id="calFechaHasta" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+							
+							<h:outputText value="#{msgs.lbl_material}:" />
+							<h:panelGroup>
+								<p:commandButton process="@this" onclick="dglModalProducto.show();"	icon="ui-icon ui-icon-newwin" title="#{msgs.lbl_listado}" />
+								<h:outputText value="#{reporteConsumoMaterialesBean.producto.codigo} #{reporteConsumoMaterialesBean.producto.nombre}" />
+							</h:panelGroup>
+							
+							<h:outputText value="#{msgs.lbl_lote}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" size="15" value="#{reporteConsumoMaterialesBean.lote}"
+								completeMethod="#{reporteConsumoMaterialesBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+								forceSelection="true" dropdown="true" minQueryLength="2" disabled="#{reporteConsumoMaterialesBean.producto == null}">
+
+								<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+								<p:ajax event="itemSelect" process="@this" />
+
+								<p:ajax event="itemSelect" process="@this" />
+							</p:autoComplete>
+							
+							<h:outputText value="#{msgs.lbl_solo_cerradas}:" />
+							<p:selectBooleanCheckbox value="#{reporteConsumoMaterialesBean.indicadorSoloCerradas}">
+								<p:ajax process="@this" global="false"/>
+							</p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this calFechaDesde calFechaHasta"
+								oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+
+					</p:fieldset>
+				</p:outputPanel>
+
+			</p:panel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

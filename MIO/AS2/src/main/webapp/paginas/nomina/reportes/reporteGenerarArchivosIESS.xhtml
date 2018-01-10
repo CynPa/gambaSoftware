@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_generar_iess}">		
+								
+				<p:outputPanel id="panelFiltros">
+					
+					<h:panelGrid id="panelPrincipal" columns="#{reporteGenerarArchivoIESSBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor" >
+							<p:outputLabel for="cboTipoArchivo" value="#{msgs.lbl_tipo_archivo}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteGenerarArchivoIESSBean.tipoArchivo}"
+								id="cboTipoArchivo" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteGenerarArchivoIESSBean.listaTipoArchivo}" />
+								<p:ajax process="@this" event="change" listener="#{reporteGenerarArchivoIESSBean.actualizarListaPagoRol()}" global="false" update=":form:panelPrincipal :form:cboPagoRol"/>
+							</p:selectOneMenu>
+															
+							<p:spacer></p:spacer>	
+							<p:spacer></p:spacer>	
+							
+							<h:outputText value="#{msgs.lbl_sucursal_empleado}:" rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo == 1}" />
+							<p:selectOneMenu styleClass="input-text" rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo == 1}" required="true"
+								value="#{reporteGenerarArchivoIESSBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems
+									value="#{reporteGenerarArchivoIESSBean.listaSucursal}"
+									var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_fecha_rol}:" rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo==1 or reporteGenerarArchivoIESSBean.tipoArchivo==4 or reporteGenerarArchivoIESSBean.tipoArchivo==5 or reporteGenerarArchivoIESSBean.tipoArchivo==6}" />
+							<p:selectOneMenu styleClass="input-text" 
+								value="#{reporteGenerarArchivoIESSBean.pagoRol.idPagoRol}"
+								id="cboPagoRol" required="true" rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo==1 or reporteGenerarArchivoIESSBean.tipoArchivo==4 or reporteGenerarArchivoIESSBean.tipoArchivo==5 or reporteGenerarArchivoIESSBean.tipoArchivo==6}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems
+									value="#{reporteGenerarArchivoIESSBean.listaPagoRol}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo==2 or reporteGenerarArchivoIESSBean.tipoArchivo==3}" />
+							<p:calendar pattern="#{reporteGenerarArchivoIESSBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteGenerarArchivoIESSBean.desde}" id="calFechaDesde" required="true" rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo==2 or reporteGenerarArchivoIESSBean.tipoArchivo==3}">
+								<p:ajax process="@this" event="change" global="false"/>
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:"  rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo==2 or reporteGenerarArchivoIESSBean.tipoArchivo==3}"/>
+							<p:calendar pattern="#{reporteGenerarArchivoIESSBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteGenerarArchivoIESSBean.hasta}" id="calFechaHasta" required="true" rendered="#{reporteGenerarArchivoIESSBean.tipoArchivo==2 or reporteGenerarArchivoIESSBean.tipoArchivo==3}">
+								<p:ajax process="@this" event="change" global="false"/>
+							</p:calendar>
+
+					</h:panelGrid>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+					    <p:commandButton value="#{msgs.btn_generar_iess}" icon="print" id="btnGenerarArchivoIESS" ajax="false" actionListener="#{reporteGenerarArchivoIESSBean.generarArchivo}" update=":form:cboPagoRol"
+							process="@this :form:calFechaHasta :form:calFechaDesde :form:cboPagoRol" >
+							<p:fileDownload value="#{reporteGenerarArchivoIESSBean.file}"></p:fileDownload>
+						</p:commandButton>											
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

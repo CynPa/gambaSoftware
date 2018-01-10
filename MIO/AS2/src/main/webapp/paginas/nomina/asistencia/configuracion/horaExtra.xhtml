@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{horaExtraBean}">
+
+					<as2:buttonEliminar bean="#{horaExtraBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{horaExtraBean.horaExtra.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{horaExtraBean.horaExtra.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{horaExtraBean}" tabla=":form:tablaHoraExtras" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{horaExtraBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_hora_extra})">
+
+						<h:panelGrid id="panelDetalle" columns="#{horaExtraBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{horaExtraBean.horaExtra.codigo}" id="txtCodigo" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{horaExtraBean.horaExtra.nombre}" id="txtNombre" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="chDentroHorario" value="#{msgs.lbl_dentro_horario}:" />
+							<p:selectBooleanCheckbox value="#{horaExtraBean.horaExtra.indicadorDentroHorario}" id="chDentroHorario" />
+
+							<p:outputLabel for="chDiaFestivo" value="#{msgs.lbl_dia_festivo}:" />
+							<p:selectBooleanCheckbox value="#{horaExtraBean.horaExtra.indicadorDiaFestivo}" id="chDiaFestivo" />
+							
+							<p:outputLabel for="chDiaDescanso" value="#{msgs.lbl_dia_descanso}:" />
+							<p:selectBooleanCheckbox value="#{horaExtraBean.horaExtra.indicadorDiaDescanso}" id="chDiaDescanso" />
+							
+							<p:outputLabel for="chDiaComplementario" value="#{msgs.lbl_dia_complementario}:" />
+							<p:selectBooleanCheckbox value="#{horaExtraBean.horaExtra.indicadorDiaComplementario}" id="chDiaComplementario" />
+							
+							<p:outputLabel for="horaDesde" value="#{msgs.lbl_hora_desde}:" />
+							<p:calendar id="horaDesde" value="#{horaExtraBean.horaExtra.horaDesde}" pattern="HH:mm" timeOnly="true" required="true"  />
+        					
+        					<p:outputLabel for="horaHasta" value="#{msgs.lbl_hora_hasta}:" />
+        					<p:calendar id="horaHasta" value="#{horaExtraBean.horaExtra.horaHasta}" pattern="HH:mm" timeOnly="true" required="true" />
+        					
+        					<p:outputLabel for="cboPorCiento" value="#{msgs.lbl_por_ciento_palabras}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{horaExtraBean.horaExtra.porCiento}" id="cboPorCiento" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{horaExtraBean.listaPorCiento}" var="_porCiento"/>
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+							
+							<p:outputLabel for="cboRubro" value="#{msgs.lbl_rubro}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{horaExtraBean.horaExtra.rubro}" id="cboRubro" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{horaExtraBean.listaRubro}" var="_rubro" itemLabel="#{_rubro.nombre}" itemValue="#{_rubro}"/>
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+        					
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{horaExtraBean.horaExtra.descripcion}" id="txtDescripcion">
+							</p:inputTextarea>
+							
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!horaExtraBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_hora_extra})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaHoraExtras" rowIndexVar="secuencialHoraExtra"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{horaExtraBean.listaHoraExtra}" var="horaExtra" binding="#{horaExtraBean.dtHoraExtra}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{horaExtraBean.numeroFilas}" rowsPerPageTemplate="#{horaExtraBean.numeroFilasPorPagina}"
+							selection="#{horaExtraBean.horaExtra}" selectionMode="single" rowKey="#{horaExtra.id}" sortBy="#{horaExtra.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialHoraExtra+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{horaExtra.codigo}" filterBy="#{horaExtra.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{horaExtra.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{horaExtra.nombre}" filterBy="#{horaExtra.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{horaExtra.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo" sortBy="#{horaExtra.horaDesde}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_hora_desde}" />
+								</f:facet>
+								<h:outputText value="#{horaExtra.horaDesde}" >
+									<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo" sortBy="#{horaExtra.horaHasta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_hora_hasta}" />
+								</f:facet>
+								<h:outputText value="#{horaExtra.horaHasta}" >
+									<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTActivo" sortBy="#{horaExtra.indicadorDentroHorario}" headerText="#{msgs.lbl_dentro_horario}">
+								<p:selectBooleanCheckbox value="#{horaExtra.indicadorDentroHorario}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_dia_festivo}" sortBy="#{horaExtra.indicadorDiaFestivo}">
+								<p:selectBooleanCheckbox value="#{horaExtra.indicadorDiaFestivo}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_dia_descanso}" sortBy="#{horaExtra.indicadorDiaDescanso}">
+								<p:selectBooleanCheckbox value="#{horaExtra.indicadorDiaDescanso}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_dia_complementario}" sortBy="#{horaExtra.indicadorDiaComplementario}">
+								<p:selectBooleanCheckbox value="#{horaExtra.indicadorDiaComplementario}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo" sortBy="#{horaExtra.porCiento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_por_ciento_palabras}" />
+								</f:facet>
+								<h:outputText value="#{horaExtra.porCiento.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo" sortBy="#{horaExtra.rubro.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_rubro}" />
+								</f:facet>
+								<h:outputText value="#{horaExtra.rubro.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{horaExtra.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{horaExtra.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{horaExtraBean.horaExtra.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{horaExtraBean.horaExtra.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{horaExtraBean.horaExtra.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{horaExtraBean.horaExtra.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

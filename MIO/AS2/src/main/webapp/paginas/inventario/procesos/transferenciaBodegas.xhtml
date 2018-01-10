@@ -1,0 +1,550 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+<f:metadata>
+	<f:viewParam name="idTransferenciaBodega" value="#{transferenciaBodegaBean.idTransferenciaBodega}" />
+</f:metadata>
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{transferenciaBodegaBean}">
+
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{transferenciaBodegaBean.copiar}" update=":form:panelContenedor" disabled="#{transferenciaBodegaBean.editado}">
+					</p:commandButton>
+
+					<p:commandButton id="btnEmitirGuiaRemision" value="#{msgs.lbl_emitir_guia_remision}" title="#{msgs.lbl_emitir_guia_remision}"
+						process="@this,:form:panelListado" action="#{transferenciaBodegaBean.emitirGuiaRemision}" rendered="#{!transferenciaBodegaBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonImprimir id="btnImprimirTransferenciaBodegas" beanReporte="#{reporteTransferenciaBodegaBean}" bean="#{transferenciaBodegaBean}"
+						target="#{reporteTransferenciaBodegaBean.transferencia}" value="#{transferenciaBodegaBean.transferencia}" />
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{transferenciaBodegaBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{transferenciaBodegaBean.transferencia.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>	
+						
+					<as2:buttonImprimir beanReporte="#{reporteGuiaRemisionBean}" bean="#{transferenciaBodegaBean}"
+						target="#{reporteGuiaRemisionBean.idTransferenciaBodega}" value="#{transferenciaBodegaBean.transferencia.idMovimientoInventario}"
+						etiquetaImprimir="#{msgs.lbl_imprimir_guia_remision}" />					
+						
+					<as2:buttonExportaExcel bean="#{transferenciaBodegaBean}" tabla=":form:tablaTransferencias" />
+
+					<as2:buttonEnviarMail id="btnEnviarMail" bean="#{transferenciaBodegaBean}" etiquetaEnviarMail="Enviar guia de remision" />
+
+					<p:commandButton ajax="false" icon="xml" process="@this" title="XML">
+						<p:fileDownload value="#{transferenciaBodegaBean.XMLSRI}" />
+					</p:commandButton>
+				</as2:toolBar>
+
+				<!-- INICIO DIALOG SUBIR ARCHIVO -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarArchivoTexto" modal="true" height="150" width="325" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarTxt">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{transferenciaBodegaBean.cargarDetalleMovimientoClienteTxt}" mode="advanced"
+									update=":form:tvDetalles:panelDetalle :form:panelNuevo" auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(txt|TXT|xls)$/"
+									label="#{msgs.btn_examinar}" process="@this :form:cboBodegaDestino" oncomplete="dlgCargarArchivoTexto.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_transferencia_bodegas_bodega_panel}" rendered="#{transferenciaBodegaBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{transferenciaBodegaBean}" />
+							<ui:param name="mostrarCantidad" value="true" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="objetoActualizar" value=":form:tvDetalles:panelDetalle" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid columns="#{transferenciaBodegaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{transferenciaBodegaBean.transferencia.documento.idDocumento}" id="cboDocumento"
+									required="true" disabled="#{transferenciaBodegaBean.transferencia.id != 0}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{transferenciaBodegaBean.listaDocumentosTransferencia}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+									<f:validateBean />
+									<p:ajax process="@this" update="txtNumero" listener="#{transferenciaBodegaBean.actualizarDocumento}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{transferenciaBodegaBean.transferencia.numero}"
+									mask="#{transferenciaBodegaBean.transferencia.documento.secuencia.patron}"
+									disabled="#{!transferenciaBodegaBean.secuenciaEditable or transferenciaBodegaBean.transferencia.id != 0}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_cliente}:" rendered="#{transferenciaBodegaBean.mostrarCliente == true}" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+									value="#{transferenciaBodegaBean.transferencia.empresa}" completeMethod="#{transferenciaBodegaBean.autocompletarClientes}" var="_cliente"
+									itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2"
+									rendered="#{transferenciaBodegaBean.mostrarCliente == true}">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax process="@this" listener="#{transferenciaBodegaBean.cargarDirecciones(_cliente)}" event="itemSelect" update="cboDireccionCliente" />
+								</p:autoComplete>
+
+								<p:outputLabel for="cboDireccionCliente" value="#{msgs.lbl_empresa_direccion_factura}:"
+									rendered="#{transferenciaBodegaBean.mostrarCliente == true}" />
+								<p:selectOneMenu styleClass="input-text" value="#{transferenciaBodegaBean.transferencia.direccionEmpresa}" id="cboDireccionCliente"
+									rendered="#{transferenciaBodegaBean.mostrarCliente == true}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{transferenciaBodegaBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_transferencia_bodegas_bodega_origen}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{transferenciaBodegaBean.transferencia.bodegaOrigen}" id="cboBodegaOrigen" required="true"
+									disabled="#{not empty transferenciaBodegaBean.ordenSalidaMaterial}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{transferenciaBodegaBean.listaBodegaOrigen}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<p:ajax event="change" process="@this" listener="#{transferenciaBodegaBean.eventBodegaOrigen}"
+										update=":form:tvDetalles:tablaDetalleMovimientoInventario :form:panelListaProducto " global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_transferencia_bodegas_bodega_destino}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{transferenciaBodegaBean.transferencia.bodegaDestino}" id="cboBodegaDestino" required="true"
+									disabled="#{not empty transferenciaBodegaBean.ordenSalidaMaterial}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{transferenciaBodegaBean.listaBodegaDestino}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<p:ajax event="change" process="@this" listener="#{transferenciaBodegaBean.eventBodegaDestino}"
+										update=":form:tvDetalles:tablaDetalleMovimientoInventario :form:tvDetalles:btnCargarTexto" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{transferenciaBodegaBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{transferenciaBodegaBean.transferencia.fecha}" id="calFecha" disabled="#{!transferenciaBodegaBean.permitirFechaInventario}" />
+
+								<p:outputLabel for="autoProyecto" rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_proyecto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoProyecto"
+									value="#{transferenciaBodegaBean.transferencia.proyecto}" completeMethod="#{sesionControler.autocompletarProyectosActivos}" var="_proyecto"
+									itemLabel="#{_proyecto.nombre}" itemValue="#{_proyecto}" forceSelection="true" dropdown="true" minQueryLength="2"
+									rendered="#{sesionControler.manejaProyectos}" required="true">
+
+									<p:column headerText="#{msgs.lbl_codigo}">#{_proyecto.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre}">#{_proyecto.nombre}</p:column>
+
+									<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{transferenciaBodegaBean.transferencia.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_cargar_con_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{transferenciaBodegaBean.codigoCabecera}" id="txtCodigoCabecera">
+										<p:ajax listener="#{transferenciaBodegaBean.agregarDetalleDesdeCodigoCabecera}" process="@this"
+											update=":form:tvDetalles:panelDetalleTransferencia :form:txtCodigoCabecera" event="change" global="false"
+											oncomplete="nextFocus('#{p:component('txtCodigoCabecera')}')" />
+								</p:inputText>
+									
+							</h:panelGrid>
+
+							<ui:include src="/template/lecturaBalanza.xhtml">
+								<ui:param name="bean" value="#{transferenciaBodegaBean}" />
+								<ui:param name="mostrarBalanza" value="#{transferenciaBodegaBean.mostrarBalanza}" />
+								<ui:param name="update" value=":form:tvDetalles:panelDetalle :form:panelLecturaPeso :form:tvDetalles:panelDetallePesadas" />
+								<ui:param name="disabled" value="false" />
+							</ui:include>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<p:tabView cache="true" dynamic="true" id="tvDetalles">
+								<p:tab title="#{msgs.lbl_detalle}s" id="tabDetalle">
+									<h:panelGrid columns="1" id="panelDetalle">
+										<h:panelGrid columns="2" cellpadding="0" cellspacing="0">
+											<h:panelGroup>
+												<p:commandButton value="Agregar Detalle" id="btnAgregarDetalle" icon="ui-icon-plus" action="#{transferenciaBodegaBean.agregarDetalle}"
+													update=":form:tvDetalles:panelDetalle" process="@this,:form:tvDetalles:panelDetalle" />
+
+												<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+
+												<p:commandButton id="btnCargarTexto" value="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update=":form:outputCargarTxt"
+													onclick="dlgCargarArchivoTexto.show()" process="@this" disabled="#{transferenciaBodegaBean.transferencia.bodegaDestino == null}" />
+
+												<as2:buttonDescagarPlantilla bean="#{transferenciaBodegaBean}" />
+
+												<p:commandButton icon="ui-icon-plus" id="btnCargarSaldos" value="#{msgs.lbl_cargar_saldo_bodega}" title="#{msgs.lbl_cargar_saldo_bodega}"
+													process="@this,:form:panelListado" action="#{transferenciaBodegaBean.cargarSaldosBodegaOrigenTransferencia}"
+													update=":form:tvDetalles:panelDetalle">
+												</p:commandButton>
+											</h:panelGroup>
+											<h:panelGrid cellpadding="0" cellspacing="0" columns="2" styleClass=",columna60">
+												<h:outputText value="#{msgs.lbl_orden_salida_material}:" />
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+													value="#{transferenciaBodegaBean.ordenSalidaMaterial}" completeMethod="#{transferenciaBodegaBean.autocompletarOrdenSalidaMaterial}"
+													var="_ordenSalida" itemValue="#{_ordenSalida}" itemLabel="#{_ordenSalida.numero}" dropdown="true">
+
+													<p:column headerText="#{msgs.lbl_numero}">
+														<h:outputText value="#{_ordenSalida.numero}" />
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_fecha}">
+														<h:outputText value="#{_ordenSalida.fecha}">
+															<f:convertDateTime pattern="#{transferenciaBodegaBean.formatoFecha}" />
+														</h:outputText>
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_nota}">
+														<h:outputText value="#{_ordenSalida.descripcion}" />
+													</p:column>
+
+													<p:ajax process="@this" global="false" event="itemSelect" listener="#{transferenciaBodegaBean.cargarDetalleDesdeOrdenSalidaMaterial}"
+														update=":form:tvDetalles:panelDetalleTransferencia :form:cboBodegaDestino :form:cboBodegaOrigen" />
+													<p:ajax process="@this" global="false" event="change" 
+														update=":form:tvDetalles:panelDetalleTransferencia :form:cboBodegaDestino :form:cboBodegaOrigen" />
+
+												</p:autoComplete>
+
+											</h:panelGrid>
+										</h:panelGrid>
+										<p:outputPanel id="panelDetalleTransferencia">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{transferenciaBodegaBean.detalleMovimientoInventario}"
+												id="tablaDetalleMovimientoInventario" rowIndexVar="secuencial" binding="#{transferenciaBodegaBean.dtDetalleMovimientoInventario}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleMovimientoInventario" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detalleMovimientoInventario.rowKey}" rows="#{transferenciaBodegaBean.numeroFilas}"
+												rowsPerPageTemplate="#{transferenciaBodegaBean.numeroFilasPorPagina}"
+												selection="#{transferenciaBodegaBean.detalleTransferenciaSeleccionada}" selectionMode="single">
+												<p:ajax event="rowSelect" listener="#{transferenciaBodegaBean.cargarProductoSeleccionadoPesa}" update=":form:panelLecturaPeso"
+													global="false" partialSubmit="true" oncomplete="nextFocus('cboUnidadManejo_focus')" />
+
+												<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column rendered="#{transferenciaBodegaBean.indicadorMostrarOrdenSalidaMaterial}" styleClass="tableCell columnaDTNombreCorto"
+													headerText="#{msgs.lbl_orden_salida_material}">
+													<h:outputText value="#{_detalleMovimientoInventario.detalleOrdenSalidaMaterial.ordenSalidaMaterial.numero}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo_producto}"
+													filterBy="#{_detalleMovimientoInventario.producto.codigo}" filterMatchMode="contains">
+													<p:inputText styleClass="input-text-col" value="#{_detalleMovimientoInventario.producto.codigo}" id="txtCodigoProducto">
+
+														<p:ajax listener="#{transferenciaBodegaBean.actualizarProducto}" process="@this" event="change"
+															update="txtCodigoProducto, txtNombreProducto, cboUnidadConversion,:form:tvDetalles:panelDetalle" />
+
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" filterBy="#{_detalleMovimientoInventario.producto.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_detalleMovimientoInventario.producto.nombre}" id="txtNombreProducto">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTUnidad" headerText="#{msgs.lbl_unidad_producto}">
+													<p:selectOneMenu styleClass="" value="#{_detalleMovimientoInventario.unidadConversion}" id="cboUnidadConversion" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{_detalleMovimientoInventario.producto.traListaUnidadConversion}" var="_unidadCoversion"
+															itemLabel="#{_unidadCoversion.nombre}" itemValue="#{_unidadCoversion}" />
+														<p:ajax process="@this" event="change" />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTBodega" headerText="#{msgs.lbl_transferencia_bodegas_bodega_origen}">
+													<p:outputPanel>
+														<h:outputText value="#{_detalleMovimientoInventario.bodegaOrigen.nombre}" />
+													</p:outputPanel>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTBodega" headerText="#{msgs.lbl_transferencia_bodegas_bodega_destino}">
+													<p:outputPanel>
+														<h:outputText value="#{_detalleMovimientoInventario.bodegaDestino.nombre}" />
+													</p:outputPanel>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText styleClass="input-text" value="#{_detalleMovimientoInventario.descripcion}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_saldo}">
+													<h:outputText value="#{_detalleMovimientoInventario.saldo}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTCantidad" headerText="#{msgs.lbl_cantidad}">
+													<p:inputText styleClass="input-text-col" value="#{_detalleMovimientoInventario.cantidad}" id="txtCantidad" maxlength="10"
+														rendered="#{!transferenciaBodegaBean.mostrarBalanza or !_detalleMovimientoInventario.producto.indicadorPesoBalanza}">
+														<f:validateBean />
+														<p:ajax process="@this" event="change" update=":form:tvDetalles:panelDetalle" />
+													</p:inputText>
+													<h:outputText value="#{_detalleMovimientoInventario.cantidad}"
+														rendered="#{transferenciaBodegaBean.mostrarBalanza and _detalleMovimientoInventario.producto.indicadorPesoBalanza}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_informativa}">
+													<h:outputText value="#{_detalleMovimientoInventario.producto.unidadInformativa.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad_informativa}">
+													<p:inputText value="#{_detalleMovimientoInventario.cantidadUnidadInformativa}"
+														rendered="#{_detalleMovimientoInventario.producto.indicadorManejaUnidadInformativa and (!transferenciaBodegaBean.mostrarBalanza or !_detalleMovimientoInventario.producto.indicadorPesoBalanza)}" required="true">
+														<p:ajax process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+													<h:outputText value="#{_detalleMovimientoInventario.cantidadUnidadInformativa}"
+														rendered="#{transferenciaBodegaBean.mostrarBalanza and _detalleMovimientoInventario.producto.indicadorPesoBalanza}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTLote" headerText="#{msgs.lbl_lote}">
+													<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text"
+														value="#{_detalleMovimientoInventario.inventarioProducto.lote}" completeMethod="#{transferenciaBodegaBean.autocompletarLotes}"
+														var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}" forceSelection="true" dropdown="false" minQueryLength="2"
+														required="#{_detalleMovimientoInventario.producto.indicadorLote}" rendered="#{_detalleMovimientoInventario.producto.indicadorLote}">
+
+														<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+														<p:ajax event="itemSelect" process="@this" update=":form:tvDetalles:panelDetalle" />
+
+														<p:ajax event="itemSelect" process="@this" update=":form:tvDetalles:panelDetalle" listener="#{transferenciaBodegaBean.actualizarSaldo}" />
+													</p:autoComplete>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_serie}">
+													<p:commandButton rendered="#{_detalleMovimientoInventario.producto.indicadorSerie}" value="..." process="@this" partialSubmit="true"
+														id="btnSeries" actionListener="#{dialogoSerieProductoBean.abrirDialogo(_detalleMovimientoInventario.inventarioProducto)}">
+
+														<p:ajax event="dialogReturn" oncomplete="nextFocus('#{p:component('btnSeries')}')" update="txtCantidad" />
+
+													</p:commandButton>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion">
+													<p:commandButton id="btnEliminarDetalle" action="#{transferenciaBodegaBean.eliminarDetalle}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tvDetalles:panelDetalle :form:tvDetalles:panelDetallePesadas" process="@this" />
+												</p:column>
+
+												<p:columnGroup type="footer" id="panelTotal">
+													<p:row>
+														<p:column colspan="8" footerText="#{msgs.lbl_total}:" style="text-align:right">
+														</p:column>
+														<p:column footerText="#{transferenciaBodegaBean.transferencia.total}" style="text-align:right" id="txtTotal" />
+														<p:column></p:column>
+														<p:column></p:column>
+														<p:column></p:column>
+														<p:column></p:column>
+														<p:column></p:column>
+													</p:row>
+												</p:columnGroup>
+
+											</p:dataTable>
+										</p:outputPanel>
+
+									</h:panelGrid>
+								</p:tab>
+								<p:tab title="#{msgs.lbl_lectura_balanza}" id="tabDetallePesadas" rendered="#{transferenciaBodegaBean.mostrarBalanza}">
+									<p:outputPanel id="panelDetallePesadas">
+										<h:panelGrid columns="1" style="width:100%" border="0">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{transferenciaBodegaBean.listaLecturaBalanza}" id="tablaLecturaBalanza"
+												rowIndexVar="secuencial" binding="#{transferenciaBodegaBean.dtLecturaBalanza}" emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_lecturaBalanza" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_lecturaBalanza.rowKey}"
+												rows="#{transferenciaBodegaBean.numeroFilas}" rowsPerPageTemplate="#{transferenciaBodegaBean.numeroFilasPorPagina}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalle.producto.codigo}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.producto.codigo}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" filterBy="#{_lecturaBalanza.producto.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.producto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTBodega tableCell" headerText="#{msgs.lbl_bodega}"
+													filterBy="#{_lecturaBalanza.detalleMovimientoInventario.bodegaDestino.nombre}" filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.detalleMovimientoInventario.bodegaDestino.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_lecturaBalanza.unidadManejo.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.unidadManejo.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_pallet}" filterBy="#{_lecturaBalanza.pallet.nombre}"
+													filterMatchMode="contains">
+													<h:outputText value="#{_lecturaBalanza.pallet.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValorCorto tableCell" headerText="# #{msgs.lbl_unidad_manejo}">
+													<h:outputText value="#{_lecturaBalanza.numeroUnidadesManejo}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_bruto}">
+													<h:outputText value="#{_lecturaBalanza.pesoBruto}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_neto}">
+													<h:outputText value="#{_lecturaBalanza.pesoNeto}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+													<h:outputText value="#{_lecturaBalanza.cantidad}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarPesada" action="#{transferenciaBodegaBean.eliminarLecturaBalanza(_lecturaBalanza)}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tvDetalles:panelDetallePesadas :form:tvDetalles:panelDetalle" process="@this">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_transferencia_bodegas_bodega_panel}" rendered="#{!transferenciaBodegaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTransferencias" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{transferenciaBodegaBean.listaTransferencia}" var="_tranferencia" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{transferenciaBodegaBean.dtMovimientoInventario}"
+							rows="#{transferenciaBodegaBean.numeroFilas}" rowsPerPageTemplate="#{transferenciaBodegaBean.numeroFilasPorPagina}"
+							selection="#{transferenciaBodegaBean.transferencia}" selectionMode="single" rowKey="#{_tranferencia.id}" sortBy="#{_tranferencia.numero}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_tranferencia.numero}" filterBy="#{_tranferencia.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_tranferencia.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.fecha}">
+									<f:convertDateTime pattern="#{transferenciaBodegaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_tranferencia.bodegaOrigen.nombre}" filterBy="#{_tranferencia.bodegaOrigen.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_transferencia_bodegas_bodega_origen}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.bodegaOrigen.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_tranferencia.bodegaDestino.nombre}"
+								filterBy="#{_tranferencia.bodegaDestino.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_transferencia_bodegas_bodega_destino}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.bodegaDestino.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_guia_remision}" sortBy="#{_tranferencia.guiaRemision.numero}"
+								filterBy="#{_tranferencia.guiaRemision.numero}">
+								<h:outputText value="#{_tranferencia.guiaRemision.numero}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ajuste_inventario}" />
+								</f:facet>
+								<ui:repeat var="ajuste" value="#{_tranferencia.listaAjustesTransferencia}">
+									<h:link target="_blank" outcome="/paginas/inventario/procesos/ajusteInventario" includeViewParams="true" value="#{ajuste.numero}">
+										<f:param name="idAjusteInventario" value="#{ajuste.idMovimientoInventario}" />
+									</h:link>
+									<h:outputText value=", " />
+								</ui:repeat>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_tranferencia.asiento.numero}" filterBy="#{_tranferencia.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _tranferencia.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_tranferencia.asiento.numero}">
+									<f:param name="idAsiento" value="#{_tranferencia.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_tranferencia.estado}" filterBy="#{_tranferencia.estado}"
+								filterOptions="#{transferenciaBodegaBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" rendered="#{sesionControler.manejaProyectos}" filterBy="#{_tranferencia.proyecto.nombre}"
+								sortBy="#{_tranferencia.proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proyecto}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.proyecto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_tranferencia.descripcion}" filterBy="#{_tranferencia.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.descripcion}" />
+								<!--<as2:inputTextNota value="#{_tranferencia.descripcion}" />-->
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.guiaRemision.mensajeSRI}" filterBy="#{_tranferencia.guiaRemision.mensajeSRI}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado } SRI" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_tranferencia.guiaRemision.mensajeSRI}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{transferenciaBodegaBean.transferencia.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{transferenciaBodegaBean.transferencia.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{transferenciaBodegaBean.transferencia.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{transferenciaBodegaBean.transferencia.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

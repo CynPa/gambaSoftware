@@ -1,0 +1,488 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{listaPreciosBean}">
+					<as2:buttonEliminar bean="#{listaPreciosBean}">
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{listaPreciosBean.listaPrecios.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteListaPreciosBean}" bean="#{listaPreciosBean}" target="#{reporteListaPreciosBean.listaPrecios}"
+						value="#{listaPreciosBean.listaPrecios}" />
+
+					<as2:buttonExportaExcel bean="#{listaPreciosBean}" tabla=":form:tablaListasPrecios" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{listaPreciosBean}" />
+					<ui:param name="objetoActualizar" value=":form:tabView:panelDetalleVersionPrecios" />
+				</ui:include>
+
+
+
+				<!-- INICIO DIALOG DE SUBIR LISTA PRECIOS -->
+
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarVersionListaPrecios" modal="true" height="150" width="325" showEffect="clip"
+					hideEffect="clip" resizable="false">
+					<p:outputPanel id="outputCargarVersionListaPrecios">
+						<h:panelGrid columns="2" id="panelCargarVersionListaPrecios">
+							<h:outputText value="#{msgs.lbl_fecha_desde}" />
+							<p:calendar id="calFechaHasta" value="#{listaPreciosBean.fechaDesde}" showOn="button" navigator="true"
+								pattern="#{listaPreciosBean.formatoFecha}" size="10">
+								<p:ajax process="@this" update="@this" event="change" global="false" partialSubmit="true" />
+								<p:ajax process="@this" update="@this" event="dateSelect" global="false" partialSubmit="true" />
+							</p:calendar>
+						</h:panelGrid>
+						<p:spacer width="10px" />
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{listaPreciosBean.migrarListaPrecios}" mode="advanced" auto="true" sizeLimit="10000000"
+									allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this, outputCargarVersionListaPrecios"
+									oncomplete="dlgCargarVersionListaPrecios.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+
+				<!-- FIN DIALOG DE SUBIR LISTA PRECIOS -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_lista_precios_panel}" rendered="#{listaPreciosBean.editado}">
+
+						<h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+
+							<p:fieldset>
+
+								<h:panelGrid id="panelDetalle" columns="#{categoriaEmpresaBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<h:panelGroup>
+										<p:inputText styleClass="input-text" value="#{listaPreciosBean.listaPrecios.codigo}" id="txtCodigo" required="true">
+											<f:validateBean />
+										</p:inputText>
+									</h:panelGroup>
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<h:panelGroup>
+										<p:inputText styleClass="input-text" value="#{listaPreciosBean.listaPrecios.nombre}" id="txtNombre" required="true">
+											<f:validateBean />
+										</p:inputText>
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_lista_precios_moneda}:" />
+									<h:panelGroup>
+										<p:selectOneMenu value="#{listaPreciosBean.listaPrecios.moneda}" id="cboMoneda">
+											<f:selectItems value="#{listaPreciosBean.listaMoneda}" var="_moneda" itemLabel="#{_moneda.nombre}" itemValue="#{_moneda}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{listaPreciosBean.listaPrecios.descripcion}" id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+
+									<h:outputText value="#{msgs.lbl_lista_precios_indicador_venta}:" />
+									<p:selectBooleanCheckbox id="indicadorVenta" value="#{listaPreciosBean.listaPrecios.indicadorVenta}">
+										<p:ajax process="@this" listener="#{listaPreciosBean.indicadorVenta}"
+											update=":form:tabView:panelListaVersionListaPrecios, :form:indicadorCompra :form:indicadorImpresionEtiqueta" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_lista_precios_indicador_compra}:" />
+									<p:selectBooleanCheckbox value="#{listaPreciosBean.listaPrecios.indicadorCompra}" id="indicadorCompra">
+										<p:ajax process="@this" listener="#{listaPreciosBean.indicadorCompra}"
+											update=":form:tabView:panelListaVersionListaPrecios, :form:indicadorVenta :form:indicadorImpresionEtiqueta" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_impresion_etiquetas}:" />
+									<p:selectBooleanCheckbox value="#{listaPreciosBean.listaPrecios.indicadorImpresionEtiqueta}" id="indicadorImpresionEtiqueta">
+										<p:ajax process="@this" listener="#{listaPreciosBean.indicadorImpresionEtiqueta}"
+											update=":form:tabView:panelListaVersionListaPrecios :form:indicadorVenta :form:indicadorCompra" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_lista_precios_tipo}:" rendered="#{listaPreciosBean.recargosEnFactura}" />
+									<h:panelGroup rendered="#{listaPreciosBean.recargosEnFactura}">
+										<p:selectOneMenu value="#{listaPreciosBean.listaPrecios.tipoListaPrecios}" id="cboTipoListaPrecios">
+											<f:selectItems value="#{listaPreciosBean.listaTipoListaPrecios}" />
+											<f:validateBean />
+
+											<p:ajax process="@this" update=":form:tabView:panelDetalleVersionPrecios" />
+
+										</p:selectOneMenu>
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{listaPreciosBean.listaPrecios.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{listaPreciosBean.listaPrecios.predeterminado}" />
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer height="2px" />
+
+							<p:tabView id="tabView">
+								<p:ajax event="tabChange" process=":form:tabView:panelListaVersionListaPrecios" update=":form:tabView:panelDetalleVersionPrecios"
+									global="false" />
+
+								<p:tab title="#{msgs.lbl_titulo_version_lista_precios}">
+
+									<h:panelGrid columns="1" style="width:100%;" cellpadding="0" cellspacing="0">
+
+										<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarVersionListaPrecios" action="#{listaPreciosBean.agregarVersionListaPrecios}"
+											update="panelListaVersionListaPrecios" process="@this, :form:tabView:panelListaVersionListaPrecios" icon="ui-icon-plus" />
+
+
+
+										<p:spacer height="2px" />
+
+										<p:outputPanel id="panelListaVersionListaPrecios">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{listaPreciosBean.listaVersionListaPrecios}"
+												id="tablaListaVersionPrecios" rowIndexVar="secuencial" binding="#{listaPreciosBean.dtListaVersionPrecios}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_versionListaPrecios" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rows="#{listaPreciosBean.numeroFilas}" rowKey="#{_versionListaPrecios.id}" selection="#{listaPreciosBean.versionListaPrecios}"
+												selectionMode="single" lazy="true" rowsPerPageTemplate="#{listaPreciosBean.numeroFilasPorPagina}">
+
+												<p:ajax event="rowSelect" listener="#{listaPreciosBean.listarPrecios}" update=":form:tabView:panelDetalleVersionPrecios" />
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{msgs.lbl_seleccionar}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}">
+													<p:inputText value="#{_versionListaPrecios.codigo}" id="txtCodigoVersion">
+														<p:ajax process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+													<p:inputText value="#{_versionListaPrecios.nombre}" id="txtNombreVersion" styleClass="input-text100">
+														<p:ajax process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_zona}"
+													rendered="#{listaPreciosBean.indicadorListaPrecioPorZona and listaPreciosBean.listaPrecios.indicadorVenta}">
+													<p:selectOneMenu value="#{_versionListaPrecios.zona}" id="cboZona" required="#{listaPreciosBean.indicadorListaPrecioPorZona}">
+														<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+														<f:selectItems value="#{listaPreciosBean.listaZona}" var="_zona" itemValue="#{_zona}" itemLabel="#{_zona.nombre}">
+														</f:selectItems>
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_valido_desde}">
+													<p:calendar pattern="#{listaPreciosBean.formatoFecha}" showOn="button" navigator="true" value="#{_versionListaPrecios.validoDesde}"
+														id="calFechaDesde" size="10">
+														<p:ajax process="@this" event="dateSelect" global="false" />
+														<p:ajax process="@this" event="change" global="false" />
+													</p:calendar>
+												</p:column>
+
+												<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_valido_hasta}">
+													<p:calendar pattern="#{listaPreciosBean.formatoFecha}" showOn="button" navigator="true" value="#{_versionListaPrecios.validoHasta}"
+														id="calFechaHasta" size="10">
+														<p:ajax process="@this" event="dateSelect" global="false" />
+														<p:ajax process="@this" event="change" global="false" />
+													</p:calendar>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}">
+													<center>
+														<p:selectBooleanCheckbox value="#{_versionListaPrecios.activo}" />
+													</center>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{listaPreciosBean.eliminarVersionListaPrecios}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabView:panelListaVersionListaPrecios" process="@this">
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+										</p:outputPanel>
+									</h:panelGrid>
+								</p:tab>
+
+
+								<p:tab title="#{msgs.lbl_precios} (#{msgs.lbl_producto}s)">
+									<h:panelGrid columns="1" style="width:100%;" id="panelDetalleVersionPrecios" cellpadding="0" cellspacing="0">
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar}" rendered="false" id="btnAgregarDetalleVersionListaPrecios"
+												action="#{listaPreciosBean.agregarDetalleVersionListaPrecios}" update=":form:tabView:panelDetalleVersionPrecios"
+												process="@this,:form:tabView:panelDetalleVersionPrecios" icon="ui-icon-plus" disabled="#{empty listaPreciosBean.versionListaPrecios}" />
+
+											<p:commandButton value="#{msgs.btn_agregar} (#{msgs.lbl_producto}s)" icon="ui-icon-plus" process="@this"
+												oncomplete="dglModalProducto.show();" disabled="#{empty listaPreciosBean.versionListaPrecios}" />
+
+											<p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+												<p:dataExporter type="xls" target="tablaDetalleVersionListaPrecio" fileName="tablaDetalleVersionListaPrecio" postProcessor="true"
+													pageOnly="false" />
+											</p:commandButton>
+
+										</h:panelGroup>
+
+										<p:spacer height="2px" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{listaPreciosBean.listaDetalleVersionListaPrecios}"
+											id="tablaDetalleVersionListaPrecio" rowIndexVar="secuencial" binding="#{listaPreciosBean.dtDetalleVersionListaPrecios}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleVersionListaPrecios" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{listaPreciosBean.numeroFilas}" rowKey="#{_detalleVersionListaPrecios.rowKey}" selectionMode="single"
+											rowsPerPageTemplate="#{listaPreciosBean.numeroFilasPorPagina}">
+
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_titulo_version_lista_precios} (#{listaPreciosBean.versionListaPrecios.nombre})" />
+											</f:facet>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoBarrasProducto tableCell" headerText="#{msgs.lbl_codigo_barras}"
+												sortBy="#{_detalleVersionListaPrecios.producto.codigoBarras}" filterBy="#{_detalleVersionListaPrecios.producto.codigoBarras}"
+												filterMatchMode="contains">
+												<h:outputText styleClass="input-text" value="#{_detalleVersionListaPrecios.producto.codigoBarras}" id="txtCodigoBarrasProducto"
+													required="true">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}"
+												sortBy="#{_detalleVersionListaPrecios.producto.codigo}" filterBy="#{_detalleVersionListaPrecios.producto.codigo}"
+												filterMatchMode="contains">
+												<h:outputText styleClass="input-text" value="#{_detalleVersionListaPrecios.producto.codigo}" id="txtCodigoProducto" required="true">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" sortBy="#{_detalleVersionListaPrecios.producto.nombre}"
+												filterBy="#{_detalleVersionListaPrecios.producto.nombre}" filterMatchMode="contains">
+												<h:outputText styleClass="input-text" value="#{_detalleVersionListaPrecios.producto.nombre}" id="txtNombreProducto">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto_nombre_comercial}"
+												sortBy="#{_detalleVersionListaPrecios.producto.nombreComercial}" filterBy="#{_detalleVersionListaPrecios.producto.nombreComercial}"
+												filterMatchMode="contains">
+												<h:outputText styleClass="input-text" value="#{_detalleVersionListaPrecios.producto.nombreComercial}" id="txtNombreComercialProducto">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto_categoria_producto}"
+												sortBy="#{_detalleVersionListaPrecios.producto.subcategoriaProducto.categoriaProducto.nombre}"
+												filterBy="#{_detalleVersionListaPrecios.producto.subcategoriaProducto.categoriaProducto.nombre}" filterMatchMode="contains">
+												<h:outputText styleClass="input-text" value="#{_detalleVersionListaPrecios.producto.subcategoriaProducto.categoriaProducto.nombre}"
+													id="txtNombreCategoriaProducto">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValorGrande tableCell"
+												rendered="#{listaPreciosBean.recargosEnFactura and listaPreciosBean.listaPrecios.tipoListaPrecios=='LISTA_PRECIOS'}"
+												headerText="#{msgs.lbl_precio} #{msgs.lbl_compra}">
+												<p:outputPanel id="panelPrecioCompraRecargo">
+													<h:outputText
+														value="#{not empty _detalleVersionListaPrecios.producto ? _detalleVersionListaPrecios.producto.precioReferencialCompra : ''}" />
+												</p:outputPanel>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_impuesto}">
+												<p:selectBooleanCheckbox value="#{_detalleVersionListaPrecios.producto.indicadorImpuestos}" disabled="true" />
+											</p:column>
+
+											<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_precio_unitario}">
+												<p:inputText styleClass="input-text" value="#{_detalleVersionListaPrecios.precioUnitario}" id="txtPrecioUnitario" required="true">
+													<f:validateBean />
+													<p:ajax process="@this" global="false" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValorGrande tableCell"
+												rendered="#{listaPreciosBean.recargosEnFactura and listaPreciosBean.listaPrecios.tipoListaPrecios=='LISTA_PRECIOS' or listaPreciosBean.listaPrecios.indicadorImpresionEtiqueta}"
+												headerText="#{msgs.lbl_precio_unitario_cliente_final}">
+												<p:inputText styleClass="input-text" value="#{_detalleVersionListaPrecios.precioUnitarioClienteFinal}" id="txtPrecioUnitarioClienteFinal"
+													required="true">
+													<f:validateBean />
+													<p:ajax process="@this" global="false" />
+												</p:inputText>
+											</p:column>
+
+											<!--<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+												<p:commandLink id="btnReplicar" process="@this,:form:tabView:panelDetalleVersionPrecios" global="false" title="#{msgs.lbl_replicar}"
+													update=":form:panelContenedor :form:panelListado" action="#{listaPreciosBean.cargaProductoListaPreciosVigentes}">
+													<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+
+												</p:commandLink>
+											</p:column>-->
+
+											<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+												<p:commandButton id="btnEliminarDetalle" action="#{listaPreciosBean.eliminarDetalleVersionListaPrecios}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" process="@this" update=":form:tabView:panelDetalleVersionPrecios" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:tab>
+
+							</p:tabView>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:outputPanel id="panelFiltrosFile">
+						<p:dialog header="#{msgs.lbl_descargar}" widgetVar="dialogFiltrosFile" id="dialogFiltrosFile" modal="true" height="auto" width="510" showEffect="slide"
+							hideEffect="slide" >
+							<h:panelGrid columns="2" columnClasses="columnaEtiqueta, columnaValor">
+								<h:outputText value="#{msgs.lbl_producto_categoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCategoriaProducto"
+									value="#{listaPreciosBean.listaCategoriaProductoSeleccionado}" completeMethod="#{listaPreciosBean.autocompletarCategoriaProducto}"
+									var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" forceSelection="true" dropdown="true"
+									minQueryLength="2" multiple="true" converter="categoriaProductoConverterMultiple">
+									<p:column>#{_categoriaProducto.codigo}</p:column>
+									<p:column>#{_categoriaProducto.nombre}</p:column>
+									<p:ajax process="@this" global="false" event="itemSelect" update="@this" />
+									<p:ajax process="@this" global="false" event="itemUnselect" update="@this" />
+								</p:autoComplete>
+								<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+									value="#{listaPreciosBean.listaSubcategoriaProductoSeleccionado}" completeMethod="#{listaPreciosBean.autocompletarSubcategoriaProducto}"
+									var="_subcategoriaProducto" itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" forceSelection="true"
+									dropdown="true" minQueryLength="2" multiple="true" converter="subcategoriaProductoConverterMultiple">
+									<p:column>#{_subcategoriaProducto.codigo}</p:column>
+									<p:column>#{_subcategoriaProducto.nombre}</p:column>
+									<p:ajax process="@this" global="false" event="itemSelect" update="@this" />
+									<p:ajax process="@this" global="false" event="itemUnselect" update="@this" />
+								</p:autoComplete>
+								<h:outputText value="#{msgs.lbl_saldo} > 0:" />
+								<p:selectBooleanCheckbox value="#{listaPreciosBean.saldoMayorCero}">
+									<p:ajax process="@this" partialSubmit="true" global="false" />
+								</p:selectBooleanCheckbox>
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton ajax="false" title="#{msgs.lbl_descargar}" value="#{msgs.lbl_descargar}" process="@this" >
+										<p:fileDownload value="#{listaPreciosBean.file}" />
+									</p:commandButton>
+									<p:commandButton value="#{msgs.btn_cancelar}" process="@this" oncomplete="PF('dialogFiltrosFile').hide()" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:outputPanel>
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_lista_precios_panel}" rendered="#{!listaPreciosBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaListasPrecios" rowIndexVar="secuencialListaPrecios"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{listaPreciosBean.listasPrecios}" var="listaPrecios" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{listaPreciosBean.dataTableListaPrecios}" rows="#{listaPreciosBean.numeroFilas}"
+							rowsPerPageTemplate="#{listaPreciosBean.numeroFilasPorPagina}" selection="#{listaPreciosBean.listaPrecios}" selectionMode="single"
+							rowKey="#{listaPrecios.id}" sortBy="#{listaPrecios.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialListaPrecios+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{listaPrecios.codigo}" sortBy="#{listaPrecios.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{listaPrecios.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{listaPrecios.nombre}" sortBy="#{listaPrecios.nombre}">
+								<h:outputText value="#{listaPrecios.nombre}" />
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" rendered="#{listaPreciosBean.recargosEnFactura}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_lista_precios_tipo}" />
+								</f:facet>
+								<h:outputText value="#{listaPrecios.tipoListaPrecios.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_lista_precios_indicador_venta}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{listaPrecios.indicadorVenta}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_lista_precios_indicador_compra}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{listaPrecios.indicadorCompra}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_impresion_etiquetas}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{listaPrecios.indicadorImpresionEtiqueta}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{listaPrecios.activo}">
+								<p:selectBooleanCheckbox value="#{listaPrecios.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{listaPrecios.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{listaPrecios.descripcion}" />
+							</p:column>
+
+							<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+								<p:commandButton title="#{msgs.lbl_descargar}" icon="action" process="@this" update=":form:panelFiltrosFile"
+									action="#{listaPreciosBean.seleccionar}" oncomplete="dialogFiltrosFile.show()">
+								</p:commandButton>
+							</p:column>
+
+							<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+								<p:commandLink process=":form:panelListado" action="#{listaPreciosBean.seleccionar}" update=":form:outputCargarVersionListaPrecios"
+									onclick="dlgCargarVersionListaPrecios.show()">
+									<h:graphicImage library="images" name="upload.png" style="height : 22px; width : 22px;" />
+								</p:commandLink>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{listaPreciosBean.listaPrecios.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{listaPreciosBean.listaPrecios.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{listaPreciosBean.listaPrecios.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{listaPreciosBean.listaPrecios.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

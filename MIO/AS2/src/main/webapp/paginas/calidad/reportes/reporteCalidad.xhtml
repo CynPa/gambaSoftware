@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_calidad}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteCalidadBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<ui:include src="/template/listaProductoMultiple.xhtml">
+						<ui:param name="bean" value="#{reporteCalidadBean}" />
+						<ui:param name="objetoActualizar" value=":form:panelFiltros" />
+						<ui:param name="renderedBotonLimpiar" value="true" />
+					</ui:include>
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel value="#{msgs.lbl_tipo} #{msgs.lbl_reporte}:" for="cboTipoReporte" />
+							<p:selectOneMenu value="#{reporteCalidadBean.tipoReporte}" required="true" id="cboTipoReporte">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteCalidadBean.listaTipoReporte}" var="_tipoReporte" itemLabel="#{_tipoReporte.label}"
+									itemValue="#{_tipoReporte.value}">
+								</f:selectItems>
+								<p:ajax event="change" update=":form:panelFiltros" process="@this" partialSubmit="true" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value=" " />
+							<h:outputText value=" " />
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteCalidadBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteCalidadBean.fechaDesde}"
+								id="calFechaDesde" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteCalidadBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteCalidadBean.fechaHasta}"
+								id="calFechaHasta" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="cboEstado" value="#{msgs.lbl_estado}:" />
+							<p:selectOneMenu value="#{reporteCalidadBean.estadoControlCalidad}" id="cboEstado">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteCalidadBean.listaEstadoControlCalidadCombo}" var="_estado" itemLabel="#{__estado.nombre}"
+									itemValue="#{_estado}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="autoPedidoProveedor" value="#{msgs.lbl_pedido_proveedor}:"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_MATERIA_PRIMA'}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{reporteCalidadBean.pedidoProveedor}"
+								completeMethod="#{reporteCalidadBean.autocompletarPedidoProveedor}" var="_pedidoProveedor" itemLabel="#{_pedidoProveedor.numero}"
+								itemValue="#{_pedidoProveedor}" forceSelection="false" dropdown="true" minQueryLength="2" id="autoPedidoProveedor"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_MATERIA_PRIMA'}">
+
+								<p:column headerText="#{msgs.lbl_numero}">#{_pedidoProveedor.numero}</p:column>
+								<p:column headerText="#{msgs.lbl_fecha}">
+									<h:outputText value="#{_pedidoProveedor.fecha}">
+										<f:convertDateTime pattern="#{facturaClienteBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_pedidoProveedor.empresa.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_pedidoProveedor.empresa.nombreFiscal}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}:"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}" />
+							<p:selectOneMenu value="#{reporteCalidadBean.categoriaProductoSeleccionado}"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteCalidadBean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+									itemValue="#{_categoriaProducto}" />
+								<p:ajax process="@this" listener="#{reporteCalidadBean.cargarListaSubcategoriaProducto}"
+									update="cboSubcategoriaProducto groupProducto autoOrden" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}:"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteCalidadBean.subcategoriaProducto}" id="cboSubcategoriaProducto"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteCalidadBean.listaSubcategoriaProducto}" />
+								<p:ajax process="@this" global="false" listener="#{reporteCalidadBean.actualizarSubcategoriaProducto}" update="groupProducto autoOrden" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}:" rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}" />
+							<h:panelGroup rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}" id="groupProducto">
+								<p:commandButton value="..." onclick="dglModalProducto.show();" type="button"
+									disabled="#{not empty reporteCalidadBean.subcategoriaProducto or not empty reporteCalidadBean.categoriaProductoSeleccionado}" />
+								<h:outputText id="lblProducto" value="#{reporteCalidadBean.producto.codigo} #{reporteCalidadBean.producto.nombreComercial}" />
+							</h:panelGroup>
+
+							<p:outputLabel for="autoOrden" value="#{msgs.lbl_orden_fabricacion}:"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoOrden"
+								rendered="#{reporteCalidadBean.tipoReporte == 'REPORTE_INSPECCION_PRODUCTO_TERMINADO'}" value="#{reporteCalidadBean.ordenFabricacion}"
+								completeMethod="#{reporteCalidadBean.autocompletarOrdenFabricacion}" var="_ordenFabricacion" itemValue="#{_ordenFabricacion}"
+								itemLabel="#{_ordenFabricacion.numero}#{empty _ordenFabricacion ? '' : ' - '}#{_ordenFabricacion.producto.nombre}" forceSelection="false"
+								required="false" minQueryLength="2" dropdown="true">
+								<p:column headerText="#{msgs.lbl_numero}">
+									<h:outputText value="#{_ordenFabricacion.numero}" />
+								</p:column>
+								<p:column headerText="#{msgs.lbl_codigo_producto}">
+									<h:outputText value="#{_ordenFabricacion.producto.codigo}" />
+								</p:column>
+								<p:column headerText="#{msgs.lbl_nombre_producto}">
+									<h:outputText value="#{_ordenFabricacion.producto.nombre}" />
+								</p:column>
+								<p:column headerText="#{msgs.lbl_fecha_lanzamiento}">
+									<h:outputText value="#{_ordenFabricacion.fechaLanzamiento}">
+										<f:convertDateTime pattern="#{reporteCalidadBean.formatoFecha}" timeZone="America/Guayaquil" />
+									</h:outputText>
+								</p:column>
+								<p:ajax process="@this" global="false" event="itemSelect" />
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

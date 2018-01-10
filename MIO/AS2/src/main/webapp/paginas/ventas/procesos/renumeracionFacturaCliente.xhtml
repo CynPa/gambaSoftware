@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<p:panel header="#{msgs.lbl_renumeracion_factura_cliente_titulo}">
+
+					<h:panelGrid id="panelDetalle" columns="#{renumeracionFacturaClienteBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<h:outputText value="#{msgs.lbl_serie}:" />
+						<h:panelGroup>
+							<p:inputMask value="#{renumeracionFacturaClienteBean.establecimiento}" mask="999" />
+							<p:inputMask value="#{renumeracionFacturaClienteBean.puntoVenta}" mask="999" />
+						</h:panelGroup>
+
+						<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+						<h:panelGroup>
+							<p:calendar pattern="#{renumeracionFacturaClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{renumeracionFacturaClienteBean.fechaDesde}" id="calFechaDesde">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaHasta"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaHasta"></p:ajax>-->
+							</p:calendar>								
+							<!--<p:message for="calenFechaDesde" />-->
+						</h:panelGroup>
+
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<h:panelGroup>
+							<p:calendar pattern="#{renumeracionFacturaClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{renumeracionFacturaClienteBean.fechaHasta}" id="calFechaHasta">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaDesde"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaDesde"></p:ajax>-->
+							</p:calendar>								
+							<!--<p:message for="calenFechaHasta" />-->
+						</h:panelGroup>
+					</h:panelGrid>
+
+					<p:separator />
+
+					<h:panelGrid style="text-align:center;">
+						<p:outputPanel id="panelListadoFacturaCliente">
+							<p:commandButton value="#{msgs.lbl_cargar}" icon="ui-icon-arrowreturnthick-1-w" action="#{renumeracionFacturaClienteBean.procesar}"
+								update="panelListadoFacturaCliente" process="@this panelDetalle">
+							</p:commandButton>
+
+							<p:commandButton value="#{msgs.btn_refrescar}" icon="ui-icon-refresh" action="#{renumeracionFacturaClienteBean.guardar}"
+								update="panelListadoFacturaCliente" process="@this panelDetalle">
+							</p:commandButton>
+
+							<h:panelGrid columns="1" style="text-align:left;">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{renumeracionFacturaClienteBean.listaFacturaClienteSRI}" id="tablaFacturaClienteSRI" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_facturaClienteSRI" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rowKey="#{_facturaClienteSRI.id}" rows="#{renumeracionFacturaClienteBean.numeroFilas}">
+
+									<p:column headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_numero_actual}">
+										<h:outputText id="txtNumeroActual" value="#{_facturaClienteSRI.numero}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_numero_nuevo}">
+										<p:inputText styleClass="input-text" id="txtNumeroNuevo" value="#{_facturaClienteSRI.traNumeroNuevo}">
+											<p:ajax process="@this" event="change" />
+										</p:inputText>
+										<p:message for="txtNumeroNuevo" />
+									</p:column>
+
+									<p:column>
+										<p:commandButton icon="ui-icon-gear" title="#{msgs.lbl_validar} #{msgs.lbl_numero_nuevo}"
+											action="#{renumeracionFacturaClienteBean.validarCambioNumeroFactura}" process="@this">
+											<f:setPropertyActionListener target="#{renumeracionFacturaClienteBean.facturaClienteSRI}" value="#{_facturaClienteSRI}" />
+										</p:commandButton>
+									</p:column>
+
+									<p:column headerText="#{msgs.btn_procesar}">
+										<center>
+											<p:commandButton action="#{renumeracionFacturaClienteBean.cambiarNumeroFactura}" icon="ui-icon-refresh" title="Actualizar" process="@this">
+												<f:setPropertyActionListener target="#{renumeracionFacturaClienteBean.facturaClienteSRI}" value="#{_facturaClienteSRI}" />
+											</p:commandButton>
+										</center>
+									</p:column>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+						</p:outputPanel>
+
+					</h:panelGrid>
+
+
+
+				</p:panel>
+
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+
+
+</html>

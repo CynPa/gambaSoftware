@@ -1,0 +1,1251 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form enctype="multipart/form-data" prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{productoBean}">
+					<as2:buttonEliminar bean="#{productoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{productoBean.producto.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{productoBean.producto.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{productoBean}" tabla=":form:tablaProductos" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_producto_panel}" rendered="#{productoBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{productoBean}" />
+							<ui:param name="objetoActualizar" value=":form:panelDetalle, :form:panelDetalleProducto" />
+							<ui:param name="renderedBotonLimpiar" value="true" />
+							<ui:param name="mostrarCantidad" value="false" />
+							<ui:param name="listadoFiltrado" value="true" />
+						</ui:include>
+
+						<h:panelGrid columns="1">
+
+							<h:panelGrid id="panelDetalle" columns="#{productoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<h:panelGroup>
+									<p:inputText style="width: 85% !important;" value="#{productoBean.producto.codigo}" id="txtCodigo" required="true">
+										<f:validateBean />
+										<p:ajax process="@this"></p:ajax>
+									</p:inputText>
+
+									<p:commandButton disabled="#{productoBean.producto.idProducto != 0}" process="@this" onclick="dglModalProducto.show();"
+										icon="ui-icon ui-icon-newwin" title="#{msgs.lbl_listado}">
+
+										<f:setPropertyActionListener target="#{productoBean.productoSeleccionado}" value="#{productoBean.producto}" />
+									</p:commandButton>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_producto_codigo_comercial}:" />
+								<p:inputText styleClass="input-text" value="#{productoBean.producto.codigoComercial}" id="txtCodigoComercial">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_codigo_alterno}:" />
+								<p:inputText styleClass="input-text" value="#{productoBean.producto.codigoAlterno}" id="txtCodigoAlterno">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_producto_codigo_barras}:" />
+								<p:inputText styleClass="input-text" value="#{productoBean.producto.codigoBarras}" id="txtCodigoBarras">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{productoBean.producto.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_producto_nombre_comercial}:" />
+								<p:inputText styleClass="input-text" value="#{productoBean.producto.nombreComercial}" id="txtNombreComercial" maxlength="100">
+									<f:validateBean />
+								</p:inputText>
+
+
+								<p:outputLabel for="cboTipoProducto" value="#{msgs.lbl_producto_tipo_producto}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.tipoProducto}" id="cboTipoProducto" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{sesionControler.listaTipoProducto}" />
+									<f:validateBean />
+									<p:ajax process="@this" global="false" update=":form:panelDetalleProducto" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboSubcategoriaProducto" value="#{msgs.lbl_producto_subcategoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+									value="#{productoBean.producto.subcategoriaProducto}" completeMethod="#{productoBean.autocompletarSubcategoriaProducto}"
+									var="_subcategoriaProducto" itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" forceSelection="true"
+									dropdown="true" minQueryLength="2" required="true">
+
+									<p:column headerText="#{msgs.lbl_codigo_producto}">#{_subcategoriaProducto.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">#{_subcategoriaProducto.nombre}</p:column>
+
+								</p:autoComplete>
+
+								<p:outputLabel for="cboUnidad" value="#{msgs.lbl_unidad_stock}:" />
+								<p:selectOneMenu styleClass="input-text" disabled="#{productoBean.producto.indicadorTieneMovimientos}" value="#{productoBean.producto.unidad}"
+									id="cboUnidad" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{productoBean.listaUnidad}" var="_unidad" itemLabel="#{_unidad.nombre}" itemValue="#{_unidad}" />
+									<p:ajax process="@this" global="false"></p:ajax>
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_producto_conjunto_atributo}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.conjuntoAtributo}" id="cboConjuntoAtributo" required="false">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{productoBean.listaConjuntoAtributo}" var="_conjuntoAtributo" itemLabel="#{_conjuntoAtributo.nombre}"
+										itemValue="#{_conjuntoAtributo}" />
+
+									<p:ajax process="@this" update=":form:panelAtributos" listener="#{productoBean.actualizarAtributos}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_marca_producto}:" />
+								<p:outputPanel autoUpdate="true">
+									<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.marcaProducto}" id="cboMarcaProducto"
+										required="#{productoBean.producto.indicadorProduccion}">
+
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{productoBean.listaMarcaProducto}" var="_marcaProducto" itemLabel="#{_marcaProducto.nombre}"
+											itemValue="#{_marcaProducto}" />
+										<f:validateBean />
+										<p:ajax process="@this" global="false" />
+									</p:selectOneMenu>
+								</p:outputPanel>
+
+								<h:outputText value="#{msgs.lbl_presentacion_producto}:" />
+								<p:outputPanel autoUpdate="true">
+									<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.presentacionProducto}" id="cboPresentacionProducto"
+										required="#{productoBean.producto.indicadorProduccion}">
+
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{productoBean.listaPresentacionProducto}" var="_presentacionProducto" itemLabel="#{_presentacionProducto.nombre}"
+											itemValue="#{_presentacionProducto}" />
+										<f:validateBean />
+										<p:ajax process="@this" global="false" />
+									</p:selectOneMenu>
+								</p:outputPanel>
+
+								<p:outputLabel for="cboTipoCosto" value="#{msgs.lbl_producto_tipo_costeo}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.tipoCosto}" id="cboTipoCosto" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{productoBean.listaTipoCosto}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_producto_orden_costeo}:" />
+								<p:inputText styleClass="input-text" value="#{productoBean.producto.ordenCosteo}" id="txtPeso">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_producto_costo_estandar}:" />
+								<p:inputText styleClass="input-text" value="#{productoBean.producto.costoEstandar}" id="txtCostoEstandar" required="true" size="14"
+									maxlength="14">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:spacer />
+								<h:panelGrid columns="4" style="width: 95% !important;" columnClasses="columnaEtiqueta,columnaEtiqueta,columnaEtiquetaGrande">
+									<h:outputText value="#{msgs.lbl_producto_indicador_impuestos}:" />
+									<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorImpuestos}">
+										<p:ajax process="@this" update=":form:cboCategoriaImpuesto" event="change" listener="#{productoBean.actualizarIndicadorImpuestos}" />
+									</p:selectBooleanCheckbox>
+
+									<h:outputText value="#{msgs.lbl_producto_categoria_impuesto}:" />
+									<p:outputPanel autoUpdate="true">
+										<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.categoriaImpuesto}" id="cboCategoriaImpuesto"
+											disabled="#{!productoBean.producto.indicadorImpuestos}" required="#{productoBean.producto.indicadorImpuestos}">
+
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{productoBean.listaCategoriaImpuesto}" var="_categoriaImpuesto" itemLabel="#{_categoriaImpuesto.nombre}"
+												itemValue="#{_categoriaImpuesto}" />
+											<f:validateBean />
+											<p:ajax process="@this" global="false" update=":form:panelDetalleProducto" />
+										</p:selectOneMenu>
+									</p:outputPanel>
+								</h:panelGrid>
+
+								<p:spacer />
+								<h:panelGrid columns="5" style="width: 95% !important;">
+
+									<h:outputText value="#{msgs.lbl_indicador_impuesto_ice}:" />
+									<p:inputText styleClass="input-text" value="#{productoBean.producto.ice}" id="txtIce">
+										<p:ajax process="@this" global="false" partialSubmit="true" update="txtCodigoIce" />
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{productoBean.producto.codigoIce}" id="txtCodigoIce" required="#{productoBean.producto.ice>0}">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:panelGroup>
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorPorcentajeIce}" />
+										<h:outputText value="#{msgs.lbl_por_ciento_palabras}:" />
+									</h:panelGroup>
+								</h:panelGrid>
+
+								<p:spacer />
+								<h:panelGrid columns="7" cellpadding="0" cellspacing="0">
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_venta}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorVenta}">
+											<p:ajax process="@this" global="false" update=":form:panelDetalleProducto" />
+										</p:selectBooleanCheckbox>
+
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_compra}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorCompra}">
+											<p:ajax process="@this" global="false" update=":form:panelDetalleProducto" />
+										</p:selectBooleanCheckbox>
+
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_produccion}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorProduccion}">
+											<p:ajax process="@this" global="false" update=":form:panelDetalleProducto" />
+										</p:selectBooleanCheckbox>
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_mantenimiento}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorMantenimiento}">
+										</p:selectBooleanCheckbox>
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_lote}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorLote}" disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+											<p:ajax process="@this" global="false" update=":form:panelDetalleProducto panelLblPrefijoProducto panelTxtPrefijoProducto"
+												listener="#{productoBean.actualizarAtributosIntancia}" />
+										</p:selectBooleanCheckbox>
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_serie}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorSerie}" />
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_consumo}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorConsumo}">
+											<p:ajax process="@this" global="false" update=":form:panelDetalleProducto" />
+										</p:selectBooleanCheckbox>
+									</h:panelGroup>
+
+								</h:panelGrid>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea value="#{productoBean.producto.descripcion}" styleClass="input-text">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_informacionAdicional}:" />
+								<p:inputTextarea value="#{productoBean.producto.informacionAdicional}" styleClass="input-text">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<p:spacer />
+								<h:panelGrid columns="3" cellpadding="0" cellspacing="0">
+									<h:panelGroup>
+										<p:outputLabel for="chkIndicadorMezcla" value="#{msgs.lbl_mezcla}:" />
+										<p:selectBooleanCheckbox id="chkIndicadorMezcla" value="#{productoBean.producto.indicadorMezcla}">
+											<p:ajax process="@this" global="false" update=":form:panelDetalleProducto" />
+										</p:selectBooleanCheckbox>
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_activo}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.activo}" />
+									</h:panelGroup>
+
+									<h:panelGroup>
+										<h:outputText value="#{msgs.lbl_predeterminado}: " />
+										<p:selectBooleanCheckbox value="#{productoBean.producto.predeterminado}" />
+									</h:panelGroup>
+								</h:panelGrid>
+
+								<h:outputText value="#{msgs.lbl_impuesto_aviacion}: " />
+								<h:panelGrid columns="2">
+									<p:selectBooleanCheckbox value="#{productoBean.producto.impuestoAviacion}">
+										<p:ajax process="@this" event="change" update=":form:panelImpuestosAviacion" />
+									</p:selectBooleanCheckbox>
+									<p:outputPanel id="panelImpuestosAviacion" autoUpdate="true">
+										<h:panelGrid columns="2">
+											<h:outputText rendered="#{productoBean.producto.impuestoAviacion}" value="#{msgs.lbl_impuesto_nacional}:" />
+											<p:selectBooleanCheckbox rendered="#{productoBean.producto.impuestoAviacion}" value="#{productoBean.producto.indicadorNacional}">
+												<p:ajax process="@this" event="change" />
+											</p:selectBooleanCheckbox>
+										</h:panelGrid>
+									</p:outputPanel>
+								</h:panelGrid>
+
+								<p:outputPanel id="panelLblPrefijoProducto">
+									<h:outputText value="#{msgs.lbl_secuencia_prefijo}s #{msgs.lbl_lote}:" rendered="#{productoBean.producto.indicadorLote}" />
+								</p:outputPanel>
+								<p:outputPanel id="panelTxtPrefijoProducto">
+									<p:inputText value="#{productoBean.producto.prefijosLote}" styleClass="input-text" rendered="#{productoBean.producto.indicadorLote}">
+										<f:validateBean />
+									</p:inputText>
+								</p:outputPanel>
+
+							</h:panelGrid>
+
+							<p:outputPanel id="panelAtributos">
+								<table>
+									<ui:repeat value="#{productoBean.listaProductoAtributoTipoValor}" var="_productoAtributo">
+										<tr>
+											<td><h:outputText value="#{_productoAtributo.atributo.nombre}:" /></td>
+											<td><p:inputText styleClass="input-text" value="#{_productoAtributo.valor}"
+													required="#{_productoAtributo.atributo.indicadorRequerido}" requiredMessage="#{msgs.lbl_requerido}">
+												</p:inputText></td>
+										</tr>
+									</ui:repeat>
+
+									<ui:repeat value="#{productoBean.listaProductoAtributoTipoLista}" var="_productoAtributo">
+										<tr>
+											<td><h:outputText value="#{_productoAtributo.atributo.nombre}:" /></td>
+											<td><p:selectOneMenu value="#{_productoAtributo.valorAtributo}" required="#{_productoAtributo.atributo.indicadorRequerido}"
+													requiredMessage="#{msgs.lbl_requerido}">
+
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{_productoAtributo.atributo.listaValorAtributo}" var="_atributo" itemValue="#{_atributo}"
+														itemLabel="#{_atributo.codigo} - #{_atributo.nombre}" />
+												</p:selectOneMenu></td>
+										</tr>
+									</ui:repeat>
+
+								</table>
+							</p:outputPanel>
+
+							<p:outputPanel id="panelDetalleProducto">
+								<p:tabView dynamic="false" id="tabDetalleProducto" cache="false">
+
+									<p:tab title="#{msgs.lbl_inventario}" rendered="#{productoBean.producto.tipoProducto=='ARTICULO'}">
+
+										<h:panelGrid id="panelInventario" columns="#{productoBean.numeroColumnasPanelNuevo}"
+											columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+											<h:outputText value="#{msgs.lbl_unidad_almacenamiento} " />
+											<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.unidadAlmacenamiento}" id="cboUnidadAlmacenamiento" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{productoBean.listaUnidad}" var="_unidadAlmacenamiento" itemLabel="#{_unidadAlmacenamiento.nombre}"
+													itemValue="#{_unidadAlmacenamiento}" />
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:selectOneMenu>
+
+											<h:outputText value="#{msgs.lbl_peso}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.peso}" id="txtPeso">
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_peso_minimo}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.pesoMinimo}" id="txtPesoMinimo">
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_peso_maximo}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.pesoMaximo}" id="txtPesoMaximo">
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_volumen}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.volumen}" id="txtVolumen">
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_producto_cantidad_minima}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.cantidadMinima}" id="txtCantidadMinima">
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_producto_cantidad_maxima}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.cantidadMaxima}" id="txtCantidadMaxima">
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:inputText>
+
+											<p:outputLabel for="cboUnidadInformativa" value="#{msgs.lbl_maneja_unidad_informativa}:" />
+											<h:panelGrid columns="2" style="width: 95% !important;">
+												<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorManejaUnidadInformativa}">
+													<p:ajax process="@this" update="cboUnidadInformativa autoProductoTransformacion" event="change" />
+												</p:selectBooleanCheckbox>
+												<p:selectOneMenu styleClass="input-text" disabled="#{!productoBean.producto.indicadorManejaUnidadInformativa}"
+													value="#{productoBean.producto.unidadInformativa}" id="cboUnidadInformativa"
+													required="#{productoBean.producto.indicadorManejaUnidadInformativa}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{productoBean.listaUnidad}" var="_unidad" itemLabel="#{_unidad.nombre}" itemValue="#{_unidad}" />
+													<p:ajax process="@this" global="false"></p:ajax>
+													<f:validateBean />
+												</p:selectOneMenu>
+											</h:panelGrid>
+
+											<p:outputLabel for="autoProductoTransformacion" value="#{msgs.lbl_producto_transformacion_automatica}:" />
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoProductoTransformacion"
+												value="#{productoBean.producto.productoTransformacionAutomatica}" completeMethod="#{productoBean.autocompletarProducto}" var="_producto"
+												itemValue="#{_producto}" itemLabel="#{_producto.codigo}#{empty _producto ? '' : ' - '}#{_producto.nombre}" forceSelection="true"
+												required="false" disabled="#{!productoBean.producto.indicadorManejaUnidadInformativa}" minQueryLength="2" dropdown="true">
+												<p:column headerText="#{msgs.lbl_codigo_producto}">
+													<h:outputText value="#{_producto.codigo}" />
+												</p:column>
+												<p:column headerText="#{msgs.lbl_nombre_producto}">
+													<h:outputText value="#{_producto.nombre}" />
+												</p:column>
+												<p:ajax process="@this" global="false" event="itemSelect" />
+												<f:validateBean />
+											</p:autoComplete>
+										</h:panelGrid>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_produccion}" rendered="#{productoBean.producto.indicadorProduccion}">
+										<h:panelGrid id="panelProduccion" columns="#{productoBean.numeroColumnasPanelNuevo}"
+											columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+											<h:outputText value="#{msgs.lbl_cantidad_produccion} " />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.cantidadProduccion}" id="txtCantidadProduccion" required="true">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_produccion_rapida}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorProduccionRapida}" />
+
+											<!--  <h:outputText value="#{msgs.lbl_explota_devolucion}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorExplotaDevolucion}" />-->
+
+											<h:outputText value="#{msgs.lbl_planificar_produccion}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorPlanificarProduccion}" />
+
+											<h:outputText value="#{msgs.lbl_post_consumo}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorPostConsumo}" />
+
+											<h:outputText value="#{msgs.lbl_horas_post_consumo_horas}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorHorasPostConsumo}" />
+
+											<h:outputText value="#{msgs.lbl_produccion_kit}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorProduccionKit}"
+												disabled="#{!(productoBean.producto.indicadorVenta and productoBean.producto.indicadorProduccion) or productoBean.producto.indicadorCompra or productoBean.producto.indicadorConsumo}" />
+
+											<!-- 
+											<h:outputText value="#{msgs.lbl_tiempo_entrega}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.tiempoEntrega}" id="txtTiempoEntrega">
+												<f:validateBean />
+											</p:inputText>
+											 -->
+
+											<h:outputText value="#{msgs.lbl_factor_perdida}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.factorPerdida}" id="txtFactorPerdidaProduccion" required="true"
+												size="14" maxlength="14">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_cantidad_perdida}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.cantidadPerdida}" id="txtCantidadPerdida" required="true" size="14"
+												maxlength="14">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_maximo_desvio}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.maximoDesvio}" id="txtMaximoDesvio" required="true" size="14"
+												maxlength="14">
+												<f:validateBean />
+											</p:inputText>
+											
+											<h:outputText value="#{msgs.lbl_coficiente_produccion}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.coeficienteProduccion}" id="txtCoeficienteProduccion" required="true"
+												size="14" maxlength="14">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_ruta_fabricacion}:" />
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{productoBean.producto.rutaFabricacion}"
+												completeMethod="#{productoBean.autocompletarRutaFabricacion}" var="_rutaFabricacion" itemLabel="#{_rutaFabricacion.nombre}"
+												itemValue="#{_rutaFabricacion}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+												<p:column>#{_rutaFabricacion.codigo}</p:column>
+												<p:column>#{_rutaFabricacion.nombre}</p:column>
+											</p:autoComplete>
+
+										</h:panelGrid>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_compra}" rendered="#{productoBean.producto.indicadorCompra}">
+										<h:panelGrid id="panelCompra" columns="#{productoBean.numeroColumnasPanelNuevo}"
+											columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+											<h:outputText value="#{msgs.lbl_unidad_compra}" />
+											<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.unidadCompra}" id="cboUnidadCompra" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{productoBean.listaUnidad}" var="_unidadCompra" itemLabel="#{_unidadCompra.nombre}" itemValue="#{_unidadCompra}" />
+												<f:validateBean />
+											</p:selectOneMenu>
+
+											<h:outputText value="#{msgs.lbl_precio_referencial}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.precioReferencialCompra}" id="txtPrecioReferencialCompra">
+												<f:validateBean />
+											</p:inputText>
+
+											<!-- 
+											<h:outputText value="#{msgs.lbl_tiempo_suministro}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.tiempoSuministro}" id="txtTiempoSuministro">
+												<f:validateBean />
+											</p:inputText>
+											 -->
+
+											<h:outputText value="#{msgs.lbl_precio_ultima_compra}:" />
+											<p:inputText styleClass="input-text" disabled="true" value="#{productoBean.producto.precioUltimaCompra}" id="txtPrecioUltimaCompra">
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_fecha_ultima_compra}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.fechaUltimaCompra}" disabled="true">
+												<f:convertDateTime pattern="#{productoBean.formatoFecha}" />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_proveedor}:" />
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{productoBean.producto.empresa}"
+												completeMethod="#{empresaBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}"
+												forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+												<p:column>#{_proveedor.identificacion}</p:column>
+												<p:column>#{_proveedor.nombreFiscal}</p:column>
+												<p:column>#{_proveedor.nombreComercial}</p:column>
+
+												<p:ajax listener="#{productoBean.actualizarProveedor}" process="@this" event="itemSelect" />
+											</p:autoComplete>
+
+											<h:outputText value="#{msgs.lbl_calificacion_proveedor}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorCalificaProveedor}" />
+
+											<h:outputText value="#{msgs.lbl_bodega} #{msgs.lbl_compra} " />
+											<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.bodegaCompra}" id="cboBodegaCompra">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{productoBean.listaBodega}" var="_unidadVenta" itemLabel="#{_bodegaCompra.nombre}" itemValue="#{_bodegaCompra}" />
+												<f:validateBean />
+											</p:selectOneMenu>
+										</h:panelGrid>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_venta}" rendered="#{productoBean.producto.indicadorVenta}">
+										<h:panelGrid id="panelVenta" columns="#{productoBean.numeroColumnasPanelNuevo}"
+											columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+											<h:outputText value="#{msgs.lbl_unidad_venta} " />
+											<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.unidadVenta}" id="cboUnidadVenta" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{productoBean.listaUnidad}" var="_unidadVenta" itemLabel="#{_unidadVenta.nombre}" itemValue="#{_unidadVenta}" />
+												<f:validateBean />
+											</p:selectOneMenu>
+
+											<h:outputText value="#{msgs.lbl_precio_referencial}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.precioReferencialVenta}" id="txtprecioReferencial" required="true"
+												size="14" maxlength="14">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_cantidad_minima_venta}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.cantidadMinimaVenta}" id="txtCantidadMinimaVenta">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_subsidio}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.subsidio}" id="txtSubsidio">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_precio_ultima_venta}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.precioUltimaVenta}" id="txtPrecioUltimaVenta" disabled="true">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_fecha_ultima_venta}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.fechaUltimaVenta}" disabled="true">
+												<f:convertDateTime pattern="#{productoBean.formatoFecha}" />
+											</p:inputText>
+
+
+											<h:outputText value="#{msgs.lbl_bodega} #{msgs.lbl_venta} " />
+											<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.bodegaVenta}" id="cboBodegaVenta">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{productoBean.listaBodega}" var="_unidadVenta" itemLabel="#{_bodegaVenta.nombre}" itemValue="#{_bodegaVenta}" />
+												<f:validateBean />
+											</p:selectOneMenu>
+
+											<h:outputText value="#{msgs.lbl_codigo_fiscal}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.codigoFiscal}" id="txtCodigoFiscal">
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{msgs.lbl_peso}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorManejoPeso}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+
+											<h:outputText value="#{msgs.lbl_multiploPedido}:" />
+											<p:inputText styleClass="input-text" value="#{productoBean.producto.multiploPedido}" id="txtMultiploPedido">
+												<f:validateBean />
+											</p:inputText>
+											
+											<h:outputText value="#{msgs.lbl_incluir_en_pedido_sugerido}:" />
+											<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorIncluirPedidoSugerido}">
+												<p:ajax process="@this" global="false" />
+											</p:selectBooleanCheckbox>
+										</h:panelGrid>
+
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_producto_lista_sustitutos}">
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" id="panelGridSustitutos">
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarSustituto" action="#{productoBean.agregarSustituto}"
+													update=":form:tabDetalleProducto:tablaSustitutos" process="@this,tablaSustitutos" icon="ui-icon-plus" />
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSustitutos" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" value="#{productoBean.listaProductoSustituto}" var="_sustituto"
+													binding="#{productoBean.dtProductoSustituto}" paginator="false" paginatorPosition="bottom" selectionMode="single" style="width:100%"
+													rows="#{productoBean.numeroFilas}" rowKey="#{_sustituto.id}" lazy="true">
+
+													<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_codigo}" styleClass="tableCell">
+
+														<p:commandButton process="@this" onclick="dglModalProducto.show();" icon="ui-icon ui-icon-newwin" title="#{msgs.lbl_listado}">
+															<f:setPropertyActionListener target="#{productoBean.sustitutoSeleccionado}" value="#{_sustituto}" />
+														</p:commandButton>
+
+														<p:inputText value="#{_sustituto.sustituto.codigo}" id="txtCodigoSustituto">
+															<p:ajax listener="#{productoBean.actualizarProductoSustitutoListener}" process="@this" update="txtNombreSustituto" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_nombre}">
+														<h:outputText value="#{_sustituto.sustituto.nombre}" id="txtNombreSustituto" />
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<p:commandButton id="btnEliminarSustituto" action="#{productoBean.eliminarSustituto}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+															update=":form:tabDetalleProducto:panelGridSustitutos,:form:tabDetalleProducto:tablaSustitutos" process="@this">
+														</p:commandButton>
+													</p:column>
+
+												</p:dataTable>
+											</h:panelGrid>
+
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_imagenPdf}">
+										<h:panelGrid columns="1" style="width: 85%;">
+
+											<p:graphicImage value="/images/dynamic/?file=#{productoBean.producto.imagen}" height="120" width="120" id="imgProducto" />
+
+											<p:fileUpload fileUploadListener="#{productoBean.handleFileUpload}" mode="advanced" dragDropSupport="false" multiple="true"
+												sizeLimit="1000000" fileLimit="2" update=":form:tabDetalleProducto:imgProducto" allowTypes="/(\.|\/)(gif|jpe?g|png|pdf)$/" />
+										</h:panelGrid>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_unidad_conversion_panel}">
+										<p:outputPanel id="panelUnidadConversion">
+											<h:panelGrid columns="1" width="100%" id="panelGridUnidadConversion">
+
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{productoBean.agregarDetalleConversion}"
+													update=":form:tabDetalleProducto:panelUnidadConversion" process="@this,:form:cboUnidad,:form:tabDetalleProducto:panelUnidadConversion"
+													icon="ui-icon-plus" />
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUnidadConversion" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" binding="#{productoBean.dtUnidadConversion}" value="#{productoBean.listaUnidadConversion}"
+													var="_unidadConversion" paginator="false" style="width:100%" rows="#{productoBean.numeroFilas}" lazy="true">
+
+													<p:column styleClass="columnaDTAccion" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTUnidad" headerText="#{msgs.lbl_unidad_stock}">
+														<p:outputPanel id="txtUnidadOrigen">
+															<h:outputText value="#{_unidadConversion.unidadOrigen.nombre}" />
+														</p:outputPanel>
+													</p:column>
+
+													<p:column styleClass="columnaDTValorGrande" headerText="#{msgs.lbl_valor_conversion}">
+														<p:spinner value="#{_unidadConversion.valorConversion}" id="txtValorConversion" stepFactor="#{unidadBean.valorIncremento}" min="0">
+															<p:ajax global="false" event="change" process="@this" update="txtEquivalencia"></p:ajax>
+														</p:spinner>
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_unidad_destino}">
+														<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboUnidadDestino"
+															value="#{_unidadConversion.unidadDestino}" completeMethod="#{productoBean.autocompletarUnidades}" var="_unidadDestino"
+															itemLabel="#{_unidadDestino.nombre}" itemValue="#{_unidadDestino}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+															<p:ajax global="false" event="itemSelect" process="@this" update="txtEquivalencia"></p:ajax>
+
+															<p:column>#{_unidadDestino.codigo}</p:column>
+															<p:column>#{_unidadDestino.nombre}</p:column>
+
+															<f:validateBean />
+
+														</p:autoComplete>
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_equivalencia}" styleClass="columnaDTNombre tableCell centrado">
+														<p:outputPanel id="txtEquivalencia">
+															<h:outputText
+																value="1 #{_unidadConversion.unidadOrigen.codigo} = #{_unidadConversion.valorConversion} #{_unidadConversion.unidadDestino.codigo}" />
+														</p:outputPanel>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion">
+														<p:commandButton id="btninvertirUnidades" icon="ui-icon-arrowthick-2-e-w" title="#{msgs.lbl_intercambiar}"
+															process="@this txtValorConversion cboUnidadDestino" update="cboUnidadDestino txtUnidadOrigen txtValorConversion txtEquivalencia"
+															action="#{productoBean.invertirUnidadesConversionListener}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion">
+														<p:commandButton id="btnEliminarUnidadConversion" action="#{productoBean.eliminarDetalleConversion}" icon="ui-icon-trash"
+															title="#{msgs.lbl_eliminar}" update=":form:tabDetalleProducto:panelUnidadConversion" process="@this" />
+													</p:column>
+
+												</p:dataTable>
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_limite_stock_por_bodegas}">
+										<p:outputPanel id="panelLimiteSaldosBodegas">
+											<h:panelGrid columns="1" width="100%">
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaLimiteSaldosBodegas" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" value="#{productoBean.producto.listaProductoBodega}" var="_productoBodega" paginator="false"
+													style="width:100%" sortOrder="ASCENDING">
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_bodega}" filterBy="#{_productoBodega.bodega.nombre}" filterMatchMode="contains"
+														sortBy="#{_productoBodega.bodega.nombre}">
+														<h:outputText value="#{_productoBodega.bodega.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_stock_minimo}" filterBy="#{_productoBodega.saldoMinimo}">
+														<p:inputText value="#{_productoBodega.saldoMinimo}" required="true">
+															<p:ajax process="@this" update="@this" global="false" />
+															<f:validateBean />
+															<p:ajax process="@this" global="false" />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_stock_maximo}" filterBy="#{_productoBodega.saldoMaximo}">
+														<p:inputText value="#{_productoBodega.saldoMaximo}" required="true">
+															<p:ajax process="@this" update="@this" global="false" />
+															<f:validateBean />
+															<p:ajax process="@this" global="false" />
+														</p:inputText>
+													</p:column>
+
+												</p:dataTable>
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+									<p:tab title="#{msgs.lbl_bodega_trabajo}">
+										<p:outputPanel id="panelBodegaTrabajoSucursal">
+											<h:panelGrid columns="1" width="100%">
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarBodegaTrabajoSucursal"
+													action="#{productoBean.agregarBodegaTrabajoSucursal}" update=":form:tabDetalleProducto:panelBodegaTrabajoSucursal" process="@this"
+													icon="ui-icon-plus" />
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaBodegaTrabajoSucursal" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" value="#{productoBean.listaBodegaTrabajoProductoSucursal}" var="_bodegaSucursal"
+													paginator="false" style="width:100%" sortOrder="ASCENDING">
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_sucursal}" sortBy="#{_bodegaSucursal.sucursal.nombre}">
+														<p:selectOneMenu styleClass="input-text" value="#{_bodegaSucursal.sucursal}" id="cboSucursal" required="true">
+															<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+															<f:selectItems value="#{productoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:selectOneMenu>
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_bodega_trabajo}" sortBy="#{_bodegaSucursal.bodegaTrabajo.nombre}">
+														<p:selectOneMenu styleClass="input-text" value="#{_bodegaSucursal.bodegaTrabajo}" id="cboBodegaTrabajo" required="true">
+															<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+															<f:selectItems value="#{productoBean.listaBodegaTrabajo}" var="_bodegaTrabajo" itemLabel="#{_bodegaTrabajo.nombre}"
+																itemValue="#{_bodegaTrabajo}" />
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:selectOneMenu>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion">
+														<p:commandButton id="btnEliminarBodegaTrabajoSucursal" action="#{productoBean.eliminarBodegaTrabajoSucursal(_bodegaSucursal)}"
+															icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tabDetalleProducto:panelBodegaTrabajoSucursal" process="@this" />
+													</p:column>
+												</p:dataTable>
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_ruta_fabricacion}">
+										<p:outputPanel id="panelAgregarRutaFabricacionSucursal">
+											<h:panelGrid columns="1" width="100%">
+
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarRutaFabricacionSucursal"
+													action="#{productoBean.agregarRutaFabricacionSucursal}" update=":form:tabDetalleProducto:panelAgregarRutaFabricacionSucursal"
+													process="@this" icon="ui-icon-plus" />
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRutaFabricacionSucursal" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" value="#{productoBean.listaRutaFabricacionSucursal}" var="_rutaFabricacionSucursal"
+													paginator="false" style="width:100%" sortOrder="ASCENDING">
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_sucursal}" sortBy="#{_rutaFabricacionSucursal.sucursal.nombre}">
+														<p:selectOneMenu styleClass="input-text" value="#{_rutaFabricacionSucursal.sucursal}" id="cboSucursal" required="true">
+															<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+															<f:selectItems value="#{productoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+															<p:ajax process="@this" global="false" />
+															<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+															<f:validateBean />
+														</p:selectOneMenu>
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_ruta_fabricacion}" sortBy="#{_rutaFabricacionSucursal.rutaFabricacion.nombre}">
+														<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+															value="#{_rutaFabricacionSucursal.rutaFabricacion}" completeMethod="#{productoBean.autocompletarRutaFabricacion}"
+															var="_rutaFabricacion" itemLabel="#{_rutaFabricacion.nombre}" itemValue="#{_rutaFabricacion}" forceSelection="true" size="50"
+															dropdown="true" minQueryLength="2">
+															<p:column>#{_rutaFabricacion.codigo}</p:column>
+															<p:column>#{_rutaFabricacion.nombre}</p:column>
+															<p:ajax process="@this" partialSubmit="true" global="false" event="itemSelect"></p:ajax>
+														</p:autoComplete>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion">
+														<p:commandButton id="btnEliminarBodegaTrabajoSucursal" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+															update=":form:tabDetalleProducto:panelAgregarRutaFabricacionSucursal" process="@this">
+															<f:setPropertyActionListener value="true" target="#{_rutaFabricacionSucursal.eliminado}"></f:setPropertyActionListener>
+														</p:commandButton>
+													</p:column>
+												</p:dataTable>
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_logistica}">
+										<p:outputPanel id="panelLogistica">
+											<h:panelGrid columns="4" width="100%" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+												<p:outputLabel value="#{msgs.lbl_despacho_recepcion_balanza}:" />
+												<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorPesoBalanza}" />
+
+												<h:outputText value="#{msgs.lbl_consumo_directo}:" />
+												<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorConsumoDirecto}" />
+
+												<h:outputText value="#{msgs.lbl_requiere_control_calidad}:" />
+												<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorControlCalidad}" />
+
+												<p:outputLabel for="cboTipoProductoFormulacion" value="#{msgs.lbl_tipo}:" />
+												<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.tipoMaterialEnum}" id="cboTipoProductoFormulacion"
+													required="false>">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{productoBean.listaTipoMaterial}" />
+													<f:validateBean />
+													<p:ajax process="@this" global="false" />
+												</p:selectOneMenu>
+
+												<p:outputLabel for="txtTmpReposicion" value="#{msgs.lbl_tiempo_reposicion}:" />
+												<p:inputText styleClass="input-text" value="#{productoBean.producto.tiempoReposicion}" id="txtTmpReposicion">
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel for="txtPorcientoDespachoSuperaPedido" value="#{msgs.lbl_porciento_despacho_supera_pedido}:" />
+												<p:inputText styleClass="input-text" value="#{productoBean.producto.porCientoDespachoSuperaPedido}" id="txtPorcientoDespachoSuperaPedido">
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel for="txtPorcientoToleranciaTransferencia" value="#{msgs.lbl_porciento_tolerancia_transferencia}:" />
+												<p:inputText styleClass="input-text" value="#{productoBean.producto.porcientoToleranciaTransferencia}"
+													id="txtPorcientoToleranciaTransferencia">
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel for="txtPesoDestareUnidad" value="#{msgs.lbl_tara_unitario}:" />
+												<p:inputText styleClass="input-text" value="#{productoBean.producto.pesoDestareUnidad}" id="txtPesoDestareUnidad">
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel for="txtDiasCaducidad" value="#{msgs.lbl_dias_caducidad}:" />
+												<p:inputText styleClass="input-text" value="#{productoBean.producto.diasCaducidad}" id="txtDiasCaducidad">
+													<f:validateBean />
+												</p:inputText>
+
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_SRI}">
+										<p:outputPanel id="panelSRI">
+											<h:panelGrid columns="4" width="100%" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+												<h:outputText value="#{msgs.lbl_sri_credito_tributario}" />
+												<p:selectOneMenu styleClass="input-text" value="#{productoBean.producto.creditoTributarioSRI}" id="cboCreditoTributarioSRI"
+													converter="creditoTributarioSRIConverter">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{sesionControler.listaCreditoTributarioSRI}" var="_creditoTributario"
+														itemLabel="#{_creditoTributario.codigo}  #{_creditoTributario.nombre}" itemValue="#{_creditoTributario}" />
+												</p:selectOneMenu>
+
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_atributos_instancia_produccion}" rendered="#{productoBean.producto.indicadorLote}">
+										<p:outputPanel id="panelAtributosInstancia">
+											<h:panelGrid columns="4" width="100%" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+												<h:outputText value="#{msgs.lbl_atributo} 1:" rendered="#{not empty productoBean.producto.traAtributo1}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo1}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo1}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo1.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 2:" rendered="#{not empty productoBean.producto.traAtributo2}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo2}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo2}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo2.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 3:" rendered="#{not empty productoBean.producto.traAtributo3}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo3}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo3}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo3.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 4:" rendered="#{not empty productoBean.producto.traAtributo4}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo4}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo4}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo4.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 5:" rendered="#{not empty productoBean.producto.traAtributo5}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo5}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo5}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo5.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 6:" rendered="#{not empty productoBean.producto.traAtributo6}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo6}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo6}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo6.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 7:" rendered="#{not empty productoBean.producto.traAtributo7}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo7}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo7}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo7.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 8:" rendered="#{not empty productoBean.producto.traAtributo8}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo8}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo8}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo8.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 9:" rendered="#{not empty productoBean.producto.traAtributo9}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo9}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo9}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo9.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+												<h:outputText value="#{msgs.lbl_atributo} 10:"
+													rendered="#{not empty productoBean.producto.traAtributo10}" />
+												<h:panelGroup rendered="#{not empty productoBean.producto.traAtributo10}">
+													<p:selectBooleanCheckbox value="#{productoBean.producto.indicadorAtributo10}" style="padding-left: 10px"
+														disabled="#{productoBean.producto.indicadorTieneMovimientos}">
+														<p:ajax process=":form:tabDetalleProducto:panelAtributosInstancia" listener="#{productoBean.cargarAtributo}" partialSubmit="true"
+															global="false"></p:ajax>
+													</p:selectBooleanCheckbox>
+													<h:outputText value="#{productoBean.producto.traAtributo10.nombre}" style="padding-left: 10px" />
+												</h:panelGroup>
+
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_mezcla}" rendered="#{productoBean.producto.indicadorMezcla}">
+
+										<h:panelGrid columns="1">
+
+											<p:commandButton process="@this" value="#{msgs.btn_agregar_detalle}" update=":form:tabDetalleProducto:tablaMezclaProducto"
+												actionListener="#{productoBean.agregarMezclaProductoListener}" icon="ui-icon-plus" title="#{msgs.btn_agregar_detalle}">
+											</p:commandButton>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{productoBean.listaMezclaProducto}" id="tablaMezclaProducto"
+												rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_mezclaProducto" paginator="true" paginatorPosition="bottom"
+												style="width:100%" rowKey="#{_mezclaProducto.rowKey}" rows="#{productoBean.numeroFilas}"
+												rowsPerPageTemplate="#{productoBean.numeroFilasPorPagina}" columnClasses="rowIndex" lazy="true">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+
+													<p:commandButton process="@this" onclick="dglModalProducto.show();" icon="ui-icon ui-icon-newwin" title="#{msgs.lbl_listado}">
+														<f:setPropertyActionListener target="#{productoBean.productoSeleccionado}" value="#{null}" />
+														<f:setPropertyActionListener target="#{productoBean.sustitutoSeleccionado}" value="#{null}" />
+														<f:setPropertyActionListener target="#{productoBean.mezclaProductoSeleccionado}" value="#{_mezclaProducto}" />
+													</p:commandButton>
+
+													<h:outputText value="#{_mezclaProducto.productoMezcla.codigo}"/>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre}">
+													<h:outputText value="#{_mezclaProducto.productoMezcla.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_porcentaje}">
+													<p:inputText styleClass="input-text-col" value="#{_mezclaProducto.porcentaje}">
+														<p:ajax process="@this" event="change" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarMezclaProducto" action="#{productoBean.eliminarMezclaProducto(_mezclaProducto)}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabDetalleProducto:tablaMezclaProducto" process="@this">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:tab>
+								</p:tabView>
+							</p:outputPanel>
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:dialog header="#{msgs.lbl_imagen}" widgetVar="imagenDialog" resizable="false" showEffect="fade" hideEffect="explode" modal="true">
+						<p:outputPanel id="panelImagen" autoUpdate="true">
+							<h:panelGrid columns="2">
+								<f:facet name="header">
+									<h:graphicImage value="/images/dynamic/?file=#{productoBean.producto.imagen}" width="400" height="300" />
+								</f:facet>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:dialog>
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_producto_panel}" rendered="#{!productoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProductos" rowIndexVar="secuencialProducto"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{productoBean.listaProducto}" var="producto" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{productoBean.dtProducto}" rows="#{productoBean.numeroFilas}"
+							rowsPerPageTemplate="#{productoBean.numeroFilasPorPagina}" selection="#{productoBean.producto}" selectionMode="single" rowKey="#{producto.id}"
+							styleClass="tablaProducto" sortBy="#{producto.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialProducto+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" sortBy="#{producto.codigo}" filterBy="#{producto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{producto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" sortBy="#{producto.codigoAlterno}" filterBy="#{producto.codigoAlterno}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+								</f:facet>
+								<h:outputText value="#{producto.codigoAlterno}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigoProducto tableCell" sortBy="#{producto.codigoBarras}" filterBy="#{producto.codigoBarras}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_codigo_barras}" />
+								</f:facet>
+								<h:outputText value="#{producto.codigoBarras}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{producto.nombre}" filterBy="#{producto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{producto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{producto.nombreComercial}" filterBy="#{producto.nombreComercial}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_comercial}" />
+								</f:facet>
+								<h:outputText value="#{producto.nombreComercial}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{producto.subcategoriaProducto.categoriaProducto.nombre}"
+								filterBy="#{producto.subcategoriaProducto.categoriaProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_categoria_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.subcategoriaProducto.categoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{producto.subcategoriaProducto.nombre}"
+								filterBy="#{producto.subcategoriaProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.subcategoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTUnidad tableCell" sortBy="#{producto.unidad.nombre}" filterBy="#{producto.unidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_unidad_stock}" />
+								</f:facet>
+
+								<h:outputText value="#{producto.unidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{producto.tipoProducto}" filterBy="#{producto.tipoProducto}"
+								filterOptions="#{productoBean.listaTipoProductoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_tipo_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.tipoProducto.nombre}" />
+							</p:column>
+
+							<p:column exportable="false" styleClass="tableCell0 columnaDTAccion" sortBy="#{producto.ordenCosteo}" filterBy="#{producto.ordenCosteo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_orden_costeo}" />
+								</f:facet>
+								<h:outputText value="#{producto.ordenCosteo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" exportable="false" filterBy="#{producto.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<as2:inputTextNota value="#{producto.descripcion}"></as2:inputTextNota>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{producto.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{producto.activo}" disabled="true" />
+							</p:column>
+
+							<p:column exportable="false" styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_imagen}">
+								<p:commandLink onclick="imagenDialog.show()" process="@this" update=":form:panelImagen" title="#{msgs.lbl_imagen}">
+
+									<h:graphicImage library="images" name="imagen.png" style="height : 16px; width : 16px;" />
+
+									<f:setPropertyActionListener value="#{producto}" target="#{productoBean.producto}" />
+								</p:commandLink>
+							</p:column>
+
+							<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pdf}" />
+								</f:facet>
+								<p:commandLink immediate="true" ajax="false" action="#{productoBean.processDownload}">
+									<h:graphicImage library="images" name="pdf.png" style="height : 16px; width : 16px;" />
+								</p:commandLink>
+
+							</p:column>
+
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{productoBean.producto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{productoBean.producto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{productoBean.producto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{productoBean.producto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

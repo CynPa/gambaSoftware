@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{transferenciaUnidadManejoBean}">
+
+					<as2:buttonEliminar bean="#{transferenciaUnidadManejoBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.numero}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir id="btnImprimirtransferenciaUnidadManejo" beanReporte="#{reporteTransferenciaUnidadManejoBean}"
+						bean="#{transferenciaUnidadManejoBean}" target="#{reporteTransferenciaUnidadManejoBean.movimientoUnidadManejo}"
+						value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo}" />
+
+					<as2:buttonExportaExcel bean="#{transferenciaUnidadManejoBean}" tabla=":form:tablaAjustes" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_transferencia} #{msgs.lbl_unidad_manejo})"
+						rendered="#{transferenciaUnidadManejoBean.editado}">
+
+						<ui:include src="/template/listaUnidadManejo.xhtml">
+							<ui:param name="bean" value="#{transferenciaUnidadManejoBean}" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid columns="#{transferenciaUnidadManejoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu disabled="#{transferenciaUnidadManejoBean.indicadorTransportista}" styleClass="input-text"
+									value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{transferenciaUnidadManejoBean.listaDocumentosAjuste}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax process="@this" update="txtNumero panelDetalle" listener="#{transferenciaUnidadManejoBean.actualizarDocumento}" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.numero}"
+									mask="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.documento.secuencia.patron}"
+									disabled="#{!transferenciaUnidadManejoBean.secuenciaEditable}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:outputLabel rendered="#{transferenciaUnidadManejoBean.clasificacion != 'Transportista'}" value="#{msgs.lbl_sucursal}:" />
+								<h:outputText rendered="#{transferenciaUnidadManejoBean.clasificacion != 'Transportista'}"
+									value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.sucursal.nombre}" />
+
+								<p:outputLabel rendered="#{transferenciaUnidadManejoBean.clasificacion != 'Transportista'}" for="cboTransportista"
+									value="#{msgs.lbl_titulo_transportista}:" />
+								<p:selectOneMenu rendered="#{transferenciaUnidadManejoBean.clasificacion != 'Transportista'}" styleClass="input-text"
+									value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.transportista}" id="cboTransportista" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{transferenciaUnidadManejoBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+										itemValue="#{_transportista}" />
+									<p:ajax process="@this" event="change" update="@none" />
+								</p:selectOneMenu>
+
+								<p:outputLabel rendered="#{transferenciaUnidadManejoBean.clasificacion == 'Transportista'}" value="#{msgs.lbl_titulo_transportista}:" />
+								<h:outputText rendered="#{transferenciaUnidadManejoBean.clasificacion == 'Transportista'}"
+									value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.transportista.nombre}" />
+
+								<p:outputLabel for="txtCliente" value="#{msgs.lbl_cliente}:" rendered="#{transferenciaUnidadManejoBean.clasificacion == 'Transportista'}" />
+								<p:autoComplete rendered="#{transferenciaUnidadManejoBean.clasificacion == 'Transportista'}" queryDelay="#{sesionControler.retrasoFiltro}"
+									styleClass="input-text" value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.empresa}"
+									completeMethod="#{transferenciaUnidadManejoBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+									itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" id="txtCliente" required="true">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{transferenciaUnidadManejoBean.actualizarCliente}" process="@this" event="itemSelect" global="false"
+										update="cboSubempresa" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_subcliente}:" rendered="#{transferenciaUnidadManejoBean.clasificacion == 'Transportista'}" />
+								<p:selectOneMenu rendered="#{transferenciaUnidadManejoBean.clasificacion == 'Transportista'}" styleClass="input-text"
+									value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.subempresa}" id="cboSubempresa">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{transferenciaUnidadManejoBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+										itemLabel="#{_subempresa.empresaFinal}" />
+									<p:ajax process="@this" event="change" global="false" update="@this" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{transferenciaUnidadManejoBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.fecha}" id="calFecha" disabled="true" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+								<h:panelGrid columns="2" cellpadding="0" cellspacing="0">
+									<h:panelGroup>
+										<!-- <p:commandButton value="Lista #{msgs.lbl_unidad_manejo}" icon="ui-icon-plus" onclick="dglModalUnidadManejo.show();" type="button" /> -->
+										<p:commandButton value="#{msgs.lbl_agregar_detalle}" icon="ui-icon-plus" process="@this"
+											actionListener="#{transferenciaUnidadManejoBean.agregarDetalle}" update=":form:panelDetalle" />
+										<p:commandButton icon="ui-icon-plus" id="btnCargarSaldos" value="#{msgs.lbl_cargar_saldo}" title="#{msgs.lbl_cargar_saldo}"
+											process="@this,:form:panelListado" actionListener="#{transferenciaUnidadManejoBean.cargarSaldos}" update=":form:panelDetalle">
+										</p:commandButton>
+									</h:panelGroup>
+								</h:panelGrid>
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{transferenciaUnidadManejoBean.detalleMovimientoUnidadManejo}"
+									id="tablaDetalletransferenciaUnidadManejo" rowIndexVar="secuencial" binding="#{transferenciaUnidadManejoBean.dtDetalleAjuste}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleTransferenciaUnidadManejo" paginator="true" paginatorPosition="bottom"
+									style="width:100%" rowKey="#{_detalleTransferenciaUnidadManejo.id}" rows="#{transferenciaUnidadManejoBean.numeroFilas}"
+									rowsPerPageTemplate="#{transferenciaUnidadManejoBean.numeroFilasPorPagina}" sortOrder="ASCENDING">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleTransferenciaUnidadManejo.unidadManejo.codigo}"
+										filterMatchMode="contains">
+										<h:outputText styleClass="input-text-col" value="#{_detalleTransferenciaUnidadManejo.unidadManejo.codigo}" id="txtCodigoUnidadManejo">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_detalleTransferenciaUnidadManejo.unidadManejo.nombre}"
+										filterMatchMode="contains">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboFacturaCliente"
+											value="#{_detalleTransferenciaUnidadManejo.unidadManejo}" completeMethod="#{transferenciaUnidadManejoBean.autocompletarUnidadManejo}"
+											var="_uniManejo" itemLabel="#{_uniManejo.nombre}" itemValue="#{_uniManejo}" forceSelection="true" dropdown="true" minQueryLength="2">
+											<p:column headerText="#{msgs.lbl_codigo}">#{_uniManejo.codigo}</p:column>
+											<p:column headerText="#{msgs.lbl_nombre}">#{_uniManejo.nombre}</p:column>
+
+											<f:validateBean />
+											<p:ajax  global="false" event="itemSelect" process="@this"
+												update=":form:panelDetalle" />
+										</p:autoComplete>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_categoria_unidad_manejo}"
+										filterBy="#{_detalleTransferenciaUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" filterMatchMode="contains" rendered="false">
+										<h:outputText value="#{_detalleTransferenciaUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" id="txtNombreCategoriaUnidadManejo">
+										</h:outputText>
+									</p:column>
+									<!-- 
+									<p:column rendered="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.documento.operacion==-1}" styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_saldo}">
+										<h:outputText styleClass="input-text" value="#{_detalleTransferenciaUnidadManejo.cantidadRecibida}" id="txtSaldo" maxlength="10">
+										</h:outputText>
+									</p:column>
+									 -->
+									<p:column rendered="#{transferenciaUnidadManejoBean.indicadorTransportista}" styleClass="columnaDTCantidad tableCell"
+										headerText="#{msgs.lbl_cliente}->#{msgs.lbl_transportista}">
+										<p:spinner id="txtCantidadCliente" value="#{_detalleTransferenciaUnidadManejo.cantidadCliente}" min="0">
+											<f:validateBean />
+											<p:ajax process="@this" update="@this" global="false" />
+										</p:spinner>
+									</p:column>
+									<p:column styleClass="columnaDTCantidad tableCell"
+										headerText="#{transferenciaUnidadManejoBean.indicadorTransportista?'Transportista->Cliente':'Cantidad'}">
+										<p:spinner id="basic" value="#{_detalleTransferenciaUnidadManejo.cantidad}" min="0">
+											<f:validateBean />
+											<p:ajax process="@this" event="change" update=":form:panelDetalle" global="false"
+												listener="#{transferenciaUnidadManejoBean.actualizarOperacion(_detalleTransferenciaUnidadManejo)}" />
+										</p:spinner>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion">
+										<p:commandButton id="btnEliminarDetalle" action="#{transferenciaUnidadManejoBean.eliminarDetalle}" icon="ui-icon-trash"
+											title="#{msgs.lbl_eliminar}" update=":form:panelDetalle" process="@this" />
+									</p:column>
+
+									<!-- 
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="3" footerText="#{msgs.lbl_total}:"
+												style="text-align:right" />
+											<p:column footerText="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.total}" style="text-align:right" id="txtTotal" />
+										</p:row>
+									</p:columnGroup>
+ -->
+								</p:dataTable>
+
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_transferencia_unidad_manejo})" rendered="#{!transferenciaUnidadManejoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAjustes" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{transferenciaUnidadManejoBean.listaMovimientoUnidadManejo}" var="_transferenciaUnidadManejo" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{transferenciaUnidadManejoBean.dtListaAjuste}"
+							rows="#{transferenciaUnidadManejoBean.numeroFilas}" rowsPerPageTemplate="#{transferenciaUnidadManejoBean.numeroFilasPorPagina}"
+							selection="#{transferenciaUnidadManejoBean.movimientoUnidadManejo}" selectionMode="single" rowKey="#{_transferenciaUnidadManejo.id}"
+							sortBy="#{_transferenciaUnidadManejo.fecha}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_transferenciaUnidadManejo.numero}"
+								filterBy="#{_transferenciaUnidadManejo.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_transferenciaUnidadManejo.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_transferenciaUnidadManejo.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_transferenciaUnidadManejo.fecha}">
+									<f:convertDateTime pattern="#{transferenciaUnidadManejoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_transferenciaUnidadManejo.documento.nombre}"
+								filterBy="#{_transferenciaUnidadManejo.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_transferenciaUnidadManejo.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_transferenciaUnidadManejo.sucursal.nombre}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_transportista}" />
+								</f:facet>
+								<h:outputText value="#{_transferenciaUnidadManejo.transportista.nombre}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_transferenciaUnidadManejo.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_transferenciaUnidadManejo.estado}"
+								filterBy="#{_transferenciaUnidadManejo.estado}" filterOptions="#{transferenciaUnidadManejoBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_transferenciaUnidadManejo.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_transferenciaUnidadManejo.descripcion}" filterBy="#{_transferenciaUnidadManejo.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_transferenciaUnidadManejo.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{transferenciaUnidadManejoBean.movimientoUnidadManejo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

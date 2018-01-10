@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte} #{msgs.lbl_custodio_activo_fijo_panel}">
+
+				<ui:include src="/template/listaActivoFijo.xhtml">
+					<ui:param name="bean" value="#{reporteCustodioActivoFijoBean}" />
+					<ui:param name="objetoActualizar" value="txtActivoFijo" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteCustodioActivoFijoBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle" columns="#{reporteCustodioActivoFijoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteCustodioActivoFijoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteCustodioActivoFijoBean.fechaDesde}" id="calDesde">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteCustodioActivoFijoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteCustodioActivoFijoBean.fechaHasta}" id="calFechaHasta">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_activo_fijo}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" oncomplete="dglModalActivoFijo.show();" update="panelListaActivoFijo">
+								</p:commandButton>
+								<h:outputText id="txtActivoFijo" value="#{reporteCustodioActivoFijoBean.activoFijo.nombre}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" 
+								value="#{reporteCustodioActivoFijoBean.empleado}" completeMethod="#{reporteCustodioActivoFijoBean.autocompletarEmpleados}" var="_empleado"
+								itemLabel="#{_empleado.nombreFiscal}" itemValue="#{_empleado}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_empleado.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_empleado.nombreFiscal}</p:column>
+								
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+								value="#{reporteCustodioActivoFijoBean.cliente}" completeMethod="#{reporteCustodioActivoFijoBean.autocompletarClientes}" var="_cliente"
+								itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+							</p:autoComplete>
+							
+							<h:outputLabel value="#{msgs.lbl_orden}:" for="cboTipoReporte" />
+							<p:selectOneMenu value="#{reporteCustodioActivoFijoBean.orden}" required="true" id="cboTipoReporte">
+								<f:selectItems value="#{reporteCustodioActivoFijoBean.listaOrden}" var="_tipoReporte"
+									itemLabel="#{_tipoReporte.label}" itemValue="#{_tipoReporte.value}">
+								</f:selectItems>
+								<p:ajax event="change" update="@this" process="@this" partialSubmit="true" global="false"/>
+							</p:selectOneMenu>
+							
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+								process="@this" oncomplete="confirmacionImprimir.show()"
+								icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+
+					</p:fieldset>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

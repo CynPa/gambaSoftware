@@ -1,0 +1,184 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
+<ui:composition template="../WEB-INF/template/principal.xhtml">
+	<ui:define name="content">
+		<h:form id="form">
+			<p:growl id="growl" life="2000" />
+			<p:panel id="panelSiembra" widgetVar="panelSiembra">
+				<p:panel id="basic" style="margin-bottom:10px;font-size:x-small;">
+					<p:commandButton value="Nuevo" type="button" 
+						onclick="PF('dlgIngresarSiembra').show();"
+						styleClass="ui-priority-primary"  />
+					<p:commandButton process="tblSiembra" 
+						update=":form:dlgActualizarSiembra" icon="ui-icon-search"
+						value="Modificar" oncomplete="PF('dlgActualizarSiembra').show()" />
+				</p:panel>
+				<p:dataTable id="tblSiembra" widgetVar="tblSiembra" var="siembra"
+					value="#{siembraMb.listaSiembra}" paginator="true" rows="12"
+					style="margin-bottom:12px;font-size:x-small;font-weight: bold" selectionMode="single"
+					emptyMessage="Ningun dato cargado bajo el criterio"
+					selection="#{siembraMb.siembraSelected}"
+					rowKey="#{siembra.idSiembra}"
+					filteredValue="#{siembraMb.siembraFilter}" scrollable="true"
+						scrollHeight="270" scrollRows="20"
+						rowsPerPageTemplate="22,84,360,1000">
+					<p:column headerText="Piscina"
+						sortBy="#{siembra.nivelOperacion.piscina}"
+						filterBy="#{siembra.nivelOperacion.piscina}"
+						filterMatchMode="contains">
+						<h:outputText value="#{siembra.nivelOperacion.piscina}">
+						</h:outputText>
+					</p:column>
+					<p:column filterBy="#{siembra.fechaSiembra}"
+						sortBy="#{siembra.fechaSiembra}" headerText="Fecha Siembra"
+						filterMatchMode="contains">
+						<h:outputText value="#{siembra.fechaSiembra}">
+							<f:convertDateTime type="date" dateStyle="short"
+								pattern="yyyy-MM-dd" />
+						</h:outputText>
+					</p:column>
+					<p:column filterBy="#{siembra.fehcaAlimentacion}"
+						sortBy="#{siembra.fehcaAlimentacion}"
+						headerText="Fecha Alimentacion" filterMatchMode="contains">
+						<h:outputText value="#{siembra.fehcaAlimentacion}">
+							<f:convertDateTime type="date" dateStyle="short"
+								pattern="yyyy-MM-dd" />
+						</h:outputText>
+					</p:column>
+					<p:column filterBy="#{siembra.fechaCosecha}"
+						sortBy="#{siembra.fechaCosecha}" headerText="Fecha Cosecha"
+						filterMatchMode="contains">
+						<h:outputText value="#{siembra.fechaCosecha}">
+							<f:convertDateTime type="date" dateStyle="short"
+								pattern="yyyy-MM-dd" />
+						</h:outputText>
+					</p:column>
+					<p:column sortBy="#{siembra.estado}" headerText="Estado">
+
+						<h:outputText value="#{siembra.estado==true?'Activo':'Cerrado'}" />
+					</p:column>
+					<p:column colspan="1">
+							<p:commandButton icon="ui-icon-trash" value="Alimentacion"
+								actionListener="#{siembraMb.llenarSiembraSelec(siembra)}"
+								ajax="true" oncomplete="PF('dlgAlimentacion').show()"
+								update=":form:tblSiembra"
+								disabled="#{siembra.estado==true?false:true}">
+							</p:commandButton>
+					</p:column>
+					<p:column>
+						<p:commandButton icon="ui-icon-trash" value="Cierre"
+							actionListener="#{siembraMb.llenarSiembraSelec(siembra)}"
+							oncomplete="PF('dlgCierre').show()" ajax="true"
+							update=":form:tblSiembra"
+							disabled="#{siembra.estado==true?false:true}">
+						</p:commandButton>
+					</p:column>
+				</p:dataTable>
+			</p:panel>
+			<!-- INGRESAR -->
+			<p:dialog id="dlgIngresarSiembra" header="Ingreso"
+				widgetVar="dlgIngresarSiembra" modal="true"
+				width="#{siembraMb.ancho}">
+				<h:form id="formdlg1" style="margin-bottom:10px;font-size:small;">
+					<p:panel id="panel1"  style="margin-bottom:10px;font-size:small;">
+							<p:panelGrid columns="2">
+								<h:outputLabel value="Piscina:" />
+								<p:selectOneMenu id="selectPiscina"
+									value="#{siembraMb.objnivelOperacion}" style="width:150px">
+									<f:selectItem itemLabel="Seleccione un valor" itemValue=""
+										noSelectionOption="true" />
+									<f:selectItems value="#{siembraMb.listaObjNivelOperacion}"
+										var="nivel" itemLabel="nivel." />
+								</p:selectOneMenu>
+								<h:outputLabel value="Fecha Siembra:" />
+								<p:calendar id="idFechaSiembra"
+									value="#{siembraMb.fechaSiembra}"
+									maxdate="#{siembraMb.fechaActual}" showOn="button" pattern="yyyy/MM/dd" >
+								
+									</p:calendar>
+								<p:commandButton value="Guardar"
+									action="#{siembraMb.guardarSiembra}" process=":form:formdlg1"
+									update=":form:tblSiembra, :form:growl" ajax="true">
+								</p:commandButton>
+							</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- ALIMENTACION -->
+			<p:dialog id="dlgAlimentacion" widgetVar="dlgAlimentacion"
+				modal="true" width="#{opcionMb.ancho}">
+				<h:form id="formdlg32" style="margin-bottom:10px;font-size:small;">
+					<p:panel id="panel1">
+						<p:panelGrid columns="2">
+							<h:outputLabel value="Fecha alimentacion:" />
+							<p:calendar id="idFechaAlimIng"
+								value="#{siembraMb.fehaAlimentacion}"
+								maxdate="#{siembraMb.fechaActual}" showOn="button" pattern="yyyy/MM/dd" />
+							<p:commandButton value="Guardar"
+								action="#{siembraMb.siembraAlimentacion}"
+								process=":form:formdlg32" update=":form:tblSiembra, :form:growl"
+								ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- CIERRE -->
+			<p:dialog id="dlgCierre" widgetVar="dlgCierre" modal="true"
+				width="#{opcionMb.ancho}">
+				<h:form id="formdlg33" style="margin-bottom:10px;font-size:small;">
+					<p:panel id="panel1">
+						<p:panelGrid columns="2">
+							<h:outputLabel value="Fecha de Cosecha:" />
+							<p:calendar id="idFechaCosecha" value="#{siembraMb.fechaCosecha}"
+								maxdate="#{operacionesDiarias.fechaActual}" showOn="button" pattern="yyyy/MM/dd" />
+							<p:commandButton value="Cerrar"
+								action="#{siembraMb.cierrePiscina}" process=":form:formdlg33"
+								update=":form:tblSiembra, :form:growl" ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- ACTUALIZAR -->
+			<p:dialog id="dlgActualizarSiembra" header="Modificar"
+				widgetVar="dlgActualizarSiembra" modal="true"
+				width="#{siembraMb.ancho}">
+				<h:form id="formdlg2" style="margin-bottom:10px;font-size:small;">
+					<p:panel>
+						<h:outputText value="Seleccione un registro"
+							rendered="#{empty siembraMb.siembraSelected}" />
+
+						<p:panelGrid columns="2"
+							rendered="#{not empty siembraMb.siembraSelected}">
+							<h:outputLabel value="Fecha de Siembra:" />
+							<p:calendar id="idFechaCosecha"
+								value="#{siembraMb.siembraSelected.fechaSiembra}"
+								maxdate="#{operacionesDiarias.fechaActual}" showOn="button" pattern="yyyy-MM-dd" />
+								<h:outputLabel value="Fecha de Alimentacion:" />
+							<p:calendar id="idFechaSiembra1"
+								value="#{siembraMb.siembraSelected.fehcaAlimentacion}"
+								maxdate="#{operacionesDiarias.fechaActual}" showOn="button" pattern="yyyy-MM-dd" />
+							<p:commandButton value="Modificar" action="#{siembraMb.modificar}"
+								process=":form:formdlg2" update=":form:tblSiembra, :form:growl"
+								ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- Eliminar -->
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+				<p:commandButton value="Yes" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="No" styleClass="ui-confirmdialog-no"
+					icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

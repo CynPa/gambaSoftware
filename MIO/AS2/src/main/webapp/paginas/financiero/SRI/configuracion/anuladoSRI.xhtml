@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{anuladoSRIBean}">
+					<as2:buttonEliminar bean="#{anuladoSRIBean}" />
+					<as2:buttonExportaExcel bean="#{anuladoSRIBean}" tabla=":form:tablaAnuladoSRI" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_anulados_SRI} )" rendered="#{anuladoSRIBean.editado}">
+
+						<h:panelGrid columns="1">
+
+							<p:fieldset>
+
+								<h:panelGrid id="panelDetalle" columns="#{anuladoSRIBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_documento_SRI}:" />
+									<p:selectOneMenu styleClass="input-text" value="#{anuladoSRIBean.tipoComprobanteSRISeleccionado}" id="cboTipoComprobante" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:validateBean />
+										<f:selectItems value="#{anuladoSRIBean.listaTipoComprobanteSRI}" var="_tipoComprobante"
+											itemLabel="#{_tipoComprobante.codigo} #{_tipoComprobante.nombre}" itemValue="#{_tipoComprobante.idTipoComprobanteSRI}" />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_anio}:" />
+									<p:inputMask id="txtAnio" mask="9999" value="#{anuladoSRIBean.anuladoSRI.anio}" />
+
+									<h:outputText value="#{msgs.lbl_mes_desde}:" />
+									<p:selectOneMenu styleClass="input-text" value="#{anuladoSRIBean.anuladoSRI.mes}" id="cboMes">
+										<f:selectItems value="#{anuladoSRIBean.listaMes}" />
+									</p:selectOneMenu>
+									<h:outputText value="#{msgs.lbl_serie}:" />
+									<h:panelGroup>
+										<p:inputMask value="#{anuladoSRIBean.anuladoSRI.establecimiento}" mask="999" />
+										<p:inputMask value="#{anuladoSRIBean.anuladoSRI.puntoEmision}" mask="999" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_numero_desde}:" />
+									<p:inputMask styleClass="input-text" value="#{anuladoSRIBean.anuladoSRI.numeroDesde}" id="txtNumeroDesde" mask="999999999">
+										<f:validateBean />
+										<p:ajax process="@this" update=":form:txtNumeroHasta" listener="#{anuladoSRIBean.copiarValorDesdeHasta}"></p:ajax>
+									</p:inputMask>
+
+									<h:outputText value="#{msgs.lbl_numero_hasta}:" />
+									<p:inputMask styleClass="input-text" value="#{anuladoSRIBean.anuladoSRI.numeroHasta}" id="txtNumeroHasta" mask="999999999">
+										<f:validateBean />
+									</p:inputMask>
+
+									<h:outputText value="#{msgs.lbl_documento_SRI_autorizacion}:" />
+									<p:inputMask value="#{anuladoSRIBean.anuladoSRI.autorizacion}" id="txtAutorizacionDocumentoSRI">
+										<f:validateBean />
+									</p:inputMask>
+
+								</h:panelGrid>
+
+							</p:fieldset>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_anulados_SRI} )" rendered="#{!anuladoSRIBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAnuladoSRI" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{anuladoSRIBean.listaAnuladoSRI}"
+							var="_anuladoSRI" binding="#{anuladoSRIBean.dtAnuladoSRI}" paginator="true" rows="#{anuladoSRIBean.numeroFilas}"
+							rowsPerPageTemplate="#{anuladoSRIBean.numeroFilasPorPagina}" paginatorPosition="bottom" selection="#{anuladoSRIBean.anuladoSRI}" selectionMode="single"
+							rowKey="#{_anuladoSRI.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.anio}" filterBy="#{_anuladoSRI.anio}"  styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anio}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.anio}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.mes}" filterBy="#{_anuladoSRI.mes}"  styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_mes}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.mes}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.tipoComprobanteSRI.nombre}" filterBy="#{_anuladoSRI.tipoComprobanteSRI.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_SRI}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.tipoComprobanteSRI.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.establecimiento}" filterBy="#{_anuladoSRI.establecimiento}"  styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_SRI_establecimiento}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.establecimiento}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.puntoEmision}" filterBy="#{_anuladoSRI.puntoEmision}"  styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_SRI_punto_emision}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.puntoEmision}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.numeroDesde}" filterBy="#{_anuladoSRI.numeroDesde}"  styleClass="columnaDTNumeroFactura tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_desde}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.numeroDesde}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.numeroHasta}" filterBy="#{_anuladoSRI.numeroHasta}"  styleClass="columnaDTNumeroFactura tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_hasta}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.numeroHasta}" />
+							</p:column>
+
+							<p:column sortBy="#{_anuladoSRI.autorizacion}" filterBy="#{_anuladoSRI.autorizacion}"  styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_SRI_autorizacion}" />
+								</f:facet>
+								<h:outputText value="#{_anuladoSRI.autorizacion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{anuladoSRIBean.anuladoSRI.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{anuladoSRIBean.anuladoSRI.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{anuladoSRIBean.anuladoSRI.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{anuladoSRIBean.anuladoSRI.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

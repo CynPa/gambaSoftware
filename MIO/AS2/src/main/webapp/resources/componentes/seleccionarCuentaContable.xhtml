@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:h="http://java.sun.com/jsf/html" xmlns:p="http://primefaces.org/ui"
+	xmlns:f="http://java.sun.com/jsf/core">
+
+<h:head>
+	<title>#{msgs.lbl_panel_listado} #{msgs.lbl_plan_contable} #{listaCuentaContableBean.prefijoBusquedaCuenta}</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<h:outputStylesheet library="css" name="skin.css" />
+	<h:outputStylesheet library="css" name="as2style.css" />
+	<h:outputStylesheet library="css" name="as2styletable.css" />
+	<h:outputScript library="primefaces" name="jquery/jquery.js" />
+</h:head>
+
+<h:body>
+	<h:form>
+
+		<p:focus context="tablaCuentaContable" />
+
+		<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCuentaContable" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+			value="#{listaCuentaContableBean.listaCuentaContable}" var="_cuentaContable" paginator="true" paginatorPosition="bottom" style="width:100%"
+			rowsPerPageTemplate="#{listaCuentaContableBean.numeroFilasPorPagina}" rows="10" rowKey="#{_cuentaContable.id}" selectionMode="single" lazy="true"
+			sortBy="#{_cuentaContable.codigo}">
+
+			<p:column styleClass="columnaDTAccion tableAccion" headerText="Nº">
+				<h:outputText value="#{secuencia+1}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTCodigoCuenta tableCell" sortBy="#{_cuentaContable.codigo}" filterBy="#{_cuentaContable.codigo}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_codigo}" />
+				</f:facet>
+
+				<p:commandLink actionListener="#{listaCuentaContableBean.seleccionarCuentaContable(_cuentaContable)}" title="#{msgs.lbl_seleccionar}"
+					process="@this" partialSubmit="true" rendered="#{_cuentaContable.indicadorMovimiento or listaCuentaContableBean.indicadorSeleccionarTodo}">
+					<h:outputText value="#{_cuentaContable.codigo}" />
+				</p:commandLink>
+
+				<h:outputText value="#{_cuentaContable.codigo}"
+					rendered="#{!(_cuentaContable.indicadorMovimiento or listaCuentaContableBean.indicadorSeleccionarTodo)}" />
+
+			</p:column>
+			<p:column rendered="#{listaCuentaContableBean.manejaCuentaAlterna}" styleClass="tableCell" sortBy="#{_cuentaContable.codigoAlterno}" filterBy="#{_cuentaContable.codigoAlterno}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+				</f:facet>
+
+				<h:outputText value="#{_cuentaContable.codigoAlterno}" title="#{_cuentaContable.codigoAlterno}">
+					<f:attribute name="limit" value="40" />
+					<f:converter converterId="stringLimitConverter" />
+				</h:outputText>
+			</p:column>
+			<p:column styleClass="tableCell" sortBy="#{_cuentaContable.nombre}" filterBy="#{_cuentaContable.nombre}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_cuenta_contable}" />
+				</f:facet>
+
+				<h:outputText value="#{_cuentaContable.nombre}" title="#{_cuentaContable.nombre}">
+					<f:attribute name="limit" value="40" />
+					<f:converter converterId="stringLimitConverter" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTNombreCorto tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_grupo}" />
+				</f:facet>
+				<h:outputText value="#{_cuentaContable.grupoCuenta.nombre}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_cuentaContable.nivelCuenta.nombre}">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_nivel}" />
+				</f:facet>
+				<h:outputText value="#{_cuentaContable.nivelCuenta.nombre}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTActivo tableCell" filterBy="#{_cuentaContable.activo}"  filterOptions="#{listaCuentaContableBean.listaActivoItem}"   >
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_activo}" />
+				</f:facet>
+				<p:selectBooleanCheckbox disabled="true" value="#{_cuentaContable.activo}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTAccion tableCell">
+				<p:commandLink actionListener="#{listaCuentaContableBean.seleccionarCuentaContable(_cuentaContable)}" title="#{msgs.lbl_seleccionar}"
+					process="@this" partialSubmit="true" disabled="#{!(_cuentaContable.indicadorMovimiento or listaCuentaContableBean.indicadorSeleccionarTodo)}">
+					<h:graphicImage library="images" name="seleccion.png" style="height : 16px; width : 16px;" />
+				</p:commandLink>
+			</p:column>
+		</p:dataTable>
+
+	</h:form>
+</h:body>
+
+</html>

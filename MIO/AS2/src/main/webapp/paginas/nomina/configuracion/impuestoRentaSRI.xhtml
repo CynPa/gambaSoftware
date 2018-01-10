@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{impuestoRentaSRIBean}">
+					<as2:buttonEliminar bean="#{impuestoRentaSRIBean}">
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{impuestoRentaSRIBean}" tabla=":form:tablaImpuestoRentaSRI"/>
+				</as2:toolBar>
+
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargar" modal="true" height="150" width="325" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarExcel">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{impuestoRentaSRIBean.cargarImpuestoRentaSRI}" mode="advanced" auto="true"
+									sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}"
+									process="@this outputCargarExcel" oncomplete="dlgCargar.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_impuesto_rentaSRI}"
+						rendered="#{impuestoRentaSRIBean.editado}">
+						<p:fieldset>
+							<h:panelGrid>
+								<p:commandButton id="btnCargarExcel" title="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update="outputCargarExcel"
+									onclick="dlgCargar.show()" process="@this" value="#{msgs.btn_cargar_excel}" />
+								<as2:buttonDescagarPlantilla bean="#{impuestoRentaSRIBean}" />
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+						<p:panel rendered="#{!impuestoRentaSRIBean.editado}"  >
+							<h:outputText value="#{msgs.lbl_anio}:    " />
+							<p:inputMask mask="9999" value="#{impuestoRentaSRIBean.anio}" />
+							<p:commandButton title="#{msgs.lbl_refrescar}" icon="ui-icon-refresh" process="@this" update="tablaImpuestoRentaSRI" partialSubmit="true" ajax=""/>
+						</p:panel>
+					<p:panel
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_impuesto_rentaSRI}"
+						rendered="#{!impuestoRentaSRIBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaImpuestoRentaSRI" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{impuestoRentaSRIBean.listaImpuestoRentaSRI}"
+							var="_impuestoRentaSRI"
+							binding="#{impuestoRentaSRIBean.dtImpuestoRentaSRI}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{impuestoRentaSRIBean.numeroFilas}"
+							rowsPerPageTemplate="#{impuestoRentaSRIBean.numeroFilasPorPagina}"
+							selection="#{impuestoRentaSRIBean.impuestoRentaSRI}"
+							selectionMode="single" rowKey="#{_impuestoRentaSRI.id}"
+							sortBy="#{_impuestoRentaSRI.anio}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_impuestoRentaSRI.anio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anio}" />
+								</f:facet>
+								<h:outputText value="#{_impuestoRentaSRI.anio}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_desde}" sortBy="#{_impuestoRentaSRI.desde}">
+								<h:outputText value="#{_impuestoRentaSRI.desde}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_hasta}" sortBy="#{_impuestoRentaSRI.hasta}">
+								<h:outputText value="#{_impuestoRentaSRI.hasta}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_fraccion_basica}" sortBy="#{_impuestoRentaSRI.fraccionBasica}">
+								<h:outputText value="#{_impuestoRentaSRI.fraccionBasica}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_porcentaje}" sortBy="#{_impuestoRentaSRI.porcentaje}">
+								<h:outputText value="#{_impuestoRentaSRI.porcentaje}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{_impuestoRentaSRI.activo}">
+								<p:selectBooleanCheckbox value="#{_impuestoRentaSRI.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_impuestoRentaSRI.predeterminado}"
+									disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{impuestoRentaSRIBean.impuestoRentaSRI.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{impuestoRentaSRIBean.impuestoRentaSRI.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{impuestoRentaSRIBean.impuestoRentaSRI.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{impuestoRentaSRIBean.impuestoRentaSRI.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

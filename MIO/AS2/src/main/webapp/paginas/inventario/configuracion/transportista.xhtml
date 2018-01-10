@@ -1,0 +1,289 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{transportistaBean}">
+					<as2:buttonEliminar bean="#{transportistaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{transportistaBean.transportista.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{transportistaBean.transportista.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{transportistaBean}" tabla=":form:tablaTrasportista" />
+				</as2:toolBar>
+				
+				
+				<!-- DIALOGO MOSTRAR ZONAS ASIGNADAS AL TRANSPORTISTA-->
+				<p:dialog header="#{msgs.lbl_panel_listado} (#{msgs.lbl_zona})" widgetVar="cerrarDialog" id="cerrarDialog" modal="true" height="400" width="480"
+					showEffect="slide" hideEffect="slide" closable="true" showCloseIcon="true">
+					<p:outputPanel id="panelZona">
+						<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" binding="#{transportistaBean.dtZonaAsignada}" value="#{transportistaBean.zonaAsignada}" id="zona" rowIndexVar="secuencialZona"
+								emptyMessage="#{msgs.msg_no_hay_datos}" var="_zona" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_zona.idZona}"
+								rows="#{transportistaBean.numeroFilas}" rowsPerPageTemplate="#{transportistaBean.numeroFilasPorPagina}">
+
+								<p:column styleClass="columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencialZona+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigoCuenta tableCell" sortBy="#{_zona.codigo}" filterBy="#{_zona.codigo}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_zona.codigo}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" sortBy="#{_zona.nombre}" filterBy="#{_zona.nombre}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_zona.nombre}" title="#{_zona.nombre}">
+										<f:attribute name="limit" value="40" />
+										<f:converter converterId="stringLimitConverter" />
+									</h:outputText>
+								</p:column>
+								
+							</p:dataTable>
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" process="@this :form:panelZona" oncomplete="PF('cerrarDialog').hide();" partialSubmit="true"
+								id="btnZona" update="@this :form:panelZona" actionListener="#{transportistaBean.reset()}">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<!-- FIN DIALOGO MOSTRAR ZONAS ASIGNADAS AL TRANSPORTISTA-->
+				
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_transportista_panel}" rendered="#{transportistaBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{transportistaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{transportistaBean.transportista.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="autProveedor" value="#{msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{transportistaBean.transportista.empresa}"
+								completeMethod="#{transportistaBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+								itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" id="autProveedor" required="false">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+								<p:ajax listener="#{transportistaBean.actualizarProveedorListener}" process="@this" event="itemSelect" global="false"
+									update="txtNombre cboTipoIdentificacion txtIdentificacion txtEmail txtTelefono txtDireccion indPagaFlete" />
+							</p:autoComplete>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{transportistaBean.transportista.nombre}" id="txtNombre" required="true"
+								disabled="#{not empty transportistaBean.transportista.empresa}">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboTipoIdentificacion" value="#{msgs.lbl_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{transportistaBean.transportista.tipoIdentificacion}" id="cboTipoIdentificacion"
+								required="true" disabled="#{not empty transportistaBean.transportista.empresa}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{transportistaBean.tipoIdentificacionBean.listaTipoIdentificacionCombo}" var="_tipoIdentificacion"
+									itemLabel="#{_tipoIdentificacion.nombre}" itemValue="#{_tipoIdentificacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" update="panelValidacionIdentificacion" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_numero_identificacion}:" />
+							<p:outputPanel id="panelValidacionIdentificacion">
+								<p:inputText styleClass="input-text" value="#{transportistaBean.transportista.identificacion}" id="txtIdentificacionNormal"
+									disabled="#{not empty transportistaBean.transportista.empresa}"
+									rendered="#{!transportistaBean.transportista.tipoIdentificacion.indicadorValidarIdentificacion}">
+									<f:validateBean />
+								</p:inputText>
+								<p:inputMask disabled="#{not empty transportistaBean.transportista.empresa}"
+									mask="#{empty transportistaBean.transportista.tipoIdentificacion ? '': transportistaBean.transportista.tipoIdentificacion.mascara}"
+									value="#{transportistaBean.transportista.identificacion}" styleClass="input-text" id="txtIdentificacion"
+									rendered="#{transportistaBean.transportista.tipoIdentificacion.indicadorValidarIdentificacion}">
+								</p:inputMask>
+							</p:outputPanel>
+
+							<h:outputText value="#{msgs.lbl_email}: " />
+							<p:inputText styleClass="input-text" value="#{transportistaBean.transportista.email}" id="txtEmail"
+								disabled="#{not empty transportistaBean.transportista.empresa}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}:" />
+							<p:inputText styleClass="input-text" value="#{transportistaBean.transportista.telefono}" id="txtTelefono"
+								disabled="#{not empty transportistaBean.transportista.empresa}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text" value="#{transportistaBean.transportista.direccion}" id="txtDireccion"
+								disabled="#{not empty transportistaBean.transportista.empresa}">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel value="#{msgs.lbl_usuario}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente"
+								value="#{transportistaBean.transportista.usuario}" completeMethod="#{transportistaBean.autocompletarUsuarios}" var="_cliente"
+								itemLabel="#{_cliente.nombreUsuario}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+								<p:column headerText="#{msgs.lbl_nombre}">#{_cliente.nombreUsuario}</p:column>
+							</p:autoComplete>
+
+							<p:outputLabel for="autCliente" value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{transportistaBean.transportista.cliente}"
+								completeMethod="#{transportistaBean.autocompletarClientes}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+								itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" id="autCliente" required="false">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" update="@this" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{transportistaBean.transportista.activo}" />
+
+							<p:outputLabel for="indPagaFlete" value="#{msgs.lbl_indicador_pagar_flete}:" />
+							<p:selectBooleanCheckbox value="#{transportistaBean.transportista.indicadorPagaFlete}" id="indPagaFlete"
+								disabled="#{empty transportistaBean.transportista.empresa}">
+								<p:ajax process="@this" global="false" />
+							</p:selectBooleanCheckbox>
+
+
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputText styleClass="input-text" value="#{transportistaBean.transportista.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputText>
+
+						</h:panelGrid>
+
+						<p:tabView id="tabView">
+							<p:tab title="#{msgs.lbl_zona_asignada}" id="tabZonas">
+								<p:outputPanel id="panelZonas">
+									<h:panelGrid columns="1" style="width:100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{transportistaBean.zonaAsignada}" id="tablaZonaAsignada"
+											rowIndexVar="secuencial" binding="#{transportistaBean.dtZona}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_zonaAsignada" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rowKey="#{_zonaAsignada.id}" rows="#{transportistaBean.numeroFilas}"
+											rowsPerPageTemplate="#{transportistaBean.numeroFilasPorPagina}">
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+											<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+												<h:outputText styleClass="input-text" value="#{_zonaAsignada.codigo}" />
+											</p:column>
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<h:outputText styleClass="input-text" value="#{_zonaAsignada.nombre}" />
+											</p:column>
+											<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}">
+												<p:selectBooleanCheckbox value="#{_zonaAsignada.activo}" disabled="true" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_transportista_panel}" rendered="#{!transportistaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTrasportista" rowIndexVar="secuencialTransportista"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{transportistaBean.listaTransportista}" var="_transportista"
+							binding="#{transportistaBean.dtTransportista}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{transportistaBean.numeroFilas}" rowsPerPageTemplate="#{transportistaBean.numeroFilasPorPagina}"
+							selection="#{transportistaBean.transportista}" selectionMode="single" rowKey="#{_transportista.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialTransportista+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_transportista.codigo}" filterBy="#{_transportista.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_transportista.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_transportista.nombre}" filterBy="#{_transportista.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_transportista.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto" sortBy="#{_transportista.tipoIdentificacion.nombre}"
+								filterBy="#{_transportista.tipoIdentificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_transportista.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto" sortBy="#{_transportista.identificacion}" filterBy="#{_transportista.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_transportista.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{_transportista.activo}" headerText="#{msgs.lbl_activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_transportista.activo}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_transportista.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo">
+								<p:commandButton id="btnZona" process="@this :form:panelZona" update="@this :form:panelZona" partialSubmit="true"
+									actionListener="#{transportistaBean.cargarZona()}" icon="ui-icon-search" title="Ver Zonas Asignadas" >
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{transportistaBean.transportista.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{transportistaBean.transportista.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{transportistaBean.transportista.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{transportistaBean.transportista.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

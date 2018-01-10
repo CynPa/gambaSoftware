@@ -1,0 +1,111 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteCajaBean}"
+					entidadOrigen="">
+				</tnt:panelImprimir>
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{reporteCajaBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value="tablaEstadoFinanciero" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+				</ui:include>
+
+				<p:panel header="#{msgs.lbl_titulo_reporte_caja}">
+					<p:fieldset>
+						<p:outputPanel id="panelFiltros">
+							<h:panelGrid columns="4">
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<h:panelGroup>
+									<p:selectOneMenu id="cboSucursal"
+										value="#{reporteCajaBean.idSucursal}" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="-1" />
+										<f:selectItems value="#{reporteCajaBean.listaSucursal}" />
+									</p:selectOneMenu>
+									<p:message for="cboSucursal" display="icon" />
+								</h:panelGroup>
+								<h:outputText value="#{msgs.lbl_caja}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text"
+										value="#{reporteCajaBean.idCaja}" id="cboCaja">
+										<f:selectItems value="#{reporteCajaBean.listaCaja}" />
+									</p:selectOneMenu>
+									<p:message for="cboCaja" />
+								</h:panelGroup>
+								<h:outputText value="#{msgs.lbl_forma_pago}" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text"
+										value="#{reporteCajaBean.idFormaPago}" id="cboFormaPago">
+										<f:selectItems value="#{reporteCajaBean.listaFormaPago}" />
+									</p:selectOneMenu>
+									<p:message for="cboFormaPago" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_resumen}:" />
+
+								<h:selectBooleanCheckbox value="#{reporteCajaBean.resumen}"
+									id="chkResumen">
+									<p:ajax process="@this" />
+								</h:selectBooleanCheckbox>
+
+
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:fieldset>
+
+
+					<p:spacer height="4px" />
+
+
+					<p:panel header="#{msgs.lbl_reporte}">
+						<p:outputPanel id="panelConsulta">
+							<h:panelGrid columns="1" width="100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{reporteCajaBean.listaDetalleFormaCobro}"
+									id="tablaEstadoFinanciero" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}"
+									var="_detalleFormaCobro" paginator="true"
+									paginatorPosition="bottom" style="width:100%"
+									binding="#{reporteCajaBean.dtDetalleFormaCobro}"
+									rows="#{reporteCajaBean.numeroFilasReporte}"
+									rowsPerPageTemplate="#{reporteCajaBean.numeroFilasPorPagina}">
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#" />
+										</f:facet>
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_numero}" />
+										</f:facet>
+										<h:outputText value="#{_detalleFormaCobro.cobro.numero}" />
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

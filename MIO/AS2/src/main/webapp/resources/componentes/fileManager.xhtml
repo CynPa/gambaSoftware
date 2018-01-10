@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:composite="http://java.sun.com/jsf/composite" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:p="http://primefaces.org/ui">
+
+<!-- INTERFACE -->
+<composite:interface displayName="Subir">
+	<composite:attribute required="true" name="bean" />
+
+	<composite:attribute required="false" name="id" default="dglUploadPdf" />
+	<composite:attribute name="formatos" required="true" />
+	<composite:attribute name="titulo" required="false" default="Subir Archivo" />
+	<composite:attribute name="ico" required="false" default="subir.png" />
+	<composite:attribute name="actualiza" required="false" />
+	<composite:attribute name="target" required="true" />
+	<composite:attribute name="value" required="true" />
+
+	<composite:attribute required="false" name="visible" />
+	<composite:attribute name="sizeLimit" required="false" default="10000000" />
+
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation>
+
+	<p:commandLink process="@this" oncomplete="#{cc.attrs.id}.show()" title="#{cc.attrs.titulo}">
+		<h:graphicImage library="images" name="#{cc.attrs.ico}" style="height : 20px; width : 20px;" />
+		<f:setPropertyActionListener target="#{cc.attrs.target}" value="#{cc.attrs.value}" />
+	</p:commandLink>
+
+	<p:commandLink immediate="true" ajax="false" action="#{cc.attrs.bean.processDownload}" title=". Archivo" rendered="#{cc.attrs.visible}">
+		<h:graphicImage library="images" name="bajar.png" style="height : 20px; width : 20px;" />
+		<f:setPropertyActionListener target="#{cc.attrs.target}" value="#{cc.attrs.value}" />
+	</p:commandLink>
+
+	<p:commandLink immediate="true" ajax="false" action="#{cc.attrs.bean.eliminarArchivo}" title="Eliminar Archivo" rendered="#{cc.attrs.visible}"
+		update="#{cc.attrs.actualiza}">
+		<h:graphicImage library="images" name="eraser.png" style="height : 20px; width : 20px;" />
+		<f:setPropertyActionListener target="#{cc.attrs.target}" value="#{cc.attrs.value}" />
+	</p:commandLink>
+
+	<!-- INICIO DIALOG SUBIR PDF -->
+	<p:dialog header="#{msgs.lbl_cargar_archivo}" widgetVar="#{cc.attrs.id}" modal="true" height="150" width="325" showEffect="clip" hideEffect="clip"
+		resizable="false" appendTo="@(body)">
+		<p:outputPanel>
+			<p:fieldset>
+				<center>
+					<p:fileUpload fileUploadListener="#{cc.attrs.bean.processUpload}" mode="advanced" update="#{cc.attrs.actualiza}" auto="true"
+						sizeLimit="#{acc.attrs.sizeLimit}" allowTypes="#{cc.attrs.formatos}" label="#{msgs.btn_examinar}" process="@this"
+						oncomplete="#{cc.attrs.id}.hide()" multiple="true" />
+				</center>
+			</p:fieldset>
+		</p:outputPanel>
+	</p:dialog>
+	<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+</composite:implementation>
+</html>

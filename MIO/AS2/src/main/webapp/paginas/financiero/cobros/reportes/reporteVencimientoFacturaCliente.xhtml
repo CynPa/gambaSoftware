@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_vencimientos}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteVencimientoFacturaClienteBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:dialog header="#{msgs.lbl_enviar_email}" widgetVar="enviarEmailsDialog" id="enviarEmailsDialog" modal="true" height="400" width="620"
+					showEffect="clip" hideEffect="clip" resizable="false">
+					<p:outputPanel id="panelEnviarEmails">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpresaEnvioEmail" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteVencimientoFacturaClienteBean.listaEmpresaEnvioEmail}" var="_empresa"
+							binding="#{reporteVencimientoFacturaClienteBean.dtEmpresaEnvioEmail}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{reporteVencimientoFacturaClienteBean.numeroFilas}" rowKey="#{_empresa.id}"
+							rowsPerPageTemplate="#{reporteVencimientoFacturaClienteBean.numeroFilasPorPagina}"
+							filteredValue="#{reporteVencimientoFacturaClienteBean.listaEmpresaEnvioEmailFiltrado}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="No.">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTIdentificacion tableCell" headerText="#{msgs.lbl_identificacion}" filterBy="#{_empresa.identificacion}"
+								filterMatchMode="contains">
+								<h:outputText value="#{_empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_empresa_nombre_comercial}" filterBy="#{_empresa.nombreComercial}"
+								filterMatchMode="contains">
+								<h:outputText value="#{_empresa.nombreComercial}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_email}s">
+								<p:inputText value="#{_empresa.envioEmails}" styleClass="input-text-col" required="true">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<p:commandButton id="btnEliminarEmpresaEnviar" action="#{reporteVencimientoFacturaClienteBean.eliminarEmpresaEnvioEmail}" icon="ui-icon-trash"
+									title="#{msgs.lbl_eliminar}" update=":form:panelEnviarEmails" process="@this">
+								</p:commandButton>
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+					<f:facet name="footer">
+						<center>
+							<p:commandButton id="btnEnviarEmails" action="#{reporteVencimientoFacturaClienteBean.enviarEmails}" value="#{msgs.lbl_enviar_email}"
+								process=":form:panelEnviarEmails @this" update=":form:panelEnviarEmails">
+							</p:commandButton>
+
+							<p:commandButton value="#{msgs.btn_cancelar}" oncomplete="PF('enviarEmailsDialog').hide();" process="@this">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteListaTransacionBancoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel value="#{msgs.lbl_tipo} #{msgs.lbl_reporte}:" for="cboTipoReporte" />
+							<p:selectOneMenu value="#{reporteVencimientoFacturaClienteBean.tipoReporte}" required="true" id="cboTipoReporte">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaTipoReporte}" var="_tipoReporte" itemLabel="#{_tipoReporte.label}"
+									itemValue="#{_tipoReporte.value}">
+								</f:selectItems>
+								<p:ajax event="change" update=":form:panelFiltros" process="@this" partialSubmit="true" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteVencimientoFacturaClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteVencimientoFacturaClienteBean.fechaHasta}" id="calFechaHasta" required="true" />
+
+							<p:outputLabel for="cboCategoriaEmpresa" value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteVencimientoFacturaClienteBean.categoriaEmpresa}" id="cboCategoriaEmpresa">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaCategoriaEmpresa}" var="_categoriaEmpresa"
+									itemLabel="#{_categoriaEmpresa.nombre}" itemValue="#{_categoriaEmpresa}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" update=":form:autoEmpresa :form:cboSubempresa"
+									listener="#{reporteVencimientoFacturaClienteBean.actualizarCategoriaEmpresa}" event="change" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+								value="#{reporteVencimientoFacturaClienteBean.empresa}" completeMethod="#{reporteVencimientoFacturaClienteBean.autocompletarClientes}"
+								var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+								<p:ajax listener="#{reporteVencimientoFacturaClienteBean.actualizarClienteListener}" process="@this" event="itemSelect"
+									update=":form:cboSubempresa" />
+
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_subcliente}:" />
+							<p:selectOneMenu id="cboSubempresa" value="#{reporteVencimientoFacturaClienteBean.subempresa}" styleClass="input-text">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaSubempresa}" var="_subEmpresa" itemValue="#{_subEmpresa}"
+									itemLabel="#{_subEmpresa.empresaFinal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_recaudador}:" />
+							<p:selectOneMenu value="#{reporteVencimientoFacturaClienteBean.recaudador}" id="cboRecaudador" required="false" styleClass="input-text">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaRecaudador}" var="_recaudador" itemLabel="#{_recaudador.nombre}"
+									itemValue="#{_recaudador}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu value="#{reporteVencimientoFacturaClienteBean.agenteComercial}" id="cboAgenteComercial" required="false"
+								styleClass="input-text">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaAgenteComercial}" var="_agenteComercial"
+									itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu value="#{reporteVencimientoFacturaClienteBean.sucursal}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" id="cboSucursal" />
+								<p:ajax process="@this" listener="#{reporteVencimientoFacturaClienteBean.cargarPuntoVenta}" update="cboPuntoVenta" event="change"
+									partialSubmit="true" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_punto_de_venta}:" />
+							<p:selectOneMenu value="#{reporteVencimientoFacturaClienteBean.puntoVenta}" id="cboPuntoVenta">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaPuntoVenta}" var="_puntoVenta" itemLabel="#{_puntoVenta.nombre}"
+									itemValue="#{_puntoVenta}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_zona}:" />
+							<p:selectOneMenu value="#{reporteVencimientoFacturaClienteBean.zona}" id="cboZona">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteVencimientoFacturaClienteBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+							</p:selectOneMenu>
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+					<h:panelGrid columns="1" style="text-align:center;">
+
+						<h:panelGroup>
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+
+							<p:commandButton value="#{msgs.lbl_enviar_email}" id="btnEnviarEmail" process="@this :form:panelFiltros"
+								actionListener="#{reporteVencimientoFacturaClienteBean.cargarEmpresasEnvioEmail}" oncomplete="PF('enviarEmailsDialog').show()"
+								title="#{msgs.lbl_enviar_email}" update=":form:panelEnviarEmails"
+								rendered="#{reporteVencimientoFacturaClienteBean.tipoReporte != 'REPORTE_VENCIMIENTO_FACTURA_RESUMIDO'}">
+							</p:commandButton>
+						</h:panelGroup>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

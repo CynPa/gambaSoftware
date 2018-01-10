@@ -1,0 +1,134 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:dialog header="#{msgs.lbl_panel_listado}" widgetVar="dglUsuario" modal="true" height="375" width="800" showEffect="slide" hideEffect="slide">
+				<p:outputPanel id="panelListaUsuario">
+
+					<h:panelGrid id="panelGridUsuario">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUsuario" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cambioClaveBean.listaUsuario}"
+							var="_usuarios" paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{cambioClaveBean.dtUsuario}" rows="10"
+							rowsPerPageTemplate="#{cambioClaveBean.numeroFilasPorPagina}" selection="#{cambioClaveBean.usuarioSeleccionado}" selectionMode="single"
+							rowKey="#{_usuarios.id}" sortBy="#{_usuarios.nombreUsuario}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="No." />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_usuarios.nombreUsuario}" sortBy="#{_usuarios.nombreUsuario}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_usuario}" />
+								</f:facet>
+								<h:outputText value="#{_usuarios.nombreUsuario}" />
+							</p:column>
+
+							<p:column filterBy="#{_usuarios.nombre1}" sortBy="#{_usuarios.nombre1}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_usuarios.nombre1}" />
+							</p:column>
+
+							<p:column filterBy="#{_usuarios.nombre2}" sortBy="#{_usuarios.nombre2}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_usuarios.nombre2}" />
+							</p:column>
+
+							<p:column sortBy="#{_usuarios.genero}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_genero}" />
+								</f:facet>
+								<h:outputText value="#{_usuarios.genero.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_usuarios.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_usuarios.activo}" disabled="true" />
+								</center>
+							</p:column>
+
+							<p:column sortBy="#{_usuarios.enlinea}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_en_linea}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_usuarios.enlinea}" disabled="true" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+
+					</h:panelGrid>
+				</p:outputPanel>
+				<f:facet name="footer">
+					<center>
+						<p:commandButton value="#{msgs.lbl_cargar}" action="#{cambioClaveBean.cargarUsuario}" process="@this,:form:panelGridUsuario"
+							oncomplete="dglUsuario.hide()" update=":form:txtUsuario,:form:txtCodigo">
+						</p:commandButton>
+					</center>
+				</f:facet>
+			</p:dialog>
+
+			<p:outputPanel id="panelNuevo">
+				<p:panel header="#{msgs.lbl_cambio_clave} #{lbl_usuario}">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera" columns="#{cambioClaveBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_usuario}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." action="#{cambioClaveBean.cargarListaUsuario}" process="@this" oncomplete="dglUsuario.show()"
+									update=":form:panelListaUsuario">
+								</p:commandButton>
+								<h:outputText id="txtUsuario" value="#{cambioClaveBean.usuario.nombre2} #{cambioClaveBean.usuario.nombre1}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<h:outputText id="txtCodigo" value="#{cambioClaveBean.usuario.codigo}" />
+
+							<p:outputLabel for="txtConfirmaClave" value="#{msgs.lbl_clave}:" />
+							<h:panelGroup>
+								<p:password value="#{cambioClaveBean.clave}" id="txtClave" match="txtConfirmaClave" required="true">
+									<f:validateBean />
+								</p:password>
+							</h:panelGroup>
+
+							<p:outputLabel for="txtConfirmaClave"  value="#{msgs.lbl_confirma_clave}:" />
+							<h:panelGroup>
+								<p:password value="#{cambioClaveBean.claveVerificadora}" id="txtConfirmaClave" required="true">
+								</p:password>
+							</h:panelGroup>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_guardar}" action="#{cambioClaveBean.guardar}" process=":form:panelNuevo" update=":form:panelNuevo">
+							</p:commandButton>
+						</h:panelGrid>
+
+					</p:fieldset>
+				</p:panel>
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

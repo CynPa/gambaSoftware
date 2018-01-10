@@ -1,0 +1,473 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<as2:toolBar bean="#{prestamoAprobacionBean}">
+
+					<as2:buttonImprimir id="btnImprimirFactura" beanReporte="#{reportePrestamoBean}" bean="#{prestamoAprobacionBean}"
+						target="#{reportePrestamoBean.prestamo}" value="#{prestamoAprobacionBean.prestamo}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{prestamoAprobacionBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{prestamoAprobacionBean.prestamo.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+					<as2:buttonImprimir beanReporte="#{reporteChequeAsientoBean}" bean="#{prestamoAprobacionBean}" target="#{reporteChequeAsientoBean.asiento}"
+						value="#{prestamoAprobacionBean.prestamo.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_cheque}" />
+					<as2:buttonExportaExcel bean="#{prestamoAprobacionBean}" tabla=":form:tablaPrestamo" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{prestamoBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+				<p:outputPanel id="panelAprobacion">
+					<p:confirmDialog message="#{msgs.confirmacion_aprobacion_prestamo}?" width="350" modal="true" showEffect="explode" hideEffect="explode"
+						severity="alert" widgetVar="aprobarPrestamo" rendered="#{prestamoAprobacionBean.aprobar}">
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_fecha_aprobacion}:" />
+							<h:panelGroup>
+								<p:calendar pattern="#{prestamoAprobacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{prestamoAprobacionBean.prestamo.fechaAprobacion}" id="calFechaAprobacion" required="true">
+								</p:calendar>
+								<p:message for="calFechaAprobacion" />
+							</h:panelGroup>
+						</h:panelGrid>
+
+						<center>
+							<p:commandButton value="#{msgs.confirmacion_si}" update="panelListado" process="@this,panelAprobacion"
+								action="#{prestamoAprobacionBean.aprobarPrestamo}" oncomplete="aprobarPrestamo.hide()" />
+							<p:commandButton value="#{msgs.confirmacion_no}" onclick="aprobarPrestamo.hide()" />
+						</center>
+					</p:confirmDialog>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelContabilizar">
+					<p:confirmDialog message="#{msgs.confirmacion_contabilizar_prestamo}?" width="500" modal="true" showEffect="explode" hideEffect="explode"
+						severity="alert" widgetVar="contabilizarPrestamo" rendered="#{prestamoAprobacionBean.contabilizar}">
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_fecha_contabilizar}:" />
+							<h:panelGroup>
+								<p:calendar pattern="#{prestamoAprobacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{prestamoAprobacionBean.prestamo.fechaContabilizacion}" id="calFechaContabilizar" required="true">
+								</p:calendar>
+								<p:message for="calFechaContabilizar" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_pagar_de}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+									value="#{prestamoAprobacionBean.cuentaBancariaOrganizacionSelecionado}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{prestamoAprobacionBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+										itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" />
+									<f:validateBean />
+									<p:ajax process="@this" event="change" listener="#{prestamoAprobacionBean.actualizarCuentaBancaria}" update="cboFormaPago cboCuentaContableFormaPago " />
+								</p:selectOneMenu>
+								<p:message for="cboCuentaBancariaOrganizacion" />
+							</h:panelGroup>
+							
+							
+							<h:outputText value="#{msgs.lbl_cuenta_contable}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaPago" required="#{prestamoAprobacionBean.prestamo.cuentaBancariaOrganizacion.indicadorCruce}"
+								 disabled="#{!prestamoAprobacionBean.prestamo.cuentaBancariaOrganizacion.indicadorCruce}"
+									value="#{prestamoAprobacionBean.prestamo.cuentaContable}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{prestamoAprobacionBean.prestamo.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+										var="_cuentaContableFormaPago"
+										itemLabel="#{_cuentaContableFormaPago.cuentaContable.codigo}   #{_cuentaContableFormaPago.cuentaContable.nombre}"
+										itemValue="#{_cuentaContableFormaPago.cuentaContable}" />
+									<p:ajax event="change" process="@this" global="false" update="@this" />
+									<f:validateBean />
+								</p:selectOneMenu>
+							</h:panelGroup>
+							
+							
+							<h:outputText value="#{msgs.lbl_forma_pago}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{prestamoAprobacionBean.prestamo.formaPago}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{prestamoAprobacionBean.prestamo.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+										itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+									<f:validateBean />
+									<p:ajax process="@this" event="change" listener="#{prestamoAprobacionBean.cargarSecuencia}" update="txtReferenciaFormaCobro" />
+								</p:selectOneMenu>
+								<p:message for="cboFormaPago" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_beneficiario}:" />
+							<h:panelGroup>
+								<p:inputText styleClass="input-text" id="txtBeneficiario" value="#{prestamoAprobacionBean.prestamo.beneficiario}">
+									<f:validateBean />
+								</p:inputText>
+								<p:message for="txtBeneficiario" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_documento_referencia}" />
+							<h:panelGroup>
+								<p:inputText styleClass="input-text" id="txtReferenciaFormaCobro" value="#{prestamoAprobacionBean.prestamo.documentoReferencia}">
+									<f:validateBean />
+								</p:inputText>
+								<p:message for="txtReferenciaFormaCobro" />
+							</h:panelGroup>
+
+						</h:panelGrid>
+
+						<center>
+							<p:commandButton value="#{msgs.confirmacion_si}" update="panelListado" process="@this,panelContabilizar"
+								action="#{prestamoAprobacionBean.contabilizarPrestamo}" oncomplete="contabilizarPrestamo.hide()" />
+							<p:commandButton value="#{msgs.confirmacion_no}" onclick="contabilizarPrestamo.hide()" />
+						</center>
+					</p:confirmDialog>
+				</p:outputPanel>
+
+				<p:confirmDialog message="#{msgs.confirmacion_anulacion_prestamo}?" width="200" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="anularPrestamo">
+					<center>
+						<p:commandButton value="#{msgs.confirmacion_si}" update="panelListado" process="@this" action="#{prestamoAprobacionBean.negarPrestamo}"
+							oncomplete="anularPrestamo.hide()" />
+						<p:commandButton value="#{msgs.confirmacion_no}" onclick="anularPrestamo.hide()" />
+					</center>
+				</p:confirmDialog>
+
+				<p:confirmDialog message="#{msgs.confirmacion_anulacion_asiento}?" width="200" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="anularAsiento">
+					<center>
+						<p:commandButton value="#{msgs.confirmacion_si}" update="panelListado" process="@this" action="#{prestamoAprobacionBean.anularAsiento}"
+							oncomplete="anularAsiento.hide()" />
+						<p:commandButton value="#{msgs.confirmacion_no}" onclick="anularAsiento.hide()" />
+					</center>
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_prestamo} )" rendered="#{prestamoAprobacionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{prestamoAprobacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update="panelListaEmpleado" rendered="false">
+									</p:commandButton>
+									<h:outputText id="txtEmpleado" value="#{prestamoAprobacionBean.empleado.apellidos} #{prestamoAprobacionBean.empleado.nombres}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_tipo_prestamo}:" />
+								<h:outputText value="#{prestamoAprobacionBean.prestamo.tipoPrestamo.nombre}" styleClass="input-text-number" />
+
+								<h:outputText value="#{msgs.lbl_monto}:" />
+								<h:outputText value="#{prestamoAprobacionBean.prestamo.monto}" styleClass="input-text-number">
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_interes}:" rendered="false" />
+								<h:outputText value="#{prestamoAprobacionBean.prestamo.interes}" styleClass="input-text-number" rendered="false">
+								</h:outputText>
+								<p:inputText value="#{prestamoAprobacionBean.prestamo.interes}" styleClass="input-text-number" rendered="false" disabled="#{prestamoAprobacionBean.prestamo.soloLectura}">
+									<f:validateBean />
+									<f:ajax event="change" update="panelDetalle" render="panelDetalle" execute="@this" listener="#{prestamoAprobacionBean.tablaAmortizacion}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_palzo}:" />
+								<h:outputText value="#{prestamoAprobacionBean.prestamo.plazo}" styleClass="input-text-number"
+									rendered="#{!prestamoAprobacionBean.prestamo.indicadorRenegociarPrestamo}">
+								</h:outputText>
+
+								<p:inputText value="#{prestamoAprobacionBean.prestamo.plazo}" styleClass="input-text-number"
+									rendered="#{prestamoAprobacionBean.prestamo.indicadorRenegociarPrestamo}">
+									<f:validateBean />
+									<p:ajax event="change" update="panelDetalle" process="@this" listener="#{prestamoAprobacionBean.tablaAmortizacion}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_estado}:" />
+								<h:outputText value="#{prestamoAprobacionBean.prestamo.estado}" />
+
+								<h:outputText value="#{msgs.lbl_fecha_inicio_descuento}:" />
+								<p:calendar pattern="#{prestamoAprobacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{prestamoAprobacionBean.prestamo.fechaInicioDescuento}" id="calFechaInicioDescuento" required="false" disabled="#{prestamoAprobacionBean.prestamo.soloLectura}">
+									<p:ajax event="dateSelect" update="panelDetalle" process="@this" listener="#{prestamoAprobacionBean.dateSelectFechaInicioDescuento}" />
+									<p:ajax event="change" update="panelDetalle" process="@this" listener="#{prestamoAprobacionBean.tablaAmortizacion}" />
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" value="#{prestamoAprobacionBean.prestamo.observacion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelDetalle" columns="#{prestamoAprobacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetallePrestamo" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{prestamoAprobacionBean.listaDetallePrestamo}" var="_detallePrestamo"
+									binding="#{prestamoAprobacionBean.dtDetallePrestamo}" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{prestamoAprobacionBean.numeroFilas}" rowKey="#{_detallePrestamo.idDetallePrestamo}" sortBy="#{_detallePrestamo.numeroCuota}">
+
+									<p:column headerText="Nº Cuota" styleClass="columnaDTAccion tableCell">
+										<h:outputText value="#{_detallePrestamo.numeroCuota}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_fecha_cuota}" styleClass="columnaDTFecha tableCell">
+										<center>
+											<h:outputText value="#{_detallePrestamo.fechaCuota}">
+												<f:convertDateTime pattern="#{prestamoAprobacionBean.formatoFecha}" />
+											</h:outputText>
+										</center>
+									</p:column>
+
+
+									<p:column headerText="#{msgs.lbl_capital}" styleClass="columnaDTValor tableCell" rendered="false">
+										<h:outputText value="#{_detallePrestamo.capitalTotal}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_cuota}" styleClass="columnaDTValor tableCell">
+										<p:inputText style="text-align:right" value="#{_detallePrestamo.cuota}">
+											<p:ajax process="@this :form:panelDetalle" global="false" listener="#{prestamoAprobacionBean.calcularTotalPrestamo}"
+												update=":form:panelDetalle" />
+										</p:inputText>
+									</p:column>
+
+
+
+									<p:column headerText="#{msgs.lbl_capital_cuota}" styleClass="columnaDTValor tableCell" rendered="false">
+										<h:outputText value="#{_detallePrestamo.capitalCuota}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_interes_cuota}" styleClass="columnaDTValor tableCell" rendered="false">
+										<h:outputText value="#{_detallePrestamo.interesCuota}" />
+									</p:column>
+
+
+									<p:column headerText="#{msgs.lbl_fecha_descuento}" styleClass="columnaDTFechaInput tableCell">
+										<center>
+											<p:calendar pattern="#{prestamoAprobacionBean.formatoFecha}" showOn="button" navigator="true" value="#{_detallePrestamo.fechaDescuento}"
+												id="calFechaDescuento" size="10">
+												<p:ajax listener="#{prestamoAprobacionBean.actualizaFechaDescuento}" process="@this" event="dateSelect" global="false" />
+												<p:ajax listener="#{prestamoAprobacionBean.actualizaFechaDescuento}" process="@this" event="change" global="false" />
+											</p:calendar>
+										</center>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+										<p:inputText styleClass="input-text" id="txtDescripcion" value="#{_detallePrestamo.descripcion}"
+											required="#{_detallePrestamo.fechaDescuento != null}">
+											<f:validateBean />
+											<p:ajax process="@this" />
+										</p:inputText>
+									</p:column>
+
+
+									<p:column headerText="#{msgs.msg_fecha_modificacion}" styleClass="columnaDTFecha tableCell">
+										<center>
+											<h:outputText value="#{_detallePrestamo.fechaDescuento != null?_detallePrestamo.fechaModificacion:''}">
+												<f:convertDateTime pattern="#{prestamoAprobacionBean.formatoFecha}" />
+											</h:outputText>
+										</center>
+									</p:column>
+									<p:column styleClass="columnaDTNombreCorto" headerText="#{msgs.msg_usuario_modificacion}">
+										<h:outputText value="#{_detallePrestamo.fechaDescuento != null?_detallePrestamo.usuarioModificacion:''}" />
+									</p:column>
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="2" footerText="#{msgs.lbl_subtotal}:	" style="text-align:right">
+											</p:column>
+
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{prestamoAprobacionBean.prestamo.totalCuota}" style="text-align:right" id="txtTotal">
+														<f:convertNumber pattern="#{prestamoBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_prestamo} )" rendered="#{!prestamoAprobacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaPrestamo" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{prestamoAprobacionBean.listaPrestamo}" var="_prestamo"
+							binding="#{prestamoAprobacionBean.dtPrestamo}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{prestamoAprobacionBean.numeroFilas}" rowsPerPageTemplate="#{prestamoAprobacionBean.numeroFilasPorPagina}"
+							selection="#{prestamoAprobacionBean.prestamo}" selectionMode="single" rowKey="#{_prestamo.idPrestamo}" sortBy="#{_prestamo.fechaSolicitud}"
+							sortOrder="DESCENDING">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							
+							<p:column sortBy="#{_prestamo.numero}" filterBy="#{_prestamo.numero}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_prestamo}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.numero}" />
+							</p:column>
+
+
+							<p:column sortBy="#{_prestamo.empleado.apellidos}" filterBy="#{_prestamo.empleado.apellidos}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.empleado.apellidos}" />
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.empleado.nombres}" filterBy="#{_prestamo.empleado.nombres}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.empleado.nombres}" />
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.monto}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_monto}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.monto}">
+									<f:convertNumber pattern="#{prestamoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.interes}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_interes}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.interes}">
+									<f:convertNumber pattern="#{prestamoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.plazo}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_plazo}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.plazo}" />
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.fechaSolicitud}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_solicitud}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.fechaSolicitud}">
+									<f:convertDateTime pattern="#{prestamoAprobacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.fechaAprobacion}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_aprobacion}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.fechaAprobacion}">
+									<f:convertDateTime pattern="#{prestamoAprobacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.fechaInicioDescuento}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_inicio_descuento}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.fechaInicioDescuento}">
+									<f:convertDateTime pattern="#{prestamoAprobacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.tipoPrestamo.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_prestamo}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.tipoPrestamo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_prestamo.asiento}" rendered="#{not empty _prestamo.asiento}">
+									<f:param name="idAsiento" value="#{_prestamo.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_prestamo.estado}" filterBy="#{_prestamo.estado}" filterOptions="#{prestamoAprobacionBean.listaEstadoItem}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_renegociar_prestamo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_prestamo.indicadorRenegociarPrestamo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_aprobar}" />
+								</f:facet>
+								<p:commandButton oncomplete="aprobarPrestamo.show()" icon="ui-icon-arrowthickstop-1-n" process="@this"
+									action="#{prestamoAprobacionBean.dialogoAprobacion}" update=":form:panelAprobacion" rendered="#{_prestamo.estado =='ELABORADO'}">
+									<f:setPropertyActionListener value="true" target="#{prestamoAprobacionBean.aprobar}" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<p:commandButton oncomplete="contabilizarPrestamo.show()" icon="ui-icon-arrowthickstop-1-s" process="@this,:form:panelListado"
+									action="#{prestamoAprobacionBean.dialogoContabilizar}" update=":form:panelContabilizar"
+									rendered="#{(_prestamo.tipoPrestamo.indicadorContabilizar==true) and (_prestamo.estado=='APROBADO')}">
+									<f:setPropertyActionListener value="true" target="#{prestamoAprobacionBean.contabilizar}" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anular}" />
+								</f:facet>
+								<p:commandButton oncomplete="anularPrestamo.show()" icon="ui-icon-arrowthickstop-1-s" process="@this,:form:panelListado"
+									action="#{prestamoAprobacionBean.dialogoAnular}" rendered="#{_prestamo.estado!='CONTABILIZADO' and _prestamo.estado!='ANULADO'}" />
+								<p:commandButton title="#{msgs.lbl_anular_asiento}" oncomplete="anularAsiento.show()" icon="ui-icon-arrowthickstop-1-s"
+									process="@this,:form:panelListado" action="#{prestamoAprobacionBean.dialogoAnular}" rendered="#{_prestamo.estado=='CONTABILIZADO'}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{prestamoAprobacionBean.prestamo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{prestamoAprobacionBean.prestamo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{prestamoAprobacionBean.prestamo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{prestamoAprobacionBean.prestamo.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

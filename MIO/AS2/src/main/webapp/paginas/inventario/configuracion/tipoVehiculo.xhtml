@@ -1,0 +1,206 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tipoVehiculoBean}">
+					<as2:buttonEliminar bean="#{tipoVehiculoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoVehiculoBean.tipoVehiculo.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoVehiculoBean.tipoVehiculo.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tipoVehiculoBean}" tabla=":form:tablaTipoVehiculo" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaCiudad.xhtml">
+					<ui:param name="bean" value="#{tipoVehiculoBean}" />
+					<ui:param name="objetoActualizar" value="panelDetalleRuta" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tipo_vehiculo_panel}" rendered="#{tipoVehiculoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelDetalle" columns="#{tipoVehiculoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{tipoVehiculoBean.tipoVehiculo.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{tipoVehiculoBean.tipoVehiculo.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{tipoVehiculoBean.tipoVehiculo.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{tipoVehiculoBean.tipoVehiculo.predeterminado}" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputText styleClass="input-text" value="#{tipoVehiculoBean.tipoVehiculo.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputText>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<!-- INICIO MENU RUTA-->
+						<p:fieldset>
+							<h:panelGroup>
+								<p:commandButton value="#{msgs.btn_agregar_ruta}" id="btnAgregarRuta" action="#{tipoVehiculoBean.agregarDetalle}"
+									update=":form:panelDetalleRuta" process="@this" icon="ui-icon-plus" />
+							</h:panelGroup>
+						</p:fieldset>
+						<!-- FIN MENU RUTA-->
+
+						<!-- INICIO DETALLE RUTA-->
+
+						<p:outputPanel id="panelRuta">
+
+							<h:panelGrid columns="1" id="panelDetalleRuta" style="width:100%">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{tipoVehiculoBean.listaRuta}" id="tablaRuta" rowIndexVar="secuencial"
+									binding="#{tipoVehiculoBean.dtRuta}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_ruta" paginator="true" paginatorPosition="bottom"
+									style="width:100%" rows="#{tipoVehiculoBean.numeroFilas}" rowKey="#{_ruta.id}" rowsPerPageTemplate="#{tipoVehiculoBean.numeroFilasPorPagina}"
+									lazy="true">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_nombre_ciudad_origen}" styleClass="columnaDTNombre">
+										<h:outputText value="#{_ruta.ciudadOrigen.nombre}" id="txtCiudadOrigen">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion">
+										<p:commandButton value="*" process="@this" oncomplete="ciudadDialog.show();" update=":form:panelCiudad"
+											action="#{tipoVehiculoBean.actualizarCiudadOrigen}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_nombre_ciudad_destino}" styleClass="columnaDTNombre">
+										<h:outputText value="#{_ruta.ciudadDestino.nombre}" id="txtCiudadDestino">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion">
+										<p:commandButton value="*" process="@this" oncomplete="ciudadDialog.show();" update=":form:panelCiudad"
+											action="#{tipoVehiculoBean.actualizarCiudadDestino}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre" headerText="#{msgs.lbl_forma_pago} #{msgs.lbl_flete}">
+										<p:selectOneMenu id="cboFormaPago" value="#{_ruta.formaPagoFlete}">
+											<f:selectItems value="#{tipoVehiculoBean.listaFormaPagoFlete}" var="_formaPago" itemLabel="#{_formaPago.nombre}" itemValue="#{_formaPago}" />
+											<p:ajax process="@this" global="false" />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_tarifa}">
+										<p:inputText styleClass="input-text" value="#{_ruta.tarifa}">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_ruta}">
+										<p:inputText styleClass="input-text" value="#{_ruta.ruta}" id="txtRuta" required="true">
+											<p:ajax process="@this" global="false" partialSubmit="true" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion">
+										<p:commandButton id="btnEliminarDetalle" action="#{tipoVehiculoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelDetalleRuta" process="@this" />
+									</p:column>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+
+						<!-- FIN DETALLE RUTA -->
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_tipo_vehiculo_panel}" rendered="#{!tipoVehiculoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoVehiculo" rowIndexVar="secuencialTipoVehiculo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tipoVehiculoBean.listaTipoVehiculo}" var="_tipoVehiculo"
+							binding="#{tipoVehiculoBean.dtTipoVehiculo}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoVehiculoBean.numeroFilas}" rowsPerPageTemplate="#{tipoVehiculoBean.numeroFilasPorPagina}"
+							selection="#{tipoVehiculoBean.tipoVehiculo}" selectionMode="single" rowKey="#{_tipoVehiculo.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencialTipoVehiculo+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_tipoVehiculo.codigo}" filterBy="#{_tipoVehiculo.codigo}" styleClass="columnaDTCodigo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipoVehiculo.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_tipoVehiculo.nombre}" filterBy="#{_tipoVehiculo.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoVehiculo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_tipoVehiculo.activo}" headerText="#{msgs.lbl_activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tipoVehiculo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_predeterminado}" styleClass="columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tipoVehiculo.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tipoVehiculo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tipoVehiculoBean.tipoVehiculo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tipoVehiculoBean.tipoVehiculo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{tipoVehiculoBean.tipoVehiculo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tipoVehiculoBean.tipoVehiculo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

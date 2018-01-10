@@ -1,0 +1,614 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel id="panelFinalizarOrden">
+					<p:dialog header="#{msgs.lbl_confirmar}" widgetVar="dgFinalizarOrden" modal="true" height="400" width="800" showEffect="slide" hideEffect="slide">
+
+						<h:panelGrid columns="3">
+							<p:outputLabel for="calenFechaCierre" value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{formulacionBean.formatoFecha}" showOn="button" navigator="true" value="#{formulacionBean.fechaCierreOrden}"
+								id="calenFechaCierre">
+								<p:ajax process="@this" global="false" event="dateSelect" />
+								<p:ajax process="@this" global="false" event="change" />
+							</p:calendar>
+							<h:outputText value="#{msgs.lbl_nota_finalizar_orden_fabricacion}" />
+						</h:panelGrid>
+
+						<p:spacer width="2px" />
+
+						<p:dataTable id="tablaOrdenFabricacionFinalizar" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{formulacionBean.ordenFabricacion.listaOperacionProduccion}" var="_operacion" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{formulacionBean.numeroFilas}" rowsPerPageTemplate="#{formulacionBean.numeroFilasPorPagina}"
+							rowKey="#{_operacion.rowKey}" lazy="false">
+
+							<p:column styleClass="columnaDTValorCorto tableCell" headerText="#{msgs.lbl_orden}">
+								<h:outputText value="#{_operacion.operacionProduccion.orden}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_tarea}">
+								<h:outputText value="#{_operacion.operacionProduccion.tareaProduccion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_centro_trabajo}">
+								<h:outputText value="#{_operacion.operacionProduccion.centroTrabajo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_maquina}">
+								<h:outputText value="#{_operacion.operacionProduccion.maquina.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_horas_hombre}">
+								<h:outputText value="#{_operacion.horasHombre}" rendered="#{_operacion.operacionProduccion.indicadorAutomatico}" />
+								<p:inputText rendered="#{!_operacion.operacionProduccion.indicadorAutomatico}" value="#{_operacion.horasHombre}">
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_horas_maquina}">
+								<h:outputText value="#{_operacion.horasMaquina}" rendered="#{_operacion.operacionProduccion.indicadorAutomatico}" />
+								<p:inputText rendered="#{!_operacion.operacionProduccion.indicadorAutomatico}" value="#{_operacion.horasMaquina}">
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+							</p:column>
+						</p:dataTable>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.confirmacion_si}" update=":form:tablaOrdenFabricacion" process="@this"
+									actionListener="#{formulacionBean.finalizarOrdenFabricacion}" oncomplete="dgFinalizarOrden.hide()" />
+
+								<p:commandButton value="#{msgs.confirmacion_no}" onclick="dgFinalizarOrden.hide()" />
+							</center>
+						</f:facet>
+
+
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:dialog header="#{msgs.lbl_suspender} #{msgs.lbl_orden_fabricacion}" widgetVar="dlgSuspender" id="dlgSuspender" modal="true" height="50"
+					width="500" showEffect="slide" hideEffect="slide" closable="false">
+					<p:outputPanel id="panelSuspender" rendered="#{formulacionBean.activaSuspender}">
+						<h:outputText
+							value="#{msgs.msg_suspender_of1} #{formulacionBean.ordenFabricacion.cantidadBatchFabricados} #{msgs.lbl_batch}s de #{formulacionBean.ordenFabricacion.cantidadBatch} #{msgs.lbl_batch}s #{msgs.lbl_generados}. #{msgs.msg_suspender_of2}" />
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_descripcion}" />
+							<p:inputText styleClass="input-text" required="true" value="#{formulacionBean.ordenFabricacion.descripcion}">
+								<p:ajax process="@this"></p:ajax>
+							</p:inputText>
+						</h:panelGrid>
+
+					</p:outputPanel>
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_si}" process="@this :form:panelSuspender" action="#{formulacionBean.suspender(true)}"
+								oncomplete="validacionesModal(xhr, status, args, dlgSuspender)" update="form:panelListado :form:panelSuspender" />
+							<p:commandButton value="#{msgs.lbl_no}" process="@this :form:panelSuspender" action="#{formulacionBean.suspender(false)}"
+								oncomplete="validacionesModal(xhr, status, args, dlgSuspender)" update="form:panelListado :form:panelSuspender" />
+							<p:commandButton process="@this" value="#{msgs.btn_cancelar}" oncomplete="PF('dlgSuspender').hide();" update="form:panelListado" />
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:confirmDialog id="dgEnviaWinCC" header="#{msgs.lbl_enviar} WINCC" widgetVar="dgEnviaWinCC" height="80" width="300" appendTo="@(body)"
+					message="#{msgs.confirmacion_enviar_WINCC}">
+
+					<p:outputPanel id="panelEnviar" autoUpdate="true">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:outputText value="#{formulacionBean.ordenFabricacion.numero}" />
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<h:outputText value="#{formulacionBean.ordenFabricacion.producto.codigo}" />
+
+							<h:outputText value="#{msgs.lbl_producto}:" />
+							<h:outputText value="#{formulacionBean.ordenFabricacion.producto.nombre}" />
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<center>
+						<p:commandButton value="#{msgs.lbl_enviar}" action="#{formulacionBean.enviarWinCC}" process="@this :form:panelContenedor"
+							update="@this :form:panelContenedor" partialSubmit="true" onclick="dgEnviaWinCC.hide()">
+						</p:commandButton>
+
+						<p:commandButton process="@this" value="#{msgs.btn_cancelar}" partialSubmit="true" onclick="dgEnviaWinCC.hide()" />
+					</center>
+				</p:confirmDialog>
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<p:commandButton rendered="#{!formulacionBean.editado}" value="#{msgs.lbl_formular}" id="btnFormular" title="#{msgs.lbl_formular}"
+							update=":form:panelContenedor" process="@this,:form:panelListado" actionListener="#{formulacionBean.formular}">
+						</p:commandButton>
+						<p:commandButton rendered="#{formulacionBean.editado}" value="#{msgs.btn_guardar}" title="#{msgs.btn_guardar}" icon="ui-icon-disk"
+							action="#{formulacionBean.guardar}" process="@this :form:panelNuevo" update=":form:panelContenedor" ajax="#{formulacionBean.guardarAjax}" />
+						<p:commandButton rendered="#{formulacionBean.editado}" value="#{msgs.btn_cancelar}" title="#{msgs.btn_cancelar}"
+							icon="ui-icon-arrowreturnthick-1-w" process="@this" update=":form:panelContenedor" partialSubmit="true" action="#{formulacionBean.cancelar}" />
+
+						<as2:buttonImprimir beanReporte="#{reporteFormulacionBean}" bean="#{formulacionBean}" target="#{reporteFormulacionBean.ordenFabricacion}"
+							value="#{formulacionBean.ordenFabricacion}" etiquetaImprimir="#{msgs.btn_imprimir}" />
+
+						<p:commandButton rendered="#{!formulacionBean.editado}" value="#{msgs.lbl_enviar} WINCC" title="#{msgs.lbl_enviar} WINCC"
+							process="@this :form:panelListado" partialSubmit="true" oncomplete="dgEnviaWinCC.show()" update=":form:dgEnviaWinCC" />
+
+						<p:commandButton rendered="#{!formulacionBean.editado}" value="#{msgs.lbl_suspender}" title="#{msgs.lbl_suspender}" process="@this"
+							partialSubmit="true" actionListener="#{formulacionBean.prepararSuspencion}" update=":form:panelSuspender :form:dlgSuspender" />
+
+						<!--<p:commandButton value="#{msgs.btn_finalizar}" id="btnFinalizarOrden" title="#{msgs.btn_finalizar}" oncomplete="dgFinalizarOrden.show()"
+							process="@this,:form:panelListado" update=":form:panelFinalizarOrden" actionListener="#{formulacionBean.generarOperaciones}"
+							rendered="#{!formulacionBean.editado}">
+						</p:commandButton>-->
+
+						<as2:buttonEliminar bean="#{formulacionBean}" titulo="#{msgs.btn_anular}">
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:outputText value="#{formulacionBean.ordenFabricacion.fecha}">
+								<f:convertDateTime pattern="#{formulacionBean.formatoFecha}" />
+							</h:outputText>
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:outputText value="#{formulacionBean.ordenFabricacion.numero}" />
+						</as2:buttonEliminar>
+
+					</p:toolbarGroup>
+				</p:toolbar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{formulacionBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelNuevo" />
+					<ui:param name="mostrarCantidad" value="true" />
+				</ui:include>
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{formulacionBean.editado}" header="#{msgs.lbl_formulacion} (#{msgs.lbl_orden_fabricacion})">
+
+						<h:panelGrid id="panelOrdenFabricacion" columns="#{formulacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:outputText value="#{formulacionBean.ordenFabricacion.numero}" />
+
+							<h:outputText value="#{msgs.lbl_bodega}:" />
+							<h:outputText value="#{formulacionBean.bodega.nombre}" />
+
+							<h:outputText value="#{msgs.lbl_producto}:" />
+							<h:outputText value="(#{formulacionBean.ordenFabricacion.producto.codigo}) #{formulacionBean.ordenFabricacion.producto.nombre}" />
+
+							<p:spacer rendered="#{formulacionBean.ordenFabricacion.indicadorSuborden}" />
+							<p:spacer rendered="#{formulacionBean.ordenFabricacion.indicadorSuborden}" />
+
+							<h:outputText value="#{msgs.lbl_cantidad} (PT):" rendered="#{formulacionBean.ordenFabricacion.indicadorSuborden}" />
+							<h:panelGrid columns="6" columnClasses="columna15,columna15,columna15,columna15,columna15,columna15"
+								rendered="#{formulacionBean.ordenFabricacion.indicadorSuborden}">
+								<h:outputText value="#{msgs.lbl_total} (PT):" />
+								<h:outputText
+									value="#{formulacionBean.ordenFabricacion.ordenFabricacionPrincipal.producto.peso == 0 ? '' : formulacionBean.cantidadFormulacion / formulacionBean.ordenFabricacion.ordenFabricacionPrincipal.producto.peso}" />
+
+								<h:outputText value="#{msgs.lbl_batch}s de:" />
+								<h:outputText value="#{formulacionBean.batchsDe} (PT)" />
+
+								<h:outputText value="#{msgs.lbl_peso} x #{msgs.lbl_unidad}:" />
+								<h:outputText value="#{formulacionBean.ordenFabricacion.ordenFabricacionPrincipal.producto.peso}" />
+
+								<h:outputText value="" />
+								<h:outputText value="" />
+								<h:outputText value="" />
+								<h:outputText value="" />
+								<h:outputText value="" />
+								<h:outputText value="" />
+
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_cantidad}:" />
+							<h:panelGrid columns="6" columnClasses="columna15,columna15,columna15,columna15,columna15,columna15">
+
+								<h:outputText value="#{msgs.lbl_total} (#{formulacionBean.ordenFabricacion.producto.unidadAlmacenamiento.codigo}):" />
+								<h:outputText value="#{formulacionBean.cantidadFormulacion}" />
+
+								<h:outputText value="# #{msgs.lbl_batch}s:" />
+								<h:outputText value="#{formulacionBean.cantidadBatchFormulacion}">
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_batch}s de:" />
+								<h:outputText value="#{formulacionBean.ordenFabricacion.producto.cantidadProduccion}" />
+
+								<h:outputText value="#{msgs.lbl_diferencia}:" />
+								<h:outputText value="#{formulacionBean.cantidadFormulacion - formulacionBean.total}" />
+
+							</h:panelGrid>
+						</h:panelGrid>
+
+						<p:panel id="panelFormula" header="#{msgs.lbl_datos_formula}">
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<p:outputLabel for="cboFormula" value="#{msgs.lbl_formula}:" />
+								<p:selectOneMenu value="#{formulacionBean.ordenFabricacion.ordenFabricacionFormulacion}" id="cboFormula"
+									disabled="#{formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA'}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{formulacionBean.listaOrdenFabricacionFormuladas}" var="_formula"
+										itemLabel="#{_formula.numero} | #{_formula.fechaLanzamiento}" itemValue="#{_formula}" />
+									<p:ajax process="@this" update=":form:panelFormula" listener="#{formulacionBean.actualizarFormulaOrdenFabricacion}" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="descripcionFormula" value="#{msgs.lbl_descripcion}:" />
+								<p:inputText value="#{formulacionBean.ordenFabricacion.descripcionFormula}" styleClass="input-text" id="descripcionFormula"
+									disabled="#{formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA'}">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button"
+									disabled="#{formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA'}" />
+
+								<h:outputText value="#{formulacionBean.ordenFabricacion.ordenFabricacionFormulacion.descripcionFormula}" />
+
+								<p:spacer />
+								<p:spacer />
+							</h:panelGrid>
+							<p:tabView cache="true" dynamic="true" id="tvFormula">
+
+								<p:tab title="#{msgs.lbl_macros}">
+									<p:outputPanel id="panelDetalleFormulacionMacro">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMacros" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+											value="#{formulacionBean.listaMacros}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{formulacionBean.numeroFilas}" rowsPerPageTemplate="#{formulacionBean.numeroFilasPorPagina}" selectionMode="single"
+											rowKey="#{_detalle.rowKey}" lazy="false" binding="#{formulacionBean.dtDetalleMacro}"
+											filteredValue="#{formulacionBean.listaDetalleMaterialMacroFiltrados}">
+
+											<p:column style="width:16px">
+												<p:rowToggler rendered="#{_detalle.material.indicadorMezcla}" />
+											</p:column>
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<h:outputText value="#{secuencia+1}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.material.codigo}" sortBy="#{_detalle.material.codigo}" styleClass="columnaDTCodigoProducto tableCell"
+												headerText="#{msgs.lbl_codigo}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.material.codigo}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.material.nombre}" sortBy="#{_detalle.material.nombre}" styleClass="tableCell"
+												headerText="#{msgs.lbl_producto}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.material.nombre}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.bodegaTrabajoMaterial.nombre}" sortBy="#{_detalle.bodegaTrabajoMaterial.nombre}"
+												styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_bodega}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.bodegaTrabajoMaterial.nombre}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.unidad.nombre}" sortBy="#{_detalle.unidad.nombre}" styleClass="columnaDTNombre tableCell"
+												headerText="#{msgs.lbl_unidad}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.unidad.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_consumo_directo}" filterMatchMode="contains">
+												<p:selectBooleanCheckbox value="#{_detalle.indicadorConsumoDirecto}"
+													disabled="#{(formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA') or _detalle.unidad.tipoUnidadMedida == 'LONGITUD'}"
+													rendered="#{_detalle.material.indicadorConsumoDirecto}" />
+											</p:column>
+
+											<p:column sortBy="#{_detalle.cantidadDisponible}" styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_saldo}">
+												<h:outputText value="#{_detalle.cantidadDisponible}" />
+											</p:column>
+
+											<p:column sortBy="#{_detalle.cantidadPorCadaBatch}" styleClass="columnaDTValor tableCell"
+												headerText="#{msgs.lbl_cantidad} #{msgs.lbl_batch}">
+												<p:inputText value="#{_detalle.cantidadPorCadaBatch}"
+													disabled="#{(formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA') or _detalle.unidad.tipoUnidadMedida == 'LONGITUD'}">
+													<p:ajax process="@this" global="false" listener="#{formulacionBean.totalizar}" update=":form:panelFormula :form:panelOrdenFabricacion" />
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column sortBy="#{_detalle.cantidad}" styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+												<h:outputText value="#{_detalle.cantidad}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalleMacro" action="#{formulacionBean.eliminarDetalle(_detalle)}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:panelFormula" process="@this"
+													disabled="#{(formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA') or _detalle.unidad.tipoUnidadMedida == 'LONGITUD'}" />
+											</p:column>
+
+											<p:rowExpansion>
+												<p:dataTable id="tablaMezclaMacros" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+													value="#{_detalle.listaDetalleOrdenFabricacionMaterialMezcla}" var="_detalleMezcla" style="width:100%" rowKey="#{_detalleMezcla.rowKey}"
+													lazy="false">
+
+													<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+														<h:outputText value="#{_detalleMezcla.producto.codigo}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto}">
+														<h:outputText value="#{_detalleMezcla.producto.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_porcentaje} %">
+														<h:outputText value="#{_detalleMezcla.porcentaje}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad} #{msgs.lbl_batch}">
+														<h:outputText value="#{_detalleMezcla.cantidadPorCadaBatch}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+														<h:outputText value="#{_detalleMezcla.cantidad}" />
+													</p:column>
+												</p:dataTable>
+											</p:rowExpansion>
+
+											<p:columnGroup type="footer" id="panelTotalMacro">
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_total} #{msgs.lbl_macros}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.totalMacro}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_total} #{msgs.lbl_micros}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.totalMicro}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_total} #{msgs.lbl_formula}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.total}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_batch}s de:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.ordenFabricacion.producto.cantidadProduccion}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_diferencia}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.ordenFabricacion.producto.cantidadProduccion - formulacionBean.total}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+											</p:columnGroup>
+
+										</p:dataTable>
+									</p:outputPanel>
+								</p:tab>
+								<p:tab title="#{msgs.lbl_micros}">
+									<p:outputPanel id="panelDetalleFormulacionMicro">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMicros" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+											value="#{formulacionBean.listaMicros}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{formulacionBean.numeroFilas}" rowsPerPageTemplate="#{formulacionBean.numeroFilasPorPagina}" selectionMode="single"
+											rowKey="#{_detalle.rowKey}" lazy="false" binding="#{formulacionBean.dtDetalleMicro}"
+											filteredValue="#{formulacionBean.listaDetalleMaterialMicroFiltrados}">
+
+											<p:column style="width:16px">
+												<p:rowToggler rendered="#{_detalle.material.indicadorMezcla}" />
+											</p:column>
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<h:outputText value="#{secuencia+1}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.material.codigo}" sortBy="#{_detalle.material.codigo}" styleClass="columnaDTCodigoProducto tableCell"
+												headerText="#{msgs.lbl_codigo}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.material.codigo}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.material.nombre}" sortBy="#{_detalle.material.nombre}" styleClass="tableCell"
+												headerText="#{msgs.lbl_producto}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.material.nombre}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.bodegaTrabajoMaterial.nombre}" sortBy="#{_detalle.bodegaTrabajoMaterial.nombre}"
+												styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_bodega}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.bodegaTrabajoMaterial.nombre}" />
+											</p:column>
+
+											<p:column filterBy="#{_detalle.unidad.nombre}" sortBy="#{_detalle.unidad.nombre}" styleClass="columnaDTNombre tableCell"
+												headerText="#{msgs.lbl_unidad}" filterMatchMode="contains">
+												<h:outputText value="#{_detalle.unidad.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_consumo_directo}" filterMatchMode="contains">
+												<p:selectBooleanCheckbox value="#{_detalle.indicadorConsumoDirecto}"
+													disabled="#{formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA' or _detalle.unidad.tipoUnidadMedida == 'LONGITUD'}"
+													rendered="#{_detalle.material.indicadorConsumoDirecto}" />
+											</p:column>
+
+											<p:column sortBy="#{_detalle.cantidadDisponible}" styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_saldo}">
+												<h:outputText value="#{_detalle.cantidadDisponible}" />
+											</p:column>
+
+											<p:column sortBy="#{_detalle.cantidadPorCadaBatch}" styleClass="columnaDTValor tableCell"
+												headerText="#{msgs.lbl_cantidad} #{msgs.lbl_batch}">
+												<p:inputText value="#{_detalle.cantidadPorCadaBatch}"
+													disabled="#{formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA' or _detalle.unidad.tipoUnidadMedida == 'LONGITUD'}">
+													<p:ajax process="@this" global="false" listener="#{formulacionBean.totalizar}" update=":form:panelFormula :form:panelOrdenFabricacion" />
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column sortBy="#{_detalle.cantidad}" styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+												<h:outputText value="#{_detalle.cantidad}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalleMicro" action="#{formulacionBean.eliminarDetalle(_detalle)}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:panelFormula" process="@this"
+													disabled="#{(formulacionBean.ordenFabricacion.estado != 'LANZADA' and formulacionBean.ordenFabricacion.estado != 'SUSPENDIDA') or _detalle.unidad.tipoUnidadMedida == 'LONGITUD'}" />
+											</p:column>
+
+											<p:rowExpansion>
+												<p:dataTable id="tablaMezclaMicros" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+													value="#{_detalle.listaDetalleOrdenFabricacionMaterialMezcla}" var="_detalleMezcla" style="width:100%" rowKey="#{_detalleMezcla.rowKey}"
+													lazy="false">
+
+													<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+														<h:outputText value="#{_detalleMezcla.producto.codigo}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto}">
+														<h:outputText value="#{_detalleMezcla.producto.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_porcentaje} %">
+														<h:outputText value="#{_detalleMezcla.porcentaje}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad} #{msgs.lbl_batch}">
+														<h:outputText value="#{_detalleMezcla.cantidadPorCadaBatch}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+														<h:outputText value="#{_detalleMezcla.cantidad}" />
+													</p:column>
+												</p:dataTable>
+											</p:rowExpansion>
+
+											<p:columnGroup type="footer" id="panelTotalMicro">
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_total} #{msgs.lbl_macros}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.totalMacro}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_total} #{msgs.lbl_micros}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.totalMicro}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_total} #{msgs.lbl_formula}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.total}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_batch}s de:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.ordenFabricacion.producto.cantidadProduccion}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_diferencia}:" style="text-align:right" />
+													<p:column footerText="#{formulacionBean.ordenFabricacion.producto.cantidadProduccion - formulacionBean.total}" style="text-align:right" />
+													<p:column colspan="2"></p:column>
+												</p:row>
+											</p:columnGroup>
+
+										</p:dataTable>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+						</p:panel>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!formulacionBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_formulacion})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOrdenFabricacion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{formulacionBean.listaOrdenFabricacion}" var="_ordenFabricacion" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{formulacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{formulacionBean.numeroFilasPorPagina}" selection="#{formulacionBean.ordenFabricacion}" selectionMode="single"
+							rowKey="#{_ordenFabricacion.id}" sortBy="#{_ordenFabricacion.numero}" sortOrder="DESCENDING" lazy="true">
+							<p:ajax event="rowSelect" process=":form:panelListado" update=":form:btnFormular" global="false" partialSubmit="true" />
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_ordenFabricacion.numero}" sortBy="#{_ordenFabricacion.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_ordenFabricacion.fecha}" styleClass="columnaDTFecha tableCell" filterBy="#{_ordenFabricacion.fecha}">
+								<f:facet name="filter">
+									<p:calendar mode="inline" pattern="#{formulacionBean.formatoFecha}" />
+								</f:facet>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+
+								<h:outputText value="#{_ordenFabricacion.fecha}">
+									<f:convertDateTime pattern="#{formulacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_ordenFabricacion.producto.codigo}" filterBy="#{_ordenFabricacion.producto.codigo}"
+								styleClass="tableCell columnaDTCodigoProducto">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.producto.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_ordenFabricacion.producto.nombre}" filterBy="#{_ordenFabricacion.producto.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.producto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad_batch} #{msgs.lbl_producidos}">
+								<h:outputText value="#{_ordenFabricacion.cantidadBatchFabricados}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad_batch}">
+								<h:outputText value="#{_ordenFabricacion.cantidadBatch}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_ordenFabricacion.cantidad}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cantidad}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.cantidad}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_ordenFabricacion.producto.unidad}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_unidad_medida}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.producto.unidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_ordenFabricacion.indicadorFormulada}" headerText="#{msgs.lbl_formulada}">
+								<p:selectBooleanCheckbox value="#{_ordenFabricacion.indicadorFormulada}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_ordenFabricacion.estado}" filterBy="estado"
+								filterOptions="#{formulacionBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{formulacionBean.ordenFabricacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{formulacionBean.ordenFabricacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{formulacionBean.ordenFabricacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{formulacionBean.ordenFabricacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

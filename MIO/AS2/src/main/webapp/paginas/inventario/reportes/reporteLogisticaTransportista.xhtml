@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_logistica_transportista}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteLogisticaTransportistaBean}" entidadOrigen=""></tnt:panelImprimir>
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteLogisticaTransportistaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteLogisticaTransportistaBean.fechaDesde}" id="calFechaDesde" required="true">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteLogisticaTransportistaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteLogisticaTransportistaBean.fechaHasta}" id="calFechaHasta" required="true">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel for="cboTransportista" value="#{msgs.lbl_transportista}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteLogisticaTransportistaBean.transportista}" id="cboTransportista">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+								<f:selectItems value="#{reporteLogisticaTransportistaBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+									itemValue="#{_transportista}" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="autoRuta" value="#{msgs.lbl_ruta}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoRuta"
+								value="#{reporteLogisticaTransportistaBean.ruta}" completeMethod="#{reporteLogisticaTransportistaBean.autocompletarRuta}" var="_ruta"
+								itemLabel="(#{_ruta.tipoVehiculo.nombre}) #{_ruta.ruta}" itemValue="#{_ruta}" forceSelection="false" dropdown="true" minQueryLength="2"
+								size="50">
+
+								<p:column headerText="#{msgs.lbl_tipo_vehiculo}">#{_ruta.tipoVehiculo.nombre}</p:column>
+								<p:column headerText="#{msgs.lbl_ciudad} #{msgs.lbl_origen}">#{_ruta.ciudadOrigen.nombre}</p:column>
+								<p:column headerText="#{msgs.lbl_ciudad} #{msgs.lbl_destino}">#{_ruta.ciudadDestino.nombre}</p:column>
+								<p:column headerText="#{msgs.lbl_ruta}">#{_ruta.ruta}</p:column>
+								<p:ajax process="@this" global="false" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente"
+								value="#{reporteLogisticaTransportistaBean.empresa}" completeMethod="#{reporteLogisticaTransportistaBean.autocompletarClientes}"
+								var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+								<p:ajax process="@this" global="false" />
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

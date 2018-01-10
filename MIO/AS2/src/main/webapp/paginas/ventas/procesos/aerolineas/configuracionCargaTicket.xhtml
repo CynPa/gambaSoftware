@@ -1,0 +1,136 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{configuracionCargaTicketBean}">
+				</as2:toolBar>
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_configuracion_carga}" rendered="#{configuracionCargaTicketBean.editado}">
+						<p:outputPanel id="panelCatalogo">
+							<h:panelGrid columns="1" style="width:100%" border="0">
+
+
+								<h:panelGrid id="panelDatos" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+									<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+									<p:inputText id="txtDescripcion" styleClass="input-text" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.nombre}">
+										<f:validateBean />
+									</p:inputText>
+									<p:outputLabel for="txtEtiqueta" value="#{msgs.lbl_nombre_etiqueta}:" />
+									<p:inputText id="txtEtiqueta" styleClass="input-text" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.nombreEtiqueta}">
+									</p:inputText>
+
+									<p:outputLabel for="txtOrden" value="#{msgs.lbl_orden}:" />
+									<p:inputText id="txtOrden" styleClass="input-text" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.orden}">
+										<f:validateBean />
+									</p:inputText>
+									<p:outputLabel value="#{msgs.lbl_cuenta_1}:" />
+									<h:panelGrid id="panelCuenta1" columns="2" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+										<p:commandButton value="..." actionListener="#{configuracionCargaTicketBean.listaCuentaContableBean.listarCuentaContable}" process="@this"
+											propartialSubmit="true">
+											<p:ajax event="dialogReturn" listener="#{configuracionCargaTicketBean.cargarCuentaContableTKT1}" update=":form:lblCuentaContable" />
+											<f:setPropertyActionListener target="#{configuracionCargaTicketBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+										</p:commandButton>
+										<p:outputLabel id="lblCuentaContable">
+											<h:outputText
+												value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.cuentaContableTKT1==null ? '' : configuracionCargaTicketBean.catalogoConfiguracionTicket.cuentaContableTKT1.codigo}" />
+										</p:outputLabel>
+									</h:panelGrid>
+									<p:outputLabel value="#{msgs.lbl_criterio}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboCriterio" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.criterio}">
+										<f:selectItems value="#{configuracionCargaTicketBean.listaOpercionEnum}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<p:outputLabel for="txtValor" value="#{msgs.lbl_valor}:" />
+									<p:inputText id="txtValor" styleClass="input-text" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.valor}">
+										<f:validateBean />
+									</p:inputText>
+									<p:outputLabel value="#{msgs.lbl_cuenta_2}:" />
+									<h:panelGrid id="panelCuenta2" columns="2" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+										<p:commandButton value="..." actionListener="#{configuracionCargaTicketBean.listaCuentaContableBean.listarCuentaContable}" process="@this"
+											propartialSubmit="true">
+											<p:ajax event="dialogReturn" listener="#{configuracionCargaTicketBean.cargarCuentaContableTKT2}" update=":form:lblCuentaContable2" />
+											<f:setPropertyActionListener target="#{configuracionCargaTicketBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+										</p:commandButton>
+										<p:outputLabel id="lblCuentaContable2">
+											<h:outputText
+												value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.cuentaContableTKT2 == null? '' : configuracionCargaTicketBean.catalogoConfiguracionTicket.cuentaContableTKT2.codigo}" />
+										</p:outputLabel>
+									</h:panelGrid>
+									
+									<p:outputLabel for="txtReferencia" value="#{msgs.lbl_referencia} TKT:" />
+									<p:inputText id="txtReferencia" styleClass="input-text" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.referencia}">
+										<f:validateBean />
+									</p:inputText>
+									
+									<p:outputLabel for="txtReferencia2" value="#{msgs.lbl_referencia} ETKT:" />
+									<p:inputText id="txtReferencia2" styleClass="input-text" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.referencia2}">
+										<f:validateBean />
+									</p:inputText>
+									
+									
+								</h:panelGrid>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_configuraciones}" rendered="#{!configuracionCargaTicketBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCatalogos" rowIndexVar="secuencialCat"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{configuracionCargaTicketBean.listaCatalogos}" var="_configuracion" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{configuracionCargaTicketBean.numeroFilas}"
+							rowsPerPageTemplate="#{configuracionCargaTicketBean.numeroFilasPorPagina}"
+							selection="#{configuracionCargaTicketBean.catalogoConfiguracionTicket}" selectionMode="single" rowKey="#{_configuracion.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialCat+1}" />
+							</p:column>
+							<p:column styleClass="tableCell" filterBy="#{_configuracion.nombre}" sortBy="#{_configuracion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_referencia}" />
+								</f:facet>
+								<h:outputText value="#{_configuracion.nombre}" />
+							</p:column>
+							<p:column styleClass="tableCell" filterBy="#{_configuracion.nombreEtiqueta}" sortBy="#{_configuracion.nombreEtiqueta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre_etiqueta}" />
+								</f:facet>
+								<h:outputText value="#{_configuracion.nombreEtiqueta}" />
+							</p:column>
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_orden}" />
+								</f:facet>
+								<h:outputText value="#{_configuracion.orden==null? '': _configuracion.orden}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{configuracionCargaTicketBean.catalogoConfiguracionTicket.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

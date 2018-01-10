@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{actividadBean}" />s
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+
+					<h:outputText value="#{actividadBean.actividad.nombre}" />
+
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaActividad,mensajes" process="@this"
+						actionListener="#{actividadBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{actividadBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_actividad}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{actividadBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta, columnaValor, columnaEtiqueta, columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{actividadBean.actividad.codigo}" id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{actividadBean.actividad.nombre}" id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{actividadBean.actividad.descripcion}"
+								id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_criticidad}:" />
+							<h:panelGroup>
+								<p:selectOneMenu value="#{actividadBean.actividad.criticidad}"
+									id="cboCriticidad">
+									<f:selectItem itemValue=" " itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{actividadBean.listaCriticidad}"
+										var="_criticidad" itemLabel="#{_criticidad.nombre}"
+										itemValue="#{_criticidad}">
+									</f:selectItems>
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboCriticidad" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_lista_verificacion}:" />
+							<h:panelGroup>
+								<p:selectOneMenu
+									value="#{actividadBean.actividad.listaVerificacion}"
+									id="cboListaVerificacion">
+									<f:selectItem itemValue=" " itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{actividadBean.listaListaVerificacion}"
+										var="_listaVerificacion"
+										itemLabel="#{_listaVerificacion.nombre}"
+										itemValue="#{_listaVerificacion}">
+									</f:selectItems>
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboListaVerificacion" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{actividadBean.actividad.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{actividadBean.actividad.predeterminado}" />
+
+
+						</h:panelGrid>
+
+						<p:spacer width="2px" />
+
+						<p:outputPanel id="panelDetalleActividad">
+
+							<p:commandButton value="#{msgs.btn_agregar_detalle}"
+								id="btnAgregar" action="#{actividadBean.agregarTarea}"
+								update="panelDetalleActividad,mensajes" process="panelDetalleActividad" />
+
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{actividadBean.listaTarea}" id="tablaTarea"
+								rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+								var="_tarea"     paginator="true" paginatorPosition="bottom"
+								style="width:100%" binding="#{actividadBean.dtTarea}"
+								rowKey="#{_tarea.id}" rows="#{actividadBean.numeroFilas}"
+								rowsPerPageTemplate="#{actividadBean.numeroFilasPorPagina}">
+
+								<p:column headerText="Nº">
+									<h:outputText     value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_codigo}">
+									<p:inputText styleClass="input-text" id="txtCodigoTarea"
+										value="#{_tarea.codigo}">
+										<f:validateBean />
+									</p:inputText>
+									<p:message for="txtCodigoTarea" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_nombre}">
+									<p:inputText styleClass="input-text" id="txtNombreTarea"
+										value="#{_tarea.nombre}">
+										<f:validateBean />
+									</p:inputText>
+									<p:message for="txtNombreTarea" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_descripcion}">
+									<p:inputText styleClass="input-text" id="txtDescripcionTarea"
+										value="#{_tarea.descripcion}">
+										<f:validateBean />
+									</p:inputText>
+									<p:message for="txtDescripcionTarea" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_numero_persona}">
+									<p:inputText styleClass="input-text" id="txtNumeroPersonas"
+										value="#{_tarea.numeroPersonas}">
+										<f:validateBean />
+									</p:inputText>
+									<p:message for="txtNumeroPersonas" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_duracion}">
+									<p:inputText styleClass="input-text" id="txtDuracion"
+										value="#{_tarea.duracion}">
+										<f:validateBean />
+									</p:inputText>
+									<p:message for="txtDuracion" />
+								</p:column>
+
+								<p:column     headerText="#{msgs.lbl_tarifa_salarial}">
+									<p:selectOneMenu value="#{_tarea.tarifaSalarial}"
+										id="cboTarifaSalarial" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{actividadBean.listaTarifaSalarial}"
+											var="_tarifaSalarial" itemValue="#{_tarifaSalarial}"
+											itemLabel="#{_tarifaSalarial.nombre}">
+										</f:selectItems>
+										<f:validateBean />
+									</p:selectOneMenu>
+									<p:message for="cboTarifaSalarial" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_activo}">
+									<center>
+										<p:selectBooleanCheckbox id="chkTareaActivo"
+											value="#{_tarea.activo}">
+											<f:validateBean />
+										</p:selectBooleanCheckbox>
+										<p:message for="chkTareaActivo" />
+									</center>
+								</p:column>
+								<p:column>
+									<p:commandButton id="btnEliminarTarea"
+										action="#{actividadBean.eliminarTarea}" icon="ui-icon-trash"
+										title="#{msgs.lbl_eliminar}"
+										update="#{p:component('panelDetalleActividad')}"
+										process="@this">
+									</p:commandButton>
+								</p:column>
+							</p:dataTable>
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!actividadBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_actividad}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaActividad" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{actividadBean.listaActividad}" var="_actividad"
+							binding="#{actividadBean.dtActividad}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{actividadBean.numeroFilas}"
+							rowsPerPageTemplate="#{actividadBean.numeroFilasPorPagina}"
+							selection="#{actividadBean.actividad}" selectionMode="single"
+							rowKey="#{_actividad.id}">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_actividad.codigo}"
+								sortBy="#{_actividad.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_actividad.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_actividad.nombre}"
+								sortBy="#{_actividad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_actividad.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_actividad.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_actividad.descripcion}" />
+							</p:column>
+
+							<p:column sortBy="#{_actividad.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_actividad.activo}"
+										disabled="true" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{actividadBean.actividad.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{actividadBean.actividad.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{actividadBean.actividad.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{actividadBean.actividad.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

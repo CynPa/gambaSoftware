@@ -1,0 +1,283 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel id="panelListado">
+
+					<p:outputPanel id="panelProcesoPedidoCliente">
+						<p:dialog header="#{msgs.confirmacion_proceso_pedido_cliente}" width="400" height="80" modal="true" showEffect="explode" hideEffect="explode"
+							severity="alert" widgetVar="procesoPedidoCliente" rendered="#{aprobarPedidoClienteBean.indicadorRender}">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{msgs.lbl_empresa_cliente_cupo_disponible}:" />
+								<p:outputPanel id="panelCreditoDisponible">
+									<h:outputText
+										value="#{aprobarPedidoClienteBean.pedidoCliente.empresa.cliente.creditoMaximo-aprobarPedidoClienteBean.pedidoCliente.empresa.cliente.creditoUtilizado}" />
+								</p:outputPanel>
+								<h:outputText value="#{msgs.lbl_descripcion}" />
+								<h:panelGroup>
+									<p:inputText styleClass="input-text" value="#{aprobarPedidoClienteBean.pedidoCliente.descripcion}" id="txtDescripcionAprobacion" />
+								</h:panelGroup>
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelListado" process="@this :form:panelProcesoPedidoCliente"
+										action="#{aprobarPedidoClienteBean.procesarPedidoCliente}" oncomplete="procesoPedidoCliente.hide()" />
+
+									<p:commandButton value="#{msgs.confirmacion_no}" onclick="procesoPedidoCliente.hide()" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:outputPanel>
+
+					<p:outputPanel id="panelAprobarTodoPedidoCliente">
+						<p:dialog header="#{msgs.confirmacion_proceso_pedido_cliente}" width="400" height="80" modal="true" showEffect="explode" hideEffect="explode"
+							severity="alert" widgetVar="dlgAprobarTodoPedidoCliente">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{msgs.lbl_descripcion}" />
+								<h:panelGroup>
+									<p:inputText styleClass="input-text" value="#{aprobarPedidoClienteBean.descripcionAprobacion}" id="txtDescripcionAprobacionTodos" />
+								</h:panelGroup>
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelListado" process="@this :form:panelAprobarTodoPedidoCliente"
+										action="#{aprobarPedidoClienteBean.procesarTodoPedidoCliente}" oncomplete="dlgAprobarTodoPedidoCliente.hide()" />
+									<p:commandButton value="#{msgs.confirmacion_no}" onclick="dlgAprobarTodoPedidoCliente.hide()" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:outputPanel>
+
+					<p:outputPanel id="panelCerrarPedidoCliente">
+						<p:dialog header="#{msgs.confirmacion_cerrar_pedido_cliente}" width="400" height="60" modal="true" showEffect="explode" hideEffect="explode"
+							severity="alert" widgetVar="cerrarPedidoCliente" rendered="#{aprobarPedidoClienteBean.indicadorRenderCerrar}">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{msgs.lbl_descripcion}" />
+								<h:panelGroup>
+									<p:inputText styleClass="input-text" value="#{aprobarPedidoClienteBean.pedidoCliente.descripcion}" id="txtDescripcionCerrar" />
+								</h:panelGroup>
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelListado" process="@this :form:panelCerrarPedidoCliente"
+										action="#{aprobarPedidoClienteBean.cerrarPedidoCliente}" oncomplete="cerrarPedidoCliente.hide()" />
+
+									<p:commandButton value="#{msgs.confirmacion_no}" onclick="cerrarPedidoCliente.hide()" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:outputPanel>
+
+					<p:panel>
+						<f:facet name="header">
+							<h:outputText value="#{msgs.lbl_panel_listado} #{msgs.lbl_pedido_cliente}" style="margin-right:10px;" />
+						</f:facet>
+						<h:panelGrid columns="1">
+							<p:selectBooleanCheckbox value="#{aprobarPedidoClienteBean.indicadorMostrarTodoAprobacion}" itemLabel="#{msgs.lbl_mostrar_todos_pendientes}">
+								<p:ajax process="@this" global="false" update=":form:panelListado" listener="#{aprobarPedidoClienteBean.init}" />
+							</p:selectBooleanCheckbox>
+						</h:panelGrid>
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPedidoCliente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobarPedidoClienteBean.listaPedidoCliente}" var="_pedidoCliente" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{aprobarPedidoClienteBean.dtPedidoCliente}"
+							rows="#{aprobarPedidoClienteBean.numeroFilas}" selection="#{aprobarPedidoClienteBean.pedidoCliente}"
+							rowsPerPageTemplate="#{aprobarPedidoClienteBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_pedidoCliente.id}"
+							sortBy="#{_pedidoCliente.numero}" sortOrder="DESCENDING" lazy="true" editable="true">
+
+							<p:ajax event="rowEdit" listener="#{aprobarPedidoClienteBean.actualizarDatosPedido}" update="@this" />
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell0" sortBy="#{_pedidoCliente.numero}" filterBy="#{_pedidoCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.empresa.nombreFiscal}" filterBy="#{_pedidoCliente.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.subempresa.empresa.nombreFiscal}"
+								filterBy="#{_pedidoCliente.subempresa.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subcliente}" />
+								</f:facet>
+								<h:outputText value="#{empty _pedidoCliente.subempresa ? '' : _pedidoCliente.subempresa.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.transportista.nombre}" filterBy="#{_pedidoCliente.transportista.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_titulo_transportista}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.transportista.nombre}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTFecha tableCell0" sortBy="#{_pedidoCliente.sucursal.nombre}" filterBy="#{_pedidoCliente.sucursal.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.sucursal.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell0" sortBy="#{_pedidoCliente.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.fecha}">
+									<f:convertDateTime pattern="#{aprobarPedidoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell0" sortBy="#{_pedidoCliente.fechaDespacho}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_despacho}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.fechaDespacho}">
+									<f:convertDateTime pattern="#{aprobarPedidoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.total}">
+									<f:convertNumber pattern="#{aprobarPedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0" headerText="#{msgs.lbl_producto_indicador_impuestos}">
+								<h:outputText value="#{_pedidoCliente.impuesto}">
+									<f:convertNumber pattern="#{aprobarPedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.descuento}">
+									<f:convertNumber pattern="#{aprobarPedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell0">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{(_pedidoCliente.total - _pedidoCliente.descuento) + _pedidoCliente.impuesto}">
+									<f:convertNumber pattern="#{aprobarPedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell0" filterBy="#{_pedidoCliente.motivoPedidoCliente.nombre}"
+								sortBy="#{_pedidoCliente.motivoPedidoCliente.nombre}" rendered="#{aprobarPedidoClienteBean.manejaMotivoPedido}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_motivo_pedido_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.motivoPedidoCliente.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell0" filterBy="#{_pedidoCliente.usuarioCreacion}" sortBy="#{_pedidoCliente.usuarioCreacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.msg_usuario_creacion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.usuarioCreacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell0" filterBy="#{_pedidoCliente.usuariosAutorizacion}"
+								sortBy="#{_pedidoCliente.usuariosAutorizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_usuarios_autorizacion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.usuariosAutorizacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" rendered="#{sesionControler.manejaProyectos}" filterBy="#{_pedidoCliente.proyecto.nombre}"
+								sortBy="#{_pedidoCliente.proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proyecto}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.proyecto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" sortBy="#{_pedidoCliente.descripcion}" filterBy="#{_pedidoCliente.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.descripcion}" title="#{_pedidoCliente.descripcion}">
+									<f:attribute name="limit" value="10" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell0" exportable="false">
+								<f:facet name="header">
+									<p:commandLink oncomplete="dlgAprobarTodoPedidoCliente.show()" process="@this" update=":form:panelAprobarTodoPedidoCliente"
+										title="#{msgs.btn_procesar} #{msgs.lbl_todos}">
+										<f:setPropertyActionListener target="#{aprobarPedidoClienteBean.indicadorRender}" value="true" />
+										<h:outputText value="#{msgs.btn_procesar}" />
+									</p:commandLink>
+								</f:facet>
+								<center>
+									<p:commandLink oncomplete="procesoPedidoCliente.show()" process="@this" update=":form:panelProcesoPedidoCliente" title="#{msgs.btn_procesar}">
+										<f:setPropertyActionListener value="#{_pedidoCliente}" target="#{aprobarPedidoClienteBean.pedidoCliente}" />
+										<f:setPropertyActionListener target="#{aprobarPedidoClienteBean.indicadorRender}" value="true" />
+										<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell0" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_cerrar}" />
+								</f:facet>
+								<center>
+									<p:commandLink oncomplete="cerrarPedidoCliente.show()" process="@this" update=":form:panelCerrarPedidoCliente" title="#{msgs.btn_cerrar}">
+										<f:setPropertyActionListener value="#{_pedidoCliente}" target="#{aprobarPedidoClienteBean.pedidoCliente}" />
+										<f:setPropertyActionListener target="#{aprobarPedidoClienteBean.indicadorRenderCerrar}" value="true" />
+										<h:graphicImage library="images" name="ejecutar.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{aprobarPedidoClienteBean.pedidoCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{aprobarPedidoClienteBean.pedidoCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{aprobarPedidoClienteBean.pedidoCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{aprobarPedidoClienteBean.pedidoCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

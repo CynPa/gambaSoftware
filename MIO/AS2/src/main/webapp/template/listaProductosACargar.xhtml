@@ -1,0 +1,98 @@
+<p:outputPanel id="panelProductosACargar"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+	<p:dialog
+		header="#{msgs.lbl_panel_listado} #{msgs.lbl_recepcion_proveedores_panel}"
+		widgetVar="dlgProductosACargar" modal="true" height="500" width="800"
+		showEffect="slide" hideEffect="slide">
+
+		<p:messages id="mensajesModal" showDetail="true" autoUpdate="true" />
+
+
+		<h:panelGrid columns="1">
+			<p:fieldset>
+
+				<h:panelGrid columns="2">
+
+					<h:outputLabel value="#{msgs.lbl_documento}" />
+					<p:selectOneRadio value="#{bean.tipoDocumentoACargarSeleccionado}"
+						id="cboTipoDocumentoACargar">
+						<f:selectItems value="#{bean.listaTipoDocumentoACargar}" />
+						<p:ajax process="@this" event="change"
+							listener="#{bean.actualizarListaDocumentoACargar}"
+							update="cboDocumentoACargar,tablaProductosACargar" />
+					</p:selectOneRadio>
+
+					<h:outputLabel value="#{msgs.lbl_numero_movimiento}" />
+					<p:selectOneMenu styleClass="input-text" id="cboDocumentoACargar"
+						value="#{bean.idDocumentoACargar}">
+
+						<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+						<f:selectItems value="#{bean.listaDocumentoACargar}" />
+						<p:ajax process="@this" event="change"
+							listener="#{bean.actualizarListaProductosACargar}"
+							update="tablaProductosACargar" />
+					</p:selectOneMenu>
+				</h:panelGrid>
+			</p:fieldset>
+
+			<p:spacer />
+
+			<p:fieldset>
+				<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{bean.listaProductosACargar}"
+					id="tablaProductosACargar" rowIndexVar="secuencial"
+					emptyMessage="#{msgs.msg_no_hay_datos}" var="_productoACargar"
+					paginator="true" paginatorPosition="bottom" style="width:100%"
+					rowKey="#{_productoACargar.idDetalleDocumento}"
+					rows="#{bean.numeroFilas}"
+					selection="#{bean.detalleDocumentoACargarSeleccionado}">
+
+					<p:column selectionMode="multiple" style="width:10px" />
+
+					<p:column headerText="#{msgs.lbl_codigo_producto}">
+						<h:outputText value="#{_productoACargar.producto.codigo}">
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="#{msgs.lbl_nombre_producto}">
+						<h:outputText value="#{_productoACargar.producto.nombre}">
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="#{msgs.lbl_cantidad}">
+						<h:outputText value="#{_productoACargar.cantidad}">
+						</h:outputText>
+					</p:column>
+
+					<p:column headerText="#{msgs.lbl_cantidad}">
+						<p:inputText value="#{_productoACargar.cantidadAProcesar}">
+						</p:inputText>
+					</p:column>
+
+					<p:column headerText="#{msgs.lbl_saldo}">
+						<h:outputText value="#{_productoACargar.saldo}">
+						</h:outputText>
+					</p:column>
+
+				</p:dataTable>
+
+			</p:fieldset>
+		</h:panelGrid>
+
+		<f:facet name="footer">
+			<center>
+				<p:commandButton value="#{msgs.lbl_cargar_detalles}"
+					action="#{bean.cargarProductosDe}"
+					process="@this,panelProductosACargar" update="#{update}"
+					oncomplete="dlgProductosACargar.hide()" />
+			</center>
+		</f:facet>
+
+	</p:dialog>
+
+</p:outputPanel>

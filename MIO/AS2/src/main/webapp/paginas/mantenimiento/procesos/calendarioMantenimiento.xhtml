@@ -1,0 +1,479 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:dialog header="#{msgs.lbl_informacion}" widgetVar="informacionDialog" id="informacionDialog" modal="true" height="220" width="900"
+					showEffect="slide" hideEffect="slide">
+
+					<p:panel id="panelInformacion">
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+							rendered="#{not empty calendarioMantenimientoBean.calendarioInformacion}">
+
+							<p:outputLabel value="#{msgs.lbl_equipo}:" />
+							<h:outputText value="#{calendarioMantenimientoBean.calendarioInformacion.equipo.nombre}" />
+
+							<p:outputLabel value="#{msgs.lbl_componente_equipo}:" />
+							<h:outputText value="#{calendarioMantenimientoBean.calendarioInformacion.detallePlanMantenimiento.componente.nombre}" />
+
+							<p:outputLabel value="#{msgs.lbl_actividad}:" />
+							<h:outputText value="#{calendarioMantenimientoBean.calendarioInformacion.detallePlanMantenimiento.actividad.nombre}" />
+
+							<p:spacer />
+							<p:spacer />
+
+							<p:outputLabel value="#{msgs.lbl_fecha_compra}:" />
+							<h:outputText value="#{calendarioMantenimientoBean.calendarioInformacion.equipo.fechaCompra}">
+								<f:convertDateTime pattern="#{calendarioMantenimientoBean.formatoFecha}" />
+							</h:outputText>
+
+							<p:outputLabel value="#{msgs.lbl_lectura_aplicada}:" />
+							<h:panelGrid columns="2">
+								<h:outputText value="#{calendarioMantenimientoBean.calendarioInformacion.lecturaMantenimiento.fechaLectura}">
+									<f:convertDateTime pattern="#{calendarioMantenimientoBean.formatoFecha}" />
+								</h:outputText>
+								<h:outputText
+									value="(#{calendarioMantenimientoBean.calendarioInformacion.lecturaMantenimiento.valorAcumulado}) #{calendarioMantenimientoBean.calendarioInformacion.lecturaMantenimiento.frecuencia.nombre}" />
+							</h:panelGrid>
+
+							<p:outputLabel value="#{msgs.lbl_fecha} #{msgs.lbl_cronograma}:" />
+							<h:outputText value="#{calendarioMantenimientoBean.calendarioInformacion.fecha}">
+								<f:convertDateTime pattern="#{calendarioMantenimientoBean.formatoFecha}" />
+							</h:outputText>
+
+							<p:outputLabel for="calFechaMantenimiento" value="#{msgs.lbl_fecha} #{msgs.lbl_mantenimiento}:" />
+							<p:calendar pattern="#{calendarioMantenimientoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{calendarioMantenimientoBean.calendarioInformacion.fechaModificada}" id="calFechaMantenimiento" required="true"
+								disabled="#{not empty calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento}">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel value="#{msgs.lbl_orden_trabajo}:" />
+							<h:link target="_blank" outcome="/paginas/mantenimiento/procesos/ordenTrabajoMantenimiento" includeViewParams="true"
+								value="#{calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento.ordenTrabajoMantenimiento.numero}"
+								rendered="#{not empty calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento}">
+								<f:param name="idOrdenTrabajoMantenimiento"
+									value="#{calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento.ordenTrabajoMantenimiento.id}" />
+							</h:link>
+							<p:spacer rendered="#{empty calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento}" />
+
+							<p:outputLabel value="#{msgs.lbl_estado} #{msgs.lbl_orden_trabajo}:" />
+							<h:outputText
+								value="#{calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento.ordenTrabajoMantenimiento.estado.nombre}" />
+
+							<p:outputLabel value="#{msgs.lbl_descripcion} #{msgs.lbl_orden_trabajo}:" />
+							<h:outputText
+								value="#{calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento.ordenTrabajoMantenimiento.descripcion}" />
+
+						</h:panelGrid>
+					</p:panel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton id="btnGuardarInformacion" action="#{calendarioMantenimientoBean.guardarInformacionCalendario}" value="#{msgs.btn_guardar}"
+								oncomplete="PF('informacionDialog').hide();" process="@this" update=":form:panelListado"
+								disabled="#{not empty calendarioMantenimientoBean.calendarioInformacion.detalleOrdenTrabajoMantenimiento}">
+							</p:commandButton>
+							<p:commandButton id="btnCancelarInformacion" value="#{msgs.btn_cancelar}" oncomplete="PF('informacionDialog').hide();" process="@this">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:dialog header="#{msgs.lbl_generar_orden_trabajo}" widgetVar="generarOTDialog" id="generarOTDialog" modal="true" height="360" width="900"
+					showEffect="slide" hideEffect="slide">
+
+					<p:panel id="panelGenerarOT">
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+							rendered="#{not empty calendarioMantenimientoBean.ordenTrabajoMantenimiento}">
+
+							<p:outputLabel for="calFechaOT" value="#{msgs.lbl_fecha} #{msgs.lbl_mantenimiento}" />
+							<p:calendar pattern="#{calendarioMantenimientoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{calendarioMantenimientoBean.ordenTrabajoMantenimiento.fechaMantenimiento}" id="calFechaOT" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="txtDescripcionOT" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{calendarioMantenimientoBean.ordenTrabajoMantenimiento.descripcion}" id="txtDescripcionOT">
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{calendarioMantenimientoBean}" />
+							<ui:param name="objetoActualizar" value=":form:tabViewDetallesOT:panelMaterialesOT" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:tabView id="tabViewDetallesOT">
+							<p:tab title="#{msgs.lbl_detalle}s" id="tabDetalles">
+								<p:outputPanel id="panelDetallesOT">
+									<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{calendarioMantenimientoBean.listaDetalleOrdenTrabajo}"
+											id="tablaDetalle" rowIndexVar="secuencial" binding="#{calendarioMantenimientoBean.dtDetalle}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalle.rowKey}"
+											rows="#{calendarioMantenimientoBean.numeroFilas}" rowsPerPageTemplate="#{calendarioMantenimientoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<p:outputLabel value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_equipo}">
+												<h:outputText value="#{_detalle.equipo.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_componente_equipo}">
+												<h:outputText value="#{_detalle.componenteEquipo.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_actividad}">
+												<h:outputText value="#{_detalle.actividadMantenimiento.nombre}" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_responsable}s" id="tabResponsables">
+								<p:outputPanel id="panelResponsablesOT">
+									<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" action="#{calendarioMantenimientoBean.agregarResponsableOrdenTrabajo}"
+												update=":form:tabViewDetallesOT:panelResponsablesOT" process="@this" icon="ui-icon-plus" />
+										</h:panelGroup>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{calendarioMantenimientoBean.listaResponsableOrdenTrabajo}"
+											id="tablaResponsable" rowIndexVar="secuencial" binding="#{calendarioMantenimientoBean.dtResponsable}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_detalle.rowKey}" rows="#{calendarioMantenimientoBean.numeroFilas}"
+											rowsPerPageTemplate="#{calendarioMantenimientoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<p:outputLabel value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_responsable}">
+												<p:selectOneMenu styleClass="input-text" value="#{_detalle.personaResponsable}" id="cboResponsable" required="true" style="width:100%">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{calendarioMantenimientoBean.listaResponsableCombo}" var="_responsable"
+														itemLabel="#{_responsable.nombres} #{_responsable.apellidos}" itemValue="#{_responsable}" />
+													<p:ajax process="@this" event="change" global="false" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo">
+												<p:commandButton id="btnEliminarResponsable" action="#{calendarioMantenimientoBean.eliminarResponsableOrdenTrabajo}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tabViewDetallesOT:panelResponsablesOT" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_herramienta}s" id="tabHerramientas">
+								<p:outputPanel id="panelHerramientasOT">
+									<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" action="#{calendarioMantenimientoBean.agregarHerramientaOrdenTrabajo}"
+												update=":form:tabViewDetallesOT:panelHerramientasOT" process="@this" icon="ui-icon-plus" />
+										</h:panelGroup>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{calendarioMantenimientoBean.listaHerramientaOrdenTrabajo}"
+											id="tablaHerramienta" rowIndexVar="secuencial" binding="#{calendarioMantenimientoBean.dtHerramienta}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_detalle.rowKey}" rows="#{calendarioMantenimientoBean.numeroFilas}"
+											rowsPerPageTemplate="#{calendarioMantenimientoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<p:outputLabel value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_herramienta}">
+												<p:selectOneMenu styleClass="input-text" value="#{_detalle.herramienta}" id="cboHerramienta" required="true" style="width:100%">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{calendarioMantenimientoBean.listaHerramientaCombo}" var="_herramienta" itemLabel="#{_herramienta.nombre}"
+														itemValue="#{_herramienta}" />
+													<p:ajax process="@this" event="change" global="false" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cantidad}" styleClass="columnaDTValor">
+												<p:inputText styleClass="input-text" value="#{_detalle.cantidadRequerida}" required="true">
+													<p:ajax process="@this" global="false" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo">
+												<p:commandButton id="btnEliminarHerramienta" action="#{calendarioMantenimientoBean.eliminarHerramientaOrdenTrabajo}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tabViewDetallesOT:panelHerramientasOT" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_material}es" id="tabMaterial">
+								<p:outputPanel id="panelMaterialesOT">
+									<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" action="#{calendarioMantenimientoBean.agregarMaterialOrdenTrabajo}"
+												update=":form:tabViewDetallesOT:panelMaterialesOT" process="@this" icon="ui-icon-plus" />
+
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+										</h:panelGroup>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{calendarioMantenimientoBean.listaMaterialOrdenTrabajo}"
+											id="tablaMaterial" rowIndexVar="secuencial" binding="#{calendarioMantenimientoBean.dtMaterial}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalle.rowKey}"
+											rows="#{calendarioMantenimientoBean.numeroFilas}" rowsPerPageTemplate="#{calendarioMantenimientoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<p:outputLabel value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}">
+												<p:inputText value="#{_detalle.material.codigo}" id="txtCodigoProducto" rendered="#{_detalle.id == 0}" required="true">
+													<p:ajax listener="#{calendarioMantenimientoBean.actualizarProducto}" process="@this" event="change" global="false"
+														oncomplete="nextFocus('#{p:component('txtCantidad')}')" update="txtCodigoProducto,txtNombreProducto" />
+													<f:validateBean />
+												</p:inputText>
+
+												<h:outputText value="#{_detalle.material.codigo}" rendered="#{_detalle.id != 0}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="tableCell">
+												<h:outputText value="#{_detalle.material.nombre}" id="txtNombreProducto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cantidad}" styleClass="columnaDTValor">
+												<p:inputText styleClass="input-text" value="#{_detalle.cantidadRequerida}" required="true" id="txtCantidad">
+													<p:ajax process="@this" global="false" />
+												</p:inputText>
+											</p:column>
+											
+											<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_unidad_producto}">
+												<h:outputText styleClass="input-text" value="#{_detalle.material.unidad.nombre}" id="txtUnidadProducto" disabled="true">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo">
+												<p:commandButton id="btnEliminarMaterial" action="#{calendarioMantenimientoBean.eliminarMaterialOrdenTrabajo}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tabViewDetallesOT:panelMaterialesOT" process="@this"
+													disabled="#{_detalle.cantidadDespachada > 0}">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+						</p:tabView>
+					</p:panel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton id="btnGuardarOrdenTrabajo" action="#{calendarioMantenimientoBean.guardarOrdenTrabajo}" value="#{msgs.btn_guardar}"
+								process="@this :form:panelGenerarOT" update=":form:panelListado">
+							</p:commandButton>
+							<p:commandButton id="btnCancelarOT" value="#{msgs.btn_cancelar}" oncomplete="PF('generarOTDialog').hide();" process="@this">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:outputPanel id="panelFiltro">
+
+					<p:panel header="#{msgs.lbl_filtros}" toggleable="true">
+						<h:panelGrid id="panelDetalle" columns="#{planMantenimientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboCategoria" value="#{msgs.lbl_categoria_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{calendarioMantenimientoBean.categoriaEquipo}" id="cboCategoria" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{calendarioMantenimientoBean.listaCategoriaEquipo}" var="_categoriaEquipo" itemLabel="#{_categoriaEquipo.nombre}"
+									itemValue="#{_categoriaEquipo}" />
+								<p:ajax process="@this" global="false" listener="#{calendarioMantenimientoBean.actualizarCategoriaEquipo}"
+									update="cboSubcategoria autoEquipo cboComponenteEquipo" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboSubcategoria" value="#{msgs.lbl_subcategoria_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{calendarioMantenimientoBean.subcategoriaEquipo}" id="cboSubcategoria" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{calendarioMantenimientoBean.listaSubcategoriaEquipo}" var="_subcategoriaEquipo"
+									itemLabel="#{_subcategoriaEquipo.nombre}" itemValue="#{_subcategoriaEquipo}" /> />
+								<p:ajax process="@this" global="false" listener="#{calendarioMantenimientoBean.actualizarSubcategoriaEquipo}"
+									update="autoEquipo cboComponenteEquipo" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="autoEquipo" value="#{msgs.lbl_equipo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEquipo"
+								value="#{calendarioMantenimientoBean.equipo}" completeMethod="#{calendarioMantenimientoBean.autocompletarEquipo}" var="_equipo"
+								itemLabel="#{_equipo.nombre}" itemValue="#{_equipo}" forceSelection="true" dropdown="true" minQueryLength="2">
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value=" #{_equipo.codigo}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value=" #{_equipo.nombre}" />
+								</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" listener="#{calendarioMantenimientoBean.actualizarEquipo}"
+									update="cboComponenteEquipo" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<p:outputLabel for="cboComponenteEquipo" value="#{msgs.lbl_componente_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{calendarioMantenimientoBean.componenteEquipo}" id="cboComponenteEquipo" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{calendarioMantenimientoBean.listaComponenteEquipo}" var="_componente" itemLabel="#{_componente.nombre}"
+									itemValue="#{_componente}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTipoActividad" value="#{msgs.lbl_tipo_actividad}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{calendarioMantenimientoBean.tipoActividad}" id="cboTipoActividad" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{calendarioMantenimientoBean.listaTipoActividad}" var="_tipoActividad" itemLabel="#{_tipoActividad.nombre}"
+									itemValue="#{_tipoActividad}" />
+								<p:ajax process="@this" global="false" listener="#{calendarioMantenimientoBean.actualizarTipoActividad}" update="cboActividad" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboActividad" value="#{msgs.lbl_actividad}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{calendarioMantenimientoBean.actividad}" id="cboActividad" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{calendarioMantenimientoBean.listaActividad}" var="_actividad" itemLabel="#{_actividad.nombre}"
+									itemValue="#{_actividad}" /> />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboUbicacion" value="#{msgs.lbl_ubicacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{calendarioMantenimientoBean.ubicacion}" id="cboUbicacion" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{calendarioMantenimientoBean.listaUbicacion}" var="_ubicacion" itemLabel="#{_ubicacion.nombre}"
+									itemValue="#{_ubicacion}" /> />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="ckIndicadorSoloParo" value="#{msgs.lbl_solo_con_paro}:" />
+							<p:selectBooleanCheckbox value="#{calendarioMantenimientoBean.indicadorSoloConParo}" id="ckIndicadorSoloParo">
+								<p:ajax process="@this" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<p:commandButton value="#{msgs.lbl_filtrar}" title="#{msgs.lbl_filtrar}" icon="ui-icon-refresh" action="#{calendarioMantenimientoBean.filtrar}"
+								process="@this" update=":form:panelListado" partialSubmit="true" />
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_calendario_mantenimiento}">
+						<p:outputPanel>
+							<h:panelGrid columns="3">
+								<h:panelGrid columns="5">
+									<p:commandButton value="#{msgs.lbl_actualizar_calendario_mantenimiento}" title="#{msgs.lbl_actualizar_calendario_mantenimiento}"
+										action="#{calendarioMantenimientoBean.actualizarCalendarioMantenimiento}" process="@this" update=":form:panelListado" partialSubmit="true"
+										icon="ui-icon-refresh" />
+										
+									<p:commandButton value="#{msgs.lbl_generar_orden_trabajo}" title="#{msgs.lbl_generar_orden_trabajo}"
+										action="#{calendarioMantenimientoBean.generarOrdenTrabajo}" process="@this" update=":form:panelGenerarOT" partialSubmit="true"
+										oncomplete="PF('generarOTDialog').show();" />
+
+									<as2:buttonImprimir beanReporte="#{reporteCalendarioMantenimientoBean}" bean="#{calendarioMantenimientoBean}"
+										target="#{reporteCalendarioMantenimientoBean.calendarioMantenimientoBean}" value="#{calendarioMantenimientoBean}" />
+
+									<as2:buttonImprimir etiquetaImprimir="#{msgs.btn_imprimir} #{msgs.lbl_paros}" beanReporte="#{reporteCalendarioParosMantenimientoBean}"
+										bean="#{calendarioMantenimientoBean}" target="#{reporteCalendarioParosMantenimientoBean.calendarioMantenimientoBean}"
+										value="#{calendarioMantenimientoBean}" />
+									
+								    <as2:buttonEnviarMail id="btnEnviarMail" visibleNuevo="true" bean="#{calendarioMantenimientoBean}" />	
+										
+								</h:panelGrid>
+
+								<h:outputText
+									value="#{calendarioMantenimientoBean.primeraQuincena == true ? msgs.lbl_primera_quincena : msgs.lbl_segunda_quincena} #{calendarioMantenimientoBean.mesEnum.nombre} #{calendarioMantenimientoBean.anio}" />
+
+								<h:panelGrid columns="2">
+									<p:commandButton value="#{msgs.lbl_quincena_anterior}" icon="ui-icon-carat-1-w" title="#{msgs.lbl_quincena_anterior}"
+										action="#{calendarioMantenimientoBean.quincenaAnterior}" process="@this" update=":form:panelListado tablaCalendario" partialSubmit="true"
+										oncomplete="PF('tablaCalendario').clearFilters()" />
+
+									<p:commandButton value="#{msgs.lbl_quincena_siguiente}" icon=" ui-icon-carat-1-e" title="#{msgs.lbl_quincena_siguiente}"
+										action="#{calendarioMantenimientoBean.quincenaSiguiente}" process="@this" update=":form:panelListado tablaCalendario" partialSubmit="true"
+										oncomplete="PF('tablaCalendario').clearFilters()" iconPos="right" />
+								</h:panelGrid>
+
+							</h:panelGrid>
+						</p:outputPanel>
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCalendario" rowIndexVar="secuencial" widgetVar="tablaCalendario"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{calendarioMantenimientoBean.listaCalendario}" var="_calendario"
+							binding="#{calendarioMantenimientoBean.dtCalendario}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{planMantenimientoBean.numeroFilas}" rowsPerPageTemplate="#{calendarioMantenimientoBean.numeroFilasPorPagina}">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_equipo}">
+								<h:outputText value="#{_calendario.equipo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_componente_equipo}">
+								<h:outputText value="#{_calendario.detallePlanMantenimiento.componente.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_actividad}">
+								<h:outputText value="#{_calendario.detallePlanMantenimiento.actividad.nombre}" />
+							</p:column>
+
+							<p:columns var="_columna" value="#{calendarioMantenimientoBean.listaColumnas}">
+								<f:facet name="header">
+									<h:panelGroup>
+										<!--<p:selectBooleanCheckbox value="#{calendarioMantenimientoBean.indicadorMarcadosTodos[_columna.posicionArreglo]}"
+											rendered="#{not empty _columna.valorMostrar}">
+											<p:ajax process="@this" global="false" listener="#{calendarioMantenimientoBean.marcarColumna(_columna.posicionArreglo)}"
+												update=":form:panelListado" />
+										</p:selectBooleanCheckbox>-->
+										<h:outputText value="#{_columna.valorMostrar}" />
+									</h:panelGroup>
+								</f:facet>
+								<h:panelGroup rendered="#{_calendario.arregloIndicadorMantenimiento[_columna.posicionArreglo]}">
+									<p:selectBooleanCheckbox value="#{_calendario.arregloIndicadorGenerarOT[_columna.posicionArreglo]}"
+										rendered="#{empty _calendario.arregloCalendarioMantenimientoEntidad[_columna.posicionArreglo].detalleOrdenTrabajoMantenimiento}">
+										<p:ajax process="@this" global="false" />
+									</p:selectBooleanCheckbox>
+									<p:commandLink styleClass="ui-icon-info" process="@this" global="false" title="#{msgs.lbl_informacion}"
+										update=":form:panelInformacion :form:btnGuardarInformacion" oncomplete="PF('informacionDialog').show()">
+										<f:setPropertyActionListener value="#{_calendario.arregloCalendarioMantenimientoEntidad[_columna.posicionArreglo]}"
+											target="#{calendarioMantenimientoBean.calendarioInformacion}" />
+										<h:graphicImage library="images" name="informacion.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</h:panelGroup>
+							</p:columns>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

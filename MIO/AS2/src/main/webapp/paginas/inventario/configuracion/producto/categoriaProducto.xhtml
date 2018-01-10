@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{categoriaProductoBean}">
+					<as2:buttonEliminar bean="#{categoriaProductoBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{categoriaProductoBean.categoriaProducto.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{categoriaProductoBean.categoriaProducto.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{categoriaProductoBean}" tabla=":form:tablaCategoriasProducto"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_categoria_producto_panel}"
+						rendered="#{categoriaProductoBean.editado}">
+						<h:panelGrid id="panelDetalle"
+							columns="#{categoriaProductoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{categoriaProductoBean.categoriaProducto.codigo}"
+								id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{categoriaProductoBean.categoriaProducto.nombre}"
+								id="txtNombre" required="true" size="50" maxlength="50">
+								<f:validateBean />
+							</p:inputText>						
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{categoriaProductoBean.categoriaProducto.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{categoriaProductoBean.categoriaProducto.predeterminado}" />
+								
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{categoriaProductoBean.categoriaProducto.descripcion}"
+								id="txtDescripcion" size="100" maxlength="200">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_categoria_producto_panel}"
+						rendered="#{!categoriaProductoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCategoriasProducto"
+							rowIndexVar="secuencialCategoriaProducto"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{categoriaProductoBean.listaCategoriaProductos}"
+							var="categoriaProducto" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							binding="#{categoriaProductoBean.dataTableCategoriaProducto}"
+							rows="#{categoriaProductoBean.numeroFilas}"
+							rowsPerPageTemplate="#{categoriaProductoBean.numeroFilasPorPagina}"
+							selection="#{categoriaProductoBean.categoriaProducto}"
+							selectionMode="single" rowKey="#{categoriaProducto.id}"
+							sortBy="#{categoriaProducto.codigo}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<f:facet name="header"></f:facet>
+								<h:outputText value="#{secuencialCategoriaProducto+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{categoriaProducto.codigo}"
+								sortBy="#{categoriaProducto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{categoriaProducto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" filterBy="#{categoriaProducto.nombre}"
+								sortBy="#{categoriaProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{categoriaProducto.nombre}" />
+							</p:column>							
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{categoriaProducto.activo}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{categoriaProducto.activo}"
+									disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox
+									value="#{categoriaProducto.predeterminado}" disabled="true" />
+							</p:column>
+							
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<f:facet name="header"></f:facet>
+								<h:outputText value="#{categoriaProducto.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{categoriaProductoBean.categoriaProducto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{categoriaProductoBean.categoriaProducto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion"
+							value="#{categoriaProductoBean.categoriaProducto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{categoriaProductoBean.categoriaProducto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

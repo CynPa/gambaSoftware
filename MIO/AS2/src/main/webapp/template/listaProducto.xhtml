@@ -1,0 +1,112 @@
+<p:outputPanel id="panelListaProducto"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+
+	<p:dialog header="#{msgs.lbl_productos_titulo_panel_listado}"
+		widgetVar="dglModalProducto" modal="true" height="400" width="800"
+		showEffect="slide" hideEffect="slide">
+
+		<p:fieldset>
+
+			<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProducto" rowIndexVar="secuencia"
+				emptyMessage="#{msgs.msg_no_hay_datos}"
+				value="#{productoBean.listaProducto}" var="_producto"
+				binding="#{productoBean.dtProducto}" paginator="true"
+				paginatorPosition="bottom" style="width:100%"
+				rowsPerPageTemplate="#{productoBean.numeroFilasPorPagina}"
+				rows="#{productoBean.numeroFilas}" selection="#{bean.producto}"
+				selectionMode="single" rowKey="#{_producto.id}" lazy="true">
+
+				<p:column headerText="Nº" styleClass="columnaDTAccion">
+					<h:outputText value="#{secuencia+1}" />
+				</p:column>
+
+				<p:column sortBy="#{_producto.codigo}" filterEvent="change"
+					filterBy="#{_producto.codigo}" styleClass="columnaDTCodigo">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_codigo}" />
+					</f:facet>
+					<h:outputText value="#{_producto.codigo}" />
+				</p:column>
+
+				<p:column sortBy="#{_producto.nombre}" filterEvent="change"
+					filterBy="#{_producto.nombre}" styleClass="columnaDTNombre">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_nombre}" />
+					</f:facet>
+					<h:outputText value="#{_producto.nombre}" />
+				</p:column>
+
+				<p:column sortBy="#{_producto.nombreComercial}" filterEvent="change"
+					filterBy="#{_producto.nombreComercial}" styleClass="columnaDTNombre">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_nombre_producto}" />
+					</f:facet>
+					<h:outputText value="#{_producto.nombreComercial}" />
+				</p:column>
+
+				<p:column sortBy="#{_producto.unidad.nombre}" filterEvent="change"
+					filterBy="#{_producto.unidad.nombre}" styleClass="columnaDTUnidad">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_unidad_producto}" />
+					</f:facet>
+					<h:outputText value="#{_producto.unidad.nombre}" />
+				</p:column>
+
+				<p:column headerText="#{msgs.lbl_imagen}" styleClass="columnaDTValor">
+					<p:commandLink onclick="imagenDialog.show()" process="@this"
+						update=":form:panelImagen" title="#{msgs.lbl_imagen}">
+
+						<h:graphicImage library="images" name="imagen.png"
+							style="height : 16px; width : 16px;" />
+
+						<f:setPropertyActionListener value="#{_producto}"
+							target="#{productoBean.producto}" />
+					</p:commandLink>
+				</p:column>
+
+			</p:dataTable>
+
+		</p:fieldset>
+
+
+		<f:facet name="footer">
+
+			<h:panelGroup>
+				<center>
+					<p:commandButton value="#{msgs.lbl_cargar_producto}"
+						action="#{bean.cargarProducto}"
+						process="@this, panelListaProducto"
+						onclick="dglModalProducto.hide()" update="#{objetoActualizar}"
+						icon="ui-icon-plus" />
+
+					<p:commandButton value="#{msgs.lbl_limpiar_producto}"
+						action="#{bean.limpiarProducto}"
+						process="@this, :form:panelListaProducto"
+						rendered="#{renderedBotonLimpiar}"
+						onclick="dglModalProducto.hide()" update="#{objetoActualizar}"
+						icon="ui-icon-minusthick" />
+				</center>
+			</h:panelGroup>
+		</f:facet>
+	</p:dialog>
+
+	<p:dialog header="#{msgs.lbl_imagen}" widgetVar="imagenDialog"
+		resizable="false" showEffect="fade" hideEffect="explode" modal="true">
+		<p:outputPanel id="panelImagen" autoUpdate="true">
+			<h:panelGrid columns="2">
+				<f:facet name="header">
+					<h:graphicImage
+						value="/images/dynamic/?file=#{productoBean.producto.imagen}"
+						width="400" height="300" />
+				</f:facet>
+			</h:panelGrid>
+		</p:outputPanel>
+	</p:dialog>
+
+</p:outputPanel>

@@ -1,0 +1,351 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idHistoricoEmpleado" value="#{finiquitoEmpleadoBean.idHistoricoEmpleado}" />
+	<f:viewParam name="editar" value="#{finiquitoEmpleadoBean.editar}" />
+	<f:viewParam name="simular" value="#{finiquitoEmpleadoBean.simular}" />
+	<f:viewAction action="#{finiquitoEmpleadoBean.cargarHistoricoEmpleado}" onPostback="false" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{msgs.btn_guardar}" id="btnGuardar" action="#{finiquitoEmpleadoBean.guardar}" update="panelContenedor"
+							process="@this panelNuevo :form:panelDetalle" icon="ui-icon-disk" rendered="#{!finiquitoEmpleadoBean.simular}">
+						</p:commandButton>
+						<p:commandButton value="#{msgs.btn_cancelar}" id="btnCancelar" action="#{finiquitoEmpleadoBean.cancelar}" update="@this" process="@this"
+							icon="ui-icon-arrowreturnthick-1-w" rendered="#{!finiquitoEmpleadoBean.simular}" />
+						<p:commandButton value="#{msgs.btn_regresar}" id="btnRegresar" action="#{finiquitoEmpleadoBean.regresarIngresoEmpleado}" update="@this"
+							process="@this" icon="ui-icon-arrowreturnthick-1-w" rendered="#{finiquitoEmpleadoBean.simular}" />
+						<p:commandButton value="Calcular Finiquito" id="btnCalcularFiniquitoSim" icon="ui-icon-refresh"
+							action="#{finiquitoEmpleadoBean.procesarFiniquito}" update=":form:panelNuevo" process="@this calenFechaFiniquito"
+							rendered="#{finiquitoEmpleadoBean.simular}" />
+					</p:toolbarGroup>
+				</p:toolbar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:fieldset legend="#{msgs.lbl_informacion_empleado}">
+						<h:panelGrid id="panelCabecera" columns="#{finiquitoEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiquetaGrande,columna30,columnaEtiquetaGrande,columna30">
+
+							<h:outputText value="#{msgs.lbl_nombres}:" />
+							<h:outputText id="nombre" value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.nombres}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_apellidos}:" />
+							<h:outputText id="apellido" value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.apellidos}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_identificacion}:" />
+							<h:outputText id="identificacion" value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.identificacion}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_nacimiento}:" />
+							<h:outputText id="fechaNacimiento" value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.fechaNacimiento}">
+								<f:convertDateTime pattern="dd/MM/YYYY" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_genero}:" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.genero}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}:"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0) != null and not empty finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0)}" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0).telefono1}"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0) != null and not empty finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0)}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_email}:"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.email1 != null and not empty finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.email1}" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.email1}"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.email1 != null and not empty finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.email1}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_direccion}:"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0) != null and not empty finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0)}" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0).direccionCompleta}"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0) != null and not empty finiquitoEmpleadoBean.historicoEmpleado.empleado.empresa.direcciones.get(0)}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_discapacitado}:" rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.tipoDiscapacidad != null}" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.tipoDiscapacidad.nombre != null ? 'SI' : 'NO'}"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.tipoDiscapacidad != null}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_cargo}:" rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.cargoEmpleado != null}" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.cargoEmpleado.nombre}"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.cargoEmpleado != null}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_tipo_contrato}:" rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.tipoContrato != null}" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.tipoContrato.nombre}"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.tipoContrato != null}">
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_ingreso_empleado}:" />
+							<h:outputText id="txtFechaIngreso" value="#{finiquitoEmpleadoBean.historicoEmpleado.fechaIngreso}">
+								<f:convertDateTime pattern="#{finiquitoEmpleadoBean.formatoFecha}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_salida_empleado}:" />
+							<p:calendar pattern="#{finiquitoEmpleadoBean.formatoFecha}" showOn="button" navigator="true" required="true" disabled="true"
+								value="#{finiquitoEmpleadoBean.historicoEmpleado.fechaSalida}" id="calFechaSalida">
+								<p:ajax process="@this" global="false" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_causa_salida_empleado}:" rendered="#{finiquitoEmpleadoBean.historicoEmpleado.causaSalidaEmpleado != null}" />
+							<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.causaSalidaEmpleado.nombre}"
+								rendered="#{finiquitoEmpleadoBean.historicoEmpleado.causaSalidaEmpleado != null}">
+							</h:outputText>
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:fieldset legend="#{msgs.lbl_informacion_finiquito}">
+						<h:outputText value="#{msgs.msg_finiquito_referencial}" styleClass="text_color_rojo" />
+						<h:panelGrid columns="1" style="width:100%">
+							<h:panelGrid id="panelCabeceraFiniquito" columns="#{finiquitoEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiquetaGrande,columna30,columnaEtiquetaGrande,columna30">
+
+								<h:outputText value="#{msgs.lbl_valor_ultima_remuneracion}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.valorUltimaRemuneracion}">
+									<f:convertNumber pattern="#{finiquitoEmpleadoBean.formatoDinero}" />
+								</h:outputText>
+								
+								<h:outputText value="#{msgs.lbl_valor_desahucio}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.valorDesahucio}">
+									<f:convertNumber pattern="#{finiquitoEmpleadoBean.formatoDinero}" />
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_valor_remuneracion_decimo_tercero}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.valorRemuneracionDecimoTercero}">
+									<f:convertNumber pattern="#{finiquitoEmpleadoBean.formatoDinero}" />
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_valor_remuneracion_vacacion}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.valorRemuneracionVacacion}">
+									<f:convertNumber pattern="#{finiquitoEmpleadoBean.formatoDinero}" />
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_fondo_reserva}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.rubroFondoReserva.nombre}" />
+
+								<h:outputText value="#{msgs.lbl_decimo_tercero}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.rubroDecimoTercero.nombre}" />
+
+								<h:outputText value="#{msgs.lbl_decimo_cuarto}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.rubroDecimoCuarto.nombre}" />
+
+								<h:outputText value="#{msgs.lbl_departamento}:" rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.departamento != null}" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.departamento.nombre}"
+									rendered="#{finiquitoEmpleadoBean.historicoEmpleado.empleado.departamento != null}">
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_saldo_prestamos}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.saldoPrestamos}" />
+
+								<h:outputText value="#{msgs.lbl_fecha_finiquito}:" />
+								<p:calendar pattern="#{finiquitoEmpleadoBean.formatoFecha}" showOn="button" navigator="true" required="true"
+									value="#{finiquitoEmpleadoBean.historicoEmpleado.fechaFiniquito}" id="calenFechaFiniquito" disabled="#{finiquitoEmpleadoBean.simular}">
+									<p:ajax process="@this" global="false" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_dias} #{msgs.lbl_acumulado}:" />
+								<h:outputText value="#{finiquitoEmpleadoBean.historicoEmpleado.diasVacacionesFiniquito}" />
+							</h:panelGrid>
+
+							<h:panelGrid columns="2" id="pgVacacion" style="width:100%" columnClasses="columnaMitadVAlign,columnaMitadVAlign">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaVacacion" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{finiquitoEmpleadoBean.historicoEmpleado.listaVacacionPendiente}" var="_vacacion"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{finiquitoEmpleadoBean.numeroFilas}"
+									rowsPerPageTemplate="#{finiquitoEmpleadoBean.numeroFilasPorPagina}" sortBy="#{_vacacion.fechaInicioPeriodo}" sortOrder="ASCENDING">
+
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_historico} #{msgs.lbl_vacacion}" />
+									</f:facet>
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_inicio_periodo}">
+										<h:outputText value="#{_vacacion.fechaInicioPeriodo}">
+											<f:convertDateTime pattern="#{finiquitoEmpleadoBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_fin_periodo}">
+										<h:outputText value="#{_vacacion.fechaFinPeriodo}">
+											<f:convertDateTime pattern="#{finiquitoEmpleadoBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_dias_dias}">
+										<h:outputText value="#{_vacacion.dias}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_dias_adicionales}">
+										<h:outputText value="#{_vacacion.diasAdicionales}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_dias_tomados}">
+										<h:outputText value="#{_vacacion.diasTomados}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_dias_pendientes}">
+										<h:outputText value="#{_vacacion.dias + _vacacion.diasAdicionales - _vacacion.diasTomados}" />
+									</p:column>
+								</p:dataTable>
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDecimoMensual" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{finiquitoEmpleadoBean.historicoEmpleado.listaDetalleFiniquitoEmpleado}"
+									var="_detalleFiniquito" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{finiquitoEmpleadoBean.numeroFilas}"
+									rowsPerPageTemplate="#{finiquitoEmpleadoBean.numeroFilasPorPagina}" sortBy="#{_detalleFiniquito.fecha}" sortOrder="ASCENDING">
+
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_decimo_tercero}" />
+									</f:facet>
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}">
+										<h:outputText value="#{_detalleFiniquito.fecha}">
+											<f:convertDateTime pattern="#{finiquitoEmpleadoBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_mes}">
+										<h:outputText value="#{_detalleFiniquito.valor}">
+											<f:convertNumber pattern="#{finiquitoEmpleadoBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_total}">
+										<h:outputText value="#{_detalleFiniquito.valor*12}">
+											<f:convertNumber pattern="#{finiquitoEmpleadoBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_mensual}">
+										<h:outputText value="#{_detalleFiniquito.indicadorImpresionSobre?'SI':'NO'}" />
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:spacer height="2px" />
+
+					<p:fieldset rendered="#{!finiquitoEmpleadoBean.simular}">
+						<h:outputText value="#{msgs.msg_finiquito_mrl}" styleClass="text_color_rojo" />
+						<h:panelGrid id="panelDetalle" cellpadding="0" cellspacing="0">
+							<p:outputPanel id="outputPanelPagoRolEmpleadoRubro">
+
+								<h:panelGroup>
+									<p:commandButton value="Agregar Detalle" id="btnAgregarDetalle" icon="ui-icon-plus" action="#{finiquitoEmpleadoBean.agregarDetalle}"
+										update=":form:panelDetalle" process="@this :form:panelDetalle :form:panelCabecera :form:panelCabeceraFiniquito" />
+
+									<p:commandButton value="Calcular Finiquito" id="btnCalcularFiniquito" icon="ui-icon-refresh"
+										action="#{finiquitoEmpleadoBean.procesarFiniquito}" update=":form:panelDetalle :form:panelNuevo"
+										process="@this :form:panelDetalle calFechaSalida calenFechaFiniquito" />
+								</h:panelGroup>
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagoRolEmpleadoRubro" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{finiquitoEmpleadoBean.listaPagoRolEmpleadoRubro}" var="_pagoRolEmpleadoRubro"
+									paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{finiquitoEmpleadoBean.dtPagoRolEmpleadoRubro}"
+									rows="#{finiquitoEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{finiquitoEmpleadoBean.numeroFilasPorPagina}"
+									selection="#{finiquitoEmpleadoBean.pagoRolEmpleadoRubro}" selectionMode="single" rowKey="#{_pagoRolEmpleadoRubro.id}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_nombre_rubro}" styleClass="tableCell">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_pagoRolEmpleadoRubro.rubro}"
+											completeMethod="#{finiquitoEmpleadoBean.autocompletarRubro}" var="_rubro" itemLabel="#{_rubro.nombre}" itemValue="#{_rubro}"
+											forceSelection="true" dropdown="false" minQueryLength="2" id="autRubro" rendered="#{_pagoRolEmpleadoRubro.indicadorManual}" required="true">
+
+											<p:column>
+												<h:outputText value="#{_rubro.codigo}" />
+											</p:column>
+											<p:column>
+												<h:outputText value="#{_rubro.nombre}" />
+											</p:column>
+											<p:ajax process="@this :form:panelDetalle" update=":form:panelDetalle" event="itemSelect" />
+
+										</p:autoComplete>
+										<h:outputText value="#{_pagoRolEmpleadoRubro.rubro.nombre}" rendered="#{!_pagoRolEmpleadoRubro.indicadorManual}" />
+									</p:column>
+									<p:column>
+										<p:selectOneMenu styleClass="input-text" id="cboOperacion" value="#{_pagoRolEmpleadoRubro.rubro.operacion}" disabled="true">
+											<f:selectItems value="#{finiquitoEmpleadoBean.listaOperaciones}" />
+										</p:selectOneMenu>
+									</p:column>
+									<p:column styleClass="columnaDTValor columnaDTValor" headerText="#{msgs.lbl_indicador_tiempo}">
+										<p:inputText styleClass="input-text" value="#{_pagoRolEmpleadoRubro.tiempo}" disabled="#{!_pagoRolEmpleadoRubro.rubro.indicadorTiempo}">
+											<p:ajax process="@this" global="false" />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_valor}">
+										<h:inputText styleClass="input-text-col" value="#{_pagoRolEmpleadoRubro.valor}" disabled="#{_pagoRolEmpleadoRubro.rubro.indicadorTiempo}">
+											<p:ajax process="@this :form:panelDetalle" listener="#{finiquitoEmpleadoBean.totalPagoRolEmpleadoRubro}" update=":form:panelDetalle"
+												event="change" />
+										</h:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion">
+										<p:commandButton id="btnEliminarDetalle" action="#{finiquitoEmpleadoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelDetalle" process="@this" />
+									</p:column>
+
+									<!-- FOOTER  -->
+									<p:columnGroup type="footer">
+										<p:row>
+											<p:column colspan="2" footerText="Total Ingresos:" style="text-align:right" />
+											<p:column colspan="2" footerText="#{finiquitoEmpleadoBean.totalIngresos}" />
+										</p:row>
+										<p:row>
+											<p:column colspan="2" footerText="Total Egresos:" style="text-align:right" />
+											<p:column colspan="2" footerText="#{finiquitoEmpleadoBean.totalEgresos}" />
+										</p:row>
+										<p:row>
+											<p:column colspan="2" footerText="Total por Recibir:" style="text-align:right" />
+											<p:column colspan="2" footerText="#{finiquitoEmpleadoBean.totalIngresos-finiquitoEmpleadoBean.totalEgresos}" />
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+
+							</p:outputPanel>
+
+						</h:panelGrid>
+
+					</p:fieldset>
+
+				</p:outputPanel>
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{finiquitoEmpleadoBean.historicoEmpleado.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{finiquitoEmpleadoBean.historicoEmpleado.usuarioCreacion}" />
+					<ui:param name="fechaModificacion" value="#{finiquitoEmpleadoBean.historicoEmpleado.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{finiquitoEmpleadoBean.historicoEmpleado.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

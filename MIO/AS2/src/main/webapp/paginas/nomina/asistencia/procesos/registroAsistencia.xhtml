@@ -1,0 +1,385 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+
+						<p:outputLabel for="ckEditable" value="#{msgs.lbl_editar} " />
+						<p:selectBooleanCheckbox value="#{registroAsistenciaBean.indicadorEditable}" id="ckEditable">
+							<p:ajax process="@this" update=":form:panelListado :form:panelContenedor" global="false" />
+						</p:selectBooleanCheckbox>
+
+						<p:outputLabel for="ckAgrupar" value="#{msgs.lbl_agrupado} " />
+						<p:selectBooleanCheckbox value="#{registroAsistenciaBean.indicadorAgrupado}" id="ckAgrupar">
+							<p:ajax process="@this" update=":form:panelListado :form:panelContenedor" global="false" />
+						</p:selectBooleanCheckbox>
+
+						<p:separator />
+
+						<p:commandButton value="#{msgs.lbl_crear_asistencia}" action="#{registroAsistenciaBean.nuevaAsistencia}" oncomplete="dglCrearAsistencia.show();"
+							process="@this" />
+
+<!-- 						<p:commandButton value="#{msgs.lbl_actualizar_asistencia}" actionListener="#{registroAsistenciaBean.generarAsistenciaListener}" -->
+<!-- 							process="@this :form:cboDepartamento1" update=":form:panelListado :form:cboDepartamento1" /> -->
+						<as2:buttonProcesar bean="#{registroAsistenciaBean}" titulo="#{msgs.lbl_actualizar_asistencia}"
+							mensaje="#{msgs.lbl_actualizar_asistencia} (#{msgs.lbl_reprocesar} #{msgs.lbl_periodo}) - #{msgs.lbl_reprocesar_asistencia}"
+							procesar="#{registroAsistenciaBean.generarAsistenciaListener()}" height="100" width="340" process="@this :form:cboDepartamento1"
+							update=":form:panelListado :form:cboDepartamento1">
+						</as2:buttonProcesar>
+						
+					</p:toolbarGroup>
+				</p:toolbar>
+
+				<p:dialog header="#{msgs.lbl_asistencia}" widgetVar="dglCrearAsistencia" modal="true" height="150" width="800" showEffect="slide"
+					hideEffect="slide">
+					<p:outputPanel id="panelCrearAsistencia">
+						<h:panelGrid columns="#{registroAsistenciaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{registroAsistenciaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{registroAsistenciaBean.asistenciaManual.fecha}" id="calFecha" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="autoEmpleado" value="#{msgs.lbl_empleado}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpleado"
+								value="#{registroAsistenciaBean.asistenciaManual.empleado}" completeMethod="#{registroAsistenciaBean.autocompletarEmpleado}" var="_empleado"
+								itemLabel="#{_empleado.nombreCompleto}" itemValue="#{_empleado}" forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+								<p:column headerText="#{msgs.lbl_identificacion}">#{_empleado.empresa.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_empleado.nombreCompleto}</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<p:outputLabel for="cboTurno" value="#{msgs.lbl_turno}:" />
+							<p:selectOneMenu value="#{registroAsistenciaBean.turno}" id="cboTurno" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{registroAsistenciaBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="diaDescanso" value="#{msgs.lbl_dia_descanso}:" />
+							<p:selectBooleanCheckbox value="#{registroAsistenciaBean.asistenciaManual.indicadorDiaDescanso}" id="diaDescanso">
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputLabel for="diaOpcional" value="#{msgs.lbl_dia_complementario}:" />
+							<p:selectBooleanCheckbox value="#{registroAsistenciaBean.asistenciaManual.indicadorDiaComplementario}" id="diaOpcional">
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectBooleanCheckbox>
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_guardar}" action="#{registroAsistenciaBean.crearAsistencia}" process="@this,panelCrearAsistencia"
+								update=":form:panelListado" oncomplete="validacionesModal(xhr, status, args, dglCrearAsistencia)" />
+
+							<p:commandButton value="#{msgs.btn_cancelar}" action="#{registroAsistenciaBean.nuevaAsistencia}"
+								oncomplete="validacionesModal(xhr, status, args, dglCrearAsistencia)" process="@this" />
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:outputPanel id="panelFiltros">
+					<h:panelGrid columns="#{registroAsistenciaBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<p:outputLabel for="cboDepartamento1" value="#{msgs.lbl_departamento_empleado}:" />
+						<p:selectOneMenu required="true" styleClass="input-text" value="#{registroAsistenciaBean.departamentoSeleccionado}" id="cboDepartamento1">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{registroAsistenciaBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+								itemValue="#{_departamento}" />
+							<p:ajax process="@this" update="@this :form:panelListado :form:cboTurno" global="false" />
+						</p:selectOneMenu>
+						<p:spacer />
+
+						<p:panelGrid columns="#{registroAsistenciaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<h:outputText value="#088A08" style="background-color:#088A08; color:#088A08" />
+							<h:outputText value="#{msgs.lbl_leyenda_modificacion_marcacion}" />
+							<h:outputText value="#819FF7" style="background-color:#819FF7; color:#819FF7" />
+							<h:outputText value="#{msgs.lbl_leyenda_dia_descanso}" />
+							<h:outputText value="#FFDAB9" style="background-color:#FFDAB9; color:#FFDAB9" />
+							<h:outputText value="#{msgs.lbl_leyenda_idicador_horas_sumplementarias}" />
+
+
+						</p:panelGrid>
+
+						<p:outputLabel value="#{msgs.lbl_rango} #{msgs.lbl_fecha}:" />
+						<h:panelGroup>
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_desde}:" />
+							<p:calendar pattern="#{registroAsistenciaBean.formatoFecha}" showOn="button" navigator="true" value="#{registroAsistenciaBean.fechaDesde}"
+								id="calFechaDesde" required="true">
+								<p:ajax event="dateSelect" process="@this" update=":form:panelListado" global="false" />
+								<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_hasta}:" />
+							<p:calendar pattern="#{registroAsistenciaBean.formatoFecha}" showOn="button" navigator="true" value="#{registroAsistenciaBean.fechaHasta}"
+								id="calFechaHasta" required="true">
+								<p:ajax event="dateSelect" process="@this" update=":form:panelListado" global="false" />
+								<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+							</p:calendar>
+							<as2:buttonProcesar icono="ui-icon-refresh" bean="#{registroAsistenciaBean}"
+							mensaje="#{msgs.lbl_actualizar_asistencia} (#{msgs.lbl_reprocesar} #{msgs.lbl_periodo}) - #{msgs.lbl_reprocesar_asistencia}"
+							procesar="#{registroAsistenciaBean.generarAsistenciaRangoFechasListener()}" height="100" width="340" process="@this :form:cboDepartamento1"
+							update=":form:panelListado :form:cboDepartamento1">
+						</as2:buttonProcesar>
+<!-- 							<p:commandButton icon="ui-icon-refresh" title="#{msgs.lbl_actualizar_asistencia} (#{msgs.lbl_reprocesar} #{msgs.lbl_periodo})" -->
+<!-- 								actionListener="#{registroAsistenciaBean.generarAsistenciaRangoFechasListener}" process="@this cboDepartamento1" -->
+<!-- 								update=":form:panelListado cboDepartamento1" /> -->
+						</h:panelGroup>
+
+						<p:outputLabel for="mostrarReingresos" value="#{msgs.lbl_mostrar_reingresos}:" rendered="#{registroAsistenciaBean.registraReingresos}"/>
+						<p:selectBooleanCheckbox value="#{registroAsistenciaBean.mostrarReingresos}" id="mostrarReingresos" rendered="#{registroAsistenciaBean.registraReingresos}">
+							<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+						</p:selectBooleanCheckbox>
+						 
+					</h:panelGrid>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{registroAsistenciaBean.indicadorAgrupado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_asistencia})">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpleadoResumido" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{registroAsistenciaBean.listaEmpleadoResumido}" var="empleado" binding="#{registroAsistenciaBean.dtEmpleadoResumido}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{registroAsistenciaBean.numeroFilas}"
+							rowsPerPageTemplate="#{registroAsistenciaBean.numeroFilasPorPagina}" rowKey="#{empleado.id}"
+							filteredValue="#{registroAsistenciaBean.listaEmpleadoFiltrado}">
+
+							<p:column styleClass="columnaDTAccion tableCell0">
+								<p:rowToggler>
+								</p:rowToggler>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_identificacion}" filterMatchMode="contains"
+								filterBy="#{empleado.identificacion}">
+								<h:outputText value="#{empleado.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_apellidos}" filterMatchMode="contains" filterBy="#{empleado.apellidos}">
+								<h:outputText value="#{empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombres}" filterMatchMode="contains" filterBy="#{empleado.nombres}">
+								<h:outputText value="#{empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_falta}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHorasFalta}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_permiso}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHorasPermiso}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_subsidio}" />
+								</f:facet>
+								<h:outputText rendered="#{empleado.totalHorasSubsidio != 0}" value="#{empleado.totalHorasSubsidio}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_dias_vacacion}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalDiasVacaciones}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_25}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras25}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_50}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras50}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_100}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras100}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell registro_horas_extras">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_100_feriado}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras100Feriado}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell" rendered="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_25} #{msgs.lbl_aprobadas}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras25Aprobadas}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_50} #{msgs.lbl_aprobadas}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras50Aprobadas}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_100} #{msgs.lbl_aprobadas}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras100Aprobadas}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTValorCorto tableCell" rendered="#{registroAsistenciaBean.apruebaHorasExtra100Feriado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horas_extras_100_feriado} #{msgs.lbl_aprobadas}" />
+								</f:facet>
+								<h:outputText value="#{empleado.totalHoras100FeriadoAprobadas}" />
+							</p:column>
+
+							<p:column width="60" styleClass="tableCell">
+								<f:facet name="header">
+									<p:commandLink id="btnAprobarTodos" process="@this :form:panelListado" global="false" title="#{msgs.btn_aprobar} #{msgs.lbl_todos}"
+										update=":form:panelListado" action="#{registroAsistenciaBean.aprobarCancelarTodoHorasExtras(true)}">
+										<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+
+									<p:commandLink id="btnLimpiarTodos" process="@this :form:panelListado" global="false" title="#{msgs.btn_limpiar} #{msgs.lbl_todos}"
+										update=":form:panelListado" action="#{registroAsistenciaBean.aprobarCancelarTodoHorasExtras(false)}">
+										<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</f:facet>
+								 <center>
+									<p:commandLink id="btnAprobar" process="@this :form:panelListado" global="false" title="#{msgs.btn_aprobar}" update=":form:panelListado"
+										action="#{registroAsistenciaBean.aprobarCancelarHorasExtras(empleado,true,false)}">
+										<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+
+									<p:commandLink id="btnLimpiar" process="@this :form:panelListado" global="false" title="#{msgs.btn_limpiar}" update=":form:panelListado"
+										action="#{registroAsistenciaBean.aprobarCancelarHorasExtras(empleado,false,false)}">
+										<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+								
+							</p:column>
+
+							<p:columnGroup type="footer" id="panelTotal">
+								<p:row>
+									<p:column colspan="4" footerText="#{msgs.lbl_total}:	" style="text-align:right">
+									</p:column>
+
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasFaltaTotal}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasPermisoTotal}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasSubsidioTotal}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.diasVacacionesTotal}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasExtra25Total}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasExtra50Total}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasExtra100Total}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasExtra100FeriadoTotal}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasExtra50AprobadasTotal}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasExtra100AprobadasTotal}" />
+										</f:facet>
+									</p:column>
+									<p:column style="text-align:right" rendered="#{registroAsistenciaBean.apruebaHorasExtra100Feriado}">
+										<f:facet name="footer" style="text-align:right">
+											<h:outputText value="#{registroAsistenciaBean.horasExtra100FeriadoAprobadasTotal}" />
+										</f:facet>
+									</p:column>
+
+									<p:column />
+								</p:row>
+							</p:columnGroup>
+
+							<p:rowExpansion>
+								<as2:tablaRegistroAsistencia bean="#{registroAsistenciaBean}" lista="#{empleado.listaAsistencia}" agrupado="true" id="tablaAsistenciaAgrupada"
+									filteredValue="#{registroAsistenciaBean.listaAsistenciaFiltrado}" />
+							</p:rowExpansion>
+
+						</p:dataTable>
+
+					</p:panel>
+					<p:panel rendered="#{!registroAsistenciaBean.indicadorAgrupado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_asistencia})">
+						<as2:tablaRegistroAsistencia rendered="#{!registroAsistenciaBean.indicadorAgrupado}" bean="#{registroAsistenciaBean}"
+							lista="#{registroAsistenciaBean.listaAsistencia}" agrupado="false" id="tablaAsistencia"
+							filteredValue="#{registroAsistenciaBean.listaAsistenciaFiltrado}" />
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{registroAsistenciaBean.asistencia.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{registroAsistenciaBean.asistencia.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{registroAsistenciaBean.asistencia.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{registroAsistenciaBean.asistencia.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

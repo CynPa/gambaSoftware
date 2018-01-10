@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_corte_fecha}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteCorteFechaClienteBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteListaTransacionBancoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa" value="#{reporteCorteFechaClienteBean.empresa}"
+								completeMethod="#{reporteCorteFechaClienteBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+								itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+								<p:ajax listener="#{reporteCorteFechaClienteBean.actualizarClienteListener}" process="@this" event="itemSelect" update=":form:cboSubempresa" />
+
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_subcliente}:" />
+							<p:selectOneMenu id="cboSubempresa" styleClass="input-text" value="#{reporteCorteFechaClienteBean.subempresa}">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+								<f:selectItems value="#{reporteCorteFechaClienteBean.listaSubempresa}" var="_subEmpresa" itemValue="#{_subEmpresa}"
+									itemLabel="#{_subEmpresa.empresaFinal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteCorteFechaClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteCorteFechaClienteBean.fechaHasta}" id="calFechaHasta" />
+
+							<h:outputText value="#{msgs.lbl_recaudador}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteCorteFechaClienteBean.recaudador}" id="cboRecaudador" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteCorteFechaClienteBean.listaRecaudador}" var="_tipoRecaudo" itemLabel="#{_tipoRecaudo.nombre}"
+									itemValue="#{_tipoRecaudo}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteCorteFechaClienteBean.agenteComercial}" id="cboAgenteComercial" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteCorteFechaClienteBean.listaAgenteComercial}" var="_agenteComercial"
+									itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_sucursal}" />
+							<p:selectOneMenu value="#{reporteCorteFechaClienteBean.sucursal}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteCorteFechaClienteBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}"
+									id="cboSucursal" />
+								<p:ajax process="@this" listener="#{reporteCorteFechaClienteBean.cargarPuntoVenta}" update="cboPuntoVenta"
+									event="change" partialSubmit="true" global="false"/>
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_punto_de_venta}" />
+							<p:selectOneMenu value="#{reporteCorteFechaClienteBean.puntoVenta}" id="cboPuntoVenta">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteCorteFechaClienteBean.listaPuntoVenta}" var="_puntoVenta" itemLabel="#{_puntoVenta.nombre}"
+									itemValue="#{_puntoVenta}" />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_zona}" />
+							<p:selectOneMenu value="#{reporteCorteFechaClienteBean.zona}" id="cboZona">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteCorteFechaClienteBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}"
+									itemValue="#{_zona}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_categoria_empresa_titulo}"></p:outputLabel>
+							<p:selectOneMenu styleClass="input-text" value="#{reporteCorteFechaClienteBean.categoriaEmpresa}" id="cboCategoriaEmpresa">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteCorteFechaClienteBean.listaCategoriaEmpresa}" var="_categoriaEmpresa" itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<!--#{sesionControler.manejaProyectos}-->
+							<h:outputText value="#{msgs.lbl_proyecto}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoProyecto"
+								value="#{reporteCorteFechaClienteBean.proyecto}" completeMethod="#{sesionControler.autocompletarProyectosActivos}" var="_proyecto"
+								itemLabel="#{_proyecto.nombre}" itemValue="#{_proyecto}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_proyecto.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_proyecto.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" />
+							</p:autoComplete>
+							
+							<h:outputText value="#{msgs.lbl_resumen}:" />
+							<p:selectBooleanCheckbox value="#{reporteCorteFechaClienteBean.indicadorResumen}"></p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

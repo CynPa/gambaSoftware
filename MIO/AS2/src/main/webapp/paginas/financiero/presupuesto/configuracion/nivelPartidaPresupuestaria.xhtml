@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<!--  
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{nivelPartidaPresupuestariaBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value="tablaNivelPartidaPresupuestaria" />
+					<ui:param name="columnasAExcluir" value="5" />
+					<ui:param name="columnasAExcluirPdf" value="5" />
+				</ui:include>
+				-->
+				
+				<as2:toolBar bean="#{nivelPartidaPresupuestariaBean}">
+					<as2:buttonEliminar bean="#{nivelPartidaPresupuestariaBean}">	
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{nivelPartidaPresupuestariaBean}" tabla=":form:tablaNivelPartidaPresupuestaria" />
+				</as2:toolBar>
+
+				<p:separator />
+
+				<!--
+				<p:confirmDialog message="#{msgs.confirmacion_msg}?" width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaNivelPartidaPresupuestaria,mensajes" process="@this"
+						actionListener="#{nivelPartidaPresupuestariaBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+				-->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{nivelPartidaPresupuestariaBean.editado}"
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_nivel_partida_presupuestaria} )">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{nivelPartidaPresupuestariaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.codigo}"
+								id="txtCodigo" required="true"/>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.nombre}"
+								id="txtNombre" required="true"/>
+
+							<h:outputText value="#{msgs.lbl_longitud}:" />
+							<p:inputText styleClass="input-text"
+								value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.longitud}"
+								id="txtLongitud" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.descripcion}"
+								id="txtDescripcion" />
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel
+						header="#{msgs.lbl_panel_listado}  ( #{msgs.lbl_nivel_partida_presupuestaria} )"
+						rendered="#{!nivelPartidaPresupuestariaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaNivelPartidaPresupuestaria"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{nivelPartidaPresupuestariaBean.listaNivelPartidaPresupuestaria}"
+							var="_nivelPartidaPresupuestaria"
+							binding="#{nivelPartidaPresupuestariaBean.dtNivelPartidaPresupuestaria}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{nivelPartidaPresupuestariaBean.numeroFilas}"
+							rowsPerPageTemplate="#{nivelPartidaPresupuestariaBean.numeroFilasPorPagina}"
+							selection="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria}"
+							selectionMode="single"
+							rowKey="#{_nivelPartidaPresupuestaria.idNivelPartidaPresupuestaria}" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" filterBy="#{_nivelPartidaPresupuestaria.codigo}" sortBy="#{_nivelPartidaPresupuestaria.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_nivelPartidaPresupuestaria.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" filterBy="#{_nivelPartidaPresupuestaria.nombre}" sortBy="#{_nivelPartidaPresupuestaria.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_nivelPartidaPresupuestaria.nombre}" />
+							</p:column>						
+
+							<p:column styleClass="tableCell columnaDTValor" sortBy="#{_nivelPartidaPresupuestaria.longitud}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_longitud}" />
+								</f:facet>
+								<h:outputText value="#{_nivelPartidaPresupuestaria.longitud}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_nivelPartidaPresupuestaria.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox
+									value="#{_nivelPartidaPresupuestaria.activo}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox
+									value="#{_nivelPartidaPresupuestaria.predeterminado}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_nivelPartidaPresupuestaria.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{nivelPartidaPresupuestariaBean.nivelPartidaPresupuestaria.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

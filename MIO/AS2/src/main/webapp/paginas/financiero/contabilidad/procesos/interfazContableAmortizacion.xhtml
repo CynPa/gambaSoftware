@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{interfazContableAmortizacionBean}">
+					<as2:buttonEliminar bean="#{interfazContableAmortizacionBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<h:outputText value="#{interfazContableAmortizacionBean.interfazContableProceso.fechaHasta}" />
+					</as2:buttonEliminar>
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{interfazContableAmortizacionBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{interfazContableAmortizacionBean.interfazContableProceso.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>	
+				</as2:toolBar>
+
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{interfazContableAmortizacionBean.exContabilizacion.mensajes}"
+							var="_mensaje" rowIndexVar="secuencial" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_interfaz_contable_amortizacion}" rendered="#{interfazContableAmortizacionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento_documentoBase}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{interfazContableAmortizacionBean.interfazContableProceso.filtroDocumentoBase}"
+									id="cboDocumentoBase">
+									<f:selectItems value="#{interfazContableAmortizacionBean.listaDocumentoBase}" />
+									<f:validateBean for="cboDocumentoBase" />
+									<p:ajax process="@this" event="change" listener="#{interfazContableAmortizacionBean.cargarListaDocumento}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_anio}:" />
+								<p:inputMask id="txtAnio" mask="9999" value="#{interfazContableAmortizacionBean.anio}">
+									<p:ajax process="@this" event="change" global="false" />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_mes}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{interfazContableAmortizacionBean.mes}" id="cboMes">
+									<f:selectItems value="#{interfazContableAmortizacionBean.listaMes}" />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+
+								<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar" action="#{interfazContableAmortizacionBean.procesar}"
+									process="@this,cboDocumentoBase,txtAnio,cboMes" update=":form:panelDetalleAmortizacion" />
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<p:outputPanel id="panelDetalleAmortizacion">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{interfazContableAmortizacionBean.listaDetalleAmortizacion}"
+									id="tablaDetalleAmortizacion" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle" paginator="true"
+									paginatorPosition="bottom" style="width:100%" binding="#{interfazContableAmortizacionBean.dtDetalleAmortizacion}" rowKey="#{_detalle.id}"
+									rows="#{interfazContableAmortizacionBean.numeroFilas}" rowsPerPageTemplate="#{interfazContableAmortizacionBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_amortizacion}">
+										<h:outputText value="#{_detalle.amortizacion.numero}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTFechaInput" headerText="#{msgs.lbl_fecha_vencimiento}">
+										<h:outputText value="#{_detalle.fechaVencimiento}">
+											<f:convertDateTime pattern="#{interfazContableAmortizacionBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_valor}">
+										<h:outputText value="#{_detalle.valor}" />
+									</p:column>
+									
+									<!-- TOTALES -->
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="3" footerText="#{msgs.lbl_total}" style="text-align:right" />
+											<p:column>
+												<f:facet name="footer" colspan="4" style="text-align:right" id="txtTotal">
+													<h:outputText value="#{interfazContableAmortizacionBean.totalDetalleAmortizacion}">
+														<f:convertNumber pattern="#{interfazContableAmortizacionBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+								</p:dataTable>
+							</p:outputPanel>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_interfaz_contable_amortizacion}" rendered="#{!interfazContableAmortizacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaInterfazContableProceso" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{interfazContableAmortizacionBean.listaInterfazContableProceso}" var="_interfazContableProceso"
+							paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{interfazContableAmortizacionBean.dtInterfazContableProceso}"
+							rows="#{interfazContableAmortizacionBean.numeroFilas}" rowsPerPageTemplate="#{interfazContableAmortizacionBean.numeroFilasPorPagina}"
+							selection="#{interfazContableAmortizacionBean.interfazContableProceso}" selectionMode="single" rowKey="#{_interfazContableProceso.id}"
+							sortBy="#{_interfazContableProceso.fechaDesde}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaDesde}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_desde}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaDesde}">
+									<f:convertDateTime pattern="#{interfazContableAmortizacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaHasta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_hasta}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaHasta}">
+									<f:convertDateTime pattern="#{interfazContableAmortizacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_interfazContableProceso.fechaContabilizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_contabilizacion}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.fechaContabilizacion}">
+									<f:convertDateTime pattern="#{interfazContableAmortizacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_interfazContableProceso.asiento.tipoAsiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_asiento}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.asiento.tipoAsiento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _interfazContableProceso.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_interfazContableProceso.asiento}">
+									<f:param name="idAsiento" value="#{_interfazContableProceso.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTEstado" sortBy="#{_interfazContableProceso.estado}" filterBy="#{_interfazContableProceso.estado}"
+								filterOptions="#{interfazContableAmortizacionBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nota}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.observacion}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{interfazContableAmortizacionBean.interfazContableProceso.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{interfazContableAmortizacionBean.interfazContableProceso.usuarioCreacion}" />
+					<ui:param name="fechaModificacion" value="#{interfazContableAmortizacionBean.interfazContableProceso.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{interfazContableAmortizacionBean.interfazContableProceso.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

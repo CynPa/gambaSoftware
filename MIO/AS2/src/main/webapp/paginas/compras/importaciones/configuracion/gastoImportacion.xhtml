@@ -1,0 +1,207 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{gastoImportacionBean}">
+					<as2:buttonEliminar bean="#{gastoImportacionBean}" />
+					<as2:buttonExportaExcel bean="#{gastoImportacionBean}" tabla=":form:tablaGastoImportacion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_gasto_importacion}" rendered="#{gastoImportacionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{gastoImportacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText value="#{gastoImportacionBean.gastoImportacion.codigo}" styleClass="input-text" id="txtCodigo" maxlength="10" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText value="#{gastoImportacionBean.gastoImportacion.nombre}" styleClass="input-text" id="txtNombre" maxlength="50" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="cboGrupoGastoImportacion" value="#{msgs.lbl_grupo_gasto_importacion}:" />
+								<p:selectOneMenu value="#{gastoImportacionBean.gastoImportacion.grupoGastoImportacion}" id="cboGrupoGastoImportacion" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{gastoImportacionBean.listaGrupoGastoImportacion}" var="_grupoGastoImportacion"
+										itemLabel="#{_grupoGastoImportacion.nombre}" itemValue="#{_grupoGastoImportacion}" />
+									<f:validateBean />|
+									</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_tipo_tramite_importacion}:" />
+								<p:selectOneMenu value="#{gastoImportacionBean.gastoImportacion.tipoTramiteImportacion}" id="cboTipoTramiteImportacion">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{gastoImportacionBean.listaTipoTramiteImportacion}" var="_tipoTramiteImportacion"
+										itemLabel="#{_tipoTramiteImportacion.nombre}" itemValue="#{_tipoTramiteImportacion}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboTipoProrrateo" value="#{msgs.lbl_tipo_prorrateo}:" />
+								<p:selectOneMenu value="#{gastoImportacionBean.gastoImportacion.tipoProrrateo}" id="cboTipoProrrateo" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{gastoImportacionBean.listaTipoProrrateo}" var="_tipoProrrateo" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_factura_exterior}:" />
+								<p:selectBooleanCheckbox value="#{gastoImportacionBean.gastoImportacion.indicadorFacturaExterior}">
+									<p:ajax process="@this" update="@this :form:txtPorcentaje :form:txtValorManual" event="change"
+										listener="#{gastoImportacionBean.actualizaPorcentaje}" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_calculo_automatico}:" />
+								<p:selectBooleanCheckbox value="#{gastoImportacionBean.gastoImportacion.indicadorCalculoAutomatico}">
+									<p:ajax process="@this" update="@this :form:panelValores" event="change"
+										listener="#{gastoImportacionBean.actualizaPorcentaje}" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_porcentaje}:" />
+
+								<h:panelGrid id="panelValores" columns="3">
+									<p:inputText value="#{gastoImportacionBean.gastoImportacion.porcentaje}" styleClass="input-text" id="txtPorcentaje"
+										disabled="#{!gastoImportacionBean.gastoImportacion.indicadorCalculoAutomatico}" required="true">
+										<p:ajax process="@this" update="@this :form:panelValores" event="change"
+										listener="#{gastoImportacionBean.procesarPorcentaje}" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_valor_manual}:" />
+
+									<p:inputText value="#{gastoImportacionBean.gastoImportacion.valorManual}" required="true"
+										disabled="#{!gastoImportacionBean.gastoImportacion.indicadorCalculoAutomatico}" styleClass="input-text" id="txtValorManual">
+										<p:ajax process="@this" update="@this :form:panelValores" event="change"
+										listener="#{gastoImportacionBean.procesarValorManual}" />
+									</p:inputText>
+								</h:panelGrid>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{gastoImportacionBean.gastoImportacion.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{gastoImportacionBean.gastoImportacion.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{gastoImportacionBean.gastoImportacion.predeterminado}" />
+
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_gasto_importacion}" rendered="#{!gastoImportacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGastoImportacion" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{gastoImportacionBean.listaGastoImportacion}" var="_gastoImportacion" binding="#{gastoImportacionBean.dtGastoImportacion}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{gastoImportacionBean.numeroFilas}"
+							selection="#{gastoImportacionBean.gastoImportacion}" selectionMode="single" rowKey="#{_gastoImportacion.idGastoImportacion}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column sortBy="#{_gastoImportacion.codigo}" filterBy="#{_gastoImportacion.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_gastoImportacion.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.nombre}" filterBy="#{_gastoImportacion.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_gastoImportacion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.grupoGastoImportacion.nombre}" filterBy="#{_gastoImportacion.grupoGastoImportacion.nombre}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_grupo_gasto_importacion}:" />
+								</f:facet>
+								<h:outputText value="#{_gastoImportacion.grupoGastoImportacion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.tipoProrrateo}" filterBy="#{_gastoImportacion.tipoProrrateo}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_prorrateo}:" />
+								</f:facet>
+								<h:outputText value="#{_gastoImportacion.tipoProrrateo}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.porcentaje}" styleClass="columnaDTPorcentaje tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_porcentaje}" />
+								</f:facet>
+								<h:outputText value="#{_gastoImportacion.porcentaje}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.valorManual}" styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_manual}" />
+								</f:facet>
+								<h:outputText value="#{_gastoImportacion.valorManual}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.indicadorCalculoAutomatico}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_calculo_automatico}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_gastoImportacion.indicadorCalculoAutomatico}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_gastoImportacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoImportacion.predeterminado}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_gastoImportacion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column filterBy="#{_gastoImportacion.descripcion}" sortBy="#{_gastoImportacion.descripcion}" styleClass="tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<as2:inputTextNota value="#{_gastoImportacion.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{gastoImportacionBean.gastoImportacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{gastoImportacionBean.gastoImportacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{gastoImportacionBean.gastoImportacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{gastoImportacionBean.gastoImportacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

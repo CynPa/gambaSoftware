@@ -1,0 +1,743 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{cargaCassBean}">
+					<as2:buttonEliminar bean="#{cargaCassBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_file_number}:#" />
+						<h:outputText value="#{cargaCassBean.cass.fileNumber}" />
+					</as2:buttonEliminar>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+
+					<p:panel rendered="#{cargaCassBean.editado}" header="#{msgs.lbl_panel_edicion} Cass">
+
+
+						<h:panelGrid id="panelDetalle" columns="#{cargaCassBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaCassBean.cass.documento}" id="cboDocumento" required="true" style="width:100%">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaCassBean.listaDocumentoAerolinea}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+								<p:ajax process="@this" update="txtNumero" />
+
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputMask styleClass="input-text" value="#{cargaCassBean.cass.numero}" id="txtNumero">
+								<f:validateBean />
+							</p:inputMask>
+
+
+							<p:outputLabel value="#{msgs.lbl_record_id}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.recordId}">
+							</p:inputText>
+
+							<p:outputLabel value="#{msgs.lbl_cass_area_code}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.cassAreaCode}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_airline_prefix}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.airlinePrefix}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_date_period_start}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.datePeriodStart}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_date_period_end}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.datePeriodEnd}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_date_of_billing}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.dateOfBilling}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_file_number}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.fileNumber}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_currency_code}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.currencyCode}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_branch_office_indicator}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.branchOfficeIndicator}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_filler}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.filler}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_reserved_space}:" />
+							<p:inputText styleClass="input-text" value="#{cargaCassBean.cass.reservedSpace}">
+							</p:inputText>
+
+
+						</h:panelGrid>
+						<p:outputPanel>
+							<p:fileUpload fileUploadListener="#{cargaCassBean.migrarCass}" mode="advanced" update="panelNuevo" auto="true" sizeLimit="10000000"
+								allowTypes="/(\.|\/)(HOT)$/" label="#{msgs.btn_cargar_excel}" process="@this" />
+
+						</p:outputPanel>
+
+
+						<p:accordionPanel id="accTablas" multiple="true">
+
+
+							<p:tab title="AWM">
+
+								<as2:buttonExportaExcel bean="#{consultaCassBean}" tabla=":form:accTablas:tablaErrores" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaErrores" value="#{cargaCassBean.listaCassAWM}" var="_cass"
+									emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20" paginatorPosition="bottom"
+									rowsPerPageTemplate="#{cargaCassBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencia+1}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Record Id">
+										<h:outputText value="#{_cass.recordId}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="branch Office Indicator">
+										<h:outputText value="#{_cass.branchOfficeIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Vat Indicator">
+										<h:outputText value="#{_cass.vatIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Air line Prefix">
+										<h:outputText value="#{_cass.airlinePrefix}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Awb Serial Number">
+										<h:outputText value="#{_cass.awbSerialNumber}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Awb Modular Number Check">
+										<h:outputText value="#{_cass.awbModularNumberCheck}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Filler">
+										<h:outputText value="#{_cass.filler}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Origin">
+										<h:outputText value="#{_cass.origin}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Agent Code">
+										<h:outputText value="#{_cass.agentCode}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Awb Use Indicator">
+										<h:outputText value="#{_cass.awbUseIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Late Indicator">
+										<h:outputText value="#{_cass.lateIndicator}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Filler">
+										<h:outputText value="#{_cass.filler2}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Destination">
+										<h:outputText value="#{_cass.destination}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Date Awb Execution">
+										<h:outputText value="#{_cass.dateAwbExecution}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Weight Gross">
+										<h:outputText value="#{_cass.weightGross}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Weight Indicator">
+										<h:outputText value="#{_cass.weightIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Currency Code">
+										<h:outputText value="#{_cass.currencyCode}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Weight Charge Pp">
+										<h:outputText value="#{_cass.weightChargePp}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Valuation Charge Pp">
+										<h:outputText value="#{_cass.valuationChargePp}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Charges Due Carrier Pp">
+										<h:outputText value="#{_cass.chargesDueCarrierPp}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Charges Due Agent Pp">
+										<h:outputText value="#{_cass.chargesDueAgentPp}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Weight Charge Cc">
+										<h:outputText value="#{_cass.weightChargeCc}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Valuation Charge Cc">
+										<h:outputText value="#{_cass.valuationChargeCc}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Other Charges Due Carrier Cc">
+										<h:outputText value="#{_cass.otherChargesDueCarrierCc}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Other Charges Due Agent Cc">
+										<h:outputText value="#{_cass.otherChargesDueAgentCc}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Commission Percentage">
+										<h:outputText value="#{_cass.commissionPercentage}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Commission">
+										<h:outputText value="#{_cass.commission}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Filler">
+										<h:outputText value="#{_cass.filler3}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Tax Due Airline Indicator">
+										<h:outputText value="#{_cass.taxDueAirlineIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Agents Reference Data">
+										<h:outputText value="#{_cass.agentsReferenceData}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="Filler">
+										<h:outputText value="#{_cass.filler4}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Date Awb Acceptance">
+										<h:outputText value="#{_cass.dateAwbAcceptance}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Rate Of Exchange">
+										<h:outputText value="#{_cass.rateOfExchange}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Discount">
+										<h:outputText value="#{_cass.discount}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Tax Due Airline">
+										<h:outputText value="#{_cass.taxDueAirline}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Tax Due Agent">
+										<h:outputText value="#{_cass.taxDueAgent}" />
+									</p:column>
+
+
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="18" footerText="Totales " style="text-align:right">
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalPesoCargaAWM}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalChargesDueCarrierPpAWM}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalWeightChargeCcAWM}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalOtherChargesDueCarrierCcAWM}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalOtherChargesDueAgentCcAWM}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="8" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalRateOfExchangeAWM}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalDiscountAWM}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+
+							</p:tab>
+
+
+							<p:tab title="CCR/DCR  -  CCO/DCO">
+
+								<as2:buttonExportaExcel bean="#{consultaCassBean}" tabla=":form:accTablas:tablaDCR" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDCR" value="#{cargaCassBean.listaCcrDcr}" var="_cass"
+									emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20">
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencia+1}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Record Id">
+										<h:outputText value="#{_cass.recordId}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Branch Office Indicator">
+										<h:outputText value="#{_cass.branchOfficeIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Var Indicator">
+										<h:outputText value="#{_cass.vatIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Airline Prefix">
+										<h:outputText value="#{_cass.airlinePrefix}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Awb Serial Number">
+										<h:outputText value="#{_cass.awbSerialNumber}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Awb Number Modular Check">
+										<h:outputText value="#{_cass.awbNumberModularCheck}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Filler">
+										<h:outputText value="#{_cass.filler}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Origin">
+										<h:outputText value="#{_cass.origin}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Agent Code">
+										<h:outputText value="#{_cass.agentCode}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Cca Dcm Number">
+										<h:outputText value="#{_cass.ccaDcmNumber}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Currency Code">
+										<h:outputText value="#{_cass.currencyCode}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Rate Of Exchange">
+										<h:outputText value="#{_cass.rateOfExchange}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Date Awb Execution">
+										<h:outputText value="#{_cass.dateAwbExecution}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Ppcc Indicator">
+										<h:outputText value="#{_cass.ppCcIndicator1}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Weight Charge">
+										<h:outputText value="#{_cass.weightCharge}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Ppcc Indicator">
+										<h:outputText value="#{_cass.ppCcIndicator2}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Valuation Charge">
+										<h:outputText value="#{_cass.valuationCharge}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Ppcc Indicator">
+										<h:outputText value="#{_cass.ppCcIndicator3}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Taxes">
+										<h:outputText value="#{_cass.taxes}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Ppcc Indicator">
+										<h:outputText value="#{_cass.ppCcIndicator4}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Charges Due Agent">
+										<h:outputText value="#{_cass.chargesDueAgent}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Ppcc Indicator">
+										<h:outputText value="#{_cass.ppCcIndicator5}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Charges Due Carrier">
+										<h:outputText value="#{_cass.chargesDueCarrier}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Vat On Awb Charges">
+										<h:outputText value="#{_cass.vatOnAwbCharges}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Commission">
+										<h:outputText value="#{_cass.commission}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Vat On Commission">
+										<h:outputText value="#{_cass.vatOnCommission}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Discount">
+										<h:outputText value="#{_cass.discount}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Discount Indicator">
+										<h:outputText value="#{_cass.discountIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Weight Indicator">
+										<h:outputText value="#{_cass.weightIndicator}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Weight">
+										<h:outputText value="#{_cass.weight}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Destination">
+										<h:outputText value="#{_cass.destination}" />
+									</p:column>
+
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="12" footerText="Totales " style="text-align:right">
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalRateOfExchangeCcrDcrCcoDco}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="3" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalWeightChargeCcrDcrCcoDco}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column colspan="6" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalChargesDueAgentCcrDcrCcoDco}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalChargesDueCarrierCcrDcrCcoDco}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalCommissionCcrDcrCcoDco}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalDiscountCcrDcrCcoDco}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+							</p:tab>
+							<p:tab title="Guia Aerea Agrupada">
+								<as2:buttonExportaExcel bean="#{consultaCassBean}" tabla=":form:accTablas:tablaGuiaAerea" />
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGuiaAerea" value="#{cargaCassBean.listaGuiaAereaAgrupada}" var="_cass"
+									emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20">
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencia+1}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Agent Code">
+										<h:outputText value="#{_cass.agentCode}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Total WGT Charge">
+										<h:outputText value="#{_cass.totalWgtCharge}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Due Carrier">
+										<h:outputText value="#{_cass.totalDueCarrier}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="WGT charge collect">
+										<h:outputText value="#{_cass.totalWgtChargeCollect}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Other Agent">
+										<h:outputText value="#{_cass.totalOtherChargesDueAgentCc}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Disct">
+										<h:outputText value="#{_cass.totalDiscount}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Comm">
+										<h:outputText value="#{_cass.totalCommission}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Tax/Com">
+										<h:outputText value="#{_cass.totalTaxCom}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Iva Agt 30/80">
+										<h:outputText value="#{_cass.totalIvaAgt3080}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Iva Ret 70/20">
+										<h:outputText value="#{_cass.totalIvaRet7020}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Isrl">
+										<h:outputText value="#{_cass.totalIsrl}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Amount">
+										<h:outputText value="#{_cass.totalAmount}">
+											<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="2" footerText="Totales " style="text-align:right">
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalWGTChargeAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.dueCarrierAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.wGTChargeCollectAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.otherAgentAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.disctAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.commAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.taxComAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.ivaAgt3080Agrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.ivaRet7020Agrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.isrlAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.amountAgrupado}">
+														<f:convertNumber pattern="#{cargaCassBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+								</p:dataTable>
+							</p:tab>
+
+							<p:tab title="ASIENTO">
+								<as2:buttonExportaExcel bean="#{consultaCassBean}" tabla=":form:accTablas:tablaAsiento" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAsiento" value="#{cargaCassBean.asiento.listaDetalleAsiento}" var="_cass"
+									emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20">
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="Cuenta">
+										<h:outputText value="#{_cass.cuentaContable.nombre}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Descripcion">
+										<h:outputText value="#{_cass.descripcion}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Debito">
+										<h:outputText value="#{_cass.debe}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="Credito">
+										<h:outputText value="#{_cass.haber}" />
+									</p:column>
+									<p:columnGroup type="footer" id="panelTotal">
+
+										<p:row>
+											<p:column colspan="2" footerText="Totales " style="text-align:right">
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalDebito}">
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{cargaCassBean.totalCredito}">
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+								</p:dataTable>
+							</p:tab>
+						</p:accordionPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!cargaCassBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_banco_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCass" rowIndexVar="secuencialCass" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{cargaCassBean.listaCass}" var="_cass" binding="#{cargaCassBean.dtCass}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{cargaCassBean.numeroFilas}" rowsPerPageTemplate="#{cargaCassBean.numeroFilasPorPagina}" selection="#{cargaCassBean.cass}"
+							selectionMode="single" rowKey="#{_cass.id}" sortBy="#{_cass.fileNumber}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialCass+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_numero}">
+								<h:outputText value="#{_cass.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_record_id}">
+								<h:outputText value="#{_cass.recordId}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_cass_area_code}">
+								<h:outputText value="#{_cass.cassAreaCode}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_airline_prefix}">
+								<h:outputText value="#{_cass.airlinePrefix}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_date_period_start}">
+								<h:outputText value="#{_cass.datePeriodStart}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_date_period_end}">
+								<h:outputText value="#{_cass.datePeriodEnd}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_date_of_billing}">
+								<h:outputText value="#{_cass.dateOfBilling}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_file_number}">
+								<h:outputText value="#{_cass.fileNumber}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_currency_code}">
+								<h:outputText value="#{_cass.currencyCode}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_cass.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" sortBy="#{_cass.asiento.numero}" filterBy="#{_cass.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_cass.asiento}"
+									rendered="#{not empty _cass.asiento}">
+									<f:param name="idAsiento" value="#{_cass.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{despachoClienteBean.despachoCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{despachoClienteBean.despachoCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{despachoClienteBean.despachoCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{despachoClienteBean.despachoCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

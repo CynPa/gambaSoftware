@@ -1,0 +1,142 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<p:outputPanel id="panelNuevo" />
+				<as2:toolBar bean="#{chequePosfechadoBean}">
+					<as2:buttonExportaExcel bean="#{chequePosfechadoBean}" tabla=":form:tablaCobro" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelContabilizarChequePosfechado">
+
+					<p:dialog message="#{msgs.confirmacion_contabilizar_deposito}?" width="400" height="150" modal="true" showEffect="explode" hideEffect="explode"
+						severity="alert" widgetVar="contabilizarChequePosfechado" rendered="#{chequePosfechadoBean.indicadorRender}">
+
+						<h:panelGrid columns="2">
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{chequePosfechadoBean.formatoFecha}" showOn="button" navigator="true" value="#{chequePosfechadoBean.fechaProceso}"
+								id="calFecha" required="true">
+							</p:calendar>
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelListado"
+									process="@this :form:panelContabilizarChequePosfechado :form:calFecha" action="#{chequePosfechadoBean.procesarCobroChequePosfechado}"
+									oncomplete="contabilizarChequePosfechado.hide()">
+									<f:setPropertyActionListener target="#{chequePosfechadoBean.indicadorRender}" value="false" />
+								</p:commandButton>
+
+								<p:commandButton value="#{msgs.confirmacion_no}" onclick="contabilizarChequePosfechado.hide()">
+									<f:setPropertyActionListener target="#{chequePosfechadoBean.indicadorRender}" value="false" />
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_cheque_posfechado_panel}" rendered="#{!cobroBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCobro" rowIndexVar="secuencialNivelCuenta" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{chequePosfechadoBean.listaCobro}" var="_cobro" binding="#{chequePosfechadoBean.dtCobro}" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{chequePosfechadoBean.numeroFilas}" selection="#{chequePosfechadoBean.cobro}"
+							rowsPerPageTemplate="#{chequePosfechadoBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_cobro.id}" sortBy="#{_cobro.numero}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialNivelCuenta+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.numero}" filterBy="#{_cobro.numero}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.numero}" />
+							</p:column>
+							
+							<p:column sortBy="#{_cobro.descripcion2}" filterBy="#{_cobro.descripcion2}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cheque}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.descripcion2}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.fecha}">
+									<f:convertDateTime pattern="#{cobroBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_cobro.empresa.nombreFiscal}" filterBy="#{_cobro.empresa.nombreFiscal}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.valor}" styleClass="columnaDTValorGrande input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cobro_valor}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.valor}">
+									<f:convertNumber pattern="#{chequePosfechadoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.descripcion}" filterBy="#{_cobro.descripcion}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.descripcion}" />
+								<!--<as2:inputTextNota value="#{_cobro.descripcion}" />-->
+							</p:column>
+
+							<p:column headerText="#{msgs.btn_procesar}" exportable="false" styleClass="columnaDTAccion tableCell">
+								<center>
+									<p:commandButton oncomplete="contabilizarChequePosfechado.show()" icon="ui-icon-arrowthickstop-1-n" process="@this"
+										update=":form:panelContabilizarChequePosfechado" disabled="#{_cobro.estado == 'CONTABILIZADO'}">
+										<f:setPropertyActionListener target="#{chequePosfechadoBean.cobro}" value="#{_cobro}" />
+										<f:setPropertyActionListener target="#{chequePosfechadoBean.indicadorRender}" value="true" />
+									</p:commandButton>
+								</center>
+							</p:column>							
+							
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{chequePosfechadoBean.cobro.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{chequePosfechadoBean.cobro.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{chequePosfechadoBean.cobro.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{chequePosfechadoBean.cobro.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

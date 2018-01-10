@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tipoAmortizacionBean}">
+
+					<as2:buttonEliminar bean="#{tipoAmortizacionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoAmortizacionBean.tipoAmortizacion.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoAmortizacionBean.tipoAmortizacion.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tipoAmortizacionBean}" tabla=":form:tablatipoAmortizacion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{tipoAmortizacionBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tipo_amortizacion}">
+
+						<h:panelGrid id="panelDetalle" columns="#{tipoAmortizacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tipoAmortizacionBean.tipoAmortizacion.codigo}" id="txtCodigo" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tipoAmortizacionBean.tipoAmortizacion.nombre}" id="txtNombre" required="true">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tipoAmortizacionBean.tipoAmortizacion.descripcion}" id="txtDescripcion">
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{tipoAmortizacionBean.tipoAmortizacion.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{tipoAmortizacionBean.tipoAmortizacion.predeterminado}" />
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!tipoAmortizacionBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_tipo_amortizacion}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablatipoAmortizacion" rowIndexVar="secuencialtipoAmortizacion"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tipoAmortizacionBean.listaTipoAmortizacion}" var="tipoAmortizacion"
+							binding="#{tipoAmortizacionBean.dtTipoAmortizacion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoAmortizacionBean.numeroFilas}" rowsPerPageTemplate="#{tipoAmortizacionBean.numeroFilasPorPagina}"
+							selection="#{tipoAmortizacionBean.tipoAmortizacion}" selectionMode="single" rowKey="#{tipoAmortizacion.id}" sortBy="#{tipoAmortizacion.codigo}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialtipoAmortizacion+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{tipoAmortizacion.codigo}" filterBy="#{tipoAmortizacion.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{tipoAmortizacion.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{tipoAmortizacion.nombre}" filterBy="#{tipoAmortizacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{tipoAmortizacion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{tipoAmortizacion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{tipoAmortizacion.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{tipoAmortizacion.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{tipoAmortizacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{tipoAmortizacion.predeterminado}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tipoAmortizacionBean.tipoAmortizacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tipoAmortizacionBean.tipoAmortizacion.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{tipoAmortizacionBean.tipoAmortizacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tipoAmortizacionBean.tipoAmortizacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{interfazContableCostoVentasBean}">
+					<as2:buttonEliminar bean="#{interfazContableCostoVentasBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+						<h:outputText value="#{interfazContableCostoVentasBean.interfazContableProceso.fechaHasta}" />
+
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<h:outputText value="#{interfazContableCostoVentasBean.interfazContableProceso.fechaHasta}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{interfazContableCostoVentasBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{interfazContableCostoVentasBean.interfazContableProceso.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>	
+						
+					<as2:buttonExportaExcel bean="#{interfazContableCostoVentasBean}" tabla=":form:tablaInterfazContableProceso" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_interfaz_devolucion_costo_ventas_proceso}"
+						rendered="#{interfazContableCostoVentasBean.editado}">
+						<p:fieldset>
+
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+								<p:calendar pattern="#{interfazContableCostoVentasBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{interfazContableCostoVentasBean.interfazContableProceso.fechaDesde}" id="calFechaDesde" required="true">
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+								<p:calendar pattern="#{interfazContableCostoVentasBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{interfazContableCostoVentasBean.interfazContableProceso.fechaHasta}" id="calFechaHasta" required="true">
+								</p:calendar>
+
+								<h:outputLabel value="#{msgs.lbl_agrupado_por_cuenta_contable}:" />
+								<p:selectBooleanCheckbox value="#{interfazContableCostoVentasBean.interfazContableProceso.indicadorAgrupadoPorCuenta}"
+									id="chkIndicadorAgrupadoPorCuenta" />
+
+								<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar" action="#{interfazContableCostoVentasBean.preliminarInterfazProceso}"
+									process="@this,calFechaDesde,calFechaHasta,chkIndicadorAgrupadoPorCuenta" update="panelAsiento" />
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+
+							<p:outputPanel id="panelAsiento">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+									value="#{interfazContableCostoVentasBean.listaDetalleAsiento}"
+									id="tablaAsiento" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleasiento"
+									paginator="true" paginatorPosition="bottom" style="width:100%"
+									binding="#{interfazContableCostoVentasBean.dtDetalleAsiento}"
+									rowKey="#{_detalleasiento.id}"
+									rows="#{asientoBean.numeroFilas}"
+									rowsPerPageTemplate="#{asientoBean.numeroFilasPorPagina}"
+									sortBy="#{_detalleasiento.asiento.id}">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+									
+									<p:column styleClass="tableCell columnaDTCodigoCuenta" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleasiento.cuentaContable.codigo}" filterMatchMode="contains">
+										<h:outputText value="#{_detalleasiento.cuentaContable.codigo}" />
+									</p:column>
+									
+									<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cuenta_contable}" filterBy="#{_detalleasiento.cuentaContable.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_detalleasiento.cuentaContable.nombre}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}" filterBy="#{_detalleasiento.descripcion}" filterMatchMode="contains">
+										<h:outputText value="#{_detalleasiento.descripcion}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_asiento_debe}"
+										>
+										<h:outputText value="#{_detalleasiento.debe}"
+											rendered="#{_detalleasiento.debe>0}" id="txtDebe">
+											<f:convertNumber
+												pattern="#{interfazContableCostoVentasBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_asiento_haber}"
+										>
+										<h:outputText value="#{_detalleasiento.haber}"
+											rendered="#{_detalleasiento.haber>0}" id="txtHaber">
+											<f:convertNumber
+												pattern="#{interfazContableCostoVentasBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre"
+										headerText="#{interfazContableCostoVentasBean.nombreDimension1}"
+										rendered="#{!empty interfazContableCostoVentasBean.nombreDimension1}">
+										<h:outputText
+											value="#{_detalleasiento.dimensionContable1.nombre}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre"
+										headerText="#{interfazContableCostoVentasBean.nombreDimension2}"
+										rendered="#{!empty interfazContableCostoVentasBean.nombreDimension2}">
+										<h:outputText
+											value="#{_detalleasiento.dimensionContable2.nombre}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre"
+										headerText="#{interfazContableCostoVentasBean.nombreDimension3}"
+										rendered="#{!empty interfazContableCostoVentasBean.nombreDimension3}">
+										<h:outputText
+											value="#{_detalleasiento.dimensionContable3.nombre}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre"
+										headerText="#{interfazContableCostoVentasBean.nombreDimension4}"
+										rendered="#{!empty interfazContableCostoVentasBean.nombreDimension4}">
+										<h:outputText
+											value="#{_detalleasiento.dimensionContable4.nombre}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre"
+										headerText="#{interfazContableCostoVentasBean.nombreDimension5}"
+										rendered="#{!empty interfazContableCostoVentasBean.nombreDimension5}">
+										<h:outputText
+											value="#{_detalleasiento.dimensionContable5.nombre}" />
+									</p:column>
+									
+									<p:columnGroup type="footer" id="panelTotal">
+									<p:row>
+										<p:column colspan="4" footerText="#{msgs.lbl_total}:" style="text-align:right"/>
+										<p:column>
+											<f:facet name="footer">
+												<h:outputText value="#{interfazContableCostoVentasBean.debe}" >
+													<f:convertNumber pattern="#{interfazContableCostoVentasBean.formatoDinero}"/>
+												</h:outputText>
+											</f:facet>
+										</p:column>
+										<p:column>
+											<f:facet name="footer">
+												<h:outputText value="#{interfazContableCostoVentasBean.haber}" >
+													<f:convertNumber pattern="#{interfazContableCostoVentasBean.formatoDinero}"/>
+												</h:outputText>
+											</f:facet>
+										</p:column>
+										<p:column styleClass="input-text-number"
+												rendered="#{!empty interfazContableCostoVentasBean.nombreDimension1}"></p:column>
+										<p:column styleClass="input-text-number"
+												rendered="#{!empty interfazContableCostoVentasBean.nombreDimension2}"></p:column>
+										<p:column styleClass="input-text-number"
+												rendered="#{!empty interfazContableCostoVentasBean.nombreDimension3}"></p:column>
+										<p:column styleClass="input-text-number"
+												rendered="#{!empty interfazContableCostoVentasBean.nombreDimension4}"></p:column>
+										<p:column styleClass="input-text-number"
+												rendered="#{!empty interfazContableCostoVentasBean.nombreDimension5}"></p:column>
+									</p:row>
+									</p:columnGroup>
+									
+									
+								</p:dataTable>
+							</p:outputPanel>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_interfaz_devolucion_costo_ventas_proceso}"
+						rendered="#{!interfazContableCostoVentasBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaInterfazContableProceso" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{interfazContableCostoVentasBean.listaInterfazContableProceso}" var="_interfazContableProceso" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{interfazContableCostoVentasBean.dtInterfazContableProceso}"
+							rows="#{interfazContableCostoVentasBean.numeroFilas}" rowsPerPageTemplate="#{interfazContableCostoVentasBean.numeroFilasPorPagina}"
+							selection="#{interfazContableCostoVentasBean.interfazContableProceso}" selectionMode="single" rowKey="#{_interfazContableProceso.id}"
+							sortBy="#{_interfazContableProceso.fechaDesde}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_desde}">
+								<h:outputText value="#{_interfazContableProceso.fechaDesde}">
+									<f:convertDateTime pattern="#{interfazContableCostoVentasBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_hasta}">
+								<h:outputText value="#{_interfazContableProceso.fechaHasta}">
+									<f:convertDateTime pattern="#{interfazContableCostoVentasBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_contabilizacion}">
+								<h:outputText value="#{_interfazContableProceso.fechaContabilizacion}">
+									<f:convertDateTime pattern="#{interfazContableCostoVentasBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_asiento}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.asiento.tipoAsiento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _interfazContableProceso.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_interfazContableProceso.asiento}">
+									<f:param name="idAsiento" value="#{_interfazContableProceso.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_interfazContableProceso.estado}" filterBy="#{_interfazContableProceso.estado}"
+								filterOptions="#{interfazContableCostoVentasBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_interfazContableProceso.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_nota}">
+								<h:outputText value="#{_interfazContableProceso.observacion}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{interfazContableCostoVentasBean.interfazContableProceso.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{interfazContableCostoVentasBean.interfazContableProceso.usuarioCreacion}" />
+					<ui:param name="fechaModificacion" value="#{interfazContableCostoVentasBean.interfazContableProceso.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{interfazContableCostoVentasBean.interfazContableProceso.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

@@ -1,0 +1,278 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{cuentaContableBean}">
+					<as2:buttonEliminar bean="#{cuentaContableBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{cuentaContableBean.cuentaContable.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{cuentaContableBean.cuentaContable.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{cuentaContableBean}" tabla=":form:tablaCuentaContable"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_plan_contable}" rendered="#{cuentaContableBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{cuentaContableBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboNivelCuentaContable" value="#{msgs.lbl_nivel}:" />
+							<p:selectOneMenu required="true" styleClass="input-text" value="#{cuentaContableBean.cuentaContable.nivelCuenta.idNivelCuenta}" id="cboNivelCuentaContable">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cuentaContableBean.listaNivelCuenta}" var="_nivel" itemLabel="#{_nivel.nombre}" itemValue="#{_nivel.idNivelCuenta}" />
+								<f:validateBean />
+								<p:ajax update="txtCodigo cboCuentaContablePadre" process="@this cboGrupoCuenta" event="change"
+									listener="#{cuentaContableBean.cargarCuentaPadre}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_grupo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cuentaContableBean.cuentaContable.grupoCuenta}" id="cboGrupoCuenta">
+								<f:selectItems value="#{cuentaContableBean.listaGrupoCuenta}" />
+								<p:ajax update="txtCodigo cboCuentaContablePadre" process="cboNivelCuentaContable cboGrupoCuenta" event="change"
+									listener="#{cuentaContableBean.cargarCuentaPadre}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_cuenta_padre}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" rendered="#{!(cuentaContableBean.cuentaContable.idCuentaContable>0)}"
+									value="#{cuentaContableBean.cuentaContable.cuentaPadre.idCuentaContable}" id="cboCuentaContablePadre">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{cuentaContableBean.listaCuentaContablePadre}" />
+
+									<f:validateBean />
+									<p:ajax update="txtCodigo" event="change" process="@this" listener="#{cuentaContableBean.obtenerMascara}" />
+								</p:selectOneMenu>
+								<p:outputPanel rendered="#{cuentaContableBean.cuentaContable.idCuentaContable>0}">
+									<h:outputText value="#{cuentaContableBean.cuentaContable.cuentaPadre.nombre}" />
+								</p:outputPanel>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_tipo_cuenta}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cuentaContableBean.cuentaContable.tipoCuentaContable}" id="cboTipoCuenta">
+								<f:selectItems value="#{cuentaContableBean.listaTipoCuentaContable}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_tipo_acceso}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cuentaContableBean.cuentaContable.tipoAccesoCuentaContable}" id="cboTipoAcceso">
+								<f:selectItems value="#{cuentaContableBean.listaTipoAccesoCuentaContable}" />
+								<p:ajax process="@this" partialSubmit="true"/>
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<h:panelGrid columns="2" style="width: 95% !important;">
+								<p:inputMask value="#{cuentaContableBean.cuentaContable.codigo}" id="txtCodigo" styleClass="input-text"
+									disabled="#{cuentaContableBean.cuentaContable.idCuentaContable>0}" mask="#{cuentaContableBean.cuentaContable.mascara}" required="true">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:inputText styleClass="input-text" value="#{cuentaContableBean.cuentaContable.codigoAlterno}">
+									<f:validateBean />
+									<p:ajax process="@this" partialSubmit="true" global="false" />
+								</p:inputText>
+							</h:panelGrid>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{cuentaContableBean.cuentaContable.nombre}" id="txtNombre" required="true"/>
+
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:" />
+							<p:selectBooleanCheckbox value="#{cuentaContableBean.cuentaContable.indicadorMovimiento}">
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{cuentaContableBean.cuentaContable.activo}">
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{cuentaContableBean.cuentaContable.predeterminado}">
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{cuentaContableBean.cuentaContable.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+						<p:panel header="#{msgs.lbl_dimensiones}">
+							<h:panelGrid id="panelDimensiones" columns="#{cuentaContableBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{cuentaContableBean.nombreDimension1}" />
+								<p:selectBooleanCheckbox disabled="#{empty cuentaContableBean.nombreDimension1}"
+									value="#{cuentaContableBean.cuentaContable.indicadorValidarDimension1}">
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{cuentaContableBean.nombreDimension2}" />
+								<p:selectBooleanCheckbox disabled="#{empty cuentaContableBean.nombreDimension2}"
+									value="#{cuentaContableBean.cuentaContable.indicadorValidarDimension2}">
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{cuentaContableBean.nombreDimension3}" />
+								<p:selectBooleanCheckbox disabled="#{empty cuentaContableBean.nombreDimension3}"
+									value="#{cuentaContableBean.cuentaContable.indicadorValidarDimension3}">
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{cuentaContableBean.nombreDimension4}" />
+								<p:selectBooleanCheckbox disabled="#{empty cuentaContableBean.nombreDimension4}"
+									value="#{cuentaContableBean.cuentaContable.indicadorValidarDimension4}">
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{cuentaContableBean.nombreDimension5}" />
+								<p:selectBooleanCheckbox disabled="#{empty cuentaContableBean.nombreDimension5}"
+									value="#{cuentaContableBean.cuentaContable.indicadorValidarDimension5}">
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+							</h:panelGrid>
+						</p:panel>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_plan_contable}" rendered="#{!cuentaContableBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCuentaContable" rowIndexVar="secuencialCuentaContable" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{cuentaContableBean.listaCuentaContable}" var="cuentaContable" binding="#{cuentaContableBean.dtCuentaContable}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rowsPerPageTemplate="#{cuentaContableBean.numeroFilasPorPagina}"
+							rows="#{cuentaContableBean.numeroFilas}" selection="#{cuentaContableBean.cuentaContable}" selectionMode="single" rowKey="#{cuentaContable.id}"
+							sortBy="#{cuentaContable.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialCuentaContable+1}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTCodigoCuenta" sortBy="#{cuentaContable.codigo}" filterBy="#{cuentaContable.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{cuentaContable.codigo}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{cuentaContable.nombre}" filterBy="#{cuentaContable.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{cuentaContable.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{cuentaContable.nivelCuenta.nombre}" filterBy="#{cuentaContable.nivelCuenta.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nivel}" />
+								</f:facet>
+								<h:outputText value="#{cuentaContable.nivelCuenta.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{cuentaContable.grupoCuenta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_grupo}" />
+								</f:facet>
+								<h:outputText value="#{cuentaContable.grupoCuenta.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{cuentaContable.tipoCuentaContable}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_cuenta}" />
+								</f:facet>
+								<h:outputText value="#{cuentaContable.tipoCuentaContable.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTCodigoCuenta" filterBy="#{cuentaContable.codigoAlterno}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+								</f:facet>
+								<h:outputText value="#{cuentaContable.codigoAlterno}" />
+							</p:column>
+														
+							<p:column styleClass="tableCell columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_movimiento}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{cuentaContable.indicadorMovimiento}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{cuentaContable.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{cuentaContable.activo}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{cuentaContable.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{cuentaContableBean.nombreDimension1}" rendered="#{!empty cuentaContableBean.nombreDimension1}">
+								<p:selectBooleanCheckbox value="#{cuentaContable.indicadorValidarDimension1}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{cuentaContableBean.nombreDimension2}" rendered="#{!empty cuentaContableBean.nombreDimension2}">
+								<p:selectBooleanCheckbox value="#{cuentaContable.indicadorValidarDimension2}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{cuentaContableBean.nombreDimension3}" rendered="#{!empty cuentaContableBean.nombreDimension3}">
+								<p:selectBooleanCheckbox value="#{cuentaContable.indicadorValidarDimension3}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{cuentaContableBean.nombreDimension4}" rendered="#{!empty cuentaContableBean.nombreDimension4}">
+								<p:selectBooleanCheckbox value="#{cuentaContable.indicadorValidarDimension4}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{cuentaContableBean.nombreDimension5}" rendered="#{!empty cuentaContableBean.nombreDimension5}">
+								<p:selectBooleanCheckbox value="#{cuentaContable.indicadorValidarDimension5}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{cuentaContable.descripcion}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{cuentaContableBean.cuentaContable.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{cuentaContableBean.cuentaContable.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{cuentaContableBean.cuentaContable.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{cuentaContableBean.cuentaContable.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

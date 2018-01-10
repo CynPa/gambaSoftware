@@ -1,0 +1,231 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{personaResponsableBean}">
+
+					<as2:buttonEliminar bean="#{personaResponsableBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{personaResponsableBean.entidad.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{personaResponsableBean.entidad.nombres}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{personaResponsableBean}" tabla=":form:tablaPersonaResponsableBean" />
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_persona_responsable_panel}" rendered="#{personaResponsableBean.editado}">
+						<h:panelGrid id="panelCabecera" columns="#{personaResponsableBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{personaResponsableBean.entidad.codigo}" id="txtCodigo" required="true">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboTipoIdentificacion" value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{personaResponsableBean.entidad.tipoIdentificacion}" id="cboTipoIdentificacion"
+								required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{personaResponsableBean.listaTipoIdentificacionCombo}" var="_tipoIdentificacion"
+									itemLabel="#{_tipoIdentificacion.nombre}" itemValue="#{_tipoIdentificacion}" />
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtIdentificacion" value="#{msgs.lbl_empresa_identificacion}:" />
+							<p:inputText styleClass="input-text" id="txtIdentificacion" value="#{personaResponsableBean.entidad.identificacion}" required="true">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombres}:" />
+							<p:inputText styleClass="input-text" value="#{personaResponsableBean.entidad.nombres}" id="txtNombre" required="true">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtApellido" value="#{msgs.lbl_apellidos}:" />
+							<p:inputText styleClass="input-text" value="#{personaResponsableBean.entidad.apellidos}" id="txtApellido" required="true">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="autoEspecialidad" value="#{msgs.lbl_especialidad}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEspecialidad"
+								value="#{personaResponsableBean.entidad.especialidad}" completeMethod="#{personaResponsableBean.autocompletarEspecialidad}"
+								var="_especialidad" itemLabel="#{_especialidad.codigo} #{_especialidad.nombre}" itemValue="#{_especialidad}" forceSelection="true"
+								dropdown="true" minQueryLength="2">
+								<p:column headerText="#{msgs.lbl_codigo}">#{_especialidad.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_especialidad.nombre}</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_externo}:" />
+							<p:selectBooleanCheckbox value="#{personaResponsableBean.entidad.indicadorExterno}">
+								<p:ajax process="@this" global="false" update=":form:panelNuevo" listener="#{personaResponsableBean.actualizarIndicadorExterno}" />
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<p:outputLabel for="autProveedor" value="#{msgs.lbl_proveedor}:" rendered="#{personaResponsableBean.entidad.indicadorExterno}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{personaResponsableBean.entidad.proveedor}"
+								completeMethod="#{personaResponsableBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+								itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" id="autProveedor" required="true"
+								rendered="#{personaResponsableBean.entidad.indicadorExterno}">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" update=":form:panelNuevo" />
+							</p:autoComplete>
+
+							<p:outputLabel for="autEmpleado" value="#{msgs.lbl_empleado}:" rendered="#{!personaResponsableBean.entidad.indicadorExterno}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{personaResponsableBean.entidad.empleado}"
+								completeMethod="#{personaResponsableBean.autocompletarEmpleados}" var="_empleado" itemLabel="#{_empleado.nombres} #{_empleado.apellidos}"
+								itemValue="#{_empleado}" forceSelection="true" dropdown="true" minQueryLength="2" id="autEmpleado" required="true"
+								rendered="#{!personaResponsableBean.entidad.indicadorExterno}">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_empleado.empresa.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empleado_nombres}">#{_empleado.nombres}</p:column>
+								<p:column headerText="#{msgs.lbl_empleado_apellios}">#{_empleado.apellidos}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" update=":form:panelNuevo" listener="#{personaResponsableBean.actualizarEmpleado}" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_salida_mercaderia}:" />
+							<p:selectBooleanCheckbox value="#{personaResponsableBean.entidad.indicadorSalidaMercaderia}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_mantenimiento}:" />
+							<p:selectBooleanCheckbox value="#{personaResponsableBean.entidad.indicadorMantenimiento}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_orden_fabricacion}:" />
+							<p:selectBooleanCheckbox value="#{personaResponsableBean.entidad.indicadorOrdenFabricacion}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_compra}:" />
+							<p:selectBooleanCheckbox value="#{personaResponsableBean.entidad.indicadorCompra}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{personaResponsableBean.entidad.activo}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{personaResponsableBean.entidad.predeterminado}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_persona_responsable_panel}" rendered="#{!personaResponsableBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPersonaResponsableBean" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{personaResponsableBean.listaPersonaResponsable}" var="_responsable"
+							binding="#{personaResponsableBean.dtListadoPersonaResponsable}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{personaResponsableBean.numeroFilas}" rowsPerPageTemplate="#{personaResponsableBean.numeroFilasPorPagina}"
+							selection="#{personaResponsableBean.entidad}" selectionMode="single" rowKey="#{_responsable.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_responsable.codigo}" filterBy="#{_responsable.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_responsable.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_responsable.identificacion}" filterBy="#{_responsable.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_responsable.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_responsable.nombres}" filterBy="#{_responsable.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_responsable.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_responsable.apellidos}" filterBy="#{_responsable.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_responsable.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_externo}" sortBy="#{_responsable.indicadorExterno}">
+								<p:selectBooleanCheckbox value="#{_responsable.indicadorExterno}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_salida_mercaderia}" sortBy="#{_responsable.indicadorSalidaMercaderia}">
+								<p:selectBooleanCheckbox value="#{_responsable.indicadorSalidaMercaderia}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_mantenimiento}" sortBy="#{_responsable.indicadorMantenimiento}">
+								<p:selectBooleanCheckbox value="#{_responsable.indicadorMantenimiento}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{_responsable.activo}">
+								<p:selectBooleanCheckbox value="#{_responsable.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_responsable.predeterminado}" disabled="true" />
+							</p:column>
+
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{personaResponsableBean.entidad.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{personaResponsableBean.entidad.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{personaResponsableBean.entidad.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{personaResponsableBean.entidad.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

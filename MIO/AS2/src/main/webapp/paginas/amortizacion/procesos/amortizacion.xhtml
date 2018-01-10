@@ -1,0 +1,297 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{amortizacionBean}">
+					<as2:buttonEliminar bean="#{amortizacionBean}" titulo="#{msgs.btn_eliminar}">
+						<h:outputText value="#{msgs.lbl_numero}:#" />
+						<h:outputText value="#{amortizacionBean.amortizacion.numero}" />
+					</as2:buttonEliminar>
+					<as2:buttonImprimir id="btnImprimirAmortizacion" beanReporte="#{reporteAmortizacionBean}" bean="#{amortizacionBean}"
+						target="#{reporteAmortizacionBean.amortizacion}" value="#{amortizacionBean.amortizacion}" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_amortizacion}" rendered="#{amortizacionBean.editado}">
+						<!-- CABECERA -->
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{amortizacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{amortizacionBean.amortizacion.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{amortizacionBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+									<p:ajax update="txtNumero" event="change" process="@this" global="false" listener="#{amortizacionBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumero" value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{amortizacionBean.amortizacion.numero}" id="txtNumero"
+									mask="#{amortizacionBean.amortizacion.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:outputLabel for="calFechaRegistro" value="#{msgs.lbl_fecha_registro}:" />
+								<p:calendar pattern="#{amortizacionBean.formatoFecha}" showOn="button" navigator="true" value="#{amortizacionBean.amortizacion.fechaRegistro}"
+									id="calFechaRegistro">
+									<p:ajax process="@this" update="@this" event="change" global="false" partialSubmit="true" />
+									<p:ajax process="@this" update="@this" event="dateSelect" global="false" partialSubmit="true" />
+								</p:calendar>
+
+								<p:outputLabel for="calFechaIniAmortizacion" value="#{msgs.lbl_fecha_inicio_amortizacion}:" />
+								<p:calendar pattern="#{amortizacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{amortizacionBean.amortizacion.fechaInicioAmortizacion}" id="calFechaIniAmortizacion">
+									<p:ajax process="@this" update=":form:panelDetalle" event="change" global="false" partialSubmit="true"
+										listener="#{amortizacionBean.calcularDetalleAmortizacion}" />
+									<p:ajax process="@this" update=":form:panelDetalle" event="dateSelect" global="false" partialSubmit="true"
+										listener="#{amortizacionBean.calcularDetalleAmortizacion}" />
+								</p:calendar>
+
+								<p:outputLabel for="txtValor" value="#{msgs.lbl_valor}:" />
+								<p:inputText styleClass="input-text" value="#{amortizacionBean.amortizacion.valor}" id="txtValor">
+									<f:validateBean />
+									<p:ajax listener="#{amortizacionBean.calcularDetalleAmortizacion}" process="@this" event="change" global="false" update=":form:panelDetalle" />
+								</p:inputText>
+
+								<p:outputLabel for="txtValorAmortizado" value="#{msgs.lbl_valor_amortizado}:" />
+								<p:inputText styleClass="input-text" value="#{amortizacionBean.amortizacion.valorAmortizado}" id="txtValorAmortizado">
+									<f:validateBean />
+									<p:ajax listener="#{amortizacionBean.calcularDetalleAmortizacion}" process="@this" event="change" global="false" update=":form:panelDetalle" />
+								</p:inputText>
+
+								<p:outputLabel for="txtMesesAmortizar" value="#{msgs.lbl_meses_amortizar}:" />
+								<p:inputText styleClass="input-text" value="#{amortizacionBean.amortizacion.mesesPorAmortizar}" id="txtMesesAmortizar">
+									<f:validateBean />
+									<p:ajax listener="#{amortizacionBean.calcularDetalleAmortizacion}" process="@this" event="change" global="false" update=":form:panelDetalle" />
+								</p:inputText>
+
+								<p:outputLabel for="cboTipoAmortizacion" value="#{msgs.lbl_tipo_amortizacion}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{amortizacionBean.amortizacion.tipoAmortizacion}" id="cboTipoAmortizacion" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{amortizacionBean.listaTipoAmortizacion}" var="_tipoAmortizacion" itemLabel="#{_tipoAmortizacion.nombre}"
+										itemValue="#{_tipoAmortizacion}" />
+									<f:validateBean />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel value="#{msgs.lbl_factura_proveedor}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoFacturaProveedor"
+									value="#{amortizacionBean.amortizacion.facturaProveedor}" completeMethod="#{amortizacionBean.autocompletarFacturas}" var="_factura"
+									itemLabel="#{_factura.numero}" itemValue="#{_factura}" forceSelection="true" dropdown="false" minQueryLength="2">
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_numero}" />
+										</f:facet>
+										<h:outputText value="#{_factura.numero}" />
+									</p:column>
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha}" />
+										</f:facet>
+										<h:outputText value=" #{_factura.fecha}">
+											<f:convertDateTime pattern="#{amortizacionBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_proveedor}">
+												<f:convertDateTime pattern="#{amortizacionBean.formatoFecha}" />
+											</h:outputText>
+										</f:facet>
+										<h:outputText value=" #{_factura.empresa.nombreFiscal}" />
+									</p:column>
+									<p:ajax listener="#{amortizacionBean.actualizarFechaCompra}" process="@this" event="itemSelect" global="false" update="txtProveedor calFechaCompra" />
+									<p:ajax listener="#{amortizacionBean.actualizarFechaCompra}" process="@this" event="change" global="false" update="txtProveedor calFechaCompra" />
+								</p:autoComplete>
+
+								<p:outputLabel for="txtProveedor" value="#{msgs.lbl_proveedor}:" />
+								<p:inputText styleClass="input-text" value="#{amortizacionBean.amortizacion.facturaProveedor.empresa.nombreFiscal}" id="txtProveedor" disabled="true"/>
+
+								<p:outputLabel for="calFechaCompra" value="#{msgs.lbl_fecha_compra}:" />
+								<p:calendar pattern="#{amortizacionBean.formatoFecha}" showOn="button" navigator="true" value="#{amortizacionBean.amortizacion.fechaCompra}"
+									id="calFechaCompra" disabled="#{amortizacionBean.amortizacion.facturaProveedor != null}">
+									<p:ajax process="@this" update="@this" event="change" global="false" partialSubmit="true" />
+									<p:ajax process="@this" update="@this" event="dateSelect" global="false" partialSubmit="true" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" value="#{amortizacionBean.amortizacion.descripcion}" id="txtDescripcion" maxlength="200">
+									<f:validateBean />
+								</p:inputTextarea>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<!-- DETALLE-->
+
+						<p:outputPanel id="panelDetalle">
+							<p:fieldset legend="#{msgs.lbl_detalle}">
+								<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{amortizacionBean.listaDetalleAmortizacion}"
+										id="tablaDetalleAmortizacion" rowIndexVar="secuencial" binding="#{amortizacionBean.dtDetalleAmortizacion}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleAmortizacion" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_detalleAmortizacion.id}" rows="#{amortizacionBean.numeroFilas}" rowsPerPageTemplate="#{amortizacionBean.numeroFilasPorPagina}">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_fecha_contabilizacion}">
+											<p:calendar pattern="#{amortizacionBean.formatoFecha}" value="#{_detalleAmortizacion.fechaVencimiento}" id="calFechaVencimiento" size="10"
+												disabled="true">
+											</p:calendar>
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValorGrande tableCell">
+											<h:outputText value="#{_detalleAmortizacion.valor}" id="txtValor">
+												<f:convertNumber pattern="#{amortizacionBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<!-- TOTALES -->
+										<p:columnGroup type="footer" id="panelTotal">
+											<p:row>
+												<p:column colspan="2" footerText="#{msgs.lbl_total}" style="text-align:right" />
+												<p:column>
+													<f:facet name="footer" colspan="3" style="text-align:right" id="txtTotal">
+														<h:outputText value="#{amortizacionBean.totalDetalle}">
+															<f:convertNumber pattern="#{amortizacionBean.formatoDinero}" />
+														</h:outputText>
+													</f:facet>
+												</p:column>
+											</p:row>
+										</p:columnGroup>
+									</p:dataTable>
+								</h:panelGrid>
+							</p:fieldset>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_amortizacion}" rendered="#{!amortizacionBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaamortizacion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{amortizacionBean.listaAmortizacion}" var="_amortizacion" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{amortizacionBean.dtAmortizacion}" rows="#{amortizacionBean.numeroFilas}"
+							selection="#{amortizacionBean.amortizacion}" rowsPerPageTemplate="#{amortizacionBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_amortizacion.id}" sortBy="#{_amortizacion.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_amortizacion.fechaInicioAmortizacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_inicio_amortizacion}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.fechaInicioAmortizacion}">
+									<f:convertDateTime pattern="#{amortizacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.valor}">
+									<f:convertNumber pattern="#{amortizacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_amortizado}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.valorAmortizado + _amortizacion.valorAmortizadoTotal}">
+									<f:convertNumber pattern="#{amortizacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor_amortizar}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.valor - _amortizacion.valorAmortizado - _amortizacion.valorAmortizadoTotal}">
+									<f:convertNumber pattern="#{amortizacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_meses_amortizar}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.mesesPorAmortizarReal - _amortizacion.mesesAmortizados}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_amortizacion.tipoAmortizacion.nombre}" filterBy="#{_amortizacion.tipoAmortizacion.nombre}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_amortizacion}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.tipoAmortizacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_amortizacion.facturaProveedor.empresa.nombreFiscal}"
+								filterBy="#{_amortizacion.facturaProveedor.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.facturaProveedor.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_compra}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.facturaProveedor.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_amortizacion.fechaCompra}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_compra}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.fechaCompra}">
+									<f:convertDateTime pattern="#{amortizacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell" filterBy="#{_amortizacion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_amortizacion.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{amortizacionBean.amortizacion.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{amortizacionBean.amortizacion.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{amortizacionBean.amortizacion.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{amortizacionBean.amortizacion.usuarioModificacion}" />
+				</ui:include>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{rangoComisionBean}">
+
+					<as2:buttonEliminar bean="#{rangoComisionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{rangoComisionBean.rangoComision.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{rangoComisionBean.rangoComision.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{rangoComisionBean}" tabla=":form:tablaRangoComision" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_titulo_rango_comision}" rendered="#{rangoComisionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{rangoComisionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{rangoComisionBean.rangoComision.codigo}" id="txtCodigo">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{rangoComisionBean.rangoComision.nombre}" id="txtNombre">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_desde}:" />
+								<p:inputText styleClass="input-text" value="#{rangoComisionBean.rangoComision.valorDesde}" id="txtValorDesde">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_valor_hasta}:" />
+								<p:inputText styleClass="input-text" value="#{rangoComisionBean.rangoComision.valorHasta}" id="txtValorHasta">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{rangoComisionBean.rangoComision.activo}" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{rangoComisionBean.rangoComision.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer height="2px" />
+
+						<p:fieldset>
+							<h:panelGrid>
+
+								<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{rangoComisionBean.agregarDetalle}"
+									update="tablaComisionCategoriaProducto" process="@this,tablaComisionCategoriaProducto" icon="ui-icon-plus" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaComisionCategoriaProducto" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+									value="#{rangoComisionBean.listaRangoComisionCategoriaProducto}" var="_rangoComisionCategoriaProducto"
+									binding="#{rangoComisionBean.dtRangoComisionCategoriaProducto}" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{rangoComisionBean.numeroFilas}" rowsPerPageTemplate="#{rangoComisionBean.numeroFilasPorPagina}"
+									rowKey="#{_rangoComisionCategoriaProducto.idRangoComisionCategoriaProducto}" lazy="true">
+
+									<p:column styleClass="columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_categoria_producto}" styleClass="tableCell">
+										<p:selectOneMenu styleClass="input-text" value="#{_rangoComisionCategoriaProducto.categoriaProducto.idCategoriaProducto}"
+											id="cboCategoriaProducto" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{rangoComisionBean.listaCategoriaProducto}" var="_categoriaproducto" itemLabel="#{_categoriaproducto.nombre}"
+												itemValue="#{_categoriaproducto.idCategoriaProducto}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_canal}" styleClass="tableCell">
+										<p:selectOneMenu styleClass="input-text" value="#{_rangoComisionCategoriaProducto.canal.idCanal}" id="cboCanal" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{rangoComisionBean.listaCanal}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal.idCanal}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_porcentaje}" styleClass="columnaDTPorcentaje">
+										<p:inputText styleClass="input-text" value="#{_rangoComisionCategoriaProducto.porcentajeComision}" id="txtPorcentajeComision">
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarDetalle" action="#{rangoComisionBean.eliminarDetalle(_rangoComisionCategoriaProducto)}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:tablaComisionCategoriaProducto" process="@this">
+										</p:commandButton>
+									</p:column>
+								</p:dataTable>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_titulo_rango_comision}" rendered="#{!rangoComisionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRangoComision" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{rangoComisionBean.listaRangoComision}" var="_rangoComision" binding="#{rangoComisionBean.dtRangoComision}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{rangoComisionBean.numeroFilas}"
+							rowsPerPageTemplate="#{rangoComisionBean.numeroFilasPorPagina}" selection="#{rangoComisionBean.rangoComision}" selectionMode="single"
+							rowKey="#{_rangoComision.idRangoComision}" sortBy="#{_rangoComision.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_rangoComision.codigo}" filterBy="#{_rangoComision.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_rangoComision.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_rangoComision.nombre}" filterBy="#{_rangoComision.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_rangoComision.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_rangoComision.activo}">
+								<center>
+									<p:selectBooleanCheckbox value="#{_rangoComision.activo}" disabled="true" />
+								</center>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_rangoComision.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{rangoComisionBean.rangoComision.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{rangoComisionBean.rangoComision.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{rangoComisionBean.rangoComision.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{rangoComisionBean.rangoComision.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

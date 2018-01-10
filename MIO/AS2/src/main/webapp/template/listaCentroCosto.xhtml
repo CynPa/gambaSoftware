@@ -1,0 +1,88 @@
+<p:outputPanel id="panelListaCentroCosto"
+	xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+	<p:outputPanel id="panelCentrosSeleccionados">
+
+		<p:commandButton disabled="#{empty bean[value]}" process="@this"
+			update="panelCentrosSeleccionados,tablaListaCentroCosto"
+			icon="ui-icon-trash" title="#{msgs.lbl_eliminar}">
+
+			<f:setPropertyActionListener target="#{bean[value]}" value="#{null}" />
+
+		</p:commandButton>
+
+		<p:spacer width="1" />
+
+		<p:commandButton process="@this"
+			oncomplete="dglListaCentroCosto.show()" icon="ui-icon ui-icon-newwin"
+			title="#{msgs.lbl_listado}">
+		</p:commandButton>
+
+		<p:spacer width="4x" />
+
+		<h:outputText rendered="#{modoSeleccion=='single'}"
+			value="#{empty bean[value] ? msgs.lbl_seleccione : bean[value].codigo} #{empty bean[value] ? '' : bean[value].nombre}" />
+
+	</p:outputPanel>
+
+	<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_centro_costo}"
+		widgetVar="dglListaCentroCosto" id="dglListaCentroCosto" modal="true"
+		height="350" width="800" showEffect="slide" hideEffect="slide">
+
+		<p:fieldset>
+
+			<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaListaCentroCosto" rowIndexVar="secuencia"
+				emptyMessage="#{msgs.msg_no_hay_datos}"
+				value="#{listaCentroCostoBean.listaCentroCosto}" var="_centroCosto"
+				paginator="true" selectionMode="#{modoSeleccion}"
+				selection="#{bean[value]}" rowKey="#{_centroCosto.idCentroCosto}"
+				rows="10" paginatorPosition="bottom"
+				rowsPerPageTemplate="#{listaCentroCostoBean.numeroFilasPorPagina}">
+
+				<p:column headerText="Nº" width="20">
+					<h:outputText value="#{secuencia+1}" />
+				</p:column>
+
+				<p:column sortBy="#{_centroCosto.codigo}"
+					filterBy="#{_centroCosto.codigo}" width="100"
+					headerText="#{msgs.lbl_codigo}">
+					<h:outputText value="#{_centroCosto.codigo}" />
+				</p:column>
+
+				<p:column sortBy="#{_centroCosto.nombre}"
+					filterBy="#{_centroCosto.nombre}" width="200"
+					headerText="#{msgs.lbl_nombre}">
+					<h:outputText value="#{_centroCosto.nombre}" />
+				</p:column>
+				<!--  
+				<p:column>
+					<p:commandLink update="panelCentrosSeleccionados" process="this"
+						disabled="#{!_centroCosto.indicadorMovimiento and (empty indicadorSeleccionarTodo ? true : !indicadorSeleccionarTodo) }">
+						<h:graphicImage library="images" name="seleccion.png"
+							style="height : 16px; width : 16px;" />
+					</p:commandLink>
+				</p:column>
+				-->
+
+			</p:dataTable>
+
+		</p:fieldset>
+		<f:facet name="footer">
+			<center>
+				<p:commandButton value="#{msgs.lbl_seleccionar}"
+					id="btnSeleccionarCentro" oncomplete="dglListaCentroCosto.hide()"
+					process="tablaListaCentroCosto" update="panelCentrosSeleccionados" />
+			</center>
+		</f:facet>
+
+	</p:dialog>
+
+</p:outputPanel>
+
+
+

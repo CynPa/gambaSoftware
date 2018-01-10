@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelNuevo">
+				<p:panel header="#{msgs.lbl_edicion_factura_cliente}">
+
+					<h:panelGrid id="panelFactura"
+						columns="#{cambioClaveBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<p:outputLabel for="autoEmpresa" value="#{msgs.lbl_cliente}:" />
+						<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+							value="#{edicionFacturaClienteBean.empresa}"
+							completeMethod="#{edicionFacturaClienteBean.autocompletarClientes}"
+							var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+							itemValue="#{_cliente}" forceSelection="true" dropdown="true"
+							minQueryLength="2" required="true">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+							<p:ajax process="@this" event="itemSelect" />
+
+							<p:message for="autoEmpresa" />
+
+						</p:autoComplete>
+
+						<p:outputLabel for="autoFactura" value="#{msgs.lbl_factura}:" />
+						<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoFactura"
+							value="#{edicionFacturaClienteBean.facturaCliente}"
+							completeMethod="#{edicionFacturaClienteBean.autocompletarFacturas}"
+							var="_factura" itemLabel="#{_factura.numero}"
+							itemValue="#{_factura}" forceSelection="true" dropdown="true"
+							minQueryLength="2" required="true">
+
+							<p:column headerText="#{msgs.lbl_numero}">
+								<h:outputText value="#{_factura.numero}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_fecha}">
+								<h:outputText value=" #{_factura.fecha}">
+									<f:convertDateTime
+										pattern="#{edicionFacturaClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:ajax listener="#{edicionFacturaClienteBean.actualizarFactura}"
+								process="@this" event="itemSelect"
+								update="cboAgenteComercial,cboZona,cboCanal" />
+
+							<p:message for="autoFactura" />
+						</p:autoComplete>
+
+					</h:panelGrid>
+
+					<p:spacer width="20px" />
+
+					<p:panel header="#{msgs.lbl_datos_a_modificar}">
+
+						<h:panelGrid id="panelDatos"
+							columns="#{cambioClaveBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<h:panelGroup>
+								<p:selectOneMenu
+									value="#{edicionFacturaClienteBean.agenteComercial}"
+									id="cboAgenteComercial" required="false">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems
+										value="#{edicionFacturaClienteBean.listaAgenteComercial}"
+										var="_agenteComercial"
+										itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}"
+										itemValue="#{_agenteComercial}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_zona}:" />
+							<h:panelGroup>
+								<p:selectOneMenu value="#{edicionFacturaClienteBean.zona}"
+									id="cboZona" required="false">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{edicionFacturaClienteBean.listaZona}"
+										var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_canal}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{edicionFacturaClienteBean.canal}" id="cboCanal"
+									required="false">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{edicionFacturaClienteBean.listaCanal}"
+										var="_canal" itemLabel="#{_canal.nombre}"
+										itemValue="#{_canal}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_guardar}"
+									action="#{edicionFacturaClienteBean.guardar}"
+									process="panelNuevo" update="panelNuevo">
+								</p:commandButton>
+							</center>
+						</f:facet>
+
+					</p:panel>
+
+				</p:panel>
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

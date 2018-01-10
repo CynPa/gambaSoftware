@@ -1,0 +1,225 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{afianzadoBean}" />
+				</ui:include>
+
+
+				<ui:include src="/template/listaCiudad.xhtml">
+					<ui:param name="bean" value="#{afianzadoBean}" />
+					<ui:param name="objetoActualizar" value="groupCiudad" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}?" width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaAfianzado,mensajes" process="@this"
+						actionListener="#{afianzadoBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_afianzado}"
+						rendered="#{afianzadoBean.editado}">
+
+						<h:panelGrid id="panelTipoAsegurado"
+							columns="#{afianzadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.codigo}" id="txtCodigo">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_nombres}:" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.nombres}" id="txtNombres">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_apellidos}:" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.apellidos}" id="txtApellidos">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.direccion}" id="txtDireccion">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_tipo_identificacion}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text"
+									value="#{afianzadoBean.afianzado.tipoIdentificacion.idTipoIdentificacion}"
+									id="cboTipoIdentificacion" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{afianzadoBean.listaTipoIdentificacion}"
+										var="_tipoIdentificacion"
+										itemLabel="#{_tipoIdentificacion.nombre}"
+										itemValue="#{_tipoIdentificacion.idTipoIdentificacion}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboTipoIdentificacion" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_identificacion}:" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.identificacion}"
+								id="txtIdentificacion">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}: 1" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.telefono1}" id="txtTelefono1">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}: 2" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.telefono2}" id="txtTelefono2">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}: 1" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.email1}" id="txtEmail1">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}: 2" />
+							<p:inputText styleClass="input-text"
+								value="#{afianzadoBean.afianzado.email2}" id="txtEmail2">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_ciudad}:" />
+							<h:panelGroup id="groupCiudad">
+								<h:outputText value="#{afianzadoBean.afianzado.ciudad.nombre}" />
+								<p:commandButton value="*" process="@this"
+									oncomplete="ciudadDialog.show();" update="panelCiudad" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{afianzadoBean.afianzado.activo}" />
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_afianzado}"
+						rendered="#{!afianzadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAfianzado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{afianzadoBean.listaAfianzado}" var="_afianzado"
+							binding="#{afianzadoBean.dtAfianzado}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{afianzadoBean.numeroFilas}"
+							selection="#{afianzadoBean.afianzado}" selectionMode="single"
+							rowKey="#{_afianzado.id}">
+
+							<p:column headerText="No">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_codigo}"
+								sortBy="#{_afianzado.codigo}" filterBy="#{_afianzado.codigo}">
+								<h:outputText value="#{_afianzado.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombres}"
+								sortBy="#{_afianzado.nombres}" filterBy="#{_afianzado.nombres}">
+								<h:outputText value="#{_afianzado.nombres}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_apellidos}"
+								sortBy="#{_afianzado.apellidos}"
+								filterBy="#{_afianzado.apellidos}">
+								<h:outputText value="#{_afianzado.apellidos}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_tipo_identificacion}"
+								sortBy="#{_afianzado.nombres}"
+								filterBy="#{_afianzado.tipoIdentificacion.nombre}">
+								<h:outputText value="#{_afianzado.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_identificacion}"
+								sortBy="#{_afianzado.identificacion}"
+								filterBy="#{_afianzado.identificacion}">
+								<h:outputText value="#{_afianzado.identificacion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_direccion}"
+								sortBy="#{_afianzado.direccion}"
+								filterBy="#{_afianzado.direccion}">
+								<h:outputText value="#{_afianzado.direccion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_telefono}"
+								sortBy="#{_afianzado.telefono1}"
+								filterBy="#{_afianzado.telefono1}">
+								<h:outputText value="#{_afianzado.telefono1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_afianzado.activo}"
+									disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{afianzadoBean.afianzado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{afianzadoBean.afianzado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{afianzadoBean.afianzado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{afianzadoBean.afianzado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

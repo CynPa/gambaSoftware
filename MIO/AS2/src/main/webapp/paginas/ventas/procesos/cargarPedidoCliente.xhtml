@@ -1,0 +1,386 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<!-- Inicio Dialog Lista Errores  -->
+				<p:dialog header="#{msgs.lbl_errores}" widgetVar="dlgErrores" id="dlgErrores" modal="true" height="400" width="800" showEffect="slide"
+					hideEffect="slide">
+					<p:panel id="panelErrores">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaErrores" value="#{cargaPedidoClienteBean.errores}" var="_errors"
+							emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="15">
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="Error">
+								<h:outputText value="#{_errors.error}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_cerrar}" process="@this" oncomplete="validacionesModal(xhr, status, args, dlgErrores)" />
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<!-- Fin Dialog Lista Lista Errores  -->
+
+				<p:outputPanel id="panelMigracion">
+					<p:panel header="#{msgs.lbl_carga} #{msgs.lbl_pedido_cliente} ">
+						<h:panelGrid id="panelCabecera" columns="#{cargaPedidoClienteBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboSucursal" value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.sucursal}" id="cboSucursal" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<p:ajax process="@this" global="false" update=":form:panelMigracion" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.documento.idDocumento}" id="cboDocumento"
+								required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaDocumentoCliente}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento.idDocumento}" />
+								<p:ajax event="change" global="false" listener="#{cargaPedidoClienteBean.actualizarDocumento}" update=":form:panelMigracion" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{cargaPedidoClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{cargaPedidoClienteBean.pedidoCliente.fecha}" id="calFecha" required="true">
+								<p:ajax listener="#{cargaPedidoClienteBean.actualizarFecha}" process="@this" event="dateSelect" global="false" update=":form:panelMigracion" />
+								<p:ajax listener="#{cargaPedidoClienteBean.actualizarFecha}" process="@this" event="change" global="false" update=":form:panelMigracion" />
+							</p:calendar>
+
+							<p:outputLabel for="autoEmpresa" value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa" required="true"
+								value="#{cargaPedidoClienteBean.pedidoCliente.empresa}" completeMethod="#{cargaPedidoClienteBean.autocompletarClientes}" var="_cliente"
+								itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+								<p:ajax listener="#{cargaPedidoClienteBean.actualizarCliente}" process="@this" event="itemSelect"
+									update="cboTransportista cboDireccionCliente,cboCondicionPago,txtNumeroCuotas,cboZona,cboSubempresa :form:panelMigracion" />
+							</p:autoComplete>
+
+							<p:outputLabel for="cboSubempresa" value="#{msgs.lbl_subcliente}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.subempresa}" id="cboSubempresa"
+								disabled="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'CSV_SANTA_MARIA'}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+									itemLabel="#{_subempresa.empresaFinal}" />
+								<p:ajax event="change" listener="#{cargaPedidoClienteBean.actualizarSubclienteListener}" process="@this"
+									update="cboTransportista,cboDireccionCliente,cboZona,cboCondicionPago,txtNumeroCuotas"></p:ajax>
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboDireccionCliente" value="#{msgs.lbl_empresa_direccion_factura}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.direccionEmpresa}" id="cboDireccionCliente"
+								required="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'EXCEL_SUPERMAXI'}"
+								disabled="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'CSV_SANTA_MARIA'}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								<p:ajax process="@this" global="false" update=":form:panelMigracion" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboCondicionPago" value="#{msgs.lbl_condicion_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.condicionPago}" id="cboCondicionPago"
+								required="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'EXCEL_SUPERMAXI'}"
+								disabled="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'CSV_SANTA_MARIA'}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+									itemValue="#{_condicionPago}" />
+								<p:ajax process="@this" global="false" update=":form:panelMigracion" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtNumeroCuotas" value="#{msgs.lbl_factura_cliente_cuotas}:" />
+							<p:inputText styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.numeroCuotas}" id="txtNumeroCuotas"
+								required="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'EXCEL_SUPERMAXI'}"
+								disabled="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'CSV_SANTA_MARIA'}">
+								<p:ajax process="@this" global="false" update=":form:panelMigracion" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_zona}:" />
+							<p:selectOneMenu value="#{cargaPedidoClienteBean.pedidoCliente.zona}" id="cboZona"
+								disabled="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'CSV_SANTA_MARIA'}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+								<p:ajax process="@this" global="false" listener="#{cargaPedidoClienteBean.actualizarFecha}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_canal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.canal}" id="cboCanal" required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaCanal}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_motivo_pedido_cliente}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.motivoPedidoCliente}" id="cboMotivoPedidoCliente"
+								required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaMotivoPedidoCliente}" var="_motivoPedidoCliente"
+									itemLabel="#{_motivoPedidoCliente.nombre}" itemValue="#{_motivoPedidoCliente}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboBodega" value="#{msgs.lbl_bodega}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.bodega}" id="cboBodega" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+								<p:ajax process="@this" event="change" global="false" update=":form:panelMigracion" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.pedidoCliente.transportista}" id="cboTransportista"
+								required="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'EXCEL_SUPERMAXI'}"
+								disabled="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'CSV_SANTA_MARIA'}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{cargaPedidoClienteBean.listaTransportistaCombo}" var="_trasnportista" itemLabel="#{_trasnportista.nombre}"
+									itemValue="#{_trasnportista}" />
+								<p:ajax process="@this" global="false" update=":form:panelMigracion" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTipoDocumento" value="#{msgs.lbl_tipo_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado}" id="cboTipoDocumento" required="true">
+								<f:selectItems value="#{cargaPedidoClienteBean.listaTipoDocumentoEnum}" var="_tipoDocumento" />
+								<p:ajax process="@this" global="false" update=":form:panelMigracion :form:cboSubempresa :form:cboDireccionCliente" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="file"
+								value="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'EXCEL_SUPERMAXI' ?  msgs.btn_cargar_excel : msgs.btn_cargar_csv}:" />
+							<p:fileUpload fileUploadListener="#{cargaPedidoClienteBean.migrarPedidoCliente}" mode="advanced"
+								update="panelMigracion tablaErrores panelListado" auto="true" sizeLimit="10000000" allowTypes="#{cargaPedidoClienteBean.allowTypes}"
+								disabled="#{!cargaPedidoClienteBean.listo}"
+								label="#{cargaPedidoClienteBean.tipoDocumentoSeleccionado == 'EXCEL_SUPERMAXI' ?  msgs.btn_cargar_excel : msgs.btn_cargar_csv}"
+								process="@this cboTipoDocumento" id="file" />
+
+							<p:spacer />
+
+						</h:panelGrid>
+
+
+
+					</p:panel>
+					<p:panel id="panelListado">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPedidoCliente" value="#{cargaPedidoClienteBean.listaPedidoClienteGuardar}"
+							var="_pedidoCliente" emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20"
+							paginatorPosition="bottom">
+
+							<p:column styleClass="columnaDTAccion tableCell0">
+								<p:rowToggler />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subcliente}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.subempresa.empresaFinal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_direccion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.direccionEmpresa.direccionCompleta}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_titulo_transportista}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.transportista.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.fecha}">
+									<f:convertDateTime pattern="#{cargaPedidoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_despacho}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.fechaDespacho}">
+									<f:convertDateTime pattern="#{cargaPedidoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fijo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox disabled="true" value="#{_pedidoCliente.indicadorFijo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.total}">
+									<f:convertNumber pattern="#{cargaPedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_producto_indicador_impuestos}" styleClass="columnaDTValor tableCell">
+								<h:outputText value="#{_pedidoCliente.impuesto}">
+									<f:convertNumber pattern="#{cargaPedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{(_pedidoCliente.total - _pedidoCliente.descuento) + _pedidoCliente.impuesto}">
+									<f:convertNumber pattern="#{cargaPedidoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_motivo_pedido_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.motivoPedidoCliente.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_canal}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.canal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_zona}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.zona.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_pedidoCliente.descripcion}" filterMatchMode="contains" filterBy="#{_pedidoCliente.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoCliente.descripcion}" title="#{_pedidoCliente.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_guardar}" />
+									<p:commandLink action="#{cargaPedidoClienteBean.guardarPedidoClienteTodos}" process="@this" update=":form:panelListado"
+										title="#{msgs.btn_guardar} #{msgs.lbl_todos}" disabled="#{!cargaPedidoClienteBean.hayPedidosSinGuardar}">
+										<h:graphicImage library="images" name="seleccion.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</f:facet>
+								<center>
+									<p:commandLink disabled="#{_pedidoCliente.id > 0}" action="#{cargaPedidoClienteBean.guardarPedidoCliente}" process="@this"
+										update=":form:panelListado" title="#{msgs.btn_guardar}">
+										<f:setPropertyActionListener value="#{_pedidoCliente}" target="#{cargaPedidoClienteBean.pedidoClienteGuardar}" />
+										<h:graphicImage library="images" name="seleccion.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+							<p:rowExpansion>
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetallePedidoCliente" value="#{_pedidoCliente.listaDetallePedidoCliente}"
+									var="_detalle" emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuenciaD" style="width:100%" paginator="true" rows="20"
+									paginatorPosition="bottom">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuenciaD+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}">
+										<h:outputText value="#{_detalle.producto.codigo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_producto_codigo_barras}">
+										<h:outputText value="#{_detalle.producto.codigoBarras}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombre_producto}">
+										<h:outputText value="#{_detalle.producto.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_producto}">
+										<h:outputText value="#{_detalle.producto.unidadVenta.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+										<h:outputText value="#{_detalle.cantidad}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+										<h:outputText value="#{_detalle.precio}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_linea}">
+										<h:outputText value="#{_detalle.precioLinea}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad_embalaje}">
+										<h:outputText value="#{_detalle.cantidadEmbalajeDespacho}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad_unidad_despacho}">
+										<h:outputText value="#{_detalle.cantidadUnidadDespacho}" />
+									</p:column>
+
+									<p:column styleClass=" columnaDTNombre tableCell" headerText="#{msgs.lbl_referencia}">
+										<h:outputText value="#{_detalle.referencia1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+										<h:outputText value="#{_detalle.descripcion}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:rowExpansion>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+				<as2:buttonDescagarPlantilla bean="#{migracionClienteProveedorBean}" />
+				<p:outputPanel id="panelMigracion">
+					<p:panel header="#{msgs.lbl_migracion} #{msgs.lbl_cliente} - #{msgs.lbl_proveedor}">
+						<p:fileUpload fileUploadListener="#{migracionClienteProveedorBean.migrarCienteProveedor}" mode="advanced" update=":form:panelMigracion"
+							auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_cargar_excel}" process="@this" />
+					</p:panel>
+					<p:separator rendered="#{not empty migracionClienteProveedorBean.listaClientesProveedorNoMigrados}" />
+					<p:panel header="#{msgs.lbl_producto}s #{msgs.lbl_no_migrado}s" rendered="#{migracionClienteProveedorBean.visible}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProductoNoMigrado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{migracionClienteProveedorBean.listaClientesProveedorNoMigrados}" var="_productoNoMigrado"
+							binding="#{migracionClienteProveedorBean.dtClienteProveedoresNoMigrado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{migracionClienteProveedorBean.numeroFilas}" rowsPerPageTemplate="#{migracionClienteProveedorBean.numeroFilasPorPagina}"
+							rowKey="#{_productoNoMigrado.rowKey}" sortBy="#{_productoNoMigrado.codigo}" lazy="true">
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							<p:column styleClass="columnaDTCodigo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_productoNoMigrado.codigo}" />
+							</p:column>
+							<p:column styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_causa}" />
+								</f:facet>
+							<h:outputText value="#{msgs.lbl_existe_empresa}#{lbl_codigo}: #{_productoNoMigrado.codigo}"
+										rendered="#{_productoNoMigrado.migracionExisteIdentificacion}" />
+									<h:outputText value="#{msgs.lbl_existe_empresa} #{msgs.lbl_identificacion}: #{_productoNoMigrado.identificacion}"
+										rendered="#{!_productoNoMigrado.migracionExisteIdentificacion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+					<p:panel>
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaErrores" value="#{migracionClienteProveedorBean.errores}" var="_errors"
+							emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20">
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+							<p:column styleClass="tableCell" headerText="Error">
+								<h:outputText value="#{_errors.error}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

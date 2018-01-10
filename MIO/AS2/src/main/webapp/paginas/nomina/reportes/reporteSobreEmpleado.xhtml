@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_sobre_pago}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteSobreEmpleadoBean}" />
+					<ui:param name="objetoActualizar" value="txtEmpleado" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteSobreEmpleadoBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteSobreEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_sucursal_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteSobreEmpleadoBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteSobreEmpleadoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboPagoRol" value="#{msgs.lbl_fecha_rol}:" />
+							<p:selectOneMenu  styleClass="input-text" value="#{reporteSobreEmpleadoBean.pagoRol.idPagoRol}" id="cboPagoRol" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteSobreEmpleadoBean.listaPagoRol}" />
+								<p:ajax process="@this,cboFormaPagoEmpleado" global="false" event="change" update=":form:panelFiltros" listener="#{reporteSobreEmpleadoBean.actuaizarEnvioCorreos}"></p:ajax>
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelListaEmpleado">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado" value="#{reporteSobreEmpleadoBean.empleado.apellidos} #{reporteSobreEmpleadoBean.empleado.nombres}" />
+							</h:panelGroup>
+
+							<p:outputLabel for="cboFormaPagoEmpleado" value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteSobreEmpleadoBean.formaPagoEmpleado}" id="cboFormaPagoEmpleado" required="true">
+								<f:selectItems value="#{reporteSobreEmpleadoBean.listaFormaPagoEmpleado}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteSobreEmpleadoBean.departamento}" id="cboDepartamento">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteSobreEmpleadoBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+
+						<p:outputPanel id="pnelBotones">
+							<p:commandButton  rendered="#{reporteSobreEmpleadoBean.indicadorEnvioCorreos}" value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+
+							<p:commandButton  rendered="#{reporteSobreEmpleadoBean.indicadorEnvioCorreos}" value="#{msgs.lbl_enviar_mail}" id="btnEnvioCorreos" process="@this" icon="mail"
+								actionListener="#{reporteSobreEmpleadoBean.enviarRolEmpleado}">
+							</p:commandButton>
+						</p:outputPanel>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{ordenServicioMantenimientoBean}" />s
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+
+					<h:outputText
+						value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.numero}" />
+
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaOrdenServicioMantenimiento,mensajes" process="@this"
+						actionListener="#{ordenServicioMantenimientoBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{ordenServicioMantenimientoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_ordenServicioMantenimiento}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{ordenServicioMantenimientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputText styleClass="input-text"
+								value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.numero}"
+								id="txtNumero" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.descripcion}"
+								id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:panelGroup>
+								<p:calendar
+									pattern="#{ordenServicioMantenimientoBean.formatoFecha}"
+									showOn="button" navigator="true"
+									value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.fecha}"
+									id="calenFecha">
+									<p:ajax process="@this" event="change" />
+								</p:calendar>
+								<p:message for="calenFecha" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_procedimiento}:" />
+							<h:panelGroup>
+								<p:selectOneMenu
+									value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.procedimiento}"
+									id="cboProcedimiento">
+									<f:selectItem itemValue=" " itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems
+										value="#{ordenServicioMantenimientoBean.listaProcedimiento}"
+										var="_procedimiento" itemLabel="#{_procedimiento.nombre}"
+										itemValue="#{_procedimiento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboProcedimiento" />
+							</h:panelGroup>
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!ordenServicioMantenimientoBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_ordenServicioMantenimiento}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOrdenServicioMantenimiento"
+							rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{ordenServicioMantenimientoBean.listaOrdenServicioMantenimiento}"
+							var="_ordenServicioMantenimiento"
+							binding="#{ordenServicioMantenimientoBean.dtOrdenServicioMantenimiento}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{ordenServicioMantenimientoBean.numeroFilas}"
+							rowsPerPageTemplate="#{ordenServicioMantenimientoBean.numeroFilasPorPagina}"
+							selection="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento}"
+							selectionMode="single" rowKey="#{_ordenServicioMantenimiento.id}">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_ordenServicioMantenimiento.numero}"
+								sortBy="#{_ordenServicioMantenimiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_ordenServicioMantenimiento.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_ordenServicioMantenimiento.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_ordenServicioMantenimiento.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{ordenServicioMantenimientoBean.ordenServicioMantenimiento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{tarifaSalarialBean}" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+
+					<h:outputText value="#{tarifaSalarialBean.tarifaSalarial.nombre}" />
+
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaTarifaSalarial,mensajes" process="@this"
+						actionListener="#{tarifaSalarialBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{tarifaSalarialBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tarifa_salarial}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{tarifaSalarialBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{tarifaSalarialBean.tarifaSalarial.codigo}"
+								id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{tarifaSalarialBean.tarifaSalarial.nombre}"
+								id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{tarifaSalarialBean.tarifaSalarial.descripcion}"
+								id="txtDescripcion" />
+
+
+							<h:outputText value="#{msgs.lbl_costo}" />
+							<p:inputText styleClass="input-text"
+								value="#{tarifaSalarialBean.tarifaSalarial.costo}" id="txtCosto">
+							</p:inputText>
+
+
+							<h:outputText value="#{msgs.lbl_precio}" />
+							<p:inputText styleClass="input-text"
+								value="#{tarifaSalarialBean.tarifaSalarial.precio}"
+								id="txtPrecio">
+							</p:inputText>
+
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{tarifaSalarialBean.tarifaSalarial.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{tarifaSalarialBean.tarifaSalarial.predeterminado}" />
+
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!tarifaSalarialBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_tarifa_salarial}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTarifaSalarial" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tarifaSalarialBean.listaTarifaSalarial}"
+							var="_tarifaSalarial"
+							binding="#{tarifaSalarialBean.dtTarifaSalarial}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{tarifaSalarialBean.numeroFilas}"
+							rowsPerPageTemplate="#{tarifaSalarialBean.numeroFilasPorPagina}"
+							selection="#{tarifaSalarialBean.tarifaSalarial}"
+							selectionMode="single" rowKey="#{_tarifaSalarial.id}">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_tarifaSalarial.codigo}"
+								sortBy="#{_tarifaSalarial.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaSalarial.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_tarifaSalarial.nombre}"
+								sortBy="#{_tarifaSalarial.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaSalarial.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_tarifaSalarial.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaSalarial.descripcion}" />
+							</p:column>
+
+
+							<p:column sortBy="#{_tarifaSalarial.costo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_costo}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaSalarial.costo}" />
+							</p:column>
+
+							<p:column sortBy="#{_tarifaSalarial.precio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_precio}" />
+								</f:facet>
+								<h:outputText value="#{_tarifaSalarial.precio}" />
+							</p:column>
+							
+							<p:column sortBy="#{_tarifaSalarial.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_tarifaSalarial.activo}"
+										disabled="true" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{tarifaSalarialBean.tarifaSalarial.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{tarifaSalarialBean.tarifaSalarial.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{tarifaSalarialBean.tarifaSalarial.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{tarifaSalarialBean.tarifaSalarial.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

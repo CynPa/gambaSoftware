@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tipoOrdenDespachoBean}">
+					<as2:buttonEliminar bean="#{tipoOrdenDespachoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tipoOrdenDespachoBean}" tabla=":form:tablaGaveta" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tipoOrdenDespacho_panel}" rendered="#{tipoOrdenDespachoBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{tipoOrdenDespachoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="horaMaximaPedido" value="#{msgs.lbl_hora_maxima_pedido}:" />
+							<p:calendar id="horaMaximaPedido" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.horaMaximaRegistroPedido}" pattern="HH:mm" timeOnly="true" />
+
+							<p:outputLabel for="txtMontoMinimoPedido" value="#{msgs.lbl_monto_minimo_pedido}:" />
+							<p:inputText id="txtMontoMinimoPedido" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.montoMinimoPedido}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox id="ckActivo" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.activo}" />
+
+							<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox id="ckPredeterminado" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.predeterminado}" />
+
+							<p:outputLabel for="ckEditaCantidadFactura" value="#{msgs.lbl_edita_cantidad_factura}:" />
+							<p:selectBooleanCheckbox id="ckEditaCantidadFactura" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.indicadorEditaCantidadFactura}" />
+
+							<p:outputLabel for="ckAplicaPorcientoAdicionalPedido" value="#{msgs.lbl_aplica_porciento_adicional_pedidos}:" />
+							<p:selectBooleanCheckbox id="ckAplicaPorcientoAdicionalPedido"
+								value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.indicadorAplicaPorcientoAdicionalPedidos}" />
+								
+							<p:outputLabel for="ckGuardarSinDetalle" value="#{msgs.lbl_guarda_despacho_sin_detalles}:" />
+							<p:selectBooleanCheckbox id="ckGuardarSinDetalle"
+								value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.indicadorGuardarSinDetalle}" />	
+								
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea id="txtDescripcion" styleClass="input-text" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<p:outputLabel for="txtDiasDespacho" value="#{msgs.lbl_dias_despacho}:" />
+							<p:inputText styleClass="input-text" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.diasDespacho}" id="txtDiasDespacho" required="true">
+								<f:validateBean />
+								<p:ajax process="@this" global="false"></p:ajax>
+							</p:inputText>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_tipoOrdenDespacho_panel}" rendered="#{!tipoOrdenDespachoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGaveta" rowIndexVar="secuencialGaveta"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tipoOrdenDespachoBean.listaTipoOrdenDespacho}" var="tipoOrdenDespacho" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{tipoOrdenDespachoBean.dataTableTipoOrdenDespacho}"
+							rows="#{tipoOrdenDespachoBean.numeroFilas}" rowsPerPageTemplate="#{tipoOrdenDespachoBean.numeroFilasPorPagina}"
+							selection="#{tipoOrdenDespachoBean.tipoOrdenDespacho}" selectionMode="single" rowKey="#{tipoOrdenDespacho.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialGaveta+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{tipoOrdenDespacho.codigo}" sortBy="#{tipoOrdenDespacho.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{tipoOrdenDespacho.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{tipoOrdenDespacho.nombre}" sortBy="#{tipoOrdenDespacho.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{tipoOrdenDespacho.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{tipoOrdenDespacho.montoMinimoPedido}" styleClass="columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_monto_minimo_pedido}" />
+								</f:facet>
+								<h:outputText value="#{tipoOrdenDespacho.montoMinimoPedido}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_dias_despacho}" sortBy="#{tipoOrdenDespacho.diasDespacho}">
+								<h:outputText value="#{tipoOrdenDespacho.diasDespacho}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{tipoOrdenDespacho.activo}">
+								<p:selectBooleanCheckbox value="#{tipoOrdenDespacho.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{tipoOrdenDespacho.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{tipoOrdenDespacho.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{tipoOrdenDespachoBean.tipoOrdenDespacho.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

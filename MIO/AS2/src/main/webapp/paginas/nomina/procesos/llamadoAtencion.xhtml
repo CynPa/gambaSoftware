@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" enctype="multipart/form-data" prependId="false">
+
+
+		<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{llamadoAtencionBean}">
+
+					<as2:buttonExportaExcel bean="#{llamadoAtencionBean}" tabla=":form:tablaLlamadoAtencion" />
+
+					<as2:buttonImprimir id="btnImprimir" beanReporte="#{reporteMotivoLlamadoAtencionBean}" bean="#{llamadoAtencionBean}"
+						target="#{reporteMotivoLlamadoAtencionBean.llamadoAtencion}" value="#{llamadoAtencionBean.llamadoAtencion}" />
+
+					<as2:buttonEliminar bean="#{llamadoAtencionBean}">
+						<h:outputText value="#{msgs.lbl_llamado_atencion}:" />
+						<h:outputText
+							value="#{llamadoAtencionBean.llamadoAtencion.numero} #{llamadoAtencionBean.llamadoAtencion.empleado.apellidos} #{llamadoAtencionBean.llamadoAtencion.empleado.nombres}" />
+					</as2:buttonEliminar>
+				</as2:toolBar>
+
+				<as2:uploadFile bean="#{llamadoAtencionBean}" label="#{msgs.btn_cargar_pdf}" formatos="/(\.|\/)(pdf)$/"></as2:uploadFile>
+
+		<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{llamadoAtencionBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+			<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarArchivo" modal="true" height="100" width="325" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarFichero" autoUpdate="true">
+						<center>
+							<p:fileUpload fileUploadListener="#{llamadoAtencionBean.processUpload}" mode="advanced" auto="true" sizeLimit="#{llamadoAtencionBean.sizeLimit}"
+								allowTypes="#{llamadoAtencionBean.allowTypes}" label="#{msgs.btn_examinar}" process="@this" oncomplete="dlgCargarArchivo.close()"  update=":form:panelListado" />
+						</center>
+					</p:outputPanel>
+				</p:dialog>
+
+
+			<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_llamados_atencion})" rendered="#{llamadoAtencionBean.editado}">
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{llamadoAtencionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." onclick="dglModalEmpleado.show()" type="button" disabled="#{llamadoAtencionBean.editarEmpleado}">
+									</p:commandButton>
+									<h:outputText id="txtEmpleado"
+										value="#{llamadoAtencionBean.llamadoAtencion.empleado.apellidos} #{llamadoAtencionBean.llamadoAtencion.empleado.nombres}" />
+								</h:panelGroup>
+								
+								<p:outputLabel for="txtNumero" value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{llamadoAtencionBean.llamadoAtencion.numero}" id="txtNumero"
+									mask="#{llamadoAtencionBean.llamadoAtencion.documento.secuencia.patron}" disabled="#{!llamadoAtencionBean.secuenciaEditable}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_motivo_llamado_atencion}:" />
+								<p:selectOneMenu value="#{llamadoAtencionBean.llamadoAtencion.motivoLlamadoAtencion}" id="cboMotivoLlamadoAtencion" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{llamadoAtencionBean.listaMotivoLlamadoAtencion}" var="_motivo" itemLabel="#{_motivo.nombre}" itemValue="#{_motivo}" />
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar id="calllamadoAtFechaDesde" value="#{llamadoAtencionBean.llamadoAtencion.fechaDesde}" showOn="button" navigator="true" required="true"
+									pattern="#{llamadoAtencionBean.formatoFecha}">
+									<p:ajax process="@this" global="false" />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputText styleClass="input-text100" value="#{llamadoAtencionBean.llamadoAtencion.descripcion}" required="true">
+									<p:ajax process="@this" update="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_llamados_atencion})" rendered="#{!llamadoAtencionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaLlamadoAtencion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{llamadoAtencionBean.listaLlamadoAtencion}" var="_llamadoAtencion"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{llamadoAtencionBean.numeroFilas}" rowsPerPageTemplate="#{llamadoAtencionBean.numeroFilasPorPagina}"
+							selection="#{llamadoAtencionBean.llamadoAtencion}" selectionMode="single"  rowKey="#{_llamadoAtencion.idLlamadoAtencion}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nยบ">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTIdentificacion tableCell" sortBy="#{_llamadoAtencion.empleado.empresa.identificacion}" filterBy="#{_llamadoAtencion.empleado.empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_llamadoAtencion.empleado.empresa.identificacion}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_llamadoAtencion.numero}" filterBy="#{_llamadoAtencion.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_llamadoAtencion.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_llamadoAtencion.empleado.apellidos}" filterBy="#{_llamadoAtencion.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_apellios}" />
+								</f:facet>
+								<h:outputText value="#{_llamadoAtencion.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_llamadoAtencion.empleado.nombres}" filterBy="#{_llamadoAtencion.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_llamadoAtencion.empleado.nombres}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_llamadoAtencion.fechaDesde}" headerText="#{msgs.lbl_fecha}">
+								<h:outputText value="#{_llamadoAtencion.fechaDesde}">
+									<f:convertDateTime pattern="#{llamadoAtencionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="tableCell" sortBy="#{_llamadoAtencion.motivoLlamadoAtencion.nombre}" filterBy="#{_llamadoAtencion.motivoLlamadoAtencion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_motivo_llamado_atencion}" />
+								</f:facet>
+								<h:outputText value="#{_llamadoAtencion.motivoLlamadoAtencion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText styleClass="input-text100" value="#{_llamadoAtencion.descripcion}"/>
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTAccion">
+								<h:panelGroup id="panelFichero">
+									<center>
+										<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+											<f:setPropertyActionListener value="#{_llamadoAtencion}" target="#{llamadoAtencionBean.llamadoAtencion}" />
+											<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+										</p:commandLink>
+									</center>
+								</h:panelGroup>
+							</p:column>	
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<p:commandLink title="#{llamadoAtencionBean.llamadoAtencion.fichero}" ajax="false" process="@this"
+									rendered="#{_llamadoAtencion.fichero != null}" actionListener="#{llamadoAtencionBean.asignarFileLlamadoAtencion(_llamadoAtencion)}">
+									<p:fileDownload value="#{llamadoAtencionBean.fileLlamadoAtencion}" />
+									<h:graphicImage library="images" name="bajar.png" styleClass="subirImagen" />
+								</p:commandLink>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{llamadoAtencionBean.llamadoAtencion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{llamadoAtencionBean.llamadoAtencion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{llamadoAtencionBean.llamadoAtencion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{llamadoAtencionBean.llamadoAtencion.usuarioModificacion}" />
+					</ui:include>
+
+			</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

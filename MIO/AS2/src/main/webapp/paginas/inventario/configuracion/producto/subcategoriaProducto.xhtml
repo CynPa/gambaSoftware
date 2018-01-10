@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">				
+				<as2:toolBar bean="#{subcategoriaProductoBean}">
+					<as2:buttonEliminar bean="#{subcategoriaProductoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{subcategoriaProductoBean.subcategoriaProducto.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{subcategoriaProductoBean.subcategoriaProducto.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{subcategoriaProductoBean}" tabla=":form:tablaSubcategoriasProducto"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_subcategoria_producto_panel}"
+						rendered="#{subcategoriaProductoBean.editado}">
+
+						<h:panelGrid columns="2">
+
+							<p:fieldset>
+
+								<h:panelGrid id="panelDetalle"
+									columns="#{subcategoriaProductoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text"
+										value="#{subcategoriaProductoBean.subcategoriaProducto.codigo}"
+										id="txtCodigo" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text"
+										value="#{subcategoriaProductoBean.subcategoriaProducto.nombre}"
+										id="txtNombre" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="cboCategoriaProducto"
+										value="#{msgs.lbl_subcategoria_producto_categoriaProducto}:" />
+									<p:selectOneMenu styleClass="input-text"
+										value="#{subcategoriaProductoBean.subcategoriaProducto.categoriaProducto}"
+										id="cboCategoriaProducto" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems
+											value="#{subcategoriaProductoBean.listaCategoriaProductoCombo}"
+											var="_categoriaProducto" itemValue="#{_categoriaProducto}"
+											itemLabel="#{_categoriaProducto.nombre}" />
+										<f:validateBean />
+									</p:selectOneMenu>								
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox
+										value="#{subcategoriaProductoBean.subcategoriaProducto.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox
+										value="#{subcategoriaProductoBean.subcategoriaProducto.predeterminado}" />
+										
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text"
+										value="#{subcategoriaProductoBean.subcategoriaProducto.descripcion}"
+										id="txtDescripcion">
+										<f:validateBean />
+									</p:inputTextarea>
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer width="2" />
+
+							<p:tabView id="tabView">
+								<p:tab title="#{msgs.lbl_unidad_conversion_panel}">
+									<p:outputPanel id="panelUnidadConversion">
+										<h:panelGrid columns="1" width="100%">
+
+											<p:commandButton value="#{msgs.btn_agregar_detalle}"
+												id="btnAgregarDetalle"
+												action="#{subcategoriaProductoBean.agregarDetalleConversion}"
+												update=":form:tabView:panelUnidadConversion"
+												process="@this panelUnidadConversion" icon="ui-icon-plus" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUnidadConversion"
+												rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												binding="#{subcategoriaProductoBean.dtUnidadConversion}"
+												value="#{subcategoriaProductoBean.listaUnidadConversion}"
+												var="_unidadConversion" paginator="false" style="width:100%"
+												rows="#{subcategoriaProductoBean.numeroFilas}"
+												rowsPerPageTemplate="#{subcategoriaProductoBean.numeroFilasPorPagina}" lazy="true">
+
+												<p:column styleClass="columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+												<p:column headerText="#{msgs.lbl_unidad_origen}">
+													<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+														value="#{_unidadConversion.unidadOrigen}"
+														completeMethod="#{subcategoriaProductoBean.autocompletarUnidades}"
+														var="_unidadOrigen" itemLabel="#{_unidadOrigen.nombre}"
+														itemValue="#{_unidadOrigen}" forceSelection="true"
+														size="50" dropdown="true" minQueryLength="2">
+														
+														<p:ajax global="false" event="itemSelect" process="@this" update="txtEquivalencia"></p:ajax>
+
+														<p:column headerText="#{msgs.lbl_codigo}">#{_unidadOrigen.codigo}</p:column>
+														<p:column headerText="#{msgs.lbl_nombre}">#{_unidadOrigen.nombre}</p:column>
+
+													</p:autoComplete>
+												</p:column>
+												<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_valor_conversion}">
+													<p:spinner value="#{_unidadConversion.valorConversion}"
+														stepFactor="#{unidadBean.valorIncremento}" min="0">
+														<p:ajax global="false" event="change" process="@this" update="txtEquivalencia"></p:ajax>
+													</p:spinner>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_unidad_destino}">
+													<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+														value="#{_unidadConversion.unidadDestino}"
+														completeMethod="#{subcategoriaProductoBean.autocompletarUnidades}"
+														var="_unidadDestino" itemLabel="#{_unidadDestino.nombre}"
+														itemValue="#{_unidadDestino}" forceSelection="true"
+														size="50" dropdown="true" minQueryLength="2">
+														
+														<p:ajax global="false" event="itemSelect" process="@this" update="txtEquivalencia"></p:ajax>
+
+														<p:column headerText="#{msgs.lbl_codigo}">#{_unidadDestino.codigo}</p:column>
+														<p:column headerText="#{msgs.lbl_nombre}">#{_unidadDestino.nombre}</p:column>
+
+													</p:autoComplete>
+												</p:column>
+												
+												<p:column headerText="#{msgs.lbl_equivalencia}" styleClass="columnaDTNombre tableCell centrado">
+													<p:outputPanel id="txtEquivalencia">
+														<h:outputText value="1 #{_unidadConversion.unidadOrigen.codigo} = #{_unidadConversion.valorConversion} #{_unidadConversion.unidadDestino.codigo}" />
+													</p:outputPanel>
+												</p:column>
+
+												<p:column styleClass=" tableCell columnaDTAccion">
+													<p:commandButton id="btnEliminarUnidadConversion"
+														action="#{subcategoriaProductoBean.eliminarDetalleConversion}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelUnidadConversion"
+														process="@this" />
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_subcategoria_producto_panel}"
+						rendered="#{!subcategoriaProductoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSubcategoriasProducto"
+							rowIndexVar="secuencialSubcategoriaProducto"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{subcategoriaProductoBean.subcategoriasProducto}"
+							var="subcategoriaProducto" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							binding="#{subcategoriaProductoBean.dataTableSubcategoriaProducto}"
+							rows="#{subcategoriaProductoBean.numeroFilas}"
+							rowsPerPageTemplate="#{subcategoriaProductoBean.numeroFilasPorPagina}"
+							selection="#{subcategoriaProductoBean.subcategoriaProducto}"
+							selectionMode="single" rowKey="#{subcategoriaProducto.id}"
+							sortBy="#{subcategoriaProducto.codigo}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+
+								<h:outputText value="#{secuencialSubcategoriaProducto+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{subcategoriaProducto.codigo}"
+								filterBy="#{subcategoriaProducto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{subcategoriaProducto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{subcategoriaProducto.nombre}"
+								filterBy="#{subcategoriaProducto.nombre}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+
+								<h:outputText value="#{subcategoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre"
+								sortBy="#{subcategoriaProducto.categoriaProducto.nombre}"
+								filterBy="#{subcategoriaProducto.categoriaProducto.nombre}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_categoria_producto}" />
+								</f:facet>
+
+								<h:outputText
+									value="#{subcategoriaProducto.categoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{subcategoriaProducto.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+
+								<p:selectBooleanCheckbox value="#{subcategoriaProducto.activo}"
+									disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+
+								<p:selectBooleanCheckbox
+									value="#{subcategoriaProducto.predeterminado}" disabled="true" />
+							</p:column>
+							
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<f:facet name="header"></f:facet>
+								<h:outputText value="#{subcategoriaProducto.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{subcategoriaProductoBean.subcategoriaProducto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{subcategoriaProductoBean.subcategoriaProducto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion"
+							value="#{subcategoriaProductoBean.subcategoriaProducto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{subcategoriaProductoBean.subcategoriaProducto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

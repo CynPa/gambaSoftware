@@ -1,0 +1,132 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{procesoBean}">
+					<as2:buttonExportaExcel bean="#{procesoBean}" tabla=":form:tablaProceso"></as2:buttonExportaExcel>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{procesoBean.editado}" header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_proceso} )">
+						<h:panelGrid columns="#{procesoBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+							id="panelDetalle">
+
+							<h:outputText value="#{msgs.lbl_sistema}:" />
+							<p:selectOneMenu value="#{procesoBean.entidadProceso.sistema}" id="cboSistema" required="true">
+								<f:selectItems value="#{procesoBean.listaSistema}" var="_sistema" itemLabel="#{_sistema.nombre}" itemValue="#{_sistema}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_modulo}:" />
+							<p:selectOneMenu value="#{procesoBean.entidadProceso.modulo}" id="cboModulo" required="true">
+								<f:selectItems value="#{procesoBean.listaModulo}" var="_modulo" itemLabel="#{_modulo.nombre}" itemValue="#{_modulo}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtViewId" value="#{msgs.lbl_url}:" />
+
+							<p:inputText styleClass="input-text" value="#{procesoBean.entidadProceso.viewId}" id="txtViewId" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtViewName" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{procesoBean.entidadProceso.viewName}" id="txtViewName" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_orden}:" />
+							<p:inputText styleClass="input-text" value="#{procesoBean.entidadProceso.orden}" id="txtOrden">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_proceso_indicador_mostrar_en_menu}:" />
+							<p:selectBooleanCheckbox value="#{procesoBean.entidadProceso.indicadorMostrarMenu}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{procesoBean.entidadProceso.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!procesoBean.editado}" header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_proceso} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProceso" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{procesoBean.listaEntidadProceso}"
+							var="_proceso" paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{procesoBean.dtEntidadProceso}"
+							rows="#{procesoBean.numeroFilas}" rowsPerPageTemplate="#{procesoBean.numeroFilasPorPagina}" selection="#{procesoBean.entidadProceso}"
+							selectionMode="single" rowKey="#{_proceso.id}" sortBy="#{_proceso.viewName}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_proceso.sistema.nombre}" sortBy="#{_proceso.sistema.nombre}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sistema}" />
+								</f:facet>
+								<h:outputText value="#{_proceso.sistema.nombre}" />
+							</p:column>
+
+							<p:column filterBy="#{_proceso.modulo.nombre}" sortBy="#{_proceso.modulo.nombre}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_modulo}" />
+								</f:facet>
+								<h:outputText value="#{_proceso.modulo.nombre}" />
+							</p:column>
+
+							<p:column filterBy="#{_proceso.viewId}" sortBy="#{_proceso.viewId}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_url}" />
+								</f:facet>
+								<h:outputText value="#{_proceso.viewId}" />
+							</p:column>
+
+							<p:column filterBy="#{_proceso.viewName}" sortBy="#{_proceso.viewName}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_proceso.viewName}" />
+							</p:column>
+
+							<p:column sortBy="#{_proceso.orden}" styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_orden}" />
+								</f:facet>
+								<h:outputText value="#{_proceso.orden}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{procesoBean.entidadProceso.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{procesoBean.entidadProceso.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{procesoBean.entidadProceso.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{procesoBean.entidadProceso.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

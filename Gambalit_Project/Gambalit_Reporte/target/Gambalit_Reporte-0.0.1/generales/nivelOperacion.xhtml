@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+
+<h:head></h:head>
+<h:body>
+	<ui:composition template="../WEB-INF/template/principal.xhtml">
+		<ui:define name="content">
+			<h:form id="form">
+				<p:growl id="growl2" showDetail="true" />
+				<p:remoteCommand name="refreshSections"
+					update="panelNivelOperaciones" />
+				<p:panel id="panelNivelOperaciones"
+					widgetVar="panelNivelOperaciones"  >
+					<p:panel id="basic" style="margin-bottom:10px;font-size:x-small;">
+
+						<p:commandButton value="Nuevo" type="button"
+							onclick="PF('dlg2').show();" styleClass="ui-priority-primary" />
+						<p:commandButton process="tbl" update=":form:dlgActualizar"
+							icon="ui-icon-search" value="Modificar"
+							oncomplete="PF('dlgActualizar').show()" />
+					</p:panel>
+					<p:dataTable id="tbl" widgetVar="tbl" var="car"
+						value="#{nivelOperacion.nivelOperativo}"
+						paginator="true" rows="10"
+						style="margin-bottom:10px;font-size:x-small;font-weight: bold" selectionMode="single"
+						selection="#{nivelOperacion.nivelOperacionSelected}"
+						rowKey="#{car.idNivelOperacion}"
+						emptyMessage="Ningun dato cargado bajo el criterio"
+						filterBy="#{nivelOperacion.nivelOperacionsFiltered}"
+						>
+						<p:column sortBy="#{car.piscina}"
+						filterBy="#{car.piscina}"
+						headerText="Piscina" filterMatchMode="contains">
+							
+							<h:outputText value="#{car.piscina}" />
+						</p:column>
+						<p:column headerText="Area Ha">
+
+							<h:outputText value="#{car.areaHa}" />
+						</p:column>
+						<p:column headerText="Nivel Operacion">
+							
+							<h:outputText value="#{car.nivelOperacion}" />
+						</p:column>
+						<p:column>
+							<f:facet name="header">
+								<h:outputText value="Acción" />
+							</f:facet>
+							<center>
+								<p:commandButton icon="ui-icon-trash" value="Eliminar"
+									action="#{nivelOperacion.eliminarNivelOperacion(car)}"
+									ajax="true" update=":form:tbl">
+								<p:confirm header="Confirmacion" message="¿Esta seguro de eliminar este registro?"  icon="ui-icon-alert" />
+									</p:commandButton>
+							</center>
+						</p:column>
+
+					</p:dataTable>
+					<h:commandLink>
+						<p:graphicImage url="/images/excel.ico" height="20" width="30"
+							style="font-size:small" />
+						<p:dataExporter type="xls" target="tbl"
+							postProcessor="#{nivelOperativoMb.postProcessXLS}"
+							fileName="nivelOperativo" pageOnly="true" />
+					</h:commandLink>
+					<h:commandLink>
+						<p:graphicImage url="/images/pdf.jpg" height="20" width="30" />
+
+						<p:dataExporter type="pdf" target=":form:tbl"
+							preProcessor="#{nivelOperacion.preProcessPDF}"
+							fileName="Nivel Operativo" pageOnly="true" />
+					</h:commandLink>
+				</p:panel>
+				<!-- INSERT ACTUALIZAR -->
+				<p:dialog id="dlg2" header="Ingresar" widgetVar="dlg2" modal="true">
+					<h:form id="dlg1">
+						<h:outputText value="Ingresar" />
+						<p:panel id="panel1">
+							<p:panelGrid columns="2" style="border:0;">
+								<h:outputText value="Piscina" />
+								<p:inputText id="piscina" value="${nivelOperacion.piscina}"></p:inputText>
+								<h:outputText value="Area HA" />
+								<p:inputText id="areaHa" value="${nivelOperacion.areaHa}"></p:inputText>
+								<h:outputText value="Nivel OPeracion" />
+								<p:inputText id="nivelOperacion"
+									value="${nivelOperacion.nivelOp}"></p:inputText>
+								<p:commandButton value="Guardar"
+									action="#{nivelOperacion.insertarNivelOperacion}"
+									process=":form:dlg1:panel1" update=":form:tbl :form:growl2"
+									ajax="true">
+								</p:commandButton>
+							</p:panelGrid>
+						</p:panel>
+					</h:form>
+				</p:dialog>
+				<!-- DIALOG ACTUALIZAR -->
+				
+				
+				<p:dialog id="dlgActualizar" header="Actualizar"
+					widgetVar="dlgActualizar" modal="true">
+					<h:form id="formActualizar">
+						<p:panel id="panel2" style="text-align:center;">
+						  <h:outputText value="Seleccione un registro" rendered="#{empty nivelOperacion.nivelOperacionSelected}" />
+							<!-- rendered="not empty nivelOperacion.nivelOperacionSelected}" -->
+							<p:panelGrid columns="2" rendered="#{not empty nivelOperacion.nivelOperacionSelected}"  >
+								
+								<h:outputText value="Piscina" />
+								<p:inputText id="piscinaMod" readonly="true"
+									value="#{nivelOperacion.nivelOperacionSelected.piscina}"></p:inputText>
+								<h:outputText value="Area HA" />
+								<p:inputText id="areaHaMod"
+									value="#{nivelOperacion.nivelOperacionSelected.areaHa}"
+									></p:inputText>
+								<h:outputText value="Nivel OPeracion" />
+								<p:inputText id="nivelOperacionMod"
+									value="#{nivelOperacion.nivelOperacionSelected.nivelOperacion}"
+									></p:inputText>
+								<p:commandButton value="Guardar"
+									action="#{nivelOperacion.modificarNivelOperacion}"
+									process=":form:formActualizar:panel2"
+									update=":form:tbl :form:growl2" ajax="true">
+								</p:commandButton>
+							</p:panelGrid>
+						</p:panel>
+					</h:form>
+				</p:dialog>
+				
+				
+				
+				<p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+				<p:commandButton value="Yes" 
+					styleClass="ui-confirmdialog-yes"   icon="ui-icon-check" />
+				<p:commandButton value="No" 
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close"  />
+			</p:confirmDialog>
+			</h:form>
+		</ui:define>
+		<p:ajaxStatus onstart="PF('statusDialog').show()"
+			style="display:block;margin-bottom:2em;height:24px;"
+			onsuccess="PF('statusDialog').hide()">
+
+			<p:dialog widgetVar="statusDialog" modal="true" draggable="false"
+				closable="false" resizable="false" showHeader="false">
+				<p:graphicImage url="/images/gifAnimado2.gif" />
+			</p:dialog>
+		</p:ajaxStatus>
+	</ui:composition>
+</h:body>
+</html>

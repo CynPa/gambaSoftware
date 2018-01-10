@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+			<p:panel header="#{msgs.lbl_cambio_masivo_lista_materiales}">
+				<p:outputPanel id="panelContenedor">
+
+
+
+
+					<h:panelGrid id="panelDetalle" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+						<h:outputText value="Por:" />
+						<p:selectOneMenu id="tipoReporte" value="#{cambioMasivoListaDeMaterilesBean.tipoReporte}" required="true">
+							<f:selectItems value="#{cambioMasivoListaDeMaterilesBean.listaTipoReporte}" />
+							<p:ajax process="@this" partialSubmit="true" global="false" update=":form" listener="#{cambioMasivoListaDeMaterilesBean.limpiar}" />
+						</p:selectOneMenu>
+
+						<p:spacer></p:spacer>
+						<p:spacer></p:spacer>
+
+						<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}:" />
+						<p:selectOneMenu required="true" value="#{cambioMasivoListaDeMaterilesBean.categoriaProducto}" id="cboCategoriaProducto">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+							<f:selectItems value="#{cambioMasivoListaDeMaterilesBean.listaCategoriaProductos}" var="_categoriaProducto"
+								itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+							<p:ajax process="@this" listener="#{cambioMasivoListaDeMaterilesBean.cargarListaSubcategoriaProducto}" update=":form" />
+						</p:selectOneMenu>
+
+
+						<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}:" />
+						<p:selectOneMenu value="#{cambioMasivoListaDeMaterilesBean.subcategoriaProducto}" id="cboSubcategoriaProducto">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{cambioMasivoListaDeMaterilesBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+								itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+							<p:ajax process="@this" />
+						</p:selectOneMenu>
+
+					</h:panelGrid>
+
+					<p:panel id="pgBotones" style="text-align:center;">
+
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{cambioMasivoListaDeMaterilesBean}" />
+							<ui:param name="objetoActualizar" value=":form:tablaMaterialesComunes :form:tablaMateriales" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="false" />
+						</ui:include>
+
+						<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+
+						<p:commandButton process="@this" value="#{msgs.lbl_cargar}"
+							update=":form:tablaMateriales :form:panelMaterialesComun :form:btnProcesarPorcentajes"
+							actionListener="#{cambioMasivoListaDeMaterilesBean.cargarListaProductos}" />
+
+						<p:commandButton id="btnProcesarPorcentajes" process="@this :form:tablaMateriales" value="#{msgs.lbl_procesar}"
+							update=":form:tablaMateriales :form:panelMaterialesComun" actionListener="#{cambioMasivoListaDeMaterilesBean.procesarNuevosPorcentajes}" />
+
+					</p:panel>
+
+
+					<h:panelGrid columns="1" id="panelMaterialesComun" width="100%">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMaterialesComunes" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cambioMasivoListaDeMaterilesBean.listaMaterialesComunesNoEliminados}" var="_materialComun"
+							binding="#{cambioMasivoListaDeMaterilesBean.dtMaterialComun}" paginator="false" style="width:100%"
+							rows="#{cambioMasivoListaDeMaterilesBean.numeroFilas}" paginatorPosition="bottom" rowKey="#{_materialComun.rowKey}" selectionMode="single"
+							rowsPerPageTemplate="#{cambioMasivoListaDeMaterilesBean.numeroFilasPorPagina}">
+
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_materiales_comunes}" />
+							</f:facet>
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto" sortBy="#{_materialComun.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_materialComun.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_materialComun.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_materialComun.nombre}" />
+							</p:column>
+
+							<p:column   styleClass="columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_porcentaje}" />
+								</f:facet>
+								<p:inputText disabled ="#{cambioMasivoListaDeMaterilesBean.tipoReporte == 'AGREGAR'}" value="#{_materialComun.porcentajeReceta}">
+									<p:ajax process="@this" listener="#{cambioMasivoListaDeMaterilesBean.totalizar}" update=":form:pgBotones :form:tablaMaterialesComunes"></p:ajax>
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion">
+								<p:commandButton id="btnEliminarDetalle" action="#{cambioMasivoListaDeMaterilesBean.eliminarMaterial}" icon="ui-icon-trash"
+									title="#{msgs.lbl_eliminar}" update=":form:tablaMaterialesComunes :form:tablaMateriales" process="@this" />
+							</p:column>
+
+							<p:columnGroup type="footer" id="panelTotal">
+								<p:row>
+									<p:column colspan="3" footerText="#{msgs.lbl_total}:	" style="text-align:right">
+									</p:column>
+
+									<p:column>
+										<f:facet name="footer">
+											<h:outputText value="#{cambioMasivoListaDeMaterilesBean.total}" style="text-align:right" id="txtTotal">
+											</h:outputText>
+										</f:facet>
+									</p:column>
+								</p:row>
+							</p:columnGroup>
+
+
+						</p:dataTable>
+
+						<p:spacer></p:spacer>
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMateriales" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cambioMasivoListaDeMaterilesBean.listaMateriales}" var="_material"
+							binding="#{cambioMasivoListaDeMaterilesBean.dtMaterial}" paginator="true" style="width:100%"
+							rows="#{cambioMasivoListaDeMaterilesBean.numeroFilas}" paginatorPosition="bottom" rowKey="#{_material.rowKey}"
+							rowsPerPageTemplate="#{cambioMasivoListaDeMaterilesBean.numeroFilasPorPagina}"
+							selection="#{cambioMasivoListaDeMaterilesBean.listaProductosSeleccionados}">
+
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_producto_lista_materiales}" />
+							</f:facet>
+
+
+							<p:column selectionMode="multiple" style="width:16px;text-align:center" />
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" sortBy="#{_material.codigo}" filterBy="#{_material.codigo}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_material.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" sortBy="#{_material.codigoAlterno}" filterBy="#{_material.codigoAlterno}"
+								filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+								</f:facet>
+								<h:outputText value="#{_material.codigoAlterno}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_material.nombre}" filterBy="#{_material.nombre}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_material.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_material.nombreComercial}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_comercial}" />
+								</f:facet>
+								<h:outputText value="#{_material.nombreComercial}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_material.subcategoriaProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}" />
+								</f:facet>
+								<h:outputText value="#{_material.subcategoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTUnidad tableCell" sortBy="#{_material.unidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_unidad_stock}" />
+								</f:facet>
+
+								<h:outputText value="#{_material.unidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_material.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_material.activo}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+
+					</h:panelGrid>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,310 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{aprobarPagoCashBean}">
+
+					<as2:buttonEliminar bean="#{aprobarPagoCashBean}" titulo="#{msgs.btn_anular}">
+
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{aprobarPagoCashBean.pagoCash.fechaPago}">
+							<f:convertDateTime pattern="#{aprobarPagoCashBean.formatoFecha}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{aprobarPagoCashBean.pagoCash.numero}" />
+
+					</as2:buttonEliminar>
+					<as2:buttonImprimir id="btnImprimirPagoCash" beanReporte="#{reportePagoCashBean}" bean="#{aprobarPagoCashBean}"
+						target="#{reportePagoCashBean.pagoCash}" value="#{aprobarPagoCashBean.pagoCash}" />
+					<as2:buttonExportaExcel bean="#{aprobarPagoCashBean}" tabla=":form:tablaPagoCash" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_aprobar_pago_cash}" rendered="#{aprobarPagoCashBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{aprobarPagoCashBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}" />
+								<h:panelGroup>
+									<h:outputText value="#{aprobarPagoCashBean.pagoCash.documento.nombre}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<h:panelGroup>
+									<h:outputText value="#{aprobarPagoCashBean.pagoCash.numero}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_pago_titulo_tab_pago}:" />
+								<h:panelGroup>
+									<h:outputText value="#{aprobarPagoCashBean.pagoCash.fechaPago}">
+										<f:convertDateTime pattern="#{aprobarPagoCashBean.formatoFecha}" />
+									</h:outputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_pago_fecha_vencimiento_factura}:" />
+								<h:panelGroup>
+									<h:outputText value="#{aprobarPagoCashBean.pagoCash.fechaVencimiento}">
+										<f:convertDateTime pattern="#{aprobarPagoCashBean.formatoFecha}" />
+									</h:outputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_anticipo_proveedor_depositar_en}:" />
+								<h:panelGroup>
+									<h:outputText value="#{aprobarPagoCashBean.pagoCash.cuentaBancariaOrganizacion.nombreCompleto}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_forma_pago}:" />
+								<h:panelGroup>
+									<h:outputText value="#{aprobarPagoCashBean.pagoCash.formaPago.nombre}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_valor}:" />
+								<h:panelGroup id="txtValorPago">
+									<h:outputText value="#{aprobarPagoCashBean.pagoCash.valorPago}">
+										<f:convertNumber pattern="#{aprobarPagoCashBean.formatoDinero}" />
+									</h:outputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.btn_aprobar}:" />
+								<h:panelGroup>
+									<p:selectBooleanCheckbox id="chkAprobar" value="#{aprobarPagoCashBean.indicadorAprobar}"
+										disabled="#{aprobarPagoCashBean.deshabilitarAprobar}">
+									</p:selectBooleanCheckbox>
+								</h:panelGroup>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<!-- INICIO DETALLE PAGO CASH -->
+
+						<p:outputPanel id="panelPagoCash">
+
+							<h:panelGrid columns="1" id="panelDetallePagoCash" style="width:100%">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobarPagoCashBean.listaDetallePagoCash}" id="tablaDetallePagoCash" rowIndexVar="secuencial"
+									binding="#{aprobarPagoCashBean.dtDetallePagoCash}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePagoCash" paginator="true"
+									paginatorPosition="bottom" style="width:100%" rows="#{aprobarPagoCashBean.numeroFilas}" rowKey="#{_detallePagoCash.id}"
+									rowsPerPageTemplate="#{aprobarPagoCashBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_proveedor}">
+										<h:outputText value="#{_detallePagoCash.proveedor.empresa.nombreFiscal}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_numero}"
+										filterBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}" sortBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}"
+										filterMatchMode="contains">
+										<!-- 										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}" /> -->
+										<h:link rendered="#{not empty _detallePagoCash.cuentaPorPagar.facturaProveedor}" target="_blank"
+											outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true"
+											value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}">
+											<f:param name="numero" value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_pago_numero_factura}"
+										filterBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+										sortBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" filterMatchMode="contains">
+										<h:outputText rendered="#{not empty _detallePagoCash.cuentaPorPagar.facturaProveedor}"
+											value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}">
+										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.fechaVencimiento}">
+											<f:convertDateTime pattern="#{aprobarPagoCashBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_dias_vencidos}">
+										<h:outputText rendered="#{_detallePagoCash.diasVencidos>0}" value="#{_detallePagoCash.diasVencidos - 1}">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_pendiente}">
+										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.saldo}">
+											<f:convertNumber pattern="#{aprobarPagoCashBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAValor tableCell" headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}">
+										<p:inputText styleClass="input-text" id="txtValor" value="#{_detallePagoCash.valor}">
+											<f:validateBean />
+											<p:ajax process="@this :form:panelPagoCash" update=":form:panelDetallePagoCash :form:txtValorPago"
+												listener="#{aprobarPagoCashBean.calcularValorPagoCash}" />
+										</p:inputText>
+										<p:message for="txtValor" />
+									</p:column>
+
+									<p:column styleClass="columnaDTAValor tableCell" headerText="#{msgs.lbl_descripcion}">
+										<h:outputText styleClass="input-text" value="#{_detallePagoCash.descripcion}"/>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<f:facet name="header">
+											<p:selectBooleanCheckbox value="#{aprobarPagoCashBean.aprobarTodos}">
+												<p:ajax event="change" listener="#{aprobarPagoCashBean.seleccionarTodos}" process="@this" update=":form:panelNuevo" />
+											</p:selectBooleanCheckbox>
+										</f:facet>
+
+										<p:selectBooleanCheckbox id="chkIndicadorAprobado" value="#{_detallePagoCash.indicadorAprobado}">
+											<p:ajax event="change" listener="#{aprobarPagoCashBean.calcularValorPagoCash}" update=":form:panelDetallePagoCash :form:txtValorPago" />
+										</p:selectBooleanCheckbox>
+
+									</p:column>
+
+									<p:columnGroup type="footer">
+										<p:row>
+											<p:column colspan="6" footerText="Valor Facturas Pendientes" style="text-align:right" />
+											<p:column styleClass="input-text-number">
+												<f:facet name="footer">
+													<h:outputText value="#{aprobarPagoCashBean.totalValorPendiente}">
+														<f:convertNumber pattern="#{aprobarPagoCashBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" />
+										</p:row>
+
+										<p:row>
+											<p:column colspan="6" footerText="Valor A liquidar " style="text-align:right" />
+											<p:column styleClass="input-text-number">
+												<f:facet name="footer">
+													<h:outputText value="#{aprobarPagoCashBean.totalValorALiquidar}">
+														<f:convertNumber pattern="#{aprobarPagoCashBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" />
+										</p:row>
+
+										<p:row>
+											<p:column colspan="6" footerText="Diferencia " style="text-align:right" />
+											<p:column styleClass="input-text-number">
+												<f:facet name="footer">
+													<h:outputText value="#{aprobarPagoCashBean.diferencia}">
+														<f:convertNumber pattern="#{aprobarPagoCashBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="2" />
+										</p:row>
+
+									</p:columnGroup>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+
+						<!-- FIN DETALLE PAGO CASH -->
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_aprobar_pago_cash}" rendered="#{!aprobarPagoCashBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagoCash" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobarPagoCashBean.listaPagoCash}"
+							var="_pagoCash" binding="#{aprobarPagoCashBean.dtPagoCash}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{aprobarPagoCashBean.numeroFilas}" rowsPerPageTemplate="#{aprobarPagoCashBean.numeroFilasPorPagina}"
+							selection="#{aprobarPagoCashBean.pagoCash}" selectionMode="single" rowKey="#{_pagoCash.idPagoCash}" lazy="true" sortBy="#{_pagoCash.numero}"
+							sortOrder="DESCENDING">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_pagoCash.numero}" filterBy="#{_pagoCash.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.numero}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell" sortBy="#{_pagoCash.documento.nombre}" filterBy="#{_pagoCash.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.documento.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_pagoCash.documentoReferencia}" filterBy="#{_pagoCash.documentoReferencia}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_referencia}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.documentoReferencia}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_pagoCash.fechaPago}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.fechaPago}">
+									<f:convertDateTime pattern="#{aprobarPagoCashBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_pagoCash.cuentaBancariaOrganizacion.cuentaBancaria.contacto}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_titulo_cuentaBancaria}" />
+								</f:facet>
+								<h:outputText
+									value="#{_pagoCash.cuentaBancariaOrganizacion.cuentaBancaria.contacto} #{_pagoCash.cuentaBancariaOrganizacion.cuentaBancaria.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_pagoCash.formaPago.nombre}" filterBy="#{_pagoCash.formaPago.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_forma_pago}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.formaPago.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTValor" sortBy="#{_pagoCash.valorPago}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.valorPago}">
+									<f:convertNumber pattern="#{pagoCashEmpleadoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_pagoCash.estado}" filterBy="#{_pagoCash.estado}"
+								filterOptions="#{cobroBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.estado.nombre}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{aprobarPagoCashBean.pagoCash.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{aprobarPagoCashBean.pagoCash.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{aprobarPagoCashBean.pagoCash.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{aprobarPagoCashBean.pagoCash.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

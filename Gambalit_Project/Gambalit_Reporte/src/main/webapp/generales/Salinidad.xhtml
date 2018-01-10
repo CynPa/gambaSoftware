@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+
+
+<ui:composition template="../WEB-INF/template/principal.xhtml">
+	<ui:define name="content">
+		<h:form id="form">
+			<p:growl id="growl2" showDetail="true" />
+			<p:remoteCommand name="refreshSections" update="panelSalinidad" />
+			<p:panel id="panelSalinidad" widgetVar="panelSalinidad">
+				<p:panel id="basic" style="margin-bottom:10px;font-size:x-small;">
+					<p:commandButton value="Nuevo" type="button"
+						onclick="PF('dlgInsertSalinidad').show();"
+						styleClass="ui-priority-primary" />
+					<p:commandButton process="tblSalinidad"
+						update=":form:dlgActualizarSal" icon="ui-icon-search"
+						value="Modificar" oncomplete="PF('dlgActualizarSal').show()" />
+				</p:panel>
+
+				<p:dataTable id="tblSalinidad" widgetVar="tblSalinidad" var="sal"
+					value="#{salinidadMb.listaSalinidad}" paginator="true" rows="10"
+					selection="#{salinidadMb.salinidadSelected}"
+					style="margin-bottom:10px;font-size:x-small; font-weight: bold"
+					rowKey="#{sal.idSalinidad}"
+					emptyMessage="Ningun dato cargado bajo el criterio"
+					filteredValue="#{salinidadMb.salinidadFilter}">
+
+					<p:column filterBy="#{sal.fecha}" sortBy="#{sal.fecha}"
+						headerText="Fecha" filterMatchMode="contains">
+
+						<h:outputText value="#{sal.fecha}" >
+						<f:convertDateTime type="date" dateStyle="short"
+								pattern="yyyy-MM-dd" />
+						</h:outputText>
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Piscina" />
+						</f:facet>
+						<h:outputText value="#{sal.nivelOperacion.piscina}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Salinidad" />
+						</f:facet>
+						<h:outputText value="#{sal.salinidad}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Temperatura" />
+						</f:facet>
+						<h:outputText value="#{sal.temperatura}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Acciòn" />
+						</f:facet>
+						<center>
+							<p:commandButton icon="ui-icon-trash" value="Eliminar"
+								title="Delete this actor"
+								action="#{salinidadMb.eliminarSalinidad(sal)}" ajax="true"
+								update=":form:tblSalinidad">
+									<p:confirm header="Confirmacion" message="¿Esta seguro de eliminar este registro?"  icon="ui-icon-alert" />
+							
+								</p:commandButton>
+
+						</center>
+					</p:column>
+				</p:dataTable>
+				<h:commandLink>
+					<p:graphicImage url="/images/excel.ico" height="20" width="30"
+						style="font-size:small" />
+					<p:dataExporter type="xls" target="tblSalinidad"
+						postProcessor="#{salinidadMb.postProcessXLS}"
+						fileName="nivelOperativo" pageOnly="true" />
+				</h:commandLink>
+				<h:commandLink>
+					<p:graphicImage url="/images/pdf.jpg" height="20" width="30" />
+					<p:dataExporter type="pdf" target="tblSalinidad"
+						fileName="nivelOperativo" pageOnly="true" />
+				</h:commandLink>
+			</p:panel>
+			<!-- INSERT-->
+			<p:dialog id="dlgInsertSalinidad" header="Ingresar"
+				widgetVar="dlgInsertSalinidad" modal="true">
+				<h:form id="formdlgInsertSalinidad">
+					<h:outputText value="Ingresar" />
+					<p:panel id="panel1">
+						<p:panelGrid columns="2" style="border:0;">
+						<p:outputLabel value="Fecha:" />
+							<p:calendar id="idFecha" value="#{salinidadMb.fecha}"
+								maxdate="#{salinidadMb.fechaActual}" showOn="button">
+								</p:calendar>
+							<h:outputText value="Piscina:" />
+							<p:selectOneMenu id="selectPisina2"
+								value="#{salinidadMb.piscina}" style="width:150px">
+								<f:selectItem itemLabel="Seleccione un valor" itemValue=""
+									noSelectionOption="true" />
+								<f:selectItems value="#{salinidadMb.listaObjNivelOperacion}"
+									var="nivel" itemLabel="nivel." />
+							</p:selectOneMenu>
+							<h:outputText value="Salinidad:" />
+							<p:inputText id="piscina" value="${salinidadMb.salinidad}"></p:inputText>
+							<h:outputText value="Temperatura:" />
+							<p:inputText id="areaHa" value="${salinidadMb.temperatura}"></p:inputText>
+							<p:commandButton value="Guardar"
+								action="#{salinidadMb.insertOperacionDiariaDatos}"
+								process=":form:formdlgInsertSalinidad:panel1"
+								update=":form:tblSalinidad :form:growl2" ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- UPDATE -->
+			<p:dialog id="dlgActualizarSal" header="Modificar"
+				widgetVar="dlgActualizarSal" modal="true">
+				<h:form id="formActualizarSal">
+					<h:outputText value="Actualizar" />
+					<p:panel id="panel1">
+						<h:outputText value="Seleccione un registro" rendered="#{empty salinidadMb.salinidadSelected}" />
+						
+						<p:panelGrid columns="2" style="border:0;"  rendered="#{not empty salinidadMb.salinidadSelected}">
+							<h:outputText value="Salinidad:" />
+							<p:inputText id="piscinaActualizar"
+								value="#{salinidadMb.salinidadSelected.salinidad}"></p:inputText>
+							<h:outputText value="Temperatura:" />
+							<p:inputText id="areaHa"
+								value="#{salinidadMb.salinidadSelected.temperatura}"></p:inputText>
+							<p:commandButton value="Guardar"
+								action="#{salinidadMb.actualizarSalinidad}"
+								process=":form:formActualizarSal:panel1"
+								update=":form:tblSalinidad :form:growl2" ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- Eliminar -->
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+				<p:commandButton value="Yes" 
+					styleClass="ui-confirmdialog-yes"   icon="ui-icon-check" />
+				<p:commandButton value="No" 
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close"  />
+			</p:confirmDialog>
+		</h:form>
+		<!-- <p:ajaxStatus onstart="PF('statusDialog').show()"
+			style="display:block;margin-bottom:2em;height:24px;"
+			onsuccess="PF('statusDialog').hide()">
+
+			<p:dialog widgetVar="statusDialog" modal="true" draggable="false"
+				closable="false" resizable="false" showHeader="false">
+				<p:graphicImage url="/images/gifAnimado2.gif" />
+			</p:dialog>
+		</p:ajaxStatus>
+		-->
+	</ui:define>
+</ui:composition>
+
+
+</html>

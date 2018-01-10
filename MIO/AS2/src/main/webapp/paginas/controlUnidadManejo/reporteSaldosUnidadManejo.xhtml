@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:panel header="#{msgs.lbl_reporte} #{msgs.lbl_saldo_unidad_manejo}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteSaldoUnidadManejoBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteSaldoUnidadManejoBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteSaldoUnidadManejoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<p:ajax process="@this" event="change" update="cboTransportista cboCliente cboSubempresa" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteSaldoUnidadManejoBean.transportista}" id="cboTransportista">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="null" />
+								<f:selectItems value="#{reporteSaldoUnidadManejoBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+									itemValue="#{_transportista}" />
+								<p:ajax process="@this" event="change" update="cboSucursal cboCliente cboSubempresa" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente"
+								value="#{reporteSaldoUnidadManejoBean.empresa}" completeMethod="#{reporteSaldoUnidadManejoBean.autocompletarClientes}" var="_cliente"
+								itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+								<p:ajax listener="#{reporteSaldoUnidadManejoBean.actualizarCliente}" process="@this" event="itemSelect" global="false" update="cboSucursal cboTransportista cboSubempresa" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_subcliente}:" />
+							<p:selectOneMenu  styleClass="input-text"
+								value="#{reporteSaldoUnidadManejoBean.subempresa}" id="cboSubempresa">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteSaldoUnidadManejoBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+									itemLabel="#{_subempresa.empresaFinal}" />
+								<p:ajax process="@this" event="change" global="false" update="@this" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

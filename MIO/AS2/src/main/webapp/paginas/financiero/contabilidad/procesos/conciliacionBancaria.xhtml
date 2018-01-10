@@ -1,0 +1,925 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<f:metadata>
+	<f:viewParam name="idCuentaBancariaOrganizacion" value="#{conciliacionBancariaBean.idCuentaBancariaOrganizacion}" />
+
+</f:metadata>
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<!-- 				
+				
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+				
+				
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{conciliacionBancariaBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value="tablaConciliacionBancaria" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+				</ui:include>
+				
+				 -->
+
+				<as2:toolBar bean="#{conciliacionBancariaBean}">
+
+					<as2:buttonImprimir id="btnImprimirFactura" beanReporte="#{reporteConciliacionBancariaBean}" bean="#{conciliacionBancariaBean}"
+						target="#{reporteConciliacionBancariaBean.conciliacionBancaria}" value="#{conciliacionBancariaBean.conciliacionBancaria}" />
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{conciliacionBancariaBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{conciliacionBancariaBean.conciliacionBancaria.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+
+					<as2:buttonExportaExcel bean="#{conciliacionBancariaBean}" tabla=":form:tablaConciliacionBancaria" />
+
+				</as2:toolBar>
+
+
+				<!-- 
+				
+				<as2:panelImprimir bean="#{reporteConciliacionBancariaBean}" entidadOrigen="#{conciliacionBancariaBean.conciliacionBancaria}"
+					entidadDestino="#{reporteConciliacionBancariaBean.conciliacionBancaria}" nombrePanelModal="confirmacionImprimir" />
+
+		
+				<p:confirmDialog message="#{msgs.confirmacion_anular_msg}?" height="60" width="300" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" id="confirmacionEliminar" widgetVar="confirmacionEliminar">
+
+					<p:outputPanel id="panelAnular">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_fecha}" />
+							<h:outputText value="#{conciliacionBancariaBean.conciliacionBancaria.fecha}">
+								<f:convertDateTime pattern="#{conciliacionBancariaBean.formatoFecha}" />
+							</h:outputText>
+						</h:panelGrid>
+
+						<h:panelGroup>
+							<center>
+								<p:commandButton value="#{msgs.confirmacion_si}" update="tablaConciliacionBancaria,mensajes" process="@this tablaConciliacionBancaria"
+									actionListener="#{conciliacionBancariaBean.eliminar}" oncomplete="confirmacionEliminar.hide()" />
+								<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionEliminar.hide()" />
+							</center>
+						</h:panelGroup>
+
+					</p:outputPanel>
+				</p:confirmDialog>
+
+				-->
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_conciliacion_bancaria} )" rendered="#{conciliacionBancariaBean.editado}">
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelConciliacion" columns="#{conciliacionBancariaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboCuentaBancariaOrganizacion" value="#{msgs.lbl_cuenta_bancaria}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="cboCuentaBancariaOrganizacion"
+									value="#{conciliacionBancariaBean.conciliacionBancaria.cuentaBancariaOrganizacion}"
+									completeMethod="#{conciliacionBancariaBean.autocompletarCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" forceSelection="true" dropdown="true"
+									minQueryLength="2" disabled="#{conciliacionBancariaBean.conciliacionBancaria.id>0}" required="true">
+									<p:column headerText="Codigo">
+										<h:outputText value="#{_cuentaBancariaOrganizacion.nombreCompleto}" />
+									</p:column>
+									<p:ajax process="@this" listener="#{conciliacionBancariaBean.actualizarCuentaBancariaOrganizacionListener}"
+										update=":form:tvConciliacionBancaria" event="itemSelect" />
+									<f:validateBean />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{conciliacionBancariaBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{conciliacionBancariaBean.conciliacionBancaria.fecha}" id="calenFecha">
+									<p:ajax listener="#{conciliacionBancariaBean.cargarDatosAConciliarPorFechaListener}"
+										update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria" event="dateSelect" />
+									<p:ajax listener="#{conciliacionBancariaBean.cargarDatosAConciliar}" process="@this" event="change"
+										update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria" />
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_conciliacion_bancaria_saldo_bancos}:" />
+								<p:inputText styleClass="input-text" value="#{conciliacionBancariaBean.conciliacionBancaria.saldoBancos}" id="txtSaldoBancos">
+									<f:validateBean />
+									<p:ajax process="@this" listener="#{conciliacionBancariaBean.calcular}"
+										update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria" event="change" />
+									<f:validateBean />
+								</p:inputText>
+
+								<p:spacer />
+
+								<p:fileUpload fileUploadListener="#{conciliacionBancariaBean.leerExcel}" mode="advanced" auto="true" sizeLimit="10000000"
+									allowTypes="/(\.|\/)(xls)$/"
+									update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados"
+									label="#{msgs.btn_cargar_excel}" process="@this" style="width: 85%;" />
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer />
+
+						<p:fieldset>
+							<p:tabView cache="true" id="tvConciliacionBancaria">
+
+								<p:tab title="#{msgs.lbl_titulo_movimiento_bancario}">
+
+
+
+									<p:outputPanel id="panelDetalleConciliacionBancaria">
+										<p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+											<p:dataExporter type="xls" target="tablaDetalleConciliacionBancaria" fileName="tablaDetalleConciliacionBancaria" postProcessor="true"
+												pageOnly="false" />
+										</p:commandButton>
+
+
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{conciliacionBancariaBean.listaDetalleConciliacionBancaria}"
+											id="tablaDetalleConciliacionBancaria" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleConciliacionBancaria"
+											paginator="true" rows="100" paginatorPosition="bottom" style="width:100%"
+											rowsPerPageTemplate="#{conciliacionBancariaBean.numeroFilasPorPagina}" binding="#{conciliacionBancariaBean.dtDetalleConciliacionBancaria}"
+											sortBy="#{_detalleConciliacionBancaria.fecha}" filteredValue="#{conciliacionBancariaBean.listaDetalleConciliacionBancariaFilteredValue}">
+
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_cuenta_bancaria_organizacion_transacciones}" />
+											</f:facet>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleConciliacionBancaria.fecha}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.fecha}">
+													<f:convertDateTime pattern="#{conciliacionBancariaBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleConciliacionBancaria.documento.nombre}"
+												filterBy="#{_detalleConciliacionBancaria.documento.nombre}" filterMatchMode="contains">
+
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_documento}" />
+												</f:facet>
+
+												<h:outputText value="#{_detalleConciliacionBancaria.documento.nombre}" id="txtDocumento">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detalleConciliacionBancaria.documentoReferencia}"
+												filterBy="#{_detalleConciliacionBancaria.documentoReferencia}" filterMatchMode="contains">
+
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_numero} #{msgs.lbl_documento}" />
+												</f:facet>
+
+												<h:outputText value="#{_detalleConciliacionBancaria.documentoReferencia}" id="txtNumeroDocumento">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.numero}"
+												filterBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.numero}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_asiento}" />
+												</f:facet>
+												<h:link rendered="#{not empty _detalleConciliacionBancaria.detalleAsiento.asiento}" target="_blank"
+													outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+													value="#{_detalleConciliacionBancaria.detalleAsiento.asiento}">
+													<f:param name="idAsiento" value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.idAsiento}" />
+												</h:link>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_concepto}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}"
+													title="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}">
+
+													<f:attribute name="limit" value="40" />
+													<f:converter converterId="stringLimitConverter" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_asiento_debe}" sortBy="#{_detalleConciliacionBancaria.valor}">
+												<h:outputText value="#{_detalleConciliacionBancaria.valor}" rendered="#{_detalleConciliacionBancaria.valor>0}" id="txtDebe">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_asiento_haber}">
+												<h:outputText value="#{-_detalleConciliacionBancaria.valor}" id="txtHaber" rendered="#{!(_detalleConciliacionBancaria.valor>0)}">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+												<center>
+													<p:commandLink id="btnConciliar" process="@this :form:tvConciliacionBancaria:panelDetalleConciliacionBancaria" global="false"
+														title="#{msgs.lbl_conciliar}"
+														update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados"
+														action="#{conciliacionBancariaBean.calcular(_detalleConciliacionBancaria)}" rendered="#{!_detalleConciliacionBancaria.conciliado}">
+														<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{_detalleConciliacionBancaria.conciliado}" value="true" />
+													</p:commandLink>
+													<p:commandLink id="btnDesconciliar" process="@this :form:tvConciliacionBancaria:panelDetalleConciliacionBancaria" global="false"
+														title="#{msgs.lbl_desconciliar}"
+														update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados"
+														action="#{conciliacionBancariaBean.calcular(_detalleConciliacionBancaria)}" rendered="#{_detalleConciliacionBancaria.conciliado}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{_detalleConciliacionBancaria.conciliado}" value="false" />
+													</p:commandLink>
+												</center>
+											</p:column>
+
+											<p:columnGroup type="footer">
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_depositos_conciliados}:" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{conciliacionBancariaBean.totalDebitosConciliados}" styleClass="input-text-number">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_pagos_conciliados}:" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalCreditosConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_conciliacion_bancaria_saldo_bancos} (1):" style="text-align:right" />
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.conciliacionBancaria.saldoBancos}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_depositos_no_conciliados} (2):" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalDebitosNoConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_pagos_no_conciliados} (3):" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalCreditosNoConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_saldo_estado_cuenta} (4=1+2-3):" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.saldoEstadoCuenta}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_saldo_contable} (5):" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.saldoContable}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_diferencia} (6=4-5):" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.diferencia}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_pagos_no_conciliados} (Cheques):" style="text-align:right" />
+
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalCreditosChequesNoConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+										</p:dataTable>
+									</p:outputPanel>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_conciliados}">
+
+									<p:outputPanel id="panelDetalleConciliados">
+									<p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+											<p:dataExporter type="xls" target="tablaDetalleConciliados" fileName="tablaDetalleConciliados" postProcessor="true"
+												pageOnly="false" />
+										</p:commandButton>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{conciliacionBancariaBean.listaDocumentosConciliados}"
+											id="tablaDetalleConciliados" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleConciliacionBancaria"
+											paginator="true" rows="100" paginatorPosition="bottom" style="width:100%"
+											rowsPerPageTemplate="#{conciliacionBancariaBean.numeroFilasPorPagina}" binding="#{conciliacionBancariaBean.dtDetalleDocumentosConciliados}"
+											filteredValue="#{conciliacionBancariaBean.listaDocumentosConciliadosFilteredValue}">
+
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_cuenta_bancaria_organizacion_transacciones}" />
+											</f:facet>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleConciliacionBancaria.fecha}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.fecha}">
+													<f:convertDateTime pattern="#{conciliacionBancariaBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleConciliacionBancaria.documento.nombre}"
+												filterBy="#{_detalleConciliacionBancaria.documento.nombre}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_documento}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.documento.nombre}" id="txtDocumentoC">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detalleConciliacionBancaria.documentoReferencia}"
+												filterBy="#{_detalleConciliacionBancaria.documentoReferencia}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_numero} #{msgs.lbl_documento}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.documentoReferencia}" id="txtNumeroDocumentoC">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.numero}"
+												filterBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.numero}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_asiento}" />
+												</f:facet>
+												<h:link rendered="#{not empty _detalleConciliacionBancaria.detalleAsiento.asiento}" target="_blank"
+													outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+													value="#{_detalleConciliacionBancaria.detalleAsiento.asiento}">
+													<f:param name="idAsiento" value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.idAsiento}" />
+												</h:link>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_concepto}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}"
+													title="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}">
+
+													<f:attribute name="limit" value="40" />
+													<f:converter converterId="stringLimitConverter" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_asiento_debe}" sortBy="#{_detalleConciliacionBancaria.valor}">
+												<h:outputText value="#{_detalleConciliacionBancaria.valor}" rendered="#{_detalleConciliacionBancaria.valor>0}" id="txtDebeC">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_asiento_haber}">
+												<h:outputText value="#{-_detalleConciliacionBancaria.valor}" id="txtHaberC" rendered="#{!(_detalleConciliacionBancaria.valor>0)}">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+												<f:facet name="header">
+													<p:commandLink title="#{msgs.lbl_desconciliar}" actionListener="#{conciliacionBancariaBean.desconciliarTodo()}"
+														update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados">
+
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+												</f:facet>
+												<center>
+													<p:commandLink id="btnDesConciliarC" process="@this :form:tvConciliacionBancaria:panelDetalleConciliacionBancaria" global="false"
+														title="#{msgs.lbl_desconciliar}"
+														update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados"
+														action="#{conciliacionBancariaBean.calcular(_detalleConciliacionBancaria)}">
+														<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{_detalleConciliacionBancaria.conciliado}" value="false" />
+													</p:commandLink>
+												</center>
+											</p:column>
+
+											<p:columnGroup type="footer">
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+													<p:column styleClass="columnaDTValor">
+														<f:facet name="footer">
+															<h:outputText value="#{conciliacionBancariaBean.totalDebitosConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column styleClass="columnaDTValor">
+														<f:facet name="footer" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalCreditosConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+
+													<p:column></p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+										</p:dataTable>
+									</p:outputPanel>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_no_conciliados}">
+
+									<p:outputPanel id="panelDetalleNoConciliados">
+									<p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+											<p:dataExporter type="xls" target="tablaDetalleNoConciliados" fileName="tablaDetalleNoConciliados" postProcessor="true"
+												pageOnly="false" />
+										</p:commandButton>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{conciliacionBancariaBean.listaDocumentosNoConciliados}"
+											id="tablaDetalleNoConciliados" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleConciliacionBancaria"
+											paginator="true" rows="100" paginatorPosition="bottom" style="width:100%"
+											rowsPerPageTemplate="#{conciliacionBancariaBean.numeroFilasPorPagina}"
+											binding="#{conciliacionBancariaBean.dtDetalleDocumentosNoConciliados}" sortBy="#{_detalleConciliacionBancaria.fecha}"
+											filteredValue="#{conciliacionBancariaBean.listaDocumentosNoConciliadosFilteredValue}">
+
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_cuenta_bancaria_organizacion_transacciones}" />
+											</f:facet>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleConciliacionBancaria.fecha}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.fecha}">
+													<f:convertDateTime pattern="#{conciliacionBancariaBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleConciliacionBancaria.documento.nombre}"
+												filterBy="#{_detalleConciliacionBancaria.documento.nombre}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_documento}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.documento.nombre}" id="txtDocumentoNC">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detalleConciliacionBancaria.documentoReferencia}"
+												filterBy="#{_detalleConciliacionBancaria.documentoReferencia}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_numero} #{msgs.lbl_documento}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.documentoReferencia}" id="txtNumeroDocumentoNC">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.numero}"
+												filterBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.numero}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_asiento}" />
+												</f:facet>
+												<h:link rendered="#{not empty _detalleConciliacionBancaria.detalleAsiento.asiento}" target="_blank"
+													outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+													value="#{_detalleConciliacionBancaria.detalleAsiento.asiento}">
+													<f:param name="idAsiento" value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.idAsiento}" />
+												</h:link>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_concepto}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}"
+													title="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}">
+
+													<f:attribute name="limit" value="40" />
+													<f:converter converterId="stringLimitConverter" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_asiento_debe}" sortBy="#{_detalleConciliacionBancaria.valor}">
+												<h:outputText value="#{_detalleConciliacionBancaria.valor}" rendered="#{_detalleConciliacionBancaria.valor>0}" id="txtDebeNC">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_asiento_haber}">
+												<h:outputText value="#{-_detalleConciliacionBancaria.valor}" id="txtHaberNC" rendered="#{!(_detalleConciliacionBancaria.valor>0)}">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column exportable="false" styleClass="columnaDTAccion tableCell">
+												<f:facet name="header">
+													<p:commandLink title="#{msgs.lbl_conciliar}" actionListener="#{conciliacionBancariaBean.conciliarTodo()}"
+														update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados">
+
+														<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+													</p:commandLink>
+												</f:facet>
+												<center>
+													<p:commandLink id="btnConciliar" process="@this :form:tvConciliacionBancaria:panelDetalleConciliacionBancaria" global="false"
+														title="#{msgs.lbl_conciliar}"
+														update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados"
+														action="#{conciliacionBancariaBean.calcular(_detalleConciliacionBancaria)}">
+														<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+														<f:setPropertyActionListener target="#{_detalleConciliacionBancaria.conciliado}" value="true" />
+													</p:commandLink>
+												</center>
+											</p:column>
+
+											<p:columnGroup type="footer">
+
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+													<p:column styleClass="columnaDTValor">
+														<f:facet name="footer">
+															<h:outputText value="#{conciliacionBancariaBean.totalDebitosNoConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column styleClass="columnaDTValor">
+														<f:facet name="footer" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalCreditosNoConciliados}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+
+													<p:column></p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+										</p:dataTable>
+									</p:outputPanel>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_movimiento_bancario_no_registrado}">
+
+									<!-- Inicio Dialog Detalle Movimiento Bancario  -->
+									<p:outputPanel id="panelMovimientoBancario">
+										<p:dialog header="#{msgs.lbl_titulo_movimiento_bancario}" widgetVar="movimientoBancarioDialog" id="movimientoBancarioDialog" modal="true"
+											height="150" width="950" showEffect="slide" hideEffect="slide" rendered="#{conciliacionBancariaBean.indicadorRender}">
+
+
+											<h:panelGrid id="panelGridMovimientoBancario" columns="#{conciliacionBancariaBean.numeroColumnasPanelNuevo}"
+												columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+												<h:outputText value="#{msgs.lbl_documento}" />
+												<p:selectOneMenu required="true" style="width: 100%;" id="cboDocumento"
+													value="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.documento}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{conciliacionBancariaBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+														itemValue="#{_documento}" />
+													<f:validateBean />
+													<p:ajax process="@this" global="false" event="change" />
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_documento_referencia}:" />
+												<p:inputText styleClass="input-text" value="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.documentoReferencia}"
+													id="txtDocumentoReferencia" required="true">
+													<f:validateBean />
+												</p:inputText>
+
+												<h:outputText value="#{msgs.lbl_fecha}:" />
+												<p:calendar pattern="#{conciliacionBancariaBean.formatoFecha}" showOn="button" navigator="true"
+													value="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.fecha}" id="calFecha" required="true">
+													<f:validateBean />
+												</p:calendar>
+
+												<h:outputText value="#{msgs.lbl_asiento_debe}:" />
+												<p:inputText styleClass="input-text" value="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.valorCobrado}" id="txtValorCobrado"
+													readonly="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.valorPagado>0}">
+													<p:ajax update="txtValorPagado txtValorCobrado" process="@this" global="false" />
+													<f:validateBean />
+												</p:inputText>
+
+												<h:outputText value="#{msgs.lbl_asiento_haber}:" />
+												<p:inputText styleClass="input-text" value="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.valorPagado}" id="txtValorPagado"
+													readonly="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.valorCobrado>0}">
+													<p:ajax update="txtValorPagado txtValorCobrado" process="@this" global="false" />
+													<f:validateBean />
+												</p:inputText>
+
+												<h:outputText value="#{msgs.lbl_descripcion}:" />
+												<p:inputTextarea styleClass="input-text" value="#{conciliacionBancariaBean.movimientoBancarioNoRegistrado.descripcion}"
+													id="txtDescripcionMovimientoBancario">
+													<f:validateBean />
+												</p:inputTextarea>
+
+											</h:panelGrid>
+
+
+											<f:facet name="footer">
+												<center>
+													<p:commandButton value="#{msgs.btn_guardar}" action="#{conciliacionBancariaBean.cargarMovimientoBancarioNoRegistrado}"
+														process="@this, panelGridMovimientoBancario" oncomplete="movimientoBancarioDialog.hide()"
+														update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados :form:tvConciliacionBancaria:panelMovimientosNoConciliados"
+														icon="ui-icon-plus" />
+													<p:commandButton value="#{msgs.btn_cancelar}" onclick="movimientoBancarioDialog.hide()" process="@this" update="@none">
+														<f:setPropertyActionListener target="#{conciliacionBancariaBean.indicadorRender}" value="false"></f:setPropertyActionListener>
+													</p:commandButton>
+												</center>
+											</f:facet>
+
+										</p:dialog>
+									</p:outputPanel>
+									<!-- Fin Dialog Detalle Movimiento Bancario  -->
+
+
+									<p:outputPanel id="panelMovimientosNoConciliados">
+
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" actionListener="#{conciliacionBancariaBean.agregarMovimientoBancarioNoRegistrado}"
+											icon="ui-icon-plus" process="@this" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" binding="#{conciliacionBancariaBean.dtDetalleDocumentosNoRegistradosEnLibros}"
+											value="#{conciliacionBancariaBean.listaMovimientoBancarioNoRegistrado}" id="tablaMovimientosNoConciliados" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleConciliacionBancaria" paginator="true" paginatorPosition="bottom" style="width:100%"
+											sortBy="#{_detalleConciliacionBancaria.fecha}" rowKey="#{_detalleConciliacionBancaria.rowKey}">
+
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_cuenta_bancaria_organizacion_transacciones}" />
+											</f:facet>
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleConciliacionBancaria.fecha}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.fecha}">
+													<f:convertDateTime pattern="#{conciliacionBancariaBean.formatoFecha}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleConciliacionBancaria.documento}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_documento}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.documento}" id="txtDocumentoNoRegistrado">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detalleConciliacionBancaria.documentoReferencia}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_numero} #{msgs.lbl_documento}" />
+												</f:facet>
+												<h:outputText value="#{_detalleConciliacionBancaria.documentoReferencia}" id="txtNumeroDocumentoNoRegistrado">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_asiento}" />
+												</f:facet>
+												<h:link rendered="#{not empty _detalleConciliacionBancaria.detalleAsiento.asiento}" target="_blank"
+													outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+													value="#{_detalleConciliacionBancaria.detalleAsiento.asiento}">
+													<f:param name="idAsiento" value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.idAsiento}" />
+												</h:link>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_concepto}">
+												<h:outputText value="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}"
+													title="#{_detalleConciliacionBancaria.detalleAsiento.asiento.concepto}">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_asiento_debe}">
+												<h:outputText value="#{_detalleConciliacionBancaria.valor}" rendered="#{_detalleConciliacionBancaria.valor>0}" id="txtDebeNoRegistrado">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValorGrande tableCell" headerText="#{msgs.lbl_asiento_haber}">
+												<h:outputText value="#{_detalleConciliacionBancaria.valor}" id="txtHaberNoRegistrado"
+													rendered="#{!(_detalleConciliacionBancaria.valor>0)}">
+													<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tvConciliacionBancaria:panelDetalleConciliacionBancaria :form:tvConciliacionBancaria:panelDetalleConciliados :form:tvConciliacionBancaria:panelDetalleNoConciliados :form:tvConciliacionBancaria:panelMovimientosNoConciliados"
+													process="@this" global="false" action="#{conciliacionBancariaBean.eliminarMovimientoBancarioNoRegistrado}">
+												</p:commandButton>
+											</p:column>
+
+											<p:columnGroup type="footer">
+												<p:row>
+													<p:column colspan="5" />
+													<p:column footerText="#{msgs.lbl_total}:" style="text-align:right" />
+													<p:column>
+														<f:facet name="footer" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalDebe}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column>
+														<f:facet name="footer" style="text-align:right">
+															<h:outputText value="#{conciliacionBancariaBean.totalHaber}">
+																<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column footerText="" style="text-align:right"></p:column>
+												</p:row>
+											</p:columnGroup>
+
+										</p:dataTable>
+
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!conciliacionBancariaBean.editado}" header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_conciliacion_bancaria} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaConciliacionBancaria" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{conciliacionBancariaBean.listaConciliacionBancaria}" var="_conciliacionBancaria"
+							binding="#{conciliacionBancariaBean.dtConciliacionBancaria}" paginator="true" paginatorPosition="bottom" style="width:100%" rows="100"
+							selection="#{conciliacionBancariaBean.conciliacionBancaria}" rowKey="#{_conciliacionBancaria.id}" selectionMode="single"
+							sortBy="#{_conciliacionBancaria.fecha}" sortOrder="DESCENDING" rowsPerPageTemplate="#{conciliacionBancariaBean.numeroFilasPorPagina}">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_conciliacionBancaria.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_conciliacionBancaria.fecha}">
+									<f:convertDateTime pattern="#{conciliacionBancariaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell"
+								sortBy="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.tipoCuentaBancaria.nombre}"
+								filterBy="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.tipoCuentaBancaria.nombre}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_cuenta_bancaria}" />
+								</f:facet>
+								<h:outputText value="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.tipoCuentaBancaria.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}"
+								filterBy="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_banco}" />
+								</f:facet>
+								<h:outputText value="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.numero}"
+								filterBy="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.numero}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_cuenta_bancaria}" />
+								</f:facet>
+								<h:outputText value="#{_conciliacionBancaria.cuentaBancariaOrganizacion.cuentaBancaria.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_conciliacion_bancaria_saldo_bancos}" />
+								</f:facet>
+								<h:outputText value="#{_conciliacionBancaria.saldoBancos}">
+									<f:convertNumber pattern="#{conciliacionBancariaBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_conciliacionBancaria.estado}" filterBy="#{_conciliacionBancaria.estado}"
+								filterOptions="#{conciliacionBancariaBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_conciliacionBancaria.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_conciliacionBancaria.asiento.numero}"
+								filterBy="#{_conciliacionBancaria.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _conciliacionBancaria.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_conciliacionBancaria.asiento}">
+									<f:param name="idAsiento" value="#{_conciliacionBancaria.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{conciliacionBancariaBean.conciliacionBancaria.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{conciliacionBancariaBean.conciliacionBancaria.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{conciliacionBancariaBean.conciliacionBancaria.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{conciliacionBancariaBean.conciliacionBancaria.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

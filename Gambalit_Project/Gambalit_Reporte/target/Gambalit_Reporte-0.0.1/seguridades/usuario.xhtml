@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+
+<ui:composition template="../WEB-INF/template/principal.xhtml">
+	<ui:define name="content">
+		<h:form id="form">
+			<p:growl id="growl2" showDetail="true" />
+			<p:remoteCommand name="refreshSections" update="panelUsuario" />
+			<p:panel id="panelUsuario" widgetVar="panelUsuario">
+				<p:panel id="basic" style="margin-bottom:10px;font-size:small;">
+					<p:commandButton value="Nuevo" type="button"
+						onclick="PF('dlgInsertUsuario').show();"
+						styleClass="ui-priority-primary" />
+					<p:commandButton process="tblUsuario @this"
+						action="#{usuarioMb.getUsuarioSeleccionado}"
+						update=":form:dlgActualizarUsu" icon="ui-icon-search"
+						value="Modificar" />
+				</p:panel>
+
+				<p:dataTable id="tblUsuario" widgetVar="tblUsuario" var="usuario"
+					value="#{usuarioMb.listaUsuarios}"
+					selection="#{usuarioMb.usuarioSelect}" selectionMode="single"
+					rowKey="#{usuario.idUsuario}" rows="7"
+					emptyMessage="Ningun dato cargado bajo el criterio"
+					filteredValue="#{usuarioMb.usuariosFilter}"
+					style="margin-bottom:10px;font-size:small;" paginator="true">
+
+					<p:column headerText="Nombre" filterBy="#{usuario.nombre}"
+						sortBy="#{usuario.nombre}" filterMatchMode="contains">
+
+						<h:outputText value="#{usuario.nombre}" />
+					</p:column>
+					<p:column headerText="Usuario" filterBy="#{usuario.usuario}"
+						sortBy="#{usuario.usuario}" filterMatchMode="contains">
+						<h:outputText value="#{usuario.usuario}" />
+					</p:column>
+					<p:column headerText="Fecha Ingreso">
+
+						<h:outputText value="#{usuario.fechaIngreso}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Acciòn" />
+						</f:facet>
+						<center>
+							<p:commandButton icon="ui-icon-trash" value="Eliminar"
+							action="#{usuarioMb.cargarUsuarioEliminar(usuario)}"
+								 ajax="true" update=":form:tblUsuario">
+								<p:confirm header="Confirmacion" message="¿Esta seguro de eliminar este usuario?"  icon="ui-icon-alert" />
+							</p:commandButton>
+
+						</center>
+					</p:column>
+				</p:dataTable>
+			</p:panel>
+			<!-- INSERT-->
+			<p:dialog id="dlgInsertUsuario" header="Ingresar"
+				widgetVar="dlgInsertUsuario" modal="true">
+				<h:form id="formdlgInsertUsuario">
+					<p:panel id="panel1">
+						<p:panelGrid columns="2" style="border:0;">
+							<h:outputText value="Nombre" />
+							<p:inputText id="nombre" value="${usuarioMb.nombre}"></p:inputText>
+							<h:outputText value="Usuario" />
+							<p:inputText id="usuario" value="${usuarioMb.user}"></p:inputText>
+							
+						</p:panelGrid>
+						<p:separator></p:separator>
+						<p:pickList id="pickList" value="#{usuarioMb.roles}" var="roles"
+							converter="pickListConverter" itemLabel="#{roles.nombre}"
+							itemValue="#{roles}">
+							<f:facet name="sourceCaption">Roles por Asignar</f:facet>
+							<f:facet name="targetCaption">Roles Asignadoss</f:facet>
+						</p:pickList>
+
+
+
+						<p:commandButton value="Guardar"
+							action="#{usuarioMb.insertarUsuario}"
+							process=":form:formdlgInsertUsuario:panel1 :form:formdlgInsertUsuario:pickList"
+							update=":form:tblUsuario :form:growl2" ajax="true">
+						</p:commandButton>
+
+					</p:panel>
+				</h:form>
+			</p:dialog>
+
+			<!-- UPDATE -->
+			<p:dialog id="dlgActualizarUsu" header="Modificar"
+				widgetVar="dlgActualizarUsu" showEffect="fade" hideEffect="fade"
+				modal="true">
+				<h:form id="formActualizarUsu">
+
+					<h:outputText value="Actualizar" />
+					<p:panel id="panel1">
+						<h:outputText value="Seleccione un registro"
+							rendered="#{empty usuarioMb.usuarioSelect}" />
+
+						<p:panelGrid columns="1" style="border:0;"
+							rendered="#{not empty usuarioMb.usuarioSelect}">
+							<p:panelGrid columns="2">
+								<h:outputText value="Nombre" />
+								<h:inputText id="nombre"
+									value="#{usuarioMb.usuarioSelect.nombre}" />
+							</p:panelGrid>
+							<p:pickList id="pickListActualizar"
+								value="#{usuarioMb.rolesAsignados}" var="roles"
+								converter="pickListConverter" itemLabel="#{roles.nombre}"
+								itemValue="#{roles}">
+								<f:facet name="sourceCaption">Roles por Asignar</f:facet>
+								<f:facet name="targetCaption">Roles Asignadoss</f:facet>
+							</p:pickList>
+
+							<p:commandButton value="Guardar"
+								process=":form:formActualizarUsu:panel1"
+								action="#{usuarioMb.modificarUsuario}"
+								update=":form:tblUsuario :form:growl2" ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- Eliminar -->
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+				<p:commandButton value="Yes" 
+					styleClass="ui-confirmdialog-yes"   icon="ui-icon-check" />
+				<p:commandButton value="No" 
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close"  />
+			</p:confirmDialog>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>
+<!-- <h:outputText value="Clave" />
+							<p:password id="clave" value="#{usuarioMb.clave}" feedback="true" />
+							<h:outputText value="Repita Clave" />
+							<p:password id="feedback" value="#{usuarioMb.clave}"
+								feedback="true" /> -->

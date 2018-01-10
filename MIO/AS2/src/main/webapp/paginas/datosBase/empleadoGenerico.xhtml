@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{empleadoGenericoBean}">
+					<as2:buttonEliminar bean="#{empleadoGenericoBean}">
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{empleadoGenericoBean.empleadoGenerico.nombre}" />
+
+					</as2:buttonEliminar>
+					<as2:buttonExportaExcel bean="#{empleadoGenericoBean}" tabla=":form:tablaEmpleadoGenerico" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{empleadoGenericoBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_empleado_generico}">
+
+						<h:panelGrid id="panelDetalle" columns="#{empleadoGenericoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{empleadoGenericoBean.empleadoGenerico.codigo}" id="txtCodigo" required="true" />
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa" value="#{empleadoGenericoBean.empleadoGenerico.empresa}"
+								completeMethod="#{empleadoGenericoBean.autocompletarEmpleados}" var="_empleado" itemLabel="#{_empleado.nombreFiscal}" itemValue="#{_empleado}"
+								forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column>#{_empleado.codigo}</p:column>
+								<p:column>#{_empleado.identificacion}</p:column>
+								<p:column>#{_empleado.empleado.nombres}</p:column>
+								<p:column>#{_empleado.empleado.apellidos}</p:column>
+
+								<p:ajax listener="#{empleadoGenericoBean.actualizarEmpleado}" process="@this" event="itemSelect"
+									update="txtNombre txtIdentificacion cboGenero cboEspecialidad" />
+							</p:autoComplete>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{empleadoGenericoBean.empleadoGenerico.nombre}" id="txtNombre" required="true"/>
+
+							<h:outputText value="#{msgs.lbl_identificacion}:" />
+							<p:inputText styleClass="input-text" value="#{empleadoGenericoBean.empleadoGenerico.identificacion}" id="txtIdentificacion" />
+
+							<p:outputLabel for="cboGenero" value="#{msgs.lbl_genero}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" value="#{empleadoGenericoBean.empleadoGenerico.genero}" id="cboGenero" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{empleadoGenericoBean.listaGenero}" var="_genero" itemLabel="#{_genero.nombre}" itemValue="#{_genero}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<p:outputLabel for="cboEspecialidad" value="#{msgs.lbl_especialidad}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" value="#{empleadoGenericoBean.empleadoGenerico.especialidad}" id="cboEspecialidad" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{empleadoGenericoBean.listaEspecialidad}" var="_especialidad" itemLabel="#{_especialidad.nombre}"
+										itemValue="#{_especialidad}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{empleadoGenericoBean.empleadoGenerico.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{empleadoGenericoBean.empleadoGenerico.predeterminado}" />
+
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!empleadoGenericoBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_empleado_generico}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpleadoGenerico" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{empleadoGenericoBean.listaEmpleadoGenerico}" var="_empleadoGenerico" binding="#{empleadoGenericoBean.dtEmpleadoGenerico}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{empleadoGenericoBean.numeroFilas}"
+							selection="#{empleadoGenericoBean.empleadoGenerico}" selectionMode="single" rowKey="#{_empleadoGenerico.idEmpleadoGenerico}"
+							sortBy="#{_empleadoGenerico.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="No">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{_empleadoGenerico.codigo}" sortBy="#{_empleadoGenerico.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_empleadoGenerico.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{_empleadoGenerico.nombre}" sortBy="#{_empleadoGenerico.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_empleadoGenerico.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_empleadoGenerico.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_empleadoGenerico.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" sortBy="#{_empleadoGenerico.predeterminado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_empleadoGenerico.predeterminado}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{empleadoGenericoBean.empleadoGenerico.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{empleadoGenericoBean.empleadoGenerico.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{empleadoGenericoBean.empleadoGenerico.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{empleadoGenericoBean.empleadoGenerico.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

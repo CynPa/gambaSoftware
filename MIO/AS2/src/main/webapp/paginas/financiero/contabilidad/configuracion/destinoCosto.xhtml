@@ -1,0 +1,143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{destinoCostoBean}">
+					<as2:buttonEliminar bean="#{destinoCostoBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{destinoCostoBean.destinoCosto.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{destinoCostoBean.destinoCosto.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{destinoCostoBean}" tabla=":form:tablaDestinoCosto"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{destinoCostoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_destino_costo} )">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{destinoCostoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{destinoCostoBean.destinoCosto.codigo}" id="txtCodigo" required="true"/>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{destinoCostoBean.destinoCosto.nombre}" id="txtNombre" required="true" />						
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{destinoCostoBean.destinoCosto.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{destinoCostoBean.destinoCosto.predeterminado}" />
+								
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{destinoCostoBean.destinoCosto.descripcion}"
+								id="txtDescripcion" />
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!destinoCostoBean.editado}"
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_destino_costo} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDestinoCosto" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{destinoCostoBean.listaDestinoCosto}"
+							var="_destino_costo" binding="#{destinoCostoBean.dtDestinoCosto}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{destinoCostoBean.numeroFilas}"
+							rowsPerPageTemplate="#{destinoCostoBean.numeroFilasPorPagina}"
+							selection="#{destinoCostoBean.destinoCosto}"
+							selectionMode="single" rowKey="#{_destino_costo.id}" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" filterBy="#{_destino_costo.codigo}"
+								sortBy="#{_destino_costo.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_destino_costo.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" filterBy="#{_destino_costo.nombre}"
+								sortBy="#{_destino_costo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_destino_costo.nombre}" />
+							</p:column>						
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_destino_costo.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_destino_costo.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_destino_costo.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_destino_costo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{destinoCostoBean.destinoCosto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{destinoCostoBean.destinoCosto.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{destinoCostoBean.destinoCosto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{destinoCostoBean.destinoCosto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,261 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{loteBean}">
+					<as2:buttonEliminar bean="#{loteBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{loteBean.lote.codigo}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{loteBean}" tabla=":form:tablaLote" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{loteBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtProducto :form:cboPrefijoLote" />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{loteBean.editado}" header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_lote} )">
+
+						<h:panelGrid id="panelDetalle" columns="#{loteBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_secuencia_prefijo} #{msgs.lbl_lote}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{loteBean.lote.producto.prefijoLote}" id="cboPrefijoLote" editable="true">
+								<f:selectItems value="#{loteBean.lote.producto.valoresPrefijosLote}" />
+								<p:ajax process="@this" global="false" partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{loteBean.lote.codigo}" id="txtCodigo" required="true" />
+
+							<h:outputText value="#{msgs.lbl_producto}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" oncomplete="dglModalProducto.show();" update="panelListaProducto">
+								</p:commandButton>
+								<h:outputText id="txtProducto" value="#{loteBean.lote.producto.nombreComercial}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_indicador_movimiento_interno}:" />
+							<p:selectBooleanCheckbox value="#{loteBean.lote.indicadorMovimientoInterno}">
+								<p:ajax process="@this" update="lblProveedor,txtProveedor,txtFechaFabricacion,cldFechaFabricacion" listener="#{loteBean.movimientoInterno}" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputPanel id="lblProveedor">
+								<h:outputText value="#{msgs.lbl_proveedor}:" rendered="#{!loteBean.lote.indicadorMovimientoInterno}" />
+							</p:outputPanel>
+
+							<p:outputPanel id="txtProveedor">
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" required="#{!loteBean.lote.indicadorMovimientoInterno}"
+									rendered="#{!loteBean.lote.indicadorMovimientoInterno}" value="#{loteBean.lote.empresa}"
+									completeMethod="#{loteBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}"
+									forceSelection="true" dropdown="true" minQueryLength="2" id="autProveedor">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+								</p:autoComplete>
+							</p:outputPanel>
+
+							<p:outputPanel id="txtFechaFabricacion">
+								<h:outputText value="#{msgs.lbl_fecha_fabricacion}:" rendered="#{loteBean.lote.indicadorMovimientoInterno}" />
+							</p:outputPanel>
+
+							<p:outputPanel id="cldFechaFabricacion">
+								<h:panelGroup id="calendarioFechaFabricacion" rendered="#{loteBean.lote.indicadorMovimientoInterno}">
+									<p:calendar pattern="#{loteBean.formatoFecha}" showOn="button" navigator="true" required="#{loteBean.lote.indicadorMovimientoInterno}"
+										value="#{loteBean.lote.fechaFabricacion}" id="calenFechaFabricacion">
+										<f:validateBean />
+									</p:calendar>
+								</h:panelGroup>
+							</p:outputPanel>
+
+							<p:outputLabel for="calenFechaCaducidad" value="#{msgs.lbl_fecha_caducidad}:" />
+							<p:calendar pattern="#{loteBean.formatoFecha}" showOn="button" navigator="true" value="#{loteBean.lote.fechaCaducidad}"
+								id="calenFechaCaducidad" required="true">
+								<f:validateBean />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{loteBean.lote.activo}" />
+
+						</h:panelGrid>
+
+						<p:outputPanel autoUpdate="true">
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{loteBean.lote.atributo1.nombre}:" rendered="#{not empty loteBean.lote.atributo1}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo1}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo1}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo1.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo2.nombre}:" rendered="#{not empty loteBean.lote.atributo2}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo2}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo2}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo2.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo3.nombre}:" rendered="#{not empty loteBean.lote.atributo3}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo3}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo3}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo3.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo4.nombre}:" rendered="#{not empty loteBean.lote.atributo4}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo4}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo4}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo4.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo5.nombre}:" rendered="#{not empty loteBean.lote.atributo5}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo5}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo5}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo5.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo6.nombre}:" rendered="#{not empty loteBean.lote.atributo6}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo6}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo6}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo6.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo7.nombre}:" rendered="#{not empty loteBean.lote.atributo7}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo7}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo7}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo7.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo8.nombre}:" rendered="#{not empty loteBean.lote.atributo8}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo8}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo8}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo8.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo9.nombre}:" rendered="#{not empty loteBean.lote.atributo9}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo9}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo9}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo9.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{loteBean.lote.atributo10.nombre}:" rendered="#{not empty loteBean.lote.atributo10}" />
+								<p:selectOneMenu value="#{loteBean.lote.valorAtributo10}" required="true" requiredMessage="#{msgs.lbl_requerido}"
+									rendered="#{not empty loteBean.lote.atributo10}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{loteBean.lote.atributo10.listaValorAtributo}" var="_valorAtributo" itemValue="#{_valorAtributo}"
+										itemLabel="#{_valorAtributo.codigo} - #{_valorAtributo.nombre}" />
+									<p:ajax process="@this" global="false" partialSubmit="true"></p:ajax>
+								</p:selectOneMenu>
+
+							</h:panelGrid>
+
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!loteBean.editado}" header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_lote} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaLote" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{loteBean.listaLote}" var="_lote" binding="#{loteBean.dtLote}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{loteBean.numeroFilas}" selection="#{loteBean.lote}" rowsPerPageTemplate="#{loteBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_lote.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="tableCell columnaDTAccion">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_lote.codigo}" sortBy="#{_lote.codigo}" styleClass="columnaDTCodigo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_lote.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_lote.producto.codigo}" sortBy="#{_lote.producto.codigo}" styleClass="columnaDTCodigo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_producto2}" />
+								</f:facet>
+								<h:outputText value="#{_lote.producto.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_lote.producto.nombre}" sortBy="#{_lote.producto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre_producto}" />
+								</f:facet>
+								<h:outputText value="#{_lote.producto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_lote.indicadorMovimientoInterno}" styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_movimiento_interno}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_lote.indicadorMovimientoInterno}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_lote.activo}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{_lote.activo}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{loteBean.lote.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{loteBean.lote.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{loteBean.lote.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{loteBean.lote.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

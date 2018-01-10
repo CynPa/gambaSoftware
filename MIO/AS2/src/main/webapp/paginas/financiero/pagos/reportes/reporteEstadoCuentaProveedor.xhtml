@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_estado_cuenta}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteEstadoCuentaProveedorBean}" entidadOrigen=""></tnt:panelImprimir>
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteEstadoCuentaProveedorBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteEstadoCuentaProveedorBean.fechaDesde}" id="calFechaDesde">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteEstadoCuentaProveedorBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteEstadoCuentaProveedorBean.fechaHasta}" id="calFechaHasta">
+							</p:calendar>
+
+
+							<h:outputText value="#{msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboProveedor"
+								value="#{reporteEstadoCuentaProveedorBean.empresa}" completeMethod="#{reporteEstadoCuentaProveedorBean.autocompletarProveedores}"
+								var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2"
+								size="50">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoCuentaProveedorBean.categoriaEmpresa}" id="cboCategoriaEmpresa">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteEstadoCuentaProveedorBean.listaCategoriaEmpresa}" var="_categoriaEmpresa"
+									itemLabel="#{_categoriaEmpresa.nombre}" itemValue="#{_categoriaEmpresa}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_sucursal}" />
+							<p:selectOneMenu value="#{reporteEstadoCuentaProveedorBean.sucursal}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteEstadoCuentaProveedorBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" id="cboSucursal" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_tipo_operacion}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" value="#{reporteEstadoCuentaProveedorBean.tipoOperacion}" id="cboTipoOperacion">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{reporteEstadoCuentaProveedorBean.listaTipoOperacion}" var="_tipoOperacion" itemLabel="#{_tipoOperacion.nombre}"
+										itemValue="#{_tipoOperacion}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_orden}:" />
+							<p:selectOneMenu id="cboOrden" value="#{reporteEstadoCuentaProveedorBean.orden}">
+								<f:selectItems value="#{reporteEstadoCuentaProveedorBean.listaOrdenamiento}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_saldos_diferente_de_cero}:" />
+							<p:selectBooleanCheckbox value="#{reporteEstadoCuentaProveedorBean.saldoDiferenteDeCero}" />
+
+						</h:panelGrid>
+					</p:fieldset>
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this panelFiltros" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{puntoDeVentaBean}">
+
+					<as2:buttonEliminar bean="#{puntoDeVentaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{puntoDeVentaBean.puntoDeVenta.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{puntoDeVentaBean.puntoDeVenta.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{puntoDeVentaBean}" tabla=":form:tablaPuntoVenta" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_punto_de_venta_panel}" rendered="#{puntoDeVentaBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelDetalle" columns="#{puntoDeVentaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboSucursal" value="#{puntoDeVentaBean.puntoDeVenta.sucursal}">
+									<f:selectItems value="#{puntoDeVentaBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{puntoDeVentaBean.puntoDeVenta.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{puntoDeVentaBean.puntoDeVenta.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+								
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo_alterno}:" />
+								<p:inputText styleClass="input-text" value="#{puntoDeVentaBean.puntoDeVenta.codigoAlterno}" id="txtCodigoAlterno" required="true">
+									<f:validateBean />
+								</p:inputText>								
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{puntoDeVentaBean.puntoDeVenta.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+								
+								<h:outputText value="#{msgs.lbl_pos}:" />
+								<p:selectBooleanCheckbox value="#{puntoDeVentaBean.puntoDeVenta.indicadorPos}" />
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{puntoDeVentaBean.puntoDeVenta.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{puntoDeVentaBean.puntoDeVenta.predeterminado}" />
+							</h:panelGrid>
+						</p:fieldset>
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelGridCaja">
+								<p:commandButton value="#{msgs.btn_agregar_caja}" id="btnAgregar" action="#{puntoDeVentaBean.agregarCaja}" update="panelGridCaja"
+									process="@this,panelGridCaja" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCaja" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" binding="#{puntoDeVentaBean.dtCaja}"
+									value="#{puntoDeVentaBean.listaCaja}" var="_caja" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rowsPerPageTemplate="#{puntoDeVentaBean.numeroFilasPorPagina}" rows="#{puntoDeVentaBean.numeroFilas}" rowKey="#{_caja.id}" lazy="true">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}">
+										<p:inputText styleClass="input-text" value="#{_caja.codigo}" id="txtCodigo" size="10" required="true">
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+										<p:inputText value="#{_caja.nombre}" id="txtNombre" styleClass="input-text" required="true">
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}">
+										<p:selectBooleanCheckbox value="#{_caja.activo}" id="chkActivo" />
+									</p:column>
+
+									<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+										<p:selectBooleanCheckbox value="#{_caja.predeterminado}" id="chkPredeterminado" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+										<p:inputText styleClass="input-text" value="#{_caja.descripcion}" id="txtDescripcion">
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarDetalle" action="#{puntoDeVentaBean.eliminarCaja}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelGridCaja" process="@this">
+										</p:commandButton>
+									</p:column>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!puntoDeVentaBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_punto_de_venta_panel}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPuntoVenta" rowIndexVar="secuencialPuntoVenta" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{puntoDeVentaBean.listaPuntoDeVenta}" var="puntoDeVenta" binding="#{puntoDeVentaBean.dtPuntoDeVenta}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{puntoDeVentaBean.numeroFilas}"
+							rowsPerPageTemplate="#{puntoDeVentaBean.numeroFilasPorPagina}" selection="#{puntoDeVentaBean.puntoDeVenta}" selectionMode="single"
+							rowKey="#{puntoDeVenta.id}" sortBy="#{puntoDeVenta.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialPuntoVenta+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{puntoDeVenta.codigo}" filterBy="#{puntoDeVenta.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{puntoDeVenta.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto" sortBy="#{puntoDeVenta.sucursal.nombre}" filterBy="#{puntoDeVenta.sucursal.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{puntoDeVenta.sucursal.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{puntoDeVenta.nombre}" filterBy="#{puntoDeVenta.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{puntoDeVenta.nombre}" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_serie}" />
+								</f:facet>
+								<h:outputText value="#{puntoDeVenta.sucursal.codigo}-#{puntoDeVenta.codigo}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo" sortBy="#{puntoDeVenta.codigoAlterno}" filterBy="#{puntoDeVenta.codigoAlterno}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+								</f:facet>
+								<h:outputText value="#{puntoDeVenta.codigoAlterno}" />
+							</p:column>							
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{puntoDeVenta.activo}">
+								<p:selectBooleanCheckbox value="#{puntoDeVenta.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{puntoDeVenta.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{puntoDeVenta.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{puntoDeVentaBean.puntoDeVenta.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{puntoDeVentaBean.puntoDeVenta.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{puntoDeVentaBean.puntoDeVenta.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{puntoDeVentaBean.puntoDeVenta.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

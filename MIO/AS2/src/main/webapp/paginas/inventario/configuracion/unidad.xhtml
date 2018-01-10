@@ -1,0 +1,199 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{unidadBean}">
+					<as2:buttonEliminar bean="#{unidadBean}" titulo="#{msg.btn_eliminar}">
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{unidadBean.unidad.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{unidadBean}" tabla=":form:tablaUnidades" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_unidad_panel}" rendered="#{unidadBean.editado}">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+								<h:panelGrid id="panelDetalle" columns="#{unidadBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{unidadBean.unidad.codigo}" id="txtCodigo" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{unidadBean.unidad.nombre}" id="txtNombre" required="true" size="50" maxlength="50">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="cboTipoUnidadMedida" value="#{msgs.lbl_tipo_unidad_medida}:" />
+									<p:selectOneMenu styleClass="input-text" value="#{unidadBean.unidad.tipoUnidadMedida}" id="cboTipoUnidadMedida" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{unidadBean.listaTipoUnidadMedida}" />
+										<f:validateBean />
+										<p:ajax process="@this" />
+									</p:selectOneMenu>
+
+									<p:outputLabel for="txtNumeroDecimales" value="#{msgs.lbl_numero_decimales}:" />
+									<p:inputText styleClass="input-text" value="#{unidadBean.unidad.numeroDecimales}" id="txtNumeroDecimales" required="true" size="50"
+										maxlength="2">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{unidadBean.unidad.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{unidadBean.unidad.predeterminado}" />
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{unidadBean.unidad.descripcion}" id="txtDescripcion" size="100" maxlength="200">
+										<f:validateBean />
+									</p:inputTextarea>
+								</h:panelGrid>
+
+							</p:fieldset>
+
+							<p:spacer width="2px" />
+
+							<p:fieldset>
+
+								<h:panelGrid columns="1" id="panelUnidadConversion" width="100%">
+
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{unidadBean.agregarDetalle}"
+										update=":form:panelUnidadConversion" process="@this :form:panelUnidadConversion" icon="ui-icon-plus" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUnidadConversion" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{unidadBean.listaUnidadConversion}" binding="#{unidadBean.dtUnidadConversion}"
+										var="_unidadConversion" paginator="false" style="width:100%" rows="#{unidadBean.numeroFilas}"
+										rowsPerPageTemplate="#{unidadBean.numeroFilasPorPagina}" lazy="true">
+
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_unidad_conversion_panel}" />
+										</f:facet>
+
+										<p:column headerText="Nº" styleClass="columnaDTAccion">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_valor_conversion}" styleClass="columnaDTValor">
+											<p:spinner value="#{_unidadConversion.valorConversion}" stepFactor="#{unidadBean.valorIncremento}" min="0">
+												<p:ajax global="false" event="change" process="@this" update="txtEquivalencia"></p:ajax>
+											</p:spinner>
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_unidad_destino}">
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_unidadConversion.unidadDestino}"
+												completeMethod="#{unidadBean.autocompletarUnidades}" var="_unidad" itemLabel="#{_unidad.nombre}" itemValue="#{_unidad}"
+												forceSelection="true" size="50" dropdown="true" minQueryLength="2">
+												
+												<p:ajax global="false" event="itemSelect" process="@this" update="txtEquivalencia"></p:ajax>
+
+												<p:column>#{_unidad.codigo}</p:column>
+												<p:column>#{_unidad.nombre}</p:column>
+
+											</p:autoComplete>
+										</p:column>
+										
+										<p:column headerText="#{msgs.lbl_equivalencia}" styleClass="columnaDTNombre tableCell centrado">
+											<p:outputPanel id="txtEquivalencia">
+												<h:outputText value="1 #{_unidadConversion.unidadOrigen.codigo} = #{_unidadConversion.valorConversion} #{_unidadConversion.unidadDestino.codigo}" />
+											</p:outputPanel>
+										</p:column>
+										
+										<p:column styleClass="columnaDTAccion">
+											<p:commandButton id="btnEliminarUnidadConversion" action="#{unidadBean.eliminarDetalleConversion}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:panelUnidadConversion" process="@this" />
+										</p:column>
+									</p:dataTable>
+								</h:panelGrid>
+
+							</p:fieldset>
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_unidad_panel}" rendered="#{!unidadBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUnidades" rowIndexVar="secuencialUnidad"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{unidadBean.listaUnidad}" var="unidad" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{unidadBean.dataTableUnidad}" rows="#{unidadBean.numeroFilas}" selection="#{unidadBean.unidad}"
+							rowsPerPageTemplate="#{unidadBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{unidad.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialUnidad+1}" />
+							</p:column>
+
+							<p:column sortBy="#{unidad.codigo}" filterBy="#{unidad.codigo}" styleClass="columnaDTUnidad">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{unidad.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{unidad.nombre}" filterBy="#{unidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{unidad.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{unidad.activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{unidad.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_predeterminado}" styleClass="columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{unidad.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{unidad.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{unidadBean.unidad.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{unidadBean.unidad.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{unidadBean.unidad.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{unidadBean.unidad.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

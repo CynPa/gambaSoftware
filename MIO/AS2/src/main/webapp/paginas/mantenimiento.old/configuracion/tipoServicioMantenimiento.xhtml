@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{tipoServicioMantenimientoBean}" />s
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+
+					<h:outputText
+						value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.nombre}" />
+
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablatipoServicioMantenimiento,mensajes" process="@this"
+						actionListener="#{tipoServicioMantenimientoBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{tipoServicioMantenimientoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tipo_servicio_mantenimiento}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{tipoServicioMantenimientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.codigo}"
+								id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.nombre}"
+								id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.descripcion}"
+								id="txtDescripcion" />
+								
+							
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.predeterminado}" />
+
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!tipoServicioMantenimientoBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_tipo_servicio_mantenimiento}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablatipoServicioMantenimiento" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tipoServicioMantenimientoBean.listaTipoServicioMantenimiento}"
+							var="_tipoServicioMantenimiento"
+							binding="#{tipoServicioMantenimientoBean.dtTipoServicioMantenimiento}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoServicioMantenimientoBean.numeroFilas}"
+							rowsPerPageTemplate="#{tipoServicioMantenimientoBean.numeroFilasPorPagina}"
+							selection="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento}"
+							selectionMode="single" rowKey="#{_tipoServicioMantenimiento.id}">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_tipoServicioMantenimiento.codigo}"
+								sortBy="#{_tipoServicioMantenimiento.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipoServicioMantenimiento.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_tipoServicioMantenimiento.nombre}"
+								sortBy="#{_tipoServicioMantenimiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoServicioMantenimiento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_tipoServicioMantenimiento.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tipoServicioMantenimiento.descripcion}" />
+							</p:column>
+
+							<p:column sortBy="#{_tipoServicioMantenimiento.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_tipoServicioMantenimiento.activo}"
+										disabled="true" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{tipoServicioMantenimientoBean.tipoServicioMantenimiento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>	
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

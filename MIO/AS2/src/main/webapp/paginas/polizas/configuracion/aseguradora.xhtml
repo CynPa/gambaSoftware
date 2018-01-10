@@ -1,0 +1,297 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{aseguradoraBean}" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}?" width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaAfianzado,mensajes" process="@this"
+						actionListener="#{aseguradoraBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_aseguradora}"
+						rendered="#{aseguradoraBean.editado}">
+
+
+						<p:fieldset>
+							<h:panelGrid id="panelTipoAsegurado"
+								columns="#{aseguradoraBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.codigo}" id="txtCodigo">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.nombre}" id="txtNombres">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_direccion}:" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.direccion}"
+									id="txtDireccion">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_tipo_identificacion}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text"
+										value="#{aseguradoraBean.aseguradora.tipoIdentificacion.idTipoIdentificacion}"
+										id="cboTipoIdentificacion" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems
+											value="#{aseguradoraBean.listaTipoIdentificacion}"
+											var="_tipoIdentificacion"
+											itemLabel="#{_tipoIdentificacion.nombre}"
+											itemValue="#{_tipoIdentificacion.idTipoIdentificacion}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<p:message for="cboTipoIdentificacion" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_identificacion}:" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.identificacion}"
+									id="txtIdentificacion">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_telefono}: 1" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.telefono1}"
+									id="txtTelefono1">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_telefono}: 2" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.telefono2}"
+									id="txtTelefono2">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_email}: 1" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.email1}" id="txtEmail1">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_email}: 2" />
+								<p:inputText styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.email2}" id="txtEmail2">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox
+									value="#{aseguradoraBean.aseguradora.activo}" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text"
+									value="#{aseguradoraBean.aseguradora.descripcion}"
+									id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:separator />
+
+						<p:fieldset legend="#{msgs.lbl_asignacion_brokers}"
+							toggleable="false">
+
+							<p:commandButton value="#{msgs.lbl_ver_brokers}"
+								oncomplete="brokersDialog.show()"
+								action="#{aseguradoraBean.cargarBrokersNoAsignados}"
+								process="@this" update="panelBrokersAAsignar" />
+
+							<p:dialog modal="true" showEffect="fade" hideEffect="explode"
+								widgetVar="brokersDialog"
+								header="#{msgs.lbl_asignacion_brokers}" width="300" height="300">
+
+								<p:outputPanel id="panelBrokersAAsignar" autoUpdate="true">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aseguradoraBean.listaBrokersNoAsignados}"
+										id="tablaBrokersNoAsignados" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_broker"
+										paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_broker.idBroker}"
+										rows="#{aseguradoraBean.numeroFilas}"
+										selection="#{aseguradoraBean.brokerSeleccionados}">
+
+										<p:column selectionMode="multiple" />
+
+										<p:column headerText="#{msgs.lbl_codigo}">
+											<h:outputText value="#{_broker.codigo}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_nombres}">
+											<h:outputText value="#{_broker.nombres}" />
+										</p:column>
+
+									</p:dataTable>
+								</p:outputPanel>
+
+								<f:facet name="footer">
+									<center>
+										<p:commandButton value="#{msgs.lbl_asignar_brokers}"
+											actionListener="#{aseguradoraBean.asignarBrokers}"
+											process="@this panelBrokersAAsignar"
+											update="panelBrokersAsignados" onclick="brokersDialog.hide()" />
+									</center>
+								</f:facet>
+
+
+
+							</p:dialog>
+
+							<h:panelGrid columns="1" id="panelBrokersAsignados" width="100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aseguradoraBean.listaBrokers}"
+									id="tablaBrokersAsignados" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_broker"
+									paginator="true" paginatorPosition="bottom" style="width:100%"
+									rowKey="#{_broker.idBroker}"
+									rows="#{aseguradoraBean.numeroFilas}"
+									binding="#{aseguradoraBean.dtBrokersAsignados}">
+
+									<p:column headerText="#{msgs.lbl_codigo}">
+										<h:outputText value="#{_broker.codigo}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_nombres}">
+										<h:outputText value="#{_broker.nombres}" />
+									</p:column>
+
+
+
+									<p:column>
+										<p:commandButton
+											actionListener="#{aseguradoraBean.eliminarDetalle}"
+											icon="ui-icon ui-icon-close" value="#{msgs.lbl_quitar}"
+											process="@this panelBrokersAsignados"
+											update="panelBrokersAAsignar panelBrokersAsignados" />
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+
+						</p:fieldset>
+
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_aseguradora}"
+						rendered="#{!aseguradoraBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAfianzado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{aseguradoraBean.listaAseguradora}" var="_aseguradora"
+							binding="#{aseguradoraBean.dtAseguradora}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{aseguradoraBean.numeroFilas}"
+							selection="#{aseguradoraBean.aseguradora}" selectionMode="single"
+							rowKey="#{_aseguradora.id}">
+
+							<p:column headerText="No">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_codigo}"
+								sortBy="#{_aseguradora.codigo}"
+								filterBy="#{_aseguradora.codigo}">
+								<h:outputText value="#{_aseguradora.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombre}"
+								sortBy="#{_aseguradora.nombre}"
+								filterBy="#{_aseguradora.nombre}">
+								<h:outputText value="#{_aseguradora.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_tipo_identificacion}"
+								sortBy="#{_aseguradora.tipoIdentificacion.nombre}"
+								filterBy="#{_aseguradora.tipoIdentificacion.nombre}">
+								<h:outputText value="#{_aseguradora.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_identificacion}"
+								sortBy="#{_aseguradora.identificacion}"
+								filterBy="#{_aseguradora.identificacion}">
+								<h:outputText value="#{_aseguradora.identificacion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_direccion}"
+								sortBy="#{_aseguradora.direccion}"
+								filterBy="#{_aseguradora.direccion}">
+								<h:outputText value="#{_aseguradora.direccion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_telefono}"
+								sortBy="#{_aseguradora.telefono1}"
+								filterBy="#{_aseguradora.telefono1}">
+								<h:outputText value="#{_aseguradora.telefono1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_aseguradora.activo}"
+									disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{aseguradoraBean.aseguradora.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{aseguradoraBean.aseguradora.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{aseguradoraBean.aseguradora.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{aseguradoraBean.aseguradora.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel id="panelListado">
+					<p:poll async="true" interval="#{reporteAnalisisOrdenFabricacionBean.intervalo}" listener="#{reporteAnalisisOrdenFabricacionBean.refrescar}"
+						update=":form:panelContenedor" global="false" id="poll" process="@this" />
+					<p:panel header="#{msgs.lbl_reporte_analisis_orden_fabricacion}">
+						<h:panelGrid columns="2" columnClasses="columna60">
+							<h:panelGrid columns="6">
+								<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+								<p:calendar pattern="#{reporteAnalisisOrdenFabricacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{reporteAnalisisOrdenFabricacionBean.fechaDesde}" id="calFechaDesde" required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" update=":form:panelListado"
+										listener="#{reporteAnalisisOrdenFabricacionBean.refrescar}" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" update=":form:panelListado"
+										listener="#{reporteAnalisisOrdenFabricacionBean.refrescar}" />
+									<f:validateBean />
+								</p:calendar>
+
+								<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+								<p:calendar pattern="#{reporteAnalisisOrdenFabricacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{reporteAnalisisOrdenFabricacionBean.fechaHasta}" id="calFechaHasta" required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" update=":form:panelListado"
+										listener="#{reporteAnalisisOrdenFabricacionBean.refrescar}" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" update=":form:panelListado"
+										listener="#{reporteAnalisisOrdenFabricacionBean.refrescar}" />
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="#{reporteAnalisisOrdenFabricacionBean.ahora}">
+									<f:convertDateTime pattern="#{reporteAnalisisOrdenFabricacionBean.formatoFecha} HH:mm:ss" timeZone="America/Guayaquil" />
+								</h:outputText>
+
+								<p:commandButton title="#{msgs.lbl_refrescar}" icon="ui-icon-refresh" actionListener="#{reporteAnalisisOrdenFabricacionBean.refrescar}"
+									process="@this" update=":form:panelContenedor" partialSubmit="true" />
+							</h:panelGrid>
+							<h:panelGrid columns="6" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_intervalo_segundos}:" />
+								<p:inputText value="#{reporteAnalisisOrdenFabricacionBean.intervalo}">
+									<p:ajax process="@this" global="false" update=":form:poll" />
+								</p:inputText>
+								<h:outputText value="#FF0000" styleClass="color_rojo" style="color:#FF0000;" />
+								<h:outputText value="#{msgs.lbl_bajo}" />
+								<h:outputText value="#009900" styleClass="color_verde" style="color:#009900;" />
+								<h:outputText value="#{msgs.lbl_alto}" />
+							</h:panelGrid>
+							<p:spacer />
+						</h:panelGrid>
+						<p:panel header="#{msgs.lbl_producto_proceso}">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaHistoricoMezcla" rowIndexVar="secuencial" widgetVar="tablaHistoricoMezcla"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteAnalisisOrdenFabricacionBean.listaHistoricoCalidadMezcla}" var="_historico"
+								binding="#{reporteAnalisisOrdenFabricacionBean.dtHistoricoCalidadMezcla}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{reporteAnalisisOrdenFabricacionBean.numeroFilas}" rowsPerPageTemplate="#{reporteAnalisisOrdenFabricacionBean.numeroFilasPorPagina}"
+								rowKey="#{_historico.id}" sortBy="#{_historico.fechaControlCalidad}" sortOrder="DESCENDING" lazy="true">
+
+								<p:column styleClass="columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNumeroDocumento" headerText="#{msgs.lbl_orden_fabricacion}">
+									<h:outputText value="#{_historico.ordenFabricacion.numero}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo}">
+									<h:outputText value="#{_historico.ordenFabricacion.producto.codigo}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto}">
+									<h:outputText value="#{_historico.ordenFabricacion.producto.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTFechaInput tableCell" sortBy="#{_historico.fechaControlCalidad}" headerText="#{msgs.lbl_fecha}">
+									<h:outputText value="#{_historico.fechaControlCalidad}">
+										<f:convertDateTime pattern="#{reporteAnalisisOrdenFabricacionBean.formatoFecha} HH:mm:ss" timeZone="America/Guayaquil" />
+									</h:outputText>
+								</p:column>
+
+								<p:columns value="#{reporteAnalisisOrdenFabricacionBean.listaVariableCalidad}" var="_variable" styleClass="tableCell columnaDTValorGrande">
+									<f:facet name="header">
+										<h:outputText value="#{_variable.nombre}" />
+									</f:facet>
+									<p:outputPanel
+										styleClass="#{reporteAnalisisOrdenFabricacionBean.obtenerValorVariable(_variable, _historico).comparacionRangoValor == 1 ? 'color_verde' : reporteAnalisisOrdenFabricacionBean.obtenerValorVariable(_variable, _historico).comparacionRangoValor == -1 ? 'color_rojo' : ''}">
+										<h:outputText value="#{reporteAnalisisOrdenFabricacionBean.obtenerValorVariable(_variable, _historico).valorNir}" />
+									</p:outputPanel>
+								</p:columns>
+							</p:dataTable>
+						</p:panel>
+						<p:panel header="#{msgs.lbl_producto_terminado}">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaHistoricoPT" rowIndexVar="secuencial" widgetVar="tablaHistoricoPT"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{reporteAnalisisOrdenFabricacionBean.listaHistoricoCalidadPT}" var="_historico"
+								binding="#{reporteAnalisisOrdenFabricacionBean.dtHistoricoCalidadPT}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{reporteAnalisisOrdenFabricacionBean.numeroFilas}" rowsPerPageTemplate="#{reporteAnalisisOrdenFabricacionBean.numeroFilasPorPagina}"
+								rowKey="#{_historico.id}" sortBy="#{_historico.fechaControlCalidad}" sortOrder="DESCENDING" lazy="true">
+
+								<p:column styleClass="columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNumeroDocumento" headerText="#{msgs.lbl_orden_fabricacion}">
+									<h:outputText value="#{_historico.ordenFabricacion.numero}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo}">
+									<h:outputText value="#{_historico.ordenFabricacion.producto.codigo}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_producto}">
+									<h:outputText value="#{_historico.ordenFabricacion.producto.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTFechaInput tableCell" sortBy="#{_historico.fechaControlCalidad}" headerText="#{msgs.lbl_fecha}">
+									<h:outputText value="#{_historico.fechaControlCalidad}">
+										<f:convertDateTime pattern="#{reporteAnalisisOrdenFabricacionBean.formatoFecha} HH:mm:ss" timeZone="America/Guayaquil" />
+									</h:outputText>
+								</p:column>
+
+								<p:columns value="#{reporteAnalisisOrdenFabricacionBean.listaVariableCalidad}" var="_variable" styleClass="tableCell columnaDTValorGrande">
+									<f:facet name="header">
+										<h:outputText value="#{_variable.nombre}" />
+									</f:facet>
+									<p:outputPanel
+										styleClass="#{reporteAnalisisOrdenFabricacionBean.obtenerValorVariable(_variable, _historico).comparacionRangoValor == 1 ? 'color_verde' : reporteAnalisisOrdenFabricacionBean.obtenerValorVariable(_variable, _historico).comparacionRangoValor == -1 ? 'color_rojo' : ''}">
+										<h:outputText value="#{reporteAnalisisOrdenFabricacionBean.obtenerValorVariable(_variable, _historico).valorNir}" />
+									</p:outputPanel>
+								</p:columns>
+							</p:dataTable>
+						</p:panel>
+					</p:panel>
+
+					<p:separator />
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

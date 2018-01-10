@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{ejercicioBean}">
+					<as2:buttonEliminar bean="#{ejercicioBean}">
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{ejercicioBean}" tabla=":form:tablaEjercicios" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{ejercicioBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_titulo_ejercicio}">
+
+						<h:panelGrid>
+
+							<p:fieldset>
+
+								<h:panelGrid id="panelDatos" columns="#{ejercicioBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_anio}:" />
+									<p:column styleClass="columnaDTNombre tableCell" >
+										<p:inputText styleClass="input-text" value="#{ejercicioBean.ejercicio.asignacionAnio}" id="txtAnio">											
+											<f:validateBean />
+											<p:ajax process="@this" />
+										</p:inputText>
+									</p:column>
+									
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{ejercicioBean.ejercicio.nombre}" id="txtNombre" required="true" />
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{ejercicioBean.ejercicio.descripcion}" id="txtDescripcion" />
+
+
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer width="2px" />
+
+							<p:fieldset>
+								<h:panelGrid columns="1" id="panelDetalle" style="width:100%">
+
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{ejercicioBean.agregarPeriodo}" update="panelDetalle"
+										process="@this panelDetalle" icon="ui-icon-plus" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPeriodos" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{ejercicioBean.listaPeriodo}"
+										var="_periodo" binding="#{ejercicioBean.dtPeriodo}" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rows="#{ejercicioBean.numeroFilas}" rowsPerPageTemplate="#{ejercicioBean.numeroFilasPorPagina}" selection="#{ejercicioBean.periodo}"
+										selectionMode="single" rowKey="#{_periodo.rowKey}" lazy="true">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+											<p:inputText styleClass="input-text100" value="#{_periodo.nombre}" id="txtNombrePeriodo">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha_desde}">
+											<p:calendar pattern="#{ejercicioBean.formatoFecha}" showOn="button" navigator="true" value="#{_periodo.fechaDesde}" id="calenFechaDesde"
+												maxdate="#{_periodo.fechaHasta}" size="10">
+												<p:ajax event="dateSelect" update=":form:tablaPeriodos:calenFechaHasta"></p:ajax>
+												<p:ajax event="change" update=":form:tablaPeriodos:calenFechaHasta"></p:ajax>
+												<f:validateBean />
+											</p:calendar>
+										</p:column>
+
+										<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha_hasta}">
+											<p:calendar pattern="#{ejercicioBean.formatoFecha}" showOn="button" navigator="true" value="#{_periodo.fechaHasta}" id="calenFechaHasta"
+												mindate="#{_periodo.fechaDesde}" size="10">
+												<p:ajax event="dateSelect" update=":form:tablaPeriodos:calenFechaDesde"></p:ajax>
+												<p:ajax event="change" update=":form:tablaPeriodos:calenFechaDesde"></p:ajax>
+												<f:validateBean />
+											</p:calendar>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text100" value="#{_periodo.descripcion}" id="txtDescripcion">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_cobro}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreCobros}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierrePagos}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_contabilidad}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreContabilidad}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_presupuesto}" rendered="false">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierrePresupuesto}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo_fijo}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreActivosFijos}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_compra}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreCompras}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_venta}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreVentas}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_produccion}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreProduccion}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_inventario}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreInventario}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_nomina}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.indicadorCierreNomina}" >
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarValores(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_periodo.activo}">
+													<p:ajax process="@this" update=":form:panelDetalle" listener="#{ejercicioBean.actualizarPeriodo(_periodo)}" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+										
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarDetalle" action="#{ejercicioBean.eliminarPeriodo}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+												update=":form:panelDetalle" process="@this" />
+										</p:column>
+
+									</p:dataTable>
+								</h:panelGrid>
+							</p:fieldset>
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!ejercicioBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_titulo_ejercicio}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEjercicios" rowIndexVar="secuencialEjercicios" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{ejercicioBean.listaEjercicio}" var="_ejercicio" binding="#{ejercicioBean.dtEjercicio}" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{ejercicioBean.numeroFilas}" rowsPerPageTemplate="#{ejercicioBean.numeroFilasPorPagina}"
+							selection="#{ejercicioBean.ejercicio}" selectionMode="single" rowKey="#{_ejercicio.id}" sortBy="#{_ejercicio.fechaDesde}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialEjercicios+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_ejercicio.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_desde}" />
+								</f:facet>
+								<h:outputText value="#{_ejercicio.fechaDesde}">
+									<f:convertDateTime pattern="#{ejercicioBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_hasta}" />
+								</f:facet>
+								<h:outputText value="#{_ejercicio.fechaHasta}">
+									<f:convertDateTime pattern="#{ejercicioBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+<!-- 							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" exportable="false"> -->
+<!-- 								<center> -->
+<!-- 									<p:selectBooleanCheckbox value="#{_ejercicio.activo}" disabled="true" /> -->
+<!-- 								</center> -->
+<!-- 							</p:column> -->
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_ejercicio.descripcion}" />
+							</p:column>
+
+
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{ejercicioBean.ejercicio.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{ejercicioBean.ejercicio.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{ejercicioBean.ejercicio.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{ejercicioBean.ejercicio.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

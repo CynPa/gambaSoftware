@@ -1,0 +1,166 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_gastos_deducibles} )">
+
+					<p:outputPanel id="panelNuevo">
+
+						
+
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_anio}:" />
+								<h:panelGroup>
+									<p:inputText styleClass="input-text" mask="9999" value="#{gastoDeducibleSRIBean.anio}" id="txtAnio">
+									</p:inputText>
+								</h:panelGroup>
+								<h:outputText value="#{msgs.lbl_base_minima}:" />
+								<p:inputText styleClass="input-text"  value="#{gastoDeducibleSRIBean.valorMaximoGastos}" id="idBaseMinima" disabled="true">
+									</p:inputText>
+							</h:panelGrid>
+							<h:panelGrid columns="2">
+							<!-- ¿para saltar de linea? -->
+
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{gastoDeducibleSRIBean.empleado}"
+									completeMethod="#{gastoDeducibleSRIBean.autocompletarEmpleado}" var="_empleado" itemLabel="#{_empleado.empresa.nombreFiscal}"
+									itemValue="#{_empleado}" forceSelection="true" dropdown="true" minQueryLength="2" size="50" id="cboCliente">
+
+									<p:column>#{_empleado.empresa.identificacion}</p:column>
+									<p:column>#{_empleado.empresa.nombreFiscal}</p:column>
+
+									<p:ajax process="@this" event="itemSelect" />
+
+								</p:autoComplete>
+							</h:panelGroup>
+
+
+
+						</h:panelGrid>
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<h:panelGroup>
+								<p:commandButton value="#{msgs.btn_procesar}" id="#{gastoDeducibleSRIBean.UPDATE}" action="#{gastoDeducibleSRIBean.editar}"
+									update=":form:panelContenedor" process="@this :form:panelNuevo" disabled="#{gastoDeducibleSRIBean.editado}" icon="ui-icon ui-icon-pencil">
+								</p:commandButton>
+
+								<p:commandButton value="#{msgs.btn_guardar}" id="btnGuardar" action="#{gastoDeducibleSRIBean.guardar}" update=":form:panelContenedor"
+									process="@this :form:panelNuevo" disabled="#{gastoDeducibleSRIBean.editado}" icon="ui-icon-disk">
+								</p:commandButton>
+							</h:panelGroup>
+						</h:panelGrid>
+						<h:panelGrid columns="1" style="text-align:right;">
+							<h:panelGroup>
+								<p:selectBooleanCheckbox value="#{gastoDeducibleSRIBean.exportarPaginaActual}" />
+
+								<p:commandButton ajax="false" icon="excel">
+									<p:dataExporter type="xls" target=":form:tablaGastoDeducibleSRI" fileName="GastoDeducibleSRI"
+										postProcessor="#{gastoDeducibleSRIBean.postProcessXLS}" pageOnly="#{gastoDeducibleSRIBean.exportarPaginaActual}" />
+								</p:commandButton>
+							</h:panelGroup>
+						</h:panelGrid>
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGastoDeducibleSRI" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{gastoDeducibleSRIBean.listaGastoDeducibleSRI}" var="_gastoDeducibleSRI" style="width:100%"
+							rowKey="#{_gastoDeducibleSRI.idGastoDeducibleSRI}" paginator="true" paginatorPosition="bottom" rows="#{gastoDeducibleSRIBean.numeroFilas}"
+							rowsPerPageTemplate="#{gastoDeducibleSRIBean.numeroFilasPorPagina}">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoDeducibleSRI.empleado.apellidos}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_gastoDeducibleSRI.empleado.apellidos}" />
+							</p:column>
+
+							<p:column sortBy="#{_gastoDeducibleSRI.empleado.nombres}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_gastoDeducibleSRI.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_discapacitado}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true" value="#{_gastoDeducibleSRI.empleado.discapacitado}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_adulto_mayor}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true" value="#{_gastoDeducibleSRI.empleado.terceraEdad}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_alimentacion}" styleClass="columnaDTValorGrande tableCell">
+								<p:inputText id="idAlimentacion" value="#{_gastoDeducibleSRI.valorAlimentacion}">
+									<f:attribute name="idUpdate" value="idAlimentacion" />
+									<f:attribute name="gastoDeducibleSRI" value="#{_gastoDeducibleSRI}" />
+									<p:ajax process="@this" global="false" listener="#{gastoDeducibleSRIBean.calcularValorTotalDeducible}" update="idTotalGastos"  />
+								</p:inputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_educacion}" styleClass="columnaDTValorGrande tableCell">
+								<p:inputText id="idEducacion" value="#{_gastoDeducibleSRI.valorEducacion}">
+									<f:attribute name="idUpdate" value="idEducacion" />
+									<f:attribute name="gastoDeducibleSRI" value="#{_gastoDeducibleSRI}" />
+									<p:ajax process="@this" global="false" listener="#{gastoDeducibleSRIBean.calcularValorTotalDeducible}" update="idTotalGastos" />
+								</p:inputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_salud}" styleClass="columnaDTValorGrande tableCell">
+								<p:inputText id="idSalud" value="#{_gastoDeducibleSRI.valorSalud}">
+									<f:attribute name="idUpdate" value="idSalud" />
+									<f:attribute name="gastoDeducibleSRI" value="#{_gastoDeducibleSRI}" />
+									<p:ajax process="@this" global="false" listener="#{gastoDeducibleSRIBean.calcularValorTotalDeducible}" update="idTotalGastos" />
+								</p:inputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_vestimenta}" styleClass="columnaDTValorGrande tableCell">
+								<p:inputText id="idVestimenta" value="#{_gastoDeducibleSRI.valorVestimenta}">
+									<f:attribute name="idUpdate" value="idVestimenta" />
+									<f:attribute name="gastoDeducibleSRI" value="#{_gastoDeducibleSRI}" />
+									<p:ajax process="@this" global="false" listener="#{gastoDeducibleSRIBean.calcularValorTotalDeducible}" update="idTotalGastos" />
+								</p:inputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_vivienda}" styleClass="columnaDTValorGrande tableCell">
+								<p:inputText id="idVivienda" value="#{_gastoDeducibleSRI.valorVivienda}">
+									<f:attribute name="idUpdate" value="idVivienda" />
+									<f:attribute name="gastoDeducibleSRI" value="#{_gastoDeducibleSRI}" />
+									<p:ajax process="@this" global="false" listener="#{gastoDeducibleSRIBean.calcularValorTotalDeducible}" update="idTotalGastos" />
+								</p:inputText>
+							</p:column>
+
+							<p:column  headerText="#{msgs.lbl_total_deducible}" styleClass="columnaDTValorGrande tableCell">
+								<p:outputLabel id="idTotalGastos" value="#{_gastoDeducibleSRI.totalGastosDeducibles}">
+								</p:outputLabel>
+							</p:column>
+
+						</p:dataTable>
+
+					</p:outputPanel>
+
+				</p:panel>
+
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

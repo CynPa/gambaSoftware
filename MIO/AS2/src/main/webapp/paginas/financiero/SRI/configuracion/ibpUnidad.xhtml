@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{iBPUnidadBean}">
+					<as2:buttonEliminar bean="#{iBPUnidadBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{iBPUnidadBean.ibpUnidad.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{iBPUnidadBean.ibpUnidad.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{iBPUnidadBean}" tabla=":form:tablaIBPUnidad" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_ibpUnidad_panel}" rendered="#{iBPUnidadBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{iBPUnidadBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputMask styleClass="input-text" value="#{iBPUnidadBean.ibpUnidad.codigo}" id="txtCodigo" mask="99" required="true">
+								<f:validateBean />
+							</p:inputMask>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{iBPUnidadBean.ibpUnidad.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox id="ckActivo" value="#{iBPUnidadBean.ibpUnidad.activo}" />
+
+							<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox id="ckPredeterminado" value="#{iBPUnidadBean.ibpUnidad.predeterminado}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea id="txtDescripcion" styleClass="input-text" value="#{iBPUnidadBean.ibpUnidad.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_ibpUnidad_panel}" rendered="#{!iBPUnidadBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaIBPUnidad" rowIndexVar="secuencialIBPUnidad"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{iBPUnidadBean.listaIBPUnidad}" var="ibpUnidad" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{iBPUnidadBean.dataTableIBPUnidad}" rows="#{iBPUnidadBean.numeroFilas}"
+							rowsPerPageTemplate="#{iBPUnidadBean.numeroFilasPorPagina}" selection="#{iBPUnidadBean.ibpUnidad}" selectionMode="single"
+							rowKey="#{ibpUnidad.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialIBPUnidad+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{ibpUnidad.codigo}" sortBy="#{ibpUnidad.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{ibpUnidad.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{ibpUnidad.nombre}" sortBy="#{ibpUnidad.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{ibpUnidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{ibpUnidad.activo}">
+								<p:selectBooleanCheckbox value="#{ibpUnidad.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{ibpUnidad.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{ibpUnidad.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{iBPUnidadBean.ibpUnidad.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{iBPUnidadBean.ibpUnidad.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{iBPUnidadBean.ibpUnidad.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{iBPUnidadBean.ibpUnidad.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

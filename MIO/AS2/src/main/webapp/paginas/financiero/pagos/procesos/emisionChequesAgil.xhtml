@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{msgs.btn_generar_pagos}" id="btnGenerarPagos" action="#{emisionChequesAgil.generarPagos}"
+							process="@this, :form:panelFiltros, :form:panelConsulta" update=":form:panelConsulta,:form:panelFiltros" icon="ui-icon-refresh" />
+					</p:toolbarGroup>
+				</p:toolbar>
+
+				<p:panel header="#{msgs.lbl_pago_proveedores_agil}">
+
+					<h:panelGrid columns="1">
+						<p:fieldset>
+							<p:outputPanel id="panelFiltros">
+								<h:panelGrid columns="#{reporteInventarioProductoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_documento}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{emisionChequesAgil.documento}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{emisionChequesAgil.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+										<p:ajax process="@this" event="change" global="false" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{emisionChequesAgil.formatoFecha}" showOn="button" navigator="true" value="#{emisionChequesAgil.fechaPago}"
+										id="calFecha" required="true">
+										<p:ajax listener="#{emisionChequesAgil.actualizarLista}" process="@this" event="dateSelect" global="false" update=":form:panelConsulta" />
+										<p:ajax listener="#{emisionChequesAgil.actualizarLista}" process="@this" event="change" global="false" update=":form:panelConsulta" />
+										<f:validateBean />
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_pagar_de}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+										value="#{emisionChequesAgil.cuentaBancariaOrganizacion}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{emisionChequesAgil.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+											itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+										<f:validateBean />
+
+										<p:ajax process="@this" update="cboFormaPago :form:numeroCheque" global="false" listener="#{emisionChequesAgil.actualizarCuentaBancaria}" />
+
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_forma_pago}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{emisionChequesAgil.formaPago}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{emisionChequesAgil.listaFormaPagoCuentaBancariaOrganizacion}" var="_formaPagoCuenta"
+											itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+										<f:validateBean />
+										<p:ajax process="@this" global="false" listener="#{emisionChequesAgil.actualizarFormaPago}" update=":form:numeroCheque">
+										</p:ajax>
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" id="txtDescripcion" value="#{emisionChequesAgil.descripcion}">
+										<f:validateBean />
+										<p:ajax process="@this" global="false" listener="#{emisionChequesAgil.actualizarDescripcion}" event="change" update=":form:panelConsulta" />
+									</p:inputTextarea>
+
+									<h:outputText value="#{msgs.lbl_numero_cheque_inicial}:" />
+									<h:outputText value="#{emisionChequesAgil.secuencia.numero + 1}" id="numeroCheque" />
+								</h:panelGrid>
+
+							</p:outputPanel>
+						</p:fieldset>
+
+						<p:fieldset>
+							<p:outputPanel id="panelConsulta">
+
+								<h:panelGrid columns="1" id="panelProducto">
+									<p:dataTable var="_proveedor" value="#{emisionChequesAgil.listaProveedor}" binding="#{emisionChequesAgil.dtDetalleProveedor}"
+										id="tablaDetalleProveedor" rowIndexVar="secuencialProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rows="#{emisionChequesAgil.numeroFilas}" rowsPerPageTemplate="#{emisionChequesAgil.numeroFilasPorPagina}"
+										filteredValue="#{emisionChequesAgil.listaProveedorFiltrado}">
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:rowToggler />
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencialProveedor+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_proveedor}" filterBy="#{_proveedor.empresa.nombreFiscal}"
+											sortBy="#{_proveedor.empresa.nombreFiscal}" filterMatchMode="contains">
+											<h:outputText value="#{_proveedor.empresa.nombreFiscal}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_forma_pago}" filterBy="#{_proveedor.formaPago.nombre}"
+											sortBy="#{_proveedor.formaPago.nombre}" filterMatchMode="contains">
+											<h:outputText value="#{_proveedor.formaPago.nombre}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}" sortBy="#{_proveedor.valorAprobadoPago}">
+											<h:outputText value="#{_proveedor.valorAprobadoPago}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}" sortBy="#{_proveedor.valorPagado}">
+											<h:outputText value="#{_proveedor.valorPagado}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText value="#{_proveedor.descripcionPagoAgil}" styleClass="input-text">
+												<p:ajax process="@this" global="false" />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTActivo tableCell">
+											<f:facet name="header">
+												<p:commandLink id="btnPagarGlobalProveedor" process="@this" global="false" title="#{msgs.lbl_pagar}" update=":form:panelConsulta"
+													action="#{emisionChequesAgil.cargarValorCuotaGlobalProveedor}">
+													<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+												</p:commandLink>
+												<p:commandLink id="btnLimpiarGlobalProveedor" process="@this" global="false" title="#{msgs.lbl_limpiar}" update=":form:panelConsulta"
+													action="#{emisionChequesAgil.limpiarValorCuotaGlobalProveedor}">
+													<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+												</p:commandLink>
+											</f:facet>
+											<center>
+												<p:commandLink id="btnPagarProveedor" process="@this" global="false" title="#{msgs.lbl_pagar}" update=":form:panelConsulta"
+													action="#{emisionChequesAgil.cargarValorCuotaProveedor}">
+													<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+												</p:commandLink>
+												<p:commandLink id="btnLimpiarProveedor" process="@this" global="false" title="#{msgs.lbl_limpiar}" update=":form:panelConsulta"
+													action="#{emisionChequesAgil.limpiarValorCuotaProveedor}">
+													<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+												</p:commandLink>
+											</center>
+										</p:column>
+
+										<p:columnGroup type="footer">
+											<p:row>
+												<p:column colspan="4" footerText="#{msgs.lbl_valor_aprobado_liquidar}" style="text-align:right" />
+												<p:column style="text-align:right" colspan="3">
+													<f:facet name="footer">
+														<h:outputText value="#{emisionChequesAgil.totalAprobado}">
+															<f:convertNumber pattern="#{emisionChequesAgil.formatoDinero}" />
+														</h:outputText>
+													</f:facet>
+												</p:column>
+												<p:column colspan="1" />
+											</p:row>
+
+											<p:row>
+												<p:column colspan="4" footerText="#{msgs.lbl_pago_valor_factura_a_liquidar}" style="text-align:right" />
+												<p:column style="text-align:right" colspan="3">
+													<f:facet name="footer">
+														<h:outputText value="#{emisionChequesAgil.totalPagado}">
+															<f:convertNumber pattern="#{emisionChequesAgil.formatoDinero}" />
+														</h:outputText>
+													</f:facet>
+												</p:column>
+												<p:column colspan="1" />
+											</p:row>
+											<p:row>
+												<p:column colspan="4" footerText="#{msgs.lbl_diferencia}" style="text-align:right" />
+												<p:column style="text-align:right" colspan="3">
+													<f:facet name="footer">
+														<h:outputText value="#{emisionChequesAgil.diferencia}">
+															<f:convertNumber pattern="#{emisionChequesAgil.formatoDinero}" />
+														</h:outputText>
+													</f:facet>
+												</p:column>
+												<p:column colspan="1" />
+											</p:row>
+										</p:columnGroup>
+
+										<p:rowExpansion>
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{_proveedor.listaDetalleOrdenPagoProveedor}"
+												id="tablaDetalleOrdenPagoProveedor" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleOrdenPagoProveedor"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{emisionChequesAgil.numeroFilas}"
+												binding="#{emisionChequesAgil.dtDetalleOrdenPagoProveedor}" rowsPerPageTemplate="#{emisionChequesAgil.numeroFilasPorPagina}"
+												rowKey="#{_detalleOrdenPagoProveedor.rowKey}" filteredValue="#{_proveedor.listaDetalleOrdenPagoProveedorFiltrados}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_numero}"
+													filterBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}" filterMatchMode="contains">
+													<h:link rendered="#{not empty _detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor}" target="_blank"
+														outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true"
+														value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}">
+														<f:param name="numero" value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.numero}" />
+													</h:link>
+												</p:column>
+
+												<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_pago_numero_factura}"
+													filterBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" filterMatchMode="contains">
+													<h:outputText rendered="#{not empty _detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor}"
+														value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_emision_factura}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.fecha}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.facturaProveedor.fecha}">
+														<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}"
+													sortBy="#{_detalleOrdenPagoProveedor.cuentaPorPagar.fechaVencimiento}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.fechaVencimiento}">
+														<f:convertDateTime pattern="#{emisionChequesAgil.formatoFecha}" />
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_dias_vencidos}" sortBy="#{_detalleOrdenPagoProveedor.diasVencidos}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.diasVencidos}">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_numero_cuota}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.cuentaPorPagar.numeroCuota}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_aprobado_liquidar}"
+													sortBy="#{_detalleOrdenPagoProveedor.valorAprobado}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.valorAprobado}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}"
+													sortBy="#{_detalleOrdenPagoProveedor.valorPagado}">
+													<h:outputText value="#{_detalleOrdenPagoProveedor.valorPagado}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell">
+													<f:facet name="header">
+													</f:facet>
+
+													<center>
+														<p:commandLink id="btnPagar" process="@this" global="false" title="#{msgs.lbl_pagar}" update=":form:panelConsulta"
+															action="#{emisionChequesAgil.cargarValorCuota}">
+															<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+														</p:commandLink>
+														<p:commandLink id="btnLimpiar" process="@this" global="false" title="#{msgs.lbl_limpiar}" update=":form:panelConsulta"
+															action="#{emisionChequesAgil.limpiarValorCuota}">
+															<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+														</p:commandLink>
+													</center>
+												</p:column>
+											</p:dataTable>
+										</p:rowExpansion>
+
+									</p:dataTable>
+
+								</h:panelGrid>
+
+							</p:outputPanel>
+						</p:fieldset>
+					</h:panelGrid>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

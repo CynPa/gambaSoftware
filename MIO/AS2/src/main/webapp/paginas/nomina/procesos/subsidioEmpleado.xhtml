@@ -1,0 +1,150 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{subsidioEmpleadoBean}">
+
+					<as2:buttonEliminar bean="#{subsidioEmpleadoBean}">
+						<h:outputText value="#{msgs.lbl_subsidio_empleado}:" />
+						<h:outputText value="#{subsidioEmpleadoBean.subsidioEmpleado.empleado.apellidos} #{subsidioEmpleadoBean.subsidioEmpleado.empleado.nombres}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{subsidioEmpleadoBean}" tabla=":form:tablaSubsidioEmpleado" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{subsidioEmpleadoBean}" />
+					<ui:param name="objetoActualizar" value="txtEmpleado" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_subsidio_empleado} )" rendered="#{subsidioEmpleadoBean.editado}">
+
+						<h:panelGrid columns="#{subsidioEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" onclick="dglModalEmpleado.show()" type="button" />
+								<h:outputText id="txtEmpleado"
+									value="#{subsidioEmpleadoBean.subsidioEmpleado.empleado.apellidos} #{subsidioEmpleadoBean.subsidioEmpleado.empleado.nombres}" />
+							</h:panelGroup>
+
+							<p:outputLabel for="cboTipoSubsidio" value="#{msgs.lbl_tipo_subsidio}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{subsidioEmpleadoBean.subsidioEmpleado.tipoSubsidio.idTipoSubsidio}" id="cboTipoSubsidio"
+								required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{subsidioEmpleadoBean.listaTipoSubsidio}" var="_tipoSubsidio" itemLabel="#{_tipoSubsidio.nombre}"
+									itemValue="#{_tipoSubsidio.idTipoSubsidio}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{subsidioEmpleadoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{subsidioEmpleadoBean.subsidioEmpleado.fechaDesde}" id="calenFechaDesde">
+								<p:ajax event="dateSelect" update=":form:calenFechaHasta"></p:ajax>
+								<p:ajax event="change" update=":form:calenFechaHasta"></p:ajax>
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{subsidioEmpleadoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{subsidioEmpleadoBean.subsidioEmpleado.fechaHasta}" id="calenFechaHasta">
+								<p:ajax event="dateSelect" update=":form:calenFechaDesde"></p:ajax>
+								<p:ajax event="change" update=":form:calenFechaDesde"></p:ajax>
+							</p:calendar>
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_subsidio_empleado} )" rendered="#{!subsidioEmpleadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaSubsidioEmpleado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{subsidioEmpleadoBean.listaSubsidioEmpleado}" var="_subsidioEmpleado"
+							binding="#{subsidioEmpleadoBean.dtSubsidioEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{subsidioEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{subsidioEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{subsidioEmpleadoBean.subsidioEmpleado}" selectionMode="single" rowKey="#{_subsidioEmpleado.idSubsidioEmpleado}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_subsidioEmpleado.empleado.empresa.identificacion}"
+								filterBy="#{_subsidioEmpleado.empleado.empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_subsidioEmpleado.empleado.empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_subsidioEmpleado.empleado.apellidos}" filterBy="#{_subsidioEmpleado.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_apellios}" />
+								</f:facet>
+								<h:outputText value="#{_subsidioEmpleado.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_subsidioEmpleado.empleado.nombres}" filterBy="#{_subsidioEmpleado.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_subsidioEmpleado.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_subsidioEmpleado.tipoSubsidio.nombre}"
+								filterBy="#{_subsidioEmpleado.tipoSubsidio.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_subsidio}" />
+								</f:facet>
+								<h:outputText value="#{_subsidioEmpleado.tipoSubsidio.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_subsidioEmpleado.fechaDesde}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_desde}" />
+								</f:facet>
+
+								<h:outputText value="#{_subsidioEmpleado.fechaDesde}">
+									<f:convertDateTime pattern="#{subsidioEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_subsidioEmpleado.fechaHasta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_hasta}" />
+								</f:facet>
+
+								<h:outputText value="#{_subsidioEmpleado.fechaHasta}">
+									<f:convertDateTime pattern="#{subsidioEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{subsidioEmpleadoBean.subsidioEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{subsidioEmpleadoBean.subsidioEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{subsidioEmpleadoBean.subsidioEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{subsidioEmpleadoBean.subsidioEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

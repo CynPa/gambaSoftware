@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_stock_valorado_resumido}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteStockValoradoResumidoPersonalizadoBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle" columns="#{reporteStockValoradoResumidoPersonalizadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_reporte}:" />
+							<p:selectOneMenu id="cboValorReporte" value="#{reporteStockValoradoResumidoPersonalizadoBean.reporteSeleccionado}">
+
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteStockValoradoResumidoPersonalizadoBean.listaNombreReporte}" />
+								<p:ajax event="change" process="@this" global="false" update=" :form:panelDetalle :form:cboBodega "></p:ajax>
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_bodega}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboBodega" value="#{reporteStockValoradoResumidoPersonalizadoBean.bodega}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteStockValoradoResumidoPersonalizadoBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}"
+									itemValue="#{_bodega}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteStockValoradoResumidoPersonalizadoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteStockValoradoResumidoPersonalizadoBean.fechaDesde}" id="calFechaDesde"
+								required="#{reporteStockValoradoResumidoPersonalizadoBean.reporteSeleccionado != 4 ? true : false}"
+								disabled="#{reporteStockValoradoResumidoPersonalizadoBean.reporteSeleccionado == 4 ? true : false}">
+								<p:ajax process="@this cboCategoriaProducto" />
+							</p:calendar>
+
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteStockValoradoResumidoPersonalizadoBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteStockValoradoResumidoPersonalizadoBean.fechaHasta}" id="calFechaHasta" required="true">
+								<p:ajax process="@this cboCategoriaProducto" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}" />
+							<p:selectOneMenu value="#{reporteStockValoradoResumidoPersonalizadoBean.categoriaProductoSeleccionado}" id="cboCategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteStockValoradoResumidoPersonalizadoBean.listaCategoriaProductos}" var="_categoriaProducto"
+									itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+								<p:ajax process="@this" listener="#{reporteStockValoradoResumidoPersonalizadoBean.cargarListaSubcategoriaProducto}"
+									update="cboSubcategoriaProducto" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}" />
+							<p:selectOneMenu value="#{reporteStockValoradoResumidoPersonalizadoBean.subcategoriaProductoSeleccionado}" id="cboSubcategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteStockValoradoResumidoPersonalizadoBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_atributo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteStockValoradoResumidoPersonalizadoBean.atributo}" id="cboAtributo">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteStockValoradoResumidoPersonalizadoBean.listaAtributo}" var="_atributo" itemLabel="#{_atributo.nombre}"
+									itemValue="#{_atributo}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_valor_atributo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoValorAtributo"
+								value="#{reporteStockValoradoResumidoPersonalizadoBean.valorAtributoSeleccionado}"
+								completeMethod="#{reporteStockValoradoResumidoPersonalizadoBean.autocompletarValorAtributo}" var="_valorAtributo"
+								itemLabel="#{_valorAtributo.nombre}" itemValue="#{_valorAtributo}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_valorAtributo.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_valorAtributo.nombre}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_lista_precios}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoListaPrecios"
+								value="#{reporteStockValoradoResumidoPersonalizadoBean.listaPrecios}"
+								completeMethod="#{reporteStockValoradoResumidoPersonalizadoBean.autocompletarListaPrecios}" var="_listaPrecios"
+								itemLabel="#{_listaPrecios.nombre}" itemValue="#{_listaPrecios}" forceSelection="true" dropdown="true" minQueryLength="2"
+								disabled="#{reporteStockValoradoResumidoPersonalizadoBean.reporteSeleccionado != 4}"
+								required="#{reporteStockValoradoResumidoPersonalizadoBean.reporteSeleccionado == 4 ? true : false}">
+
+								<p:column headerText="#{msgs.lbl_nombre}">#{_listaPrecios.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" update="autoVersionListaPrecios" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_version_lista_precios}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoVersionListaPrecios"
+								value="#{reporteStockValoradoResumidoPersonalizadoBean.versionListaPrecios}"
+								completeMethod="#{reporteStockValoradoResumidoPersonalizadoBean.autocompletarListaVersionListaPrecios}" var="_versionListaPrecios"
+								itemLabel="#{_versionListaPrecios.nombre}" itemValue="#{_versionListaPrecios}" forceSelection="true" dropdown="true" minQueryLength="2"
+								disabled="#{reporteStockValoradoResumidoPersonalizadoBean.reporteSeleccionado != 4}"
+								required="#{reporteStockValoradoResumidoPersonalizadoBean.reporteSeleccionado == 4 ? true : false}">
+
+								<p:column headerText="#{msgs.lbl_nombre}">#{_versionListaPrecios.nombre}</p:column>
+								<p:column headerText="#{msgs.lbl_zona}">#{_versionListaPrecios.zona.nombre}</p:column>
+
+								<p:ajax process="@this" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_unidad_panel}" />
+							<p:selectOneRadio id="options" value="#{reporteStockValoradoResumidoPersonalizadoBean.unidad}" required="true">
+								<f:selectItems value="#{reporteStockValoradoResumidoPersonalizadoBean.listaUnidad}">
+								</f:selectItems>
+							</p:selectOneRadio>
+
+							<h:outputText value="#{msgs.lbl_indicador_por_producto}:" />
+							<p:selectBooleanCheckbox id="chkPorProducto" value="#{reporteStockValoradoResumidoPersonalizadoBean.agrupadoPorProducto}">
+								<p:ajax process="@this" global="false" />
+							</p:selectBooleanCheckbox>
+
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

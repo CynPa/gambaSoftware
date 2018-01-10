@@ -1,0 +1,104 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_generar} #{msgs.lbl_reporte}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{generarReporteBean}" entidadOrigen=""  />
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboReporteador" value="#{msgs.lbl_reporteador}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{generarReporteBean.reporteadorSeleccionado}" id="cboReporteador" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{generarReporteBean.listaReporteador}" var="_reporteador" itemLabel="#{_reporteador.nombre}"
+									itemValue="#{_reporteador}" />
+								<p:ajax process="@this" update=":form:panelFiltros" event="change" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtAnio" value="#{msgs.lbl_periodo}:"
+								rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'MENSUAL' or generarReporteBean.reporteadorSeleccionado.periodicidad == 'ANUAL'}" />
+							<h:panelGrid columns="3"
+								rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'MENSUAL' or generarReporteBean.reporteadorSeleccionado.periodicidad == 'ANUAL'}">
+								<p:outputLabel for="cboMes" value="#{msgs.lbl_mes}:" rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'MENSUAL'}" />
+								<p:selectOneMenu styleClass="input-text" value="#{generarReporteBean.mes}" id="cboMes" required="true"
+									rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'MENSUAL'}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{generarReporteBean.listaMes}" var="_mes" itemLabel="#{_mes.nombre}" itemValue="#{_mes}" />
+									<p:ajax process="@this" event="change" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:inputText styleClass="input-text" value="#{generarReporteBean.anio}" required="true" id="txtAnio"
+									rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'MENSUAL' or generarReporteBean.reporteadorSeleccionado.periodicidad == 'ANUAL'}">
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+							</h:panelGrid>
+
+							<p:spacer
+								rendered="#{empty generarReporteBean.reporteadorSeleccionado or generarReporteBean.reporteadorSeleccionado.periodicidad == 'PERSONALIZADO'}" />
+							<p:spacer
+								rendered="#{empty generarReporteBean.reporteadorSeleccionado or generarReporteBean.reporteadorSeleccionado.periodicidad == 'PERSONALIZADO'}" />
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:"
+								rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'PERSONALIZADO'}" />
+							<p:calendar pattern="#{generarReporteBean.formatoFecha}" showOn="button" navigator="true" value="#{generarReporteBean.fechaDesde}"
+								id="calFechaDesde" rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'PERSONALIZADO'}" required="true">
+								<p:ajax event="dateSelect" process="@this" global="false" />
+								<p:ajax event="change" process="@this" global="false" />
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:"
+								rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'PERSONALIZADO'}" />
+							<p:calendar pattern="#{generarReporteBean.formatoFecha}" showOn="button" navigator="true" value="#{generarReporteBean.fechaHasta}"
+								id="calFechaHasta" rendered="#{generarReporteBean.reporteadorSeleccionado.periodicidad == 'PERSONALIZADO'}" required="true">
+								<p:ajax event="dateSelect" process="@this" global="false" />
+								<p:ajax event="change" process="@this" global="false" />
+								<f:validateBean />
+							</p:calendar>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" icon="print" actionListener="#{generarReporteBean.cargarVariedades()}"
+							process="@this" update="tablaVariables">
+						</p:commandButton>
+					</h:panelGrid>
+
+					<p:dataTable id="tablaVariables" filterDelay="#{sesionControler.retrasoFiltro}" value="#{generarReporteBean.listaDetalleReporteadorVariable}"
+						var="_variables" rowIndexVar="secuencial">
+
+						<p:column headerText="Nยบ">
+							<h:outputText value="#{secuencial+1}" />
+						</p:column>
+						<p:column headerText="#{msgs.lbl_reporte}">
+							<h:outputText value="#{_variables.reporteador.nombre}" />
+						</p:column>
+						<p:column headerText="#{msgs.lbl_variables}">
+							<h:outputText value="#{_variables.codigo}" />
+						</p:column>
+						<p:column headerText="#{msgs.lbl_nota}">
+							<h:outputText value="#{_variables.descripcion}" />
+						</p:column>
+						<p:column headerText="">
+							<h:outputText value="#{_variables.cuentaContable == NULL ? 'SIN CUENTA CONTABLE':''}" />
+						</p:column>
+					</p:dataTable>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,157 @@
+<p:outputPanel id="outListaEstadoCuentaProveedorFactura" xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+
+	<p:panel header="#{msgs.lbl_titulo_reporte_estado_cuenta}">
+
+
+		<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEstadoCuenta" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+			value="#{bean.listaEstadoCuenta}" var="_reporte" binding="#{bean.dtListaReporte}" paginator="true" paginatorPosition="bottom" style="width:100%"
+			rows="#{bean.numeroFilas}" sortBy="#{_reporte.fechaDocumento}" sortOrder="ASCENDING">
+
+
+			<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+				<h:outputText value="#{secuencial+1}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTFecha tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_fecha_documento}" />
+				</f:facet>
+				<h:outputText value="#{_reporte.fechaDocumento}">
+					<f:convertDateTime pattern="#{bean.formatoFecha}" />
+				</h:outputText>
+			</p:column>
+
+			<p:column filterBy="#{_reporte.codigoDocumento}" styleClass="columnaDTCodigo tableCell" filterMatchMode="contains">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_codigo} #{msgs.lbl_documento}" />
+				</f:facet>
+				<h:outputText value="#{_reporte.codigoDocumentoProceso}" />
+			</p:column>
+
+			<p:column sortBy="#{_reporte.nombreDocumento}" filterBy="#{_reporte.nombreDocumento}" styleClass="columnaDTNombre tableCell"
+				filterMatchMode="contains">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_nombre} #{msgs.lbl_documento}" />
+				</f:facet>
+				<h:outputText value="#{_reporte.nombreDocumento}" />
+			</p:column>
+
+			<p:column sortBy="#{_reporte.numeroDocumento}" filterBy="#{_reporte.numeroDocumento}" styleClass="columnaDTNumeroDocumento tableCell"
+				filterMatchMode="contains">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_numero_documento}" />
+				</f:facet>
+				
+				<h:link rendered="#{_reporte.idCobro == 0 and _reporte.idFacturaProveedor != 0 and _reporte.documentoBase == 'NOTA_CREDITO_PROVEEDOR' }"
+					target="_blank" outcome="/paginas/financiero/pagos/procesos/notaCreditoFinancieraProveedor" includeViewParams="true"
+					value="#{_reporte.numeroDocumento}">
+					<f:param name="idNotaCreditoCliente" value="#{_reporte.idFacturaProveedor}" />
+				</h:link>
+
+				<h:link rendered="#{_reporte.idCobro == 0 and _reporte.idFacturaProveedor != 0 and _reporte.documentoBase == 'FACTURA_PROVEEDOR' }" target="_blank"
+					outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true" value="#{_reporte.numeroDocumento}">
+					<f:param name="idFacturaProveedor" value="#{_reporte.idFacturaProveedor}" />
+				</h:link>
+				
+				<h:outputText rendered="#{_reporte.documentoBase == 'PAGO_RETENCION_PROVEEDOR'}"
+				   value="#{_reporte.numeroDocumento}" />
+
+				<h:link rendered="#{_reporte.documentoBase == 'DEVOLUCION_PROVEEDOR'}" target="_blank"
+					outcome="/paginas/inventario/procesos/devolucion/devolucionProveedor" includeViewParams="true" value="#{_reporte.numeroDocumento}">
+					<f:param name="numeroDevolucion" value="#{_reporte.numeroDocumento}" />
+				</h:link>
+
+				<h:link rendered="#{_reporte.idCobro != 0 and _reporte.documentoBase == 'PAGO_PROVEEDOR'}" target="_blank"
+					outcome="/paginas/financiero/pagos/procesos/pago" includeViewParams="true" value="#{_reporte.numeroDocumento}">
+					<f:param name="numero" value="#{_reporte.numeroDocumento}" />
+					<f:param name="idPago" value="#{_reporte.idCobro}" />
+				</h:link>
+				
+				<h:link rendered="#{_reporte.documentoBase == 'NOTA_DEBITO_PROVEEDOR'}" target="_blank"
+					outcome="/paginas/compras/procesos/notaDebitoProveedor" includeViewParams="true" value="#{_reporte.numeroDocumento}">
+					<f:param name="idFacturaProveedor" value="#{_reporte.idFacturaProveedor}" />
+				</h:link>
+				
+				<!--
+				<h:link rendered="#{_reporte.documentoBase == 'LIQUIDACION_ANTICIPO_PROVEEDOR'}" target="_blank"
+					outcome="/paginas/financiero/pagos/procesos/anticipoProveedor" includeViewParams="true" value="#{_reporte.numeroDocumento}">
+					<f:param name="numeroAnticipo" value="#{_reporte.numeroDocumento}" />
+				</h:link>
+				 -->
+				 <h:outputText rendered="#{_reporte.documentoBase == 'LIQUIDACION_ANTICIPO_PROVEEDOR'}"
+				   value="#{_reporte.numeroDocumento}" />				
+				
+			</p:column>
+			
+			<p:column styleClass="columnaDTFecha tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_fecha_vencimiento}" />
+				</f:facet>
+				<h:outputText value="#{_reporte.fechaVencimiento}">
+					<f:convertDateTime pattern="#{bean.formatoFecha}" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValor input-text-number tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_debito}" />
+				</f:facet>
+				<h:outputText value="#{_reporte.debito}" style="text-align:right">
+					<f:convertNumber pattern="#{bean.formatoDinero}" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValor input-text-number tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_credito}" />
+				</f:facet>
+				<h:outputText value="#{_reporte.credito}" style="text-align:right">
+					<f:convertNumber pattern="#{bean.formatoDinero}" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValor input-text-number tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_saldo}">
+					</h:outputText>
+				</f:facet>
+				<h:outputText value="#{_reporte.saldo}" style="text-align:right">
+					<f:convertNumber pattern="#{bean.formatoDinero}" />
+				</h:outputText>
+			</p:column>
+
+			<p:columnGroup type="footer" id="panelTotal">
+				<p:row>
+					<p:column colspan="6" footerText="#{msgs.lbl_total}:	" style="text-align:right">
+					</p:column>
+					<p:column>
+						<f:facet name="footer">
+							<h:outputText value="#{bean.totalDebito}" style="text-align:right" id="txtTotalDebito">
+								<f:convertNumber pattern="#{bean.formatoDinero}" />
+							</h:outputText>
+						</f:facet>
+					</p:column>
+					<p:column>
+						<f:facet name="footer">
+							<h:outputText value="#{bean.totalCredito}" style="text-align:right" id="txtTotalCredito">
+								<f:convertNumber pattern="#{bean.formatoDinero}" />
+							</h:outputText>
+						</f:facet>
+					</p:column>
+					<p:column>
+						<f:facet name="footer">
+							<h:outputText value="#{bean.totalDebito-bean.totalCredito}" style="text-align:right" id="txtTotalGlobal">
+								<f:convertNumber pattern="#{bean.formatoDinero}" />
+							</h:outputText>
+						</f:facet>
+					</p:column>
+				</p:row>
+			</p:columnGroup>
+		</p:dataTable>
+	</p:panel>
+</p:outputPanel>
+
+

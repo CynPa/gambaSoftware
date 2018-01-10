@@ -1,0 +1,163 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{proyectoBean}">
+					<as2:buttonEliminar bean="#{proyectoBean}" titulo="#{msg.btn_eliminar}">
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{proyectoBean.proyecto.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{proyectoBean}" tabla=":form:tablaProyecto" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_proyecto})" rendered="#{proyectoBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{proyectoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{proyectoBean.proyecto.codigo}" id="txtCodigo">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{proyectoBean.proyecto.nombre}" id="txtNombre">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_inicio}:" />
+							<p:calendar pattern="#{proyectoBean.formatoFecha}" showOn="button" navigator="true" value="#{proyectoBean.proyecto.fechaDesde}"
+								id="calFechaInicio">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_contrato}:" />
+							<p:calendar pattern="#{proyectoBean.formatoFecha}" showOn="button" navigator="true" value="#{proyectoBean.proyecto.fechaContrato}"
+								id="calFechaContrato">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_finalizacion}:" />
+							<p:calendar pattern="#{proyectoBean.formatoFecha}" showOn="button" navigator="true" value="#{proyectoBean.proyecto.fechaHasta}" id="calFechaFin">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{proyectoBean.proyecto.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{proyectoBean.proyecto.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{proyectoBean.proyecto.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_proyecto})" rendered="#{!proyectoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProyecto" rowIndexVar="secuencialProyecto"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{proyectoBean.listaProyecto}" var="proyecto" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{proyectoBean.dtProyecto}" rows="#{proyectoBean.numeroFilas}"
+							rowsPerPageTemplate="#{proyectoBean.numeroFilasPorPagina}" selection="#{proyectoBean.proyecto}" selectionMode="single" rowKey="#{proyecto.id}"
+							lazy="true" sortBy="#{proyecto.codigo}">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencialProyecto+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{proyecto.codigo}" sortBy="#{proyecto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{proyecto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" filterBy="#{proyecto.nombre}" sortBy="#{proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{proyecto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{proyecto.fechaDesde}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_inicio}" />
+								</f:facet>
+								<h:outputText value="#{proyecto.fechaDesde}">
+									<f:convertDateTime pattern="#{proyectoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{proyecto.fechaContrato}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_contrato}" />
+								</f:facet>
+								<h:outputText value="#{proyecto.fechaContrato}">
+									<f:convertDateTime pattern="#{proyectoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{proyecto.fechaHasta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_finalizacion}" />
+								</f:facet>
+								<h:outputText value="#{proyecto.fechaHasta}">
+									<f:convertDateTime pattern="#{proyectoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+
+							<h:outputText value="#{msgs.lbl_fecha_contrato}:" />
+							<p:calendar pattern="#{proyectoBean.formatoFecha}" showOn="button" navigator="true" value="#{proyectoBean.proyecto.fechaContrato}"
+								id="calFechaContrato">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_finalizacion}:" />
+							<p:calendar pattern="#{proyectoBean.formatoFecha}" showOn="button" navigator="true" value="#{proyectoBean.proyecto.fechaHasta}" id="calFechaFin">
+							</p:calendar>
+
+							<p:column headerText="#{msgs.lbl_activo}" styleClass="columnaDTActivo" sortBy="#{proyecto.activo}">
+								<p:selectBooleanCheckbox value="#{proyecto.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_predeterminado}" styleClass="columnaDTPredeterminado">
+								<p:selectBooleanCheckbox value="#{proyecto.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{proyecto.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{proyectoBean.proyecto.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{proyectoBean.proyecto.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{proyectoBean.proyecto.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{proyectoBean.proyecto.usuarioModificacion}" />
+
+				</ui:include>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel id="panelFiltros">
+					<h:panelGrid columns="#{reporteAsistenciaDiariaBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<p:outputLabel for="cboDepartamento1" value="#{msgs.lbl_departamento_empleado}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{reporteAsistenciaDiariaBean.departamentoSeleccionado}" id="cboDepartamento1">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{reporteAsistenciaDiariaBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+								itemValue="#{_departamento}" />
+							<p:ajax process="@this" update=":form:panelListado" global="false" />
+						</p:selectOneMenu>
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{reporteAsistenciaDiariaBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteAsistenciaDiariaBean.fechaDesde}"
+								id="calFechaDesde" required="true">
+								<p:ajax listener="#{reporteAsistenciaDiariaBean.fechasIguales}" event="dateSelect" process="@this" update=":form:panelListado" global="false" />
+								<p:ajax event="change" process="@this" update=":form:panelListado" global="false" />
+							</p:calendar>
+					</h:panelGrid>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_asistencia_diaria})">
+						<as2:tablaRegistroAsistenciaDiaria bean="#{reporteAsistenciaDiariaBean}" lista="#{reporteAsistenciaDiariaBean.listaAsistencia}" agrupado="false" id="tablaAsistencia"
+							filteredValue="#{reporteAsistenciaDiariaBean.listaAsistenciaFiltrado}"/>
+					</p:panel>
+					<p:separator />
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{reporteAsistenciaDiariaBean.asistencia.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{reporteAsistenciaDiariaBean.asistencia.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{reporteAsistenciaDiariaBean.asistencia.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{reporteAsistenciaDiariaBean.asistencia.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

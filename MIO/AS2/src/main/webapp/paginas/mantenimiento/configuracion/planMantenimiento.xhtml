@@ -1,0 +1,442 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{planMantenimientoBean}">
+
+					<as2:buttonEliminar bean="#{planMantenimientoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{planMantenimientoBean.planMantenimiento.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{planMantenimientoBean.planMantenimiento.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{planMantenimientoBean}" tabla=":form:tablaPlanMantenimiento" />
+				</as2:toolBar>
+
+
+				<p:dialog header="#{msgs.lbl_frecuencia}" widgetVar="dialogAgregarFrecuencia" modal="true" height="150" width="500" showEffect="slide"
+					hideEffect="slide">
+					<p:panel id="panelFrecuencia">
+						<h:panelGroup>
+							<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalleRF"
+								action="#{planMantenimientoBean.agregarDetallePlanMantenimientoFrecuencia}" update=":form:panelFrecuencia" process="@this" icon="ui-icon-plus" />
+						</h:panelGroup>
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+							value="#{planMantenimientoBean.detallePlanMantenimiento.listaDetallePlanMantenimientoFrecuenciaView}"
+							id="tablaDetallePlanMantenimientoFrecuencia" rowIndexVar="secuencial" binding="#{planMantenimientoBean.dtDetallePlanMantenimientoFrecuencia}"
+							emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePlanMantenimientoFrecuencia" paginator="false" style="width:100%"
+							rowKey="#{_detallePlanMantenimientoFrecuencia.rowKey}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor}">
+								<p:inputText value="#{_detallePlanMantenimientoFrecuencia.valor}" required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" />
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_frecuencia}">
+								<p:selectOneMenu value="#{_detallePlanMantenimientoFrecuencia.frecuencia}" id="cboFrecuencia" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{planMantenimientoBean.listaFrecuencia}" var="_frecuencia" itemLabel="#{_frecuencia.nombre}"
+										itemValue="#{_frecuencia}" />
+									<p:ajax process="@this" global="false" event="change" partialSubmit="true" />
+									<f:validateBean />
+								</p:selectOneMenu>
+							</p:column>
+							
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_porcentaje}">
+								<p:inputText value="#{_detallePlanMantenimientoFrecuencia.porcentaje}" required="true" disabled="#{_detallePlanMantenimientoFrecuencia.frecuencia.tipoFrecuenciaEnum=='FECHA'}">
+									<p:ajax process="@this" global="false" partialSubmit="true" />
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton id="btnEliminarDetalleRF" action="#{planMantenimientoBean.eliminarDetallePlanMantenimientoFrecuencia}" icon="ui-icon-trash"
+									title="#{msgs.lbl_eliminar}" update=":form:panelFrecuencia" process="@this">
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton id="btnAceptar" value="#{msgs.btn_aceptar}" oncomplete="dialogAgregarFrecuencia.hide();" process="@this"
+								update=":form:tvDetallePlanMantenimiento:panelDetallePlanMantenimiento">
+							</p:commandButton>
+							<p:commandButton id="btnCerrar" value="#{msgs.btn_cerrar}" oncomplete="dialogAgregarFrecuencia.hide();" process="@this"
+								update=":form:tvDetallePlanMantenimiento:panelDetallePlanMantenimiento" />
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{planMantenimientoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_plan_mantenimiento})">
+						<h:panelGrid id="panelDetalle" columns="#{planMantenimientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{planMantenimientoBean.planMantenimiento.codigo}" id="txtCodigo" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{planMantenimientoBean.planMantenimiento.nombre}" id="txtNombre" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="cboCategoria" value="#{msgs.lbl_categoria_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{planMantenimientoBean.planMantenimiento.categoriaEquipo}" id="cboCategoria" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{planMantenimientoBean.listaCategoriaEquipo}" var="_categoriaEquipo" itemLabel="#{_categoriaEquipo.nombre}"
+									itemValue="#{_categoriaEquipo}" />
+								<p:ajax process="@this" global="false" listener="#{planMantenimientoBean.actualizarCategoriaEquipo}"
+									update="cboSubcategoria :form:tvDetallePlanMantenimiento:panelDetalleEquipo :form:tvDetallePlanMantenimiento:panelDetalleEquipoNoAsignado" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboSubcategoria" value="#{msgs.lbl_subcategoria_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{planMantenimientoBean.planMantenimiento.subcategoriaEquipo}" id="cboSubcategoria"
+								required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{planMantenimientoBean.listaSubcategoriaEquipo}" var="_subcategoriaEquipo" itemLabel="#{_subcategoriaEquipo.nombre}"
+									itemValue="#{_subcategoriaEquipo}" /> />
+								<p:ajax process="@this" global="false" listener="#{planMantenimientoBean.actualizarSubcategoriaEquipo}"
+									update=":form:tvDetallePlanMantenimiento:panelDetalleEquipo :form:tvDetallePlanMantenimiento:panelDetalleEquipoNoAsignado" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{planMantenimientoBean.planMantenimiento.activo}" />
+
+							<p:outputLabel value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{planMantenimientoBean.planMantenimiento.predeterminado}" />
+
+							<p:outputLabel value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{planMantenimientoBean.planMantenimiento.descripcion}" id="txtDescripcion">
+							</p:inputTextarea>
+						</h:panelGrid>
+
+						<p:tabView cache="true" dynamic="true" id="tvDetallePlanMantenimiento">
+							<p:tab title="#{msgs.lbl_detalle_plan_mantenimiento}">
+								<p:outputPanel id="panelDetallePlanMantenimiento">
+									<h:panelGrid columns="1" style="width:100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle"
+												action="#{planMantenimientoBean.agregarDetallePlanMantenimiento}" update=":form:tvDetallePlanMantenimiento:panelDetallePlanMantenimiento"
+												process="@this" icon="ui-icon-plus" />
+										</h:panelGroup>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{planMantenimientoBean.listaDetallePlanMantenimiento}"
+											id="tablaDetallePlanMantenimiento" rowIndexVar="secuencial" binding="#{planMantenimientoBean.dtDetallePlanMantenimiento}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePlanMantenimiento" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{planMantenimientoBean.numeroFilas}" rowKey="#{_detallePlanMantenimiento.rowKey}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}" filterBy="#{_detallePlanMantenimiento.componente.codigo}">
+												<p:outputLabel styleClass="output-text" value="#{_detallePlanMantenimiento.componente.codigo}" id="txtCodigo" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_componente_equipo}"
+												filterBy="#{_detallePlanMantenimiento.componente.nombre}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoComponente"
+													value="#{_detallePlanMantenimiento.componente}" completeMethod="#{planMantenimientoBean.autocompletarComponente}" var="_componente"
+													itemLabel="#{_componente.nombre}" itemValue="#{_componente}" forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_codigo}" />
+														</f:facet>
+														<h:outputText value=" #{_componente.codigo}" />
+													</p:column>
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre}" />
+														</f:facet>
+														<h:outputText value=" #{_componente.nombre}" />
+													</p:column>
+													<p:ajax process="@this" event="itemSelect" global="false" update="txtCodigo" />
+													<f:validateBean />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_actividad}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoActividad"
+													value="#{_detallePlanMantenimiento.actividad}" completeMethod="#{planMantenimientoBean.autocompletarActividad}" var="_actividad"
+													itemLabel="#{_actividad.nombre}" itemValue="#{_actividad}" forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_codigo}" />
+														</f:facet>
+														<h:outputText value=" #{_actividad.codigo}" />
+													</p:column>
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre}" />
+														</f:facet>
+														<h:outputText value=" #{_actividad.nombre}" />
+													</p:column>
+													<p:ajax process="@this" event="itemSelect" global="false" />
+													<f:validateBean />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton oncomplete="dialogAgregarFrecuencia.show();" process="@this" update=":form:panelFrecuencia" value="...">
+													<f:setPropertyActionListener value="#{_detallePlanMantenimiento}" target="#{planMantenimientoBean.detallePlanMantenimiento}" />
+												</p:commandButton>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_frecuencia}">
+												<p:dataGrid value="#{_detallePlanMantenimiento.listaDetallePlanMantenimientoFrecuenciaView}" var="_rf" columns="2" emptyMessage="">
+													<h:outputText value="#{_rf.valor} #{_rf.frecuencia.nombre}" />
+												</p:dataGrid>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_duracion}">
+												<p:inputText styleClass="input-text-col"  value="#{_detallePlanMantenimiento.duracion}" id="txtDuracion">
+													<p:ajax process="@this" global="false" />
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_prioridad}">
+												<p:selectOneMenu value="#{_detallePlanMantenimiento.prioridad}" id="cboPrioridad" required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{planMantenimientoBean.listaPrioridad}" />
+													<p:ajax process="@this" global="false" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_requiere_paro}">
+												<p:selectBooleanCheckbox value="#{_detallePlanMantenimiento.requiereParo}">
+													<p:ajax update="tablaDetallePlanMantenimiento" global="false" event="change" process="@this" partialSubmit="true" />
+												</p:selectBooleanCheckbox>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_horas_paro}">
+												<p:outputPanel id="panelHorasParo" rendered="#{_detallePlanMantenimiento.requiereParo}">
+													<p:inputText styleClass="input-text-col"  value="#{_detallePlanMantenimiento.horasParo}" id="txtHorasParo">
+														<p:ajax process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:outputPanel>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" action="#{planMantenimientoBean.eliminarDetalle}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tvDetallePlanMantenimiento:panelDetallePlanMantenimiento" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_equipo}s">
+								<p:outputPanel id="panelDetalleEquipo">
+									<h:panelGrid columns="1" style="width:100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarEquipo" action="#{planMantenimientoBean.agregarDetalleEquipo}"
+												update=":form:tvDetallePlanMantenimiento:panelDetalleEquipo" process="@this" icon="ui-icon-plus" />
+										</h:panelGroup>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{planMantenimientoBean.listaDetalleEquipo}" id="tablaEquipo"
+											rowIndexVar="secuencial" binding="#{planMantenimientoBean.dtEquipo}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleEquipo"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{planMantenimientoBean.numeroFilas}"
+											rowKey="#{_detalleEquipo.rowKey}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTApellido tableCell" headerText="#{msgs.lbl_equipo}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEquipo" value="#{_detalleEquipo.equipo}"
+													completeMethod="#{planMantenimientoBean.autocompletarEquipo}" var="_equipo" itemLabel="#{_equipo.nombre}" itemValue="#{_equipo}"
+													forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_codigo}" />
+														</f:facet>
+														<h:outputText value=" #{_equipo.codigo}" />
+													</p:column>
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre}" />
+														</f:facet>
+														<h:outputText value=" #{_equipo.nombre}" />
+													</p:column>
+													<p:ajax process="@this" event="itemSelect" global="false" update="outSubcategoria outUbicacion outDescripcionEquipo" />
+													<f:validateBean />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleEquipo.equipo.subcategoriaEquipo.nombre}"
+												headerText="#{msgs.lbl_subcategoria}">
+												<h:outputText value="#{_detalleEquipo.equipo.subcategoriaEquipo.nombre}" id="outSubcategoria" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_detalleEquipo.equipo.ubicacion.nombre}" headerText="#{msgs.lbl_ubicacion}">
+												<h:outputText value="#{_detalleEquipo.equipo.ubicacion.nombre}" id="outUbicacion" />
+											</p:column>
+
+											<p:column styleClass="tableCell" sortBy="#{_detalleEquipo.equipo.descripcion}" headerText="#{msgs.lbl_descripcion}">
+												<h:outputText value="#{_detalleEquipo.equipo.descripcion}" id="outDescripcionEquipo" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarEquipo" action="#{planMantenimientoBean.eliminarDetalleEquipo}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}"
+													update=":form:tvDetallePlanMantenimiento:panelDetalleEquipo :form:tvDetallePlanMantenimiento:panelDetalleEquipoNoAsignado"
+													process="@this">
+												</p:commandButton>
+											</p:column>
+
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_equipos_no_asignados}">
+								<p:outputPanel id="panelDetalleEquipoNoAsignado">
+									<h:panelGrid columns="1" style="width:100%">
+									
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarEquipos" action="#{planMantenimientoBean.asignarEquipos}"
+												update=":form:tvDetallePlanMantenimiento:panelDetalleEquipo :form:tvDetallePlanMantenimiento:panelDetalleEquipoNoAsignado"
+												process=":form:tvDetallePlanMantenimiento:panelDetalleEquipoNoAsignado" icon="ui-icon-plus" />
+										</h:panelGroup>
+									
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{planMantenimientoBean.listaEquiposNoAsignados}"
+											id="tablaEquipoNoAsignado" rowIndexVar="secuencial" binding="#{planMantenimientoBean.dtEquipoNoAsignado}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_equipo" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{planMantenimientoBean.numeroFilas}" rowKey="#{_equipo.rowKey}" filteredValue="#{planMantenimientoBean.listaEquiposNoAsignadosFilters}"
+											selection="#{planMantenimientoBean.listaEquipoSeleccionados}">
+
+  											<p:column selectionMode="multiple" style="width:16px;text-align:center"/>
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_equipo.codigo}" headerText="#{msgs.lbl_codigo}" filterBy="#{_equipo.codigo}">
+												<h:outputText value="#{_equipo.codigo}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_equipo}" sortBy="#{_equipo.nombre}" filterBy="#{_equipo.nombre}">
+												<h:outputText value="#{_equipo.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_equipo.subcategoriaEquipo.nombre}" filterBy="#{_equipo.subcategoriaEquipo.nombre}" headerText="#{msgs.lbl_subcategoria}">
+												<h:outputText value="#{_equipo.subcategoriaEquipo.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_equipo.ubicacion.nombre}" headerText="#{msgs.lbl_ubicacion}" filterBy="#{_equipo.ubicacion.nombre}">
+												<h:outputText value="#{_equipo.ubicacion.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" sortBy="#{_equipo.descripcion}" headerText="#{msgs.lbl_descripcion}" filterBy="#{_equipo.descripcion}">
+												<h:outputText value="#{_equipo.descripcion}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnAsignarEquipo" action="#{planMantenimientoBean.asignarEquipo}" icon="ui-icon-plus" title="#{msgs.lbl_asignar}"
+													update=":form:tvDetallePlanMantenimiento:panelDetalleEquipo :form:tvDetallePlanMantenimiento:panelDetalleEquipoNoAsignado"
+													process="@this">
+												</p:commandButton>
+											</p:column>
+
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!planMantenimientoBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_plan_mantenimiento})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlanMantenimiento" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{planMantenimientoBean.listaPlanMantenimiento}" var="planMantenimiento"
+							binding="#{planMantenimientoBean.dtPlanMantenimiento}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{planMantenimientoBean.numeroFilas}" rowsPerPageTemplate="#{planMantenimientoBean.numeroFilasPorPagina}"
+							selection="#{planMantenimientoBean.planMantenimiento}" selectionMode="single" rowKey="#{planMantenimiento.id}"
+							sortBy="#{planMantenimiento.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{planMantenimiento.codigo}" filterBy="#{planMantenimiento.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{planMantenimiento.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{planMantenimiento.nombre}" filterBy="#{planMantenimiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{planMantenimiento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{planMantenimiento.categoriaEquipo.nombre}" headerText="#{msgs.lbl_categoria}"
+								filterBy="#{planMantenimiento.categoriaEquipo.nombre}">
+								<h:outputText value="#{planMantenimiento.categoriaEquipo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{planMantenimiento.subcategoriaEquipo.nombre}" headerText="#{msgs.lbl_subcategoria}"
+								filterBy="#{planMantenimiento.subcategoriaEquipo.nombre}">
+								<h:outputText value="#{planMantenimiento.subcategoriaEquipo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{planMantenimiento.descripcion}" filterBy="#{planMantenimiento.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{planMantenimiento.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{planMantenimiento.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{planMantenimiento.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{planMantenimiento.predeterminado}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{planMantenimientoBean.planMantenimiento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{planMantenimientoBean.planMantenimiento.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{planMantenimientoBean.planMantenimiento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{planMantenimientoBean.planMantenimiento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

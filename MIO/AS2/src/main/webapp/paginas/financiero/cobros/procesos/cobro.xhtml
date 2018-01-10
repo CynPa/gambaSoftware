@@ -1,0 +1,1107 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="numero" value="#{cobroBean.numero}" />
+	<f:viewParam name="idCobro" value="#{cobroBean.idCobro}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{cobroBean}">
+					<as2:buttonEliminar bean="#{cobroBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{cobroBean.cobro.numero}" />
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<h:outputText value="#{cobroBean.cobro.empresa.nombreFiscal}" />
+
+						<h:outputText value="#{msgs.lbl_valor}:" />
+						<h:outputText value="#{cobroBean.cobro.valor}">
+							<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+						</h:outputText>
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteCobroBean}" bean="#{cobroBean}" target="#{reporteCobroBean.cobro}" value="#{cobroBean.cobro}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{cobroBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{cobroBean.cobro.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+					
+					<as2:buttonExportaExcel bean="#{cobroBean}" tabla=":form:tablaCobro" />
+				</as2:toolBar>
+
+				<!-- PanelEdicionFormaCobro -->
+				<h:panelGroup id="pgPanelEdicionFormaCobro">
+
+					<p:dialog header="#{msgs.lbl_forma_cobro}" widgetVar="edicionFormaCobroDialogo" modal="true" height="200" width="800" showEffect="slide"
+						hideEffect="slide" rendered="#{cobroBean.indicadorRenderPanelEdicionFormaCobro}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEdicionFormaCobro" rowIndexVar="secuencialEdicionFormaCobro"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cobroBean.listaDetalleFormaCobro}" var="_formaCobro"
+							binding="#{cobroBean.dtEdicionFormaCobro}" paginator="false" style="width:100%" rows="#{cobroBean.numeroFilas}"
+							rowKey="#{_formaCobro.hashCode}">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialFormaCobro+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_depositar_en}">
+								<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacionE" value="#{_formaCobro.cuentaBancariaOrganizacion}" required="true"
+									disabled="#{_formaCobro.formaPago.indicadorRetencionFuente or _formaCobro.formaPago.indicadorRetencionIva}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{cobroBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+										itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+									<f:validateBean />
+									<p:ajax process="@this" partialSubmit="true" update="cboFormaPagoE,txtCuentaContableBancoE" global="false"
+										listener="#{cobroBean.actualizarCuentaBancaria}" />
+								</p:selectOneMenu>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_cuenta_contable}" styleClass="columnaDTCodigoCuenta tableCell">
+								<p:outputPanel id="txtCuentaContableBancoE">
+
+									<h:outputText value="#{_formaCobro.cuentaContableFormaCobro.codigo}" rendered="#{!_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}"
+										title="#{_formaCobro.cuentaContableFormaCobro.nombre}">
+									</h:outputText>
+
+									<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaCobroE" required="true" value="#{_formaCobro.cuentaContableFormaCobro}"
+										rendered="#{_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+											var="_cuentaContableFormaCobro"
+											itemLabel="#{_cuentaContableFormaCobro.cuentaContable.codigo}   #{_cuentaContableFormaCobro.cuentaContable.nombre}"
+											itemValue="#{_cuentaContableFormaCobro.cuentaContable}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" update="@none" />
+										<f:validateBean />
+									</p:selectOneMenu>
+								</p:outputPanel>
+
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombreCorto tableCell">
+								<p:selectOneMenu styleClass="input-text" id="cboFormaPagoE" required="true" value="#{_formaCobro.formaPago}"
+									disabled="#{_formaCobro.indicadorChequePosfechado or (_formaCobro.formaPago.indicadorRetencionFuente or _formaCobro.formaPago.indicadorRetencionIva)}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+										itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+									<f:validateBean />
+									<p:ajax process="@this" global="false" partialSubmit="true" update="@none" />
+								</p:selectOneMenu>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+								<h:outputText value="#{_formaCobro.valor}">
+									<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+								<p:inputText styleClass="input-text" id="txtReferenciaFormaCobro" value="#{_formaCobro.documentoReferencia}">
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_banco} / #{msgs.lbl_documento_SRI_autorizacion}" styleClass="columnaDTNombre tableCell">
+								<p:selectOneMenu styleClass="input-text" id="cboBancoFormaCobroE" value="#{_formaCobro.banco}"
+									required="#{(not empty _formaCobro.formaPago) and (_formaCobro.formaPago.indicadorCheque)}"
+									rendered="#{!_formaCobro.formaPago.indicadorRetencionFuente and !_formaCobro.formaPago.indicadorRetencionIva}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{cobroBean.listaBanco}" var="_banco" itemLabel="#{_banco.nombre}" itemValue="#{_banco}" />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+								<p:inputText rendered="#{_formaCobro.formaPago.indicadorRetencionFuente or _formaCobro.formaPago.indicadorRetencionIva}"
+									styleClass="input-text" id="txtAutorizacionFormaCobro" value="#{_formaCobro.autorizacion}">
+									<f:validateBean />
+								</p:inputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_voucher}" styleClass="columnaDTAccion tableCell">
+								<p:commandButton id="btnVoucher" rendered="#{_formaCobro.formaPago.indicadorTarjetaCredito and !_formaCobro.indicadorCobrado}"
+									action="#{cobroBean.actualizarFormaPago}" actionListener="#{cobroBean.actualizarDetalleSeleccioando(_formaCobro)}" icon="ui-icon-document" title="#{msgs.lbl_datos_voucher}" update=":form:panelVoucher"
+									process="@this" oncomplete="voucherDialog.show();">
+								</p:commandButton>
+							</p:column>
+
+						</p:dataTable>
+
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnGuardarFormaCobro" action="#{cobroBean.guardarFormaCobro}" value="#{msgs.btn_guardar}"
+									oncomplete="edicionFormaCobroDialogo.hide();" process="@this :form:pgPanelEdicionFormaCobro">
+								</p:commandButton>
+								<p:commandButton id="btnCancelarFormaCobro" value="#{msgs.btn_cancelar}" oncomplete="edicionFormaCobroDialogo.hide();" process="@this">
+									<f:setPropertyActionListener target="#{cobroBean.indicadorRenderPanelEdicionFormaCobro}" value="false"></f:setPropertyActionListener>
+								</p:commandButton>
+
+							</center>
+						</f:facet>
+
+					</p:dialog>
+				</h:panelGroup>
+
+				<!-- INICIO DIALOG CHEQUE PROTESTADO -->
+				<p:outputPanel id="panelChequeProtestado">
+
+					<p:dialog header="#{msgs.lbl_titulo_cheque_protestado}" widgetVar="chequeProtestadoDialog" id="chequeProtestadoDialog" modal="true" height="300"
+						width="1000" showEffect="slide" hideEffect="slide">
+
+						<h:panelGrid columns="1">
+
+							<p:fieldset>
+								<h:panelGrid columns="4">
+									<h:outputText value="#{msgs.lbl_cobro_titulo_tab_cobro}:" />
+									<h:outputText value="#{cobroBean.cobro.numero}" />
+
+									<h:outputText value="#{msgs.lbl_cliente}:" />
+									<h:outputText value="#{cobroBean.cobro.empresa.nombreFiscal}" />
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{cobroBean.formatoFecha}" showOn="button" navigator="true" value="#{cobroBean.fechaProtesto}" id="calFechaProtesto">
+										<f:validateBean />
+									</p:calendar>
+
+								</h:panelGrid>
+							</p:fieldset>
+
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaChequesProtestados" rowIndexVar="secuencia"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cobroBean.listaDetalleFormaCobroProtesto}" var="_detalleFormaCobroProtesto"
+								binding="#{cobroBean.dtDetalleFormaCobroProtesto}" paginator="true" paginatorPosition="bottom" rows="10"
+								rowsPerPageTemplate="#{cobroBean.numeroFilasPorPagina}">
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencia+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_banco}" styleClass="columnaDTNombre tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.documentoReferencia}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_depositar_en}" styleClass="columnaDTCuentaOrganizacion tableCell">
+									<p:outputPanel id="opCuentaBancariaOrganizacionProtesto">
+										<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacionProtesto"
+											value="#{_detalleFormaCobroProtesto.cuentaBancariaOrganizacionProtesto}" required="true"
+											rendered="#{_detalleFormaCobroProtesto.indicadorChequeProtestado}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{cobroBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacionProtesto"
+												itemLabel="#{_cuentaBancariaOrganizacionProtesto.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacionProtesto}" />
+											<f:validateBean />
+											<p:ajax process="@this" partialSubmit="true" update="opFormaPagoProtesto" global="false"
+												listener="#{cobroBean.actualizarCuentaBancariaProtesto}">
+											</p:ajax>
+										</p:selectOneMenu>
+									</p:outputPanel>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombreCorto tableCell">
+									<p:outputPanel id="opFormaPagoProtesto">
+										<p:selectOneMenu styleClass="input-text" id="cboFormaPagoProtesto" required="true" value="#{_detalleFormaCobroProtesto.formaPagoProtesto}"
+											rendered="#{_detalleFormaCobroProtesto.indicadorChequeProtestado}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{_detalleFormaCobroProtesto.cuentaBancariaOrganizacionProtesto.listaFormaPago}" var="_formaPagoCuentaProtesto"
+												itemLabel="#{_formaPagoCuentaProtesto.formaPago.nombre}" itemValue="#{_formaPagoCuentaProtesto.formaPago}" />
+											<f:validateBean />
+											<p:ajax event="change" process="@this" global="false" update="@this" />
+										</p:selectOneMenu>
+									</p:outputPanel>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+									<p:outputPanel id="opDocumentoReferenciaProtesto">
+										<p:inputText value="#{_detalleFormaCobroProtesto.documentoReferenciaProtesto}"
+											rendered="#{_detalleFormaCobroProtesto.indicadorChequeProtestado}">
+											<p:ajax process="@this" partialSubmit="true" global="false" update="@none" />
+										</p:inputText>
+									</p:outputPanel>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.valor}">
+										<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor_protesto}" styleClass="columnaDTValor tableCell">
+									<p:inputText value="#{_detalleFormaCobroProtesto.valorProtestado}" size="10">
+										<p:ajax process="@this" partialSubmit="true" global="false" update="@none" />
+									</p:inputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_protestar}" styleClass="columnaDTActivo tableCell">
+									<p:selectBooleanCheckbox value="#{_detalleFormaCobroProtesto.indicadorChequeProtestado}">
+										<p:ajax process="@this" update="opCuentaBancariaOrganizacionProtesto opFormaPagoProtesto opDocumentoReferenciaProtesto" />
+									</p:selectBooleanCheckbox>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_indicador_cargar_cliente_protesto}" />
+									</f:facet>
+									<p:selectBooleanCheckbox value="#{_detalleFormaCobroProtesto.indicadorCargarClienteProtesto}">
+										<p:ajax process="@this" global="false" />
+									</p:selectBooleanCheckbox>
+								</p:column>
+
+							</p:dataTable>
+
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_procesar}" process="@this :form:panelChequeProtestado" action="#{cobroBean.procesarProtesto}"
+									update="panelListado" icon="ui-icon-plus" oncomplete="validacionesModal(xhr, status, args, chequeProtestadoDialog)" />
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+				<!-- FIN DIALOG CHEQUE PROTESTADO -->
+
+				<!-- INICIO DIALOG ANULACION PROTESTO CHEQUE -->
+				<p:outputPanel id="panelAnulacionProtesto">
+
+					<p:dialog header="#{msgs.lbl_titulo_cheque_protestado}" widgetVar="anularProtestoDialog" id="anularProtestoDialog" modal="true" height="300"
+						width="1200" showEffect="slide" hideEffect="slide">
+
+						<h:panelGrid columns="1">
+
+							<p:fieldset>
+								<h:panelGrid columns="4">
+									<h:outputText value="#{msgs.lbl_cobro_titulo_tab_cobro}:" />
+									<h:outputText value="#{cobroBean.cobro.numero}" />
+
+									<h:outputText value="#{msgs.lbl_cliente}:" />
+									<h:outputText value="#{cobroBean.cobro.empresa.nombreFiscal}" />
+
+								</h:panelGrid>
+							</p:fieldset>
+
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaChequesProtestadosAnular" rowIndexVar="secuencia"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cobroBean.listaDetalleFormaCobroProtesto}" var="_detalleFormaCobroProtesto">
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencia+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_banco}" styleClass="columnaDTNombre tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.documentoReferencia}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_depositar_en}" styleClass="columnaDTCuentaOrganizacion tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.cuentaBancariaOrganizacionProtesto.nombreCompleto}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombreCorto tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.formaPagoProtesto.nombre}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.documentoReferenciaProtesto}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.valor}">
+										<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor_protesto}" styleClass="columnaDTValor tableCell">
+									<h:outputText value="#{_detalleFormaCobroProtesto.valorProtestado}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_protestar}" styleClass="columnaDTAccion tableCell">
+									<p:selectBooleanCheckbox value="#{_detalleFormaCobroProtesto.indicadorChequeProtestado}" disabled="true" />
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_indicador_cargar_cliente_protesto}" />
+									</f:facet>
+									<p:selectBooleanCheckbox value="#{_detalleFormaCobroProtesto.indicadorCargarClienteProtesto}" disabled="true" />
+								</p:column>
+
+							</p:dataTable>
+
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_procesar}" process="@this :form:panelAnulacionProtesto" action="#{cobroBean.anularProtesto}"
+									update="panelListado" icon="ui-icon-plus" oncomplete="anularProtestoDialog.hide();" />
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+				<!-- FIN DIALOG ANULACION PROTESTO CHEQUE -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<!-- Inicio Dialog Lista Cheques Protestados  -->
+					<p:outputPanel id="panelChequePosfechado">
+						<p:dialog header="#{msgs.lbl_titulo_cheque_posfechado}" widgetVar="chequePosfechadoDialog" id="chequePosfechadoDialog" modal="true" height="200"
+							width="900" showEffect="slide" hideEffect="slide">
+
+							<h:panelGroup
+								rendered="#{(not empty cobroBean.detalleFormaCobroSeleccionado) and (not empty cobroBean.detalleFormaCobroSeleccionado.garantiaCliente)}">
+
+								<h:panelGrid columns="#{cobroBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_numero_cuenta_bancaria}:" />
+									<p:inputText styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.numeroCuenta}" id="txtNumeroCuenta">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<p:inputText styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.numero}" id="txtNumero" disabled="true">
+										<f:validateBean for="txtNumero" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_fecha_ingreso}:" />
+									<p:inputText styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.fechaIngreso}" disabled="true">
+										<f:convertDateTime pattern="#{cobroBean.formatoFecha}" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_dias_credito_otorgado}:" />
+									<p:inputText styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.diasCreditoOtorgado}"
+										id="txtDiasCreditoOtorgado">
+
+										<p:ajax update=":form:calFechaCobro" process="@this" listener="#{cobroBean.actualizarFechaCobro}" event="change" />
+
+										<f:validateBean for="txtDiasCreditoOtorgado" />
+
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_fecha_cobro}:" />
+									<p:calendar pattern="#{cobroBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.fechaCobro}" id="calFechaCobro">
+
+										<p:ajax update="txtDiasCreditoOtorgado" process="@this" listener="#{cobroBean.actualizarDiasCreditoListener}" event="dateSelect" />
+
+										<p:ajax update="txtDiasCreditoOtorgado" process="@this" listener="#{cobroBean.actualizarDiasCreditoListener}" event="change" />
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_girador}:" />
+									<p:inputText styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.girador}" id="txtGirador">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_recibido_por}:" />
+									<p:inputText styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.recibidoPor}" id="txtRecibidoPor">
+										<f:validateBean for="txtRecibidoPor" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_valor}:">
+										<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+									</h:outputText>
+									<p:inputText styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.valor}" id="txtValor" disabled="true">
+										<f:validateBean for="txtValor" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_observacion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.garantiaCliente.observacion}" id="txtObservacion">
+										<f:validateBean for="txtObservacion" />
+									</p:inputTextarea>
+								</h:panelGrid>
+
+							</h:panelGroup>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_procesar}" process="@this :form:panelChequePosfechado"
+										oncomplete="validacionesModal(xhr, status, args, chequePosfechadoDialog)" icon="ui-icon-plus" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:outputPanel>
+
+					<!-- Fin Dialog Lista Cheques Posfechados   -->
+
+					<!-- Inicio Dialog Datos Voucher  -->
+
+					<p:dialog header="#{msgs.lbl_voucher}" widgetVar="voucherDialog" id="voucherDialog" modal="true" height="190" width="780" showEffect="slide"
+						hideEffect="slide">
+
+						<p:outputPanel id="panelVoucher">
+
+							<h:panelGroup
+								rendered="#{(not empty cobroBean.detalleFormaCobroSeleccionado) and (cobroBean.detalleFormaCobroSeleccionado.formaPago.indicadorTarjetaCredito)}">
+
+								<h:panelGrid columns="#{cobroBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputLabel value="#{msgs.lbl_estacion}:" />
+									<h:outputLabel styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.puntoVenta.codigoAlterno}" id="txtPuntoDeVenta" />
+
+									<h:outputLabel value="#{msgs.lbl_tarjeta_credito}:" for="cboTarjetaCredito" />
+									<p:selectOneMenu styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.tarjetaCredito}" id="cboTarjetaCredito"
+										required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{cobroBean.listaTarjetaCredito}" var="_tarjetaCredito" itemLabel="#{_tarjetaCredito.nombre}"
+											itemValue="#{_tarjetaCredito}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" event="change" update="@this cboPlanPago"
+											listener="#{cobroBean.cargarPlanTarjetaListener(cobroBean.detalleFormaCobroSeleccionado)}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputLabel value="#{msgs.lbl_plan_tarjeta_credito}:" for="cboPlanPago" />
+									<p:selectOneMenu styleClass="input-text" rendered="#{empty detalleFormaCobroSeleccionado.cobroTarjeta}"
+										value="#{cobroBean.detalleFormaCobroSeleccionado.planTarjetaCredito}" id="cboPlanPago" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{cobroBean.detalleFormaCobroSeleccionado.tarjetaCredito.listaPlanTarjetaCredito}" var="_plan"
+											itemLabel="#{_plan.codigo}" itemValue="#{_plan}" />
+										<p:ajax process="@this" global="false" event="change" partialSubmit="true" update="@this" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputLabel for="txtNumeroTarjeta" value="#{msgs.lbl_numero_tarjeta}:" />
+									<p:inputText rendered="#{empty cobroBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{cobroBean.detalleFormaCobroSeleccionado.numeroTarjeta}" id="txtNumeroTarjeta" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputLabel value="#{msgs.lbl_interes}:" />
+									<p:inputText rendered="#{empty cobroBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{cobroBean.detalleFormaCobroSeleccionado.interes}">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+
+									<!-- 									<h:outputLabel value="#{msgs.lbl_numero}:" for="txtNumeroVoucher" /> -->
+									<!-- 									<p:inputText rendered="#{empty cobroBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text" -->
+									<!-- 										value="#{cobroBean.detalleFormaCobroSeleccionado.documentoReferencia}" id="txtNumeroVoucher" required="true"> -->
+									<!-- 										<p:ajax process="@this" global="false"  /> -->
+									<!-- 										<f:validateBean /> -->
+									<!-- 									</p:inputText> -->
+
+									<h:outputLabel for="txtLote" value="#{msgs.lbl_lote}:" />
+									<p:inputText rendered="#{empty detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{cobroBean.detalleFormaCobroSeleccionado.lote}" id="txtLote" required="true">
+										<f:validateBean />
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+									</p:inputText>
+
+									<h:outputLabel value="#{msgs.lbl_sri_base_diferente_cero}:" />
+									<h:outputLabel styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.baseImponibleDiferenteCero}"
+										id="txtBaseImponibleDiferenteCero" />
+
+									<h:outputLabel value="#{msgs.lbl_sri_base_cero}:" />
+									<h:outputLabel styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.baseImponibleTarifaCero}"
+										id="txtBaseImponibleTarifaCero" />
+
+									<h:outputLabel value="#{msgs.lbl_sri_monto_iva}:" />
+									<h:outputLabel styleClass="input-text" value="#{cobroBean.detalleFormaCobroSeleccionado.montoIva}" id="txtMontoIva" />
+
+								</h:panelGrid>
+
+							</h:panelGroup>
+						</p:outputPanel>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_procesar}" process="@this :form:panelVoucher" update="@this :form:panelVoucher"
+									oncomplete="validacionesModal(xhr, status, args, voucherDialog)" icon="ui-icon-plus" />
+							</center>
+						</f:facet>
+
+					</p:dialog>
+
+					<!-- Fin Dialog Datos Voucher   -->
+
+					<!-- INICIO DIALOG SUBIR XML -->
+					<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargaXML" modal="true" height="150" width="325" showEffect="clip" hideEffect="clip"
+						resizable="false">
+						<p:outputPanel id="outputCargarXML">
+							<p:fieldset>
+								<center>
+									<p:fileUpload fileUploadListener="#{cobroBean.cargarXML}" mode="advanced" auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xml)$/"
+										label="#{msgs.btn_examinar}" process="@this :form:tvCobro:calFecha" oncomplete="dlgCargaXML.hide()" update=":form:panelNuevo"
+										multiple="false">
+									</p:fileUpload>
+								</center>
+							</p:fieldset>
+
+						</p:outputPanel>
+					</p:dialog>
+					<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+
+
+
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_cobro_panel}" rendered="#{cobroBean.editado}">
+
+						<p:tabView dynamic="false" cache="true" id="tvCobro">
+
+							<!-- 
+							<p:ajax process="panelDetalle,panelDetalleFormaCobro"
+								update="panelDetalle,panelDetalleFormaCobro" event="tabChange" />
+						 -->
+
+							<p:tab title="#{msgs.lbl_cobro_titulo_tab_cobro}">
+
+								<h:panelGrid id="panelDetalle" columns="#{cobroBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_documento}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" disabled="#{cobroBean.cobro.id>0}"
+										value="#{cobroBean.cobro.documento.idDocumento}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{cobroBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento.idDocumento}" />
+
+										<p:ajax process="@this" listener="#{cobroBean.actualizarDocumento}" update="txtNumero" global="false" />
+
+										<f:validateBean />
+
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<p:inputMask styleClass="input-text" id="txtNumero" value="#{cobroBean.cobro.numero}"
+										disabled="#{cobroBean.cobro.id>0 or !cobroBean.secuenciaEditable}" mask="#{cobroBean.cobro.documento.secuencia.patron}">
+										<f:validateBean />
+									</p:inputMask>
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{cobroBean.formatoFecha}" showOn="button" navigator="true" disabled="#{cobroBean.cobro.id>0}"
+										value="#{cobroBean.cobro.fecha}" id="calFecha" required="true">
+										<f:validateBean />
+										<p:ajax process="@this" event="dateSelect" global="false" />
+										<p:ajax process="@this" event="change" global="false" />
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_cliente}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{cobroBean.cobro.empresa}"
+										completeMethod="#{cobroBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+										forceSelection="true" dropdown="true" minQueryLength="2" size="50" disabled="#{cobroBean.cobro.id>0}" id="cboCliente">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+										<p:ajax listener="#{cobroBean.actualizarCliente}" process="@this" event="itemSelect" update=":form:tablaFacturas cboRecaudador" />
+
+									</p:autoComplete>
+									<h:outputText value="#{msgs.lbl_recaudador}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboRecaudador" disabled="#{cobroBean.cobro.id>0}" value="#{cobroBean.cobro.recaudador}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{cobroBean.listaRecaudador}" var="_recaudador" itemLabel="#{_recaudador.nombre}" itemValue="#{_recaudador}" />
+
+										<p:ajax process="@this" global="false" />
+
+										<f:validateBean />
+
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" id="txtDescripcion" value="#{cobroBean.cobro.descripcion}" disabled="#{cobroBean.cobro.id>0}">
+										<f:validateBean />
+									</p:inputTextarea>
+
+									<h:outputText value="#{msgs.lbl_cobro_valor}:" />
+									<p:inputText styleClass="input-text" id="txtValorCobro" value="#{cobroBean.cobro.valor}" disabled="#{cobroBean.cobro.id>0}">
+										<p:ajax process="@this" update=":form:panelGridFacturas :form:tvCobro:panelDetFormaCobro" />
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="" />
+									<p:panelGrid columns="#{cobroBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+										<h:outputText value="#0080ff" style="background-color:#0080ff; color:#0080ff" />
+										<h:outputText value="#{msgs.lbl_factura_no_autorizada}" />
+										<h:outputText value="#009900" style="background-color:#009900; color:#009900" />
+										<h:outputText value="#{msgs.lbl_factura_autorizada}" />
+									</p:panelGrid>
+
+									<h:outputText value="#{msgs.btn_cargar_xml}:" />
+									<p:commandButton id="btnCargarXML" title="#{msgs.btn_cargar_xml}" icon="ui-icon-bookmark" update=":form:tvCobro:btnCargarXML :form:tvCobro"
+										onclick="dlgCargaXML.show()" process="@this">
+									</p:commandButton>
+
+								</h:panelGrid>
+
+
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_forma_cobro}">
+
+								<p:commandButton process="@this,tablaDetalleFormaCobro" value="#{msgs.btn_agregar_detalle}" id="btnAgregarFormaCobro"
+									update="panelDetalleFormaCobro,btnAgregarFormaCobro" action="#{cobroBean.crearFormaCobro}" />
+
+								<p:outputPanel id="panelDetFormaCobro">
+									<h:panelGrid columns="1" id="panelDetalleFormaCobro" width="100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaCobro" rowIndexVar="secuencialFormaCobro"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cobroBean.listaDetalleFormaCobro}" var="_formaCobro" binding="#{cobroBean.dtFormaCobro}"
+											paginator="false" style="width:100%" rows="#{cobroBean.numeroFilas}" rowKey="#{_formaCobro.hashCode}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencialFormaCobro+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_depositar_en}" styleClass="columnaDTNombre tableCell">
+												<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" value="#{_formaCobro.cuentaBancariaOrganizacion}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{cobroBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+														itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+													<f:validateBean />
+													<p:ajax process="@this,txtCuentaContableBanco" update="cboFormaPago,txtCuentaContableBanco" global="false"
+														listener="#{cobroBean.actualizarCuentaBancaria}" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cuenta_contable}" styleClass="columnaDTNombre tableCell">
+												<p:outputPanel id="txtCuentaContableBanco">
+
+													<h:outputText value="#{_formaCobro.cuentaContableFormaCobro.codigo}" rendered="#{!_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}"
+														title="#{_formaCobro.cuentaContableFormaCobro.nombre}">
+													</h:outputText>
+
+													<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaCobro" required="true" value="#{_formaCobro.cuentaContableFormaCobro}"
+														rendered="#{_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+															var="_cuentaContableFormaCobro"
+															itemLabel="#{_cuentaContableFormaCobro.cuentaContable.codigo}   #{_cuentaContableFormaCobro.cuentaContable.nombre}"
+															itemValue="#{_cuentaContableFormaCobro.cuentaContable}" />
+														<p:ajax process="@this" global="false" update=":form:tvCobro:panelDetFormaCobro" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:outputPanel>
+
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombre tableCell">
+												<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{_formaCobro.formaPago}"
+													disabled="#{_formaCobro.indicadorChequePosfechado}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+														itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+													<f:validateBean />
+													<p:ajax process="@this,txtCuentaContableBanco" global="false" listener="#{cobroBean.actualizarFormaPago}"
+														update=":form:tvCobro:panelDetFormaCobro" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+												<p:inputText styleClass="input-text" id="txtValorFormaCobro" value="#{_formaCobro.valor}" disabled="#{_formaCobro.cobro.id > 0}">
+													<p:ajax event="change" update=":form:tvCobro:panelDetFormaCobro" global="false" process="@this"
+														oncomplete="nextFocus(':form:tvCobro:txtReferenciaFormaCobro')"></p:ajax>
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNombre tableCell">
+												<p:inputText styleClass="input-text" id="txtReferenciaFormaCobro" value="#{_formaCobro.documentoReferencia}">
+													<f:validateBean />
+												</p:inputText>							
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_banco} / #{msgs.lbl_documento_SRI_autorizacion}" styleClass="columnaDTNombre tableCell">
+												<p:selectOneMenu styleClass="input-text" id="cboBancoFormaCobro" value="#{_formaCobro.banco}"
+													required="#{(not empty _formaCobro.formaPago) and (_formaCobro.formaPago.indicadorCheque)}"
+													rendered="#{!_formaCobro.formaPago.indicadorRetencionFuente and !_formaCobro.formaPago.indicadorRetencionIva}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{cobroBean.listaBanco}" var="_banco" itemLabel="#{_banco.nombre}" itemValue="#{_banco}" />
+													<p:ajax event="change" global="false" process="@this" partialSubmit="true" />
+												</p:selectOneMenu>
+												<p:inputText rendered="#{_formaCobro.formaPago.indicadorRetencionFuente or _formaCobro.formaPago.indicadorRetencionIva}"
+													styleClass="input-text" id="txtAutorizacionFormaCobro" value="#{_formaCobro.autorizacion}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_tiene_cheque_posfechado}" styleClass="columnaDTActivo tableCell">
+												<p:selectBooleanCheckbox id="chkIndicadorChequePosfechado" value="#{_formaCobro.indicadorChequePosfechado}"
+													rendered="#{(not empty _formaCobro.formaPago) and (_formaCobro.formaPago.indicadorCheque)}">
+
+													<p:ajax listener="#{cobroBean.actualizarGarantiaCliente}" process="@this,txtReferenciaFormaCobro,txtValorFormaCobro,cboBancoFormaCobro"
+														update=":form:tvCobro:panelDetFormaCobro" global="false">
+													</p:ajax>
+												</p:selectBooleanCheckbox>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cheque}" styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnChequePosfechado" rendered="#{_formaCobro.indicadorChequePosfechado}"
+													action="#{cobroBean.actualizarGarantiaCliente}" icon="ui-icon-document" title="#{msgs.lbl_cargar_cheques_posfechados}"
+													update=":form:panelChequePosfechado"
+													process="@this,chkIndicadorChequePosfechado,txtReferenciaFormaCobro,txtValorFormaCobro,cboBancoFormaCobro"
+													oncomplete="chequePosfechadoDialog.show();">
+												</p:commandButton>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_voucher}" styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnVoucher" rendered="#{_formaCobro.formaPago.indicadorTarjetaCredito}" action="#{cobroBean.actualizarVoucher}"
+													icon="ui-icon-document" title="#{msgs.lbl_datos_voucher}" update=":form:panelVoucher" process="@this txtValorFormaCobro"
+													oncomplete="voucherDialog.show();">
+												</p:commandButton>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarFormaCobro" action="#{cobroBean.eliminarFormaCobro}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tvCobro:panelDetalleFormaCobro" process="@this" />
+											</p:column>
+
+											<p:columnGroup type="footer">
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_total}" style="text-align:right" />
+													<p:column style="text-align:right">
+														<f:facet name="footer" style="text-align:right">
+															<h:outputText value="#{cobroBean.totalLiquidarFormaCobro}">
+																<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_cobro_diferencia}" style="text-align:right" />
+													<p:column style="text-align:right">
+														<f:facet name="footer" style="text-align:right">
+															<h:outputText value="#{cobroBean.cobro.valor-cobroBean.totalLiquidarFormaCobro}">
+																<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+											</p:columnGroup>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+						</p:tabView>
+
+						<h:panelGrid columns="1" id="panelGridFacturas" width="100%" style="text-align:center;">
+							<h:panelGroup>
+								<h:outputText value="#{msgs.lbl_factura}:" />
+								<p:spacer width="5" />
+								<p:inputText value="#{cobroBean.numeroFactura}">
+									<p:ajax process="@this" global="false" update="@this" />
+								</p:inputText>
+								<p:spacer width="10" />
+								<p:commandButton process="@this,:form:tvCobro:txtValorCobro :form:tvCobro:cboCliente" value="#{msgs.btn_cobro_cargar_facturas_pendientes}"
+									update=":form:tablaFacturas,:form:tvCobro:panelDetFormaCobro" action="#{cobroBean.cargarFacturasPendientes}"
+									disabled="#{cobroBean.cobro.id>0}" />
+							</h:panelGroup>
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturas" rowIndexVar="secuencialFacturas"
+								emptyMessage="#{msgs.msg_no_hay_datos}" binding="#{cobroBean.dtDetalleCobro}" value="#{cobroBean.listaDetalleCobro}" var="_factura"
+								paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{cobroBean.numeroFilas}"
+								rowsPerPageTemplate="#{cobroBean.numeroFilasPorPagina}" rowKey="#{_factura.cuentaPorCobrar.id}"
+								sortBy="#{_factura.cuentaPorCobrar.facturaCliente.fecha}" sortOrder="ASCENDING">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cobro_titulo_panel_facturas}" />
+								</f:facet>
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencialFacturas+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cobro_numero_factura}" filterBy="#{_factura.cuentaPorCobrar.facturaCliente.numero}"
+									filterMatchMode="contains" styleClass="tableCell">
+									<h:outputText value="#{_factura.cuentaPorCobrar.facturaCliente.numero}" />
+								</p:column>
+
+								<p:column headerText="Packing" filterBy="#{_factura.cuentaPorCobrar.facturaCliente.referencia2}" filterMatchMode="contains"
+									styleClass="tableCell" rendered="#{sesionControler.floricola}">
+									<h:outputText value="#{_factura.cuentaPorCobrar.facturaCliente.referencia2}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cobro_fecha_emision_factura}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_factura.cuentaPorCobrar.facturaCliente.fecha}">
+										<f:convertDateTime pattern="#{cobroBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_fecha_vencimiento}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_factura.cuentaPorCobrar.fechaVencimiento}">
+										<f:convertDateTime pattern="#{cobroBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cobro_numero_cuota}" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{_factura.cuentaPorCobrar.numeroCuota}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_descripcion}" styleClass="columnaDTNombre tableCell">
+									<h:outputText value="#{_factura.cuentaPorCobrar.descripcion}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_retencion}" styleClass="columnaDTActivo tableCell">
+									<p:selectBooleanCheckbox disabled="true" value="#{_factura.cuentaPorCobrar.facturaCliente.indicadorEmisionRetencion}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+									<h:outputText value="#{_factura.cuentaPorCobrar.valor}">
+										<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cobro_valor_pendiente}" styleClass="columnaDTValor tableCell">
+									<h:outputText rendered="#{!_factura.cuentaPorCobrar.indicadorGeneradaProtesto}" value="#{_factura.cuentaPorCobrar.saldo}">
+										<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+									</h:outputText>
+									<h:outputText rendered="#{_factura.cuentaPorCobrar.indicadorGeneradaProtesto}" value="#{_factura.cuentaPorCobrar.saldo}"
+										title="#{msgs.lbl_protesto}" style="color:#FC0000;">
+										<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cobro_valor_cheques_posfechados}" styleClass="columnaDTNombre tableCell">
+									<h:outputText rendered="#{_factura.cuentaPorCobrar.valorBloqueado>0}" value="#{_factura.cuentaPorCobrar.valorBloqueado}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cobro_valor_factura_a_liquidar}" styleClass="columnaDTNombre tableCell">
+									<h:outputText styleClass="input-text" value="#{_factura.valor}" rendered="#{_factura.cobro.id != 0}" />
+									<p:inputText styleClass="input-text" id="txtValorCobro" value="#{_factura.valor}" rendered="#{_factura.cobro.id == 0}">
+										<f:validateBean />
+										<p:ajax process="@this :form:panelGridFacturas" listener="#{cobroBean.calcularValorAPagar}"
+											update=":form:panelGridFacturas :form:tvCobro:txtValorCobro :form:tvCobro:panelDetFormaCobro" />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTActivo tableCell">
+									<center>
+										<p:commandLink id="btnPagar" disabled="#{cobroBean.cobro.id>0}" process="@this :form:panelGridFacturas" global="false"
+											title="#{msgs.lbl_pagar}" update=":form:tvCobro:txtValorCobro :form:panelGridFacturas :form:tvCobro:panelDetFormaCobro"
+											action="#{cobroBean.cargarValorCuota}">
+											<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+										</p:commandLink>
+
+										<p:commandLink id="btnLimpiar" disabled="#{cobroBean.cobro.id>0}" process="@this :form:panelGridFacturas" global="false"
+											title="#{msgs.lbl_limpiar}" update=":form:tvCobro:txtValorCobro :form:panelGridFacturas :form:tvCobro:panelDetFormaCobro"
+											action="#{cobroBean.limpiarValorCuota}">
+											<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+										</p:commandLink>
+									</center>
+								</p:column>
+
+								<p:column styleClass="#{_factura.cuentaPorCobrar.facturaCliente.indicadorNoAutorizadoSRI == true ? 'color_azulII' : 'color_verde'}"
+									width="0.01" rendered="#{_factura.cuentaPorCobrar.facturaCliente.indicadorNoAutorizadoSRI}">
+									<h:outputText rendered="#{_factura.cuentaPorCobrar.facturaCliente.indicadorNoAutorizadoSRI}" value="."
+										title="#{msgs.lbl_factura_no_autorizada}" style="color:#0080ff;">
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="#{_factura.cuentaPorCobrar.facturaCliente.indicadorNoAutorizadoSRI == true ? 'color_azulII' : 'color_verde'}"
+									width="0.01" rendered="#{!_factura.cuentaPorCobrar.facturaCliente.indicadorNoAutorizadoSRI}">
+									<h:outputText rendered="#{!_factura.cuentaPorCobrar.facturaCliente.indicadorNoAutorizadoSRI}" value="."
+										title="#{msgs.lbl_factura_autorizada}" style="color:#009900;">
+									</h:outputText>
+								</p:column>
+
+								<p:columnGroup type="footer">
+									<p:row>
+										<p:column colspan="11" footerText="#{msgs.lbl_cobro_total_liquidado}" style="text-align:right" />
+										<p:column style="text-align:right">
+											<f:facet name="footer" colspan="10" style="text-align:left">
+												<h:outputText value="#{cobroBean.totalLiquidado}">
+													<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+
+									<p:row>
+										<p:column colspan="11" footerText="#{msgs.lbl_cobro_diferencia}" style="text-align:right" />
+										<p:column style="text-align:right">
+											<f:facet name="footer" colspan="10" style="text-align:left">
+												<h:outputText value="#{cobroBean.cobro.valor-cobroBean.totalLiquidado}">
+													<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+
+								</p:columnGroup>
+
+							</p:dataTable>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_cobro_panel}" rendered="#{!cobroBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCobro" rowIndexVar="secuencialNivelCuenta"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cobroBean.listaCobro}" var="_cobro" binding="#{cobroBean.dtCobro}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{cobroBean.numeroFilas}" selection="#{cobroBean.cobro}"
+							rowsPerPageTemplate="#{cobroBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_cobro.id}" sortBy="#{_cobro.fecha}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialNivelCuenta+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.numero}" filterBy="#{_cobro.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.fecha}">
+									<f:convertDateTime pattern="#{cobroBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_cobro.empresa.nombreFiscal}" filterBy="#{_cobro.empresa.nombreFiscal}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.valor}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cobro_valor}">
+										<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+									</h:outputText>
+								</f:facet>
+								<h:outputText value="#{_cobro.valor}">
+									<f:convertNumber pattern="#{cobroBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column filterBy="#{_cobro.asiento.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _cobro.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_cobro.asiento}">
+									<f:param name="idAsiento" value="#{_cobro.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column filterBy="#{_cobro.asientoProtesto}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento} #{msgs.lbl_protesto}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _cobro.asientoProtesto}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_cobro.asientoProtesto}">
+									<f:param name="idAsiento" value="#{_cobro.asientoProtesto.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_cobro.estado}" filterBy="#{_cobro.estado}" filterOptions="#{cobroBean.listaEstadoItem}"
+								styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_cobro.sucursal.nombre}" filterBy="#{_cobro.sucursal.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_cobro.sucursal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_protestar}" />
+								</f:facet>
+								<p:column styleClass="columnaDTAccion tableCell">
+									<center>
+										<p:commandButton id="btnChequePosfechado" disabled="#{(_cobro.estado != 'CONTABILIZADO') or (!_cobro.indicadorTieneCheques)}"
+											action="#{cobroBean.cargarListaGarantiaCliente}" icon="ui-icon-document" title="#{msgs.lbl_ver_cheques_protesto}"
+											update=":form:panelChequeProtestado" process="@this" oncomplete="chequeProtestadoDialog.show();" />
+									</center>
+								</p:column>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anularProtesto}" />
+								</f:facet>
+								<p:commandButton id="btnAnularChequeProtestado" disabled="#{empty _cobro.asientoProtesto or _cobro.asientoProtesto.estado == 'ANULADO'}"
+									action="#{cobroBean.cargarListaGarantiaClienteAnularProtesto}" icon="ui-icon-document" title="#{msgs.lbl_ver_cheques_protesto}"
+									update=":form:panelAnulacionProtesto" process="@this" oncomplete="anularProtestoDialog.show();" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_editar}" />
+								</f:facet>
+								<center>
+									<p:commandButton oncomplete="edicionFormaCobroDialogo.show();" icon="ui-icon ui-icon-pencil" process="@this"
+										action="#{cobroBean.cargarDatosCobro}" update=":form:pgPanelEdicionFormaCobro" disabled="false">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+							<p:column sortBy="#{_cobro.descripcion}" filterBy="#{_cobro.descripcion}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_cobro.descripcion}" />
+								<!--<as2:inputTextNota value="#{_cobro.descripcion}" />-->
+							</p:column>
+
+							<p:column style="width:63px;" headerText="#{msgs.lbl_codigo} Movil" sortBy="#{_cobro.codigoMovil}" filterBy="#{_cobro.codigoMovil}">
+								<h:outputText value="#{_cobro.codigoMovil}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{cobroBean.cobro}" value="#{_cobro}" bean="#{cobroBean}" formatos="/(\.|\/)(pdf|png|jpe?g)$/"
+									actualiza=":form:panelListado" visible="#{_cobro.archivo!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{cobroBean.cobro.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{cobroBean.cobro.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{cobroBean.cobro.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{cobroBean.cobro.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

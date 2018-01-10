@@ -1,0 +1,779 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{usuarioBean}">
+					<as2:buttonEliminar bean="#{usuarioBean}" />
+					<as2:buttonExportaExcel bean="#{usuarioBean}" tabla=":form:tablaUsuario" />
+					<as2:buttonImprimir bean="#{usuarioBean}" beanReporte="#{reportePermisosUsuarioBean}" value="#{usuarioBean.entidadUsuario}"
+						target="#{reportePermisosUsuarioBean.entidadUsuario}" />
+
+					<p:commandButton value="#{msgs.lbl_ver_jerarquia}" action="#{usuarioBean.cargarJerarquia}" process="@this :form:panelListado"
+						update=":form:panelJerarquia" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{usuarioBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelNuevo" />
+				</ui:include>
+
+				<p:outputPanel id="panelJerarquia">
+					<p:dialog modal="true" showEffect="fade" hideEffect="explode" widgetVar="jerarquiaDialog" header="#{msgs.lbl_ver_jerarquia}" width="1000"
+						height="400">
+						<h:panelGrid columns="2" id="panelJerarquiaCabecera">
+							<h:outputText value="#{msgs.lbl_usuario}:" />
+							<h:outputText value="(#{usuarioBean.entidadUsuario.nombreUsuario}) #{usuarioBean.entidadUsuario.nombre1} #{usuarioBean.entidadUsuario.nombre2}" />
+
+							<h:panelGroup>
+								<p:commandButton title="#{msgs.lbl_ascendente}" action="#{usuarioBean.actualizarArbol(true)}" process="@this" id="btnAsc"
+									update=":form:panelArbolJerarquia :form:panelJerarquiaCabecera" icon="ui-icon-carat-1-n"
+									disabled="#{usuarioBean.indicadorAscendenteJerarquia}" />
+								<p:commandButton title="#{msgs.lbl_descendente}" action="#{usuarioBean.actualizarArbol(false)}" process="@this" id="btnDesc"
+									update=":form:panelArbolJerarquia :form:panelJerarquiaCabecera" icon="ui-icon-carat-1-s"
+									disabled="#{!usuarioBean.indicadorAscendenteJerarquia}" />
+							</h:panelGroup>
+							<h:outputText value="#{usuarioBean.indicadorAscendenteJerarquia ? msgs.lbl_ascendente : msgs.lbl_descendente}" id="outOrden" />
+						</h:panelGrid>
+						<p:outputPanel id="panelArbolJerarquia">
+							<p:tree value="#{usuarioBean.root}" var="_usuario" orientation="horizontal">
+								<p:treeNode>
+									<h:outputText value="#{_usuario}" />
+								</p:treeNode>
+							</p:tree>
+						</p:outputPanel>
+
+						<p:spacer width="6px" />
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.lbl_cerrar}" process="@this" onclick="jerarquiaDialog.hide()" />
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:dialog modal="true" showEffect="fade" hideEffect="explode" widgetVar="rolesDialog" header="#{msgs.lbl_listado} #{msgs.lbl_rol_panel}">
+					<p:outputPanel id="panelRolesAAsignar">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaRolesNoAsignados}" id="tablaRoles"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_rol" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowKey="#{_rol.idRol}" rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+							selection="#{usuarioBean.rolesSeleccionados}">
+
+							<p:column styleClass="tableCell columnaDTAccion" selectionMode="multiple" />
+
+							<p:column styleClass="tableCell " headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_rol.nombre}" />
+							</p:column>
+
+
+							<p:dialog modal="true" showEffect="fade" hideEffect="explode" widgetVar="rolesDialog" header="#{msgs.lbl_listado} #{msgs.lbl_rol_panel}">
+								<p:outputPanel id="panelRolesAAsignar">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaRolesNoAsignados}" id="tablaRoles"
+										rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_rol" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_rol.idRol}" rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+										selection="#{usuarioBean.rolesSeleccionados}">
+
+										<p:column styleClass="tableCell columnaDTAccion" selectionMode="multiple" />
+
+										<p:column styleClass="tableCell " headerText="#{msgs.lbl_nombre}">
+											<h:outputText value="#{_rol.nombre}" />
+										</p:column>
+
+										<p:column styleClass="tableCell " headerText="#{msgs.lbl_descripcion}">
+											<h:outputText value="#{_rol.descripcion}" />
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+								<p:spacer width="6px" />
+								<center>
+									<p:commandButton value="#{msgs.lbl_asignar_roles}" actionListener="#{usuarioBean.asignarRoles}"
+										process="@this :form:tablaRoles :form:panelRolesAAsignar" update=":form:tabViewUsuario:panelRolesAsignados" onclick="rolesDialog.hide()" />
+								</center>
+							</p:dialog>
+
+							<p:column styleClass="tableCell " headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_rol.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:outputPanel>
+					<p:spacer width="6px" />
+					<center>
+						<p:commandButton value="#{msgs.lbl_asignar_roles}" actionListener="#{usuarioBean.asignarRoles}"
+							process="@this :form:tablaRoles :form:panelRolesAAsignar" update=":form:tabViewUsuario:panelRolesAsignados" onclick="rolesDialog.hide()" />
+					</center>
+				</p:dialog>
+
+				<p:dialog modal="true" showEffect="fade" hideEffect="explode" widgetVar="bodegasDialog" header="#{msgs.lbl_bodega_titulo_panel_listado}">
+					<p:outputPanel id="panelBodegaAAsignar">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaBodegaNoAsignados}" id="tablaBodegas"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_bodega" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowKey="#{_bodega.idBodega}" rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+							selection="#{usuarioBean.bodegasSeleccionadas}">
+
+							<p:column selectionMode="multiple" />
+
+							<p:column headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_bodega.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_bodega.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_organizacion}">
+								<h:outputText value="#{_bodega.organizacion.razonSocial}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_bodega.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+					<p:spacer width="6px" />
+					<center>
+						<p:commandButton value="#{msgs.lbl_asignar_bodegas}" actionListener="#{usuarioBean.asignarBodegas}" process="@this :form:panelBodegaAAsignar"
+							update=":form:tabViewUsuario:panelBodegasAsignados" onclick="bodegasDialog.hide()" />
+					</center>
+				</p:dialog>
+
+				<p:dialog modal="true" showEffect="fade" hideEffect="explode" widgetVar="dimensionesDialog"
+					header="#{msgs.lbl_dimension_contable_titulo_panel_listado}" height="575" width="300">
+					<p:outputPanel id="panelDimensionesAAsignar">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaDimensionContablesSeleccion}" id="tablaDimensiones"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_dimension" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rowKey="#{_dimension.id}" rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+							selection="#{usuarioBean.dimensionesSeleccionadas}">
+
+							<p:column selectionMode="multiple" />
+
+							<p:column headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_dimension.codigo}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_dimension.nombre}" />
+							</p:column>
+						</p:dataTable>
+
+					</p:outputPanel>
+					<p:spacer width="6px" />
+					<center>
+						<p:commandButton value="#{msgs.lbl_asignar_dimension_contable}" actionListener="#{usuarioBean.asignarDimensiones}"
+							process="@this :form:panelDimensionesAAsignar" update=":form:tabViewUsuario:outputPanelDimension" onclick="dimensionesDialog.hide()" />
+					</center>
+				</p:dialog>
+				<p:dialog modal="true" showEffect="fade" hideEffect="explode" widgetVar="organizacionesDialog" header="#{msgs.lbl_organizacion_panel}">
+					<p:outputPanel id="panelOrganizacionesAAsignar">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaOrganizacionesNoAsignadas}" id="tablaOrganizaciones"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_organizacion" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rowKey="#{_organizacion.idOrganizacion}" rows="#{usuarioBean.numeroFilas}"
+							rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}" selection="#{usuarioBean.organizacionesSeleccionadas}">
+
+							<p:column selectionMode="multiple" />
+
+							<p:column headerText="#{msgs.lbl_identificacion}">
+								<h:outputText value="#{_organizacion.identificacion}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_razon_social}">
+								<h:outputText value="#{_organizacion.razonSocial}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+					<p:spacer width="6px" />
+					<center>
+						<p:commandButton value="#{msgs.lbl_asignar_organizaciones}" actionListener="#{usuarioBean.asignarOrganizaciones}"
+							process="@this :form:panelOrganizacionesAAsignar" update=":form:tabViewUsuario:panelOrganizacionesAsignados"
+							onclick="organizacionesDialog.hide()" />
+					</center>
+				</p:dialog>
+
+				<p:dialog modal="true" showEffect="fade" hideEffect="explode" widgetVar="sucursalesDialog" header="#{msgs.lbl_sucursal_panel}">
+					<p:outputPanel id="panelSucursalAAsignar">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaSucursalesNoAsignadas}" id="tablaSucursales"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_sucursal" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowKey="#{_sucursal.idSucursal}" rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+							selection="#{usuarioBean.sucursalesSeleccionadas}">
+
+							<p:column selectionMode="multiple" />
+
+							<p:column headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_sucursal.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_organizacion}">
+								<p:selectOneMenu value="#{_sucursal.idOrganizacion}" disabled="true">
+									<f:selectItems value="#{usuarioBean.listaOrganizacion}" var="_organizacion" itemValue="#{_organizacion.idOrganizacion}"
+										itemLabel="#{_organizacion.razonSocial}" />
+								</p:selectOneMenu>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_sucursal.nombre}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:outputPanel>
+					<p:spacer width="6px" />
+					<center>
+						<p:commandButton value="#{msgs.lbl_asignar_sucursal}" actionListener="#{usuarioBean.asignarSucursales}"
+							process="@this :form:panelSucursalAAsignar" update=":form:tabViewUsuario:panelSucursalesAsignados" onclick="sucursalesDialog.hide()" />
+					</center>
+				</p:dialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{usuarioBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_usuario_panel}">
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{usuarioBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelListaEmpleado" />
+									<p:commandButton id="btnLimpiar" icon="ui-icon-trash" update=":form:panelCabecera" process=":form:panelCabecera">
+										<f:setPropertyActionListener target="#{usuarioBean.entidadUsuario.empleado}" value=""></f:setPropertyActionListener>
+									</p:commandButton>
+									<h:outputText id="txtEmpleado" value="#{usuarioBean.entidadUsuario.empleado.empresa.nombreFiscal}" />
+								</h:panelGroup>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.codigo}" id="txtNombre"
+									disabled="#{usuarioBean.entidadUsuario.empleado.id>0}" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_identificacion}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.identificacion}" id="txtIdentificacion"
+									disabled="#{usuarioBean.entidadUsuario.empleado.id>0}">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_direccion}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.direccion}" id="txtDireccion"
+									disabled="#{usuarioBean.entidadUsuario.empleado.id>0}">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_email}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.email}" id="txtEmail"
+									disabled="#{usuarioBean.entidadUsuario.empleado.id>0}">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombreUsuario" value="#{msgs.lbl_nombre_usuario}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.nombreUsuario}" id="txtNombreUsuario"
+									readonly="#{usuarioBean.entidadUsuario.id!=0}" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre1" value="#{msgs.lbl_nombres}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.nombre1}" id="txtNombre1"
+									disabled="#{usuarioBean.entidadUsuario.empleado.id>0}" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre2" value="#{msgs.lbl_apellidos}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.nombre2}" id="txtNombre2"
+									disabled="#{usuarioBean.entidadUsuario.empleado.id>0}" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_referencia}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_telefono}:" />
+								<p:inputText styleClass="input-text" value="#{usuarioBean.entidadUsuario.telefono}" id="txtTelefono">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_genero}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{usuarioBean.entidadUsuario.genero}" id="cboGenero"
+									disabled="#{usuarioBean.entidadUsuario.empleado.id>0}">
+									<f:selectItems value="#{usuarioBean.listaGenero}" disabled="#{usuarioBean.empleado.id>0}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.indicadorAgenteComercial}">
+									<p:ajax process="@this" update=":form:cboTipoVendedor" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_titulo_tipo_vendedor}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{usuarioBean.tipoVendedorSeleccionado}" id="cboTipoVendedor"
+									disabled="#{!usuarioBean.entidadUsuario.indicadorAgenteComercial}" required="#{usuarioBean.entidadUsuario.indicadorAgenteComercial}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{usuarioBean.listaTipoVendedorCombo}" var="_tipovendedor" itemLabel="#{_tipovendedor.nombre}"
+										itemValue="#{_tipovendedor.idTipoVendedor}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_plan_comision}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{usuarioBean.entidadUsuario.planComision}" id="cboPlanComision"
+									disabled="#{!usuarioBean.entidadUsuario.indicadorAgenteComercial}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{usuarioBean.listaPlanComision}" var="_plan" itemLabel="#{_plan.nombre}" itemValue="#{_plan}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_dispositivo} #{msgs.lbl_predeterminado}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{usuarioBean.entidadUsuario.dispositivo}" id="cboDispositivo">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{usuarioBean.listaDispositivo}" var="_dispositivo" itemLabel="#{_dispositivo.nombre}" itemValue="#{_dispositivo}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="themePreview" value="#{msgs.lbl_tema}:" />
+								<p:themeSwitcher style="width:150px" effect="fade" var="t" id="themePreview" value="#{usuarioBean.entidadUsuario.tema}" required="true">
+
+									<f:selectItem itemLabel="Elegir tema" itemValue="" />
+									<f:selectItems value="#{themeSwitcherBean.listaTema}" var="tema" itemLabel="#{tema.nombre}" itemValue="#{tema}" />
+
+									<p:column>
+										<p:graphicImage value="/resources/images/imagesThemes/#{t.imagen}" width="90" height="60" />
+									</p:column>
+
+									<p:column>
+										<h:outputText value="#{t.nombre}" />
+									</p:column>
+								</p:themeSwitcher>
+
+
+								<h:outputText value="#{msgs.lbl_recaudador}:" />
+								<p:selectOneMenu value="#{usuarioBean.entidadUsuario.recaudador}" id="cboRecaudador">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{usuarioBean.listaRecaudador}" var="_recaudador" itemLabel="#{_recaudador.nombre}" itemValue="#{_recaudador}" />
+									<p:ajax process="@this" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_tipo_visualizacion}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{usuarioBean.entidadUsuario.tipoVisualizacion}" id="cboTipoVisualizacion" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{usuarioBean.listaTipoVisualizacionCombo}" var="_tipoVisualizacion" itemLabel="#{_tipoVisualizacion.nombre}"
+										itemValue="#{_tipoVisualizacion}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_indicador_administrador}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.indicadorAdministrador}" />
+
+								<h:outputText value="#{msgs.lbl_indicador_usuario_pos}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.indicadorUsuarioPos}" />
+
+								<h:outputText value="#{msgs.lbl_indicador_autoriza_ventas}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.indicadorAutorizaVentas}" />
+
+								<h:outputText value="#{msgs.lbl_aprobador_jerarquico}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.indicadorAprobador}">
+									<p:ajax process="@this" global="false" update=":form:tabViewUsuario" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.predeterminado}" />
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.activo}" />
+
+								<h:outputText value="#{msgs.lbl_en_linea}:" />
+								<p:selectBooleanCheckbox value="#{usuarioBean.entidadUsuario.enlinea}" disabled="true" />
+							</h:panelGrid>
+						</p:fieldset>
+						<p:separator />
+
+
+
+						<p:tabView id="tabViewUsuario">
+
+							<p:ajax event="tabChange" process=":form:tabViewUsuario:outputPanelBodega,:form:tabViewUsuario:outputPanelSucursal"
+								update=":form:tabViewUsuario:outputPanelBodega,:form:tabViewUsuario:outputPanelSucursal" />
+
+
+							<!-- INICIO TAB ASIGNACION ROLES -->
+							<p:tab title="#{msgs.lbl_asignacion_roles}">
+
+
+
+								<p:commandButton value="#{msgs.lbl_ver_roles}" oncomplete="rolesDialog.show()" action="#{usuarioBean.cargarRolesNoAsignados}" process="@this"
+									update=":form:panelRolesAAsignar" />
+
+								<p:outputPanel id="outputPanelRol" style="width:100%">
+									<h:panelGrid columns="1" id="panelRolesAsignados" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaRol}" id="tablaRolesAsignados"
+											rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_rol" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_rol.idRol}" rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+											binding="#{usuarioBean.dtRolesAsignados}">
+
+											<p:column styleClass="tableCell " headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_rol.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell " headerText="#{msgs.lbl_descripcion}">
+												<h:outputText value="#{_rol.descripcion}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton actionListener="#{usuarioBean.eliminarDetalle}" icon="ui-icon-trash"
+													process="@this :form:tabViewUsuario:panelRolesAsignados" update=":form:panelRolesAAsignar :form:tabViewUsuario:panelRolesAsignados" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB ASIGNACION ROLES -->
+
+
+							<!-- INICIO TAB ASIGNACION ORGANIZACION -->
+							<p:tab title="#{msgs.lbl_asignacion_organizacion}">
+								<p:commandButton value="#{msgs.lbl_ver_organizaciones}" oncomplete="organizacionesDialog.show()"
+									action="#{usuarioBean.cargarOrganizacionesNoAsignadas}" process="@this" update=":form:panelOrganizacionesAAsignar" />
+
+								<p:outputPanel id="outputPanelOrganizacion" style="width:100%">
+									<h:panelGrid columns="1" id="panelOrganizacionesAsignados" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaUsuarioOrganizacion}"
+											id="tablaOrganizacionesAsignadas" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_usuarioOrganizacion"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_usuarioOrganizacion.idUsuarioOrganizacion}"
+											rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+											binding="#{usuarioBean.dtOrganizacionesAsignadas}">
+
+											<p:column styleClass="tableCell columnaDTIdentificacion" headerText="#{msgs.lbl_identificacion}">
+												<h:outputText value="#{_usuarioOrganizacion.organizacion.identificacion}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_razon_social}">
+												<h:outputText value="#{_usuarioOrganizacion.organizacion.razonSocial}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_visualizacion}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_usuarioOrganizacion.visualizacion}"
+													completeMethod="#{usuarioBean.autocompletarVisualizacion}" var="_visualizacion" itemLabel="#{_visualizacion.nombre}"
+													itemValue="#{_visualizacion}" forceSelection="true" dropdown="true" minQueryLength="2">
+													<p:column headerText="#{msgs.lbl_nombre}">#{_visualizacion.nombre}</p:column>
+													<p:column headerText="#{msgs.lbl_codigo}">#{_visualizacion.codigo}</p:column>
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_predeterminado}">
+												<p:selectBooleanCheckbox value="#{_usuarioOrganizacion.predeterminado}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton actionListener="#{usuarioBean.eliminarOrganizacion}" icon="ui-icon-trash"
+													process="@this :form:tabViewUsuario:panelOrganizacionesAsignados"
+													update=":form:tabViewUsuario:panelOrganizacionesAsignados :form:panelOrganizacionesAAsignar" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB ASIGNACION ORGANIZACION -->
+
+							<!-- INICIO TAB ASIGNACION SUCURSAL -->
+							<p:tab title="#{msgs.lbl_asignacion_sucursal}">
+								<p:commandButton value="#{msgs.lbl_ver_sucursal}" oncomplete="sucursalesDialog.show()" action="#{usuarioBean.cargarSucursalesNoAsignadas}"
+									process="@this" update=":form:panelSucursalAAsignar" />
+
+								<p:outputPanel id="outputPanelSucursal" style="width:100%">
+									<h:panelGrid columns="1" id="panelSucursalesAsignados" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaUsuarioSucursal}" id="tablaSucursalesAsignadas"
+											rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_usuarioSucursal" paginator="true" paginatorPosition="bottom"
+											style="width:100%" rowKey="#{_usuarioSucursal.idUsuarioSucursal}" rows="#{usuarioBean.numeroFilas}"
+											rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}" binding="#{usuarioBean.dtSucursalesAsignadas}">
+
+											<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_usuarioSucursal.sucursal.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_organizacion}">
+												<p:selectOneMenu value="#{_usuarioSucursal.sucursal.idOrganizacion}" disabled="true">
+													<f:selectItems value="#{usuarioBean.listaOrganizacion}" var="_organizacion" itemValue="#{_organizacion.idOrganizacion}"
+														itemLabel="#{_organizacion.razonSocial}" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_sucursal}">
+												<h:outputText value="#{_usuarioSucursal.sucursal.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_predeterminado}">
+												<p:selectBooleanCheckbox value="#{_usuarioSucursal.predeterminado}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton actionListener="#{usuarioBean.eliminarSucursal}" icon="ui-icon-trash"
+													process="@this :form:tabViewUsuario:panelSucursalesAsignados"
+													update=":form:tabViewUsuario:panelSucursalesAsignados :form:panelSucursalAAsignar" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB ASIGNACION SUCURSAL -->
+
+							<!-- INICIO TAB ASIGNACION BODEGA -->
+							<p:tab title="#{msgs.lbl_asignacion_bodega}">
+
+								<p:commandButton value="#{msgs.lbl_ver_bodegas}" oncomplete="bodegasDialog.show()" action="#{usuarioBean.cargarBodegasNoAsignadas}"
+									process="@this" update=":form:panelBodegaAAsignar" />
+
+								<p:outputPanel id="outputPanelBodega" style="width:100%">
+									<h:panelGrid columns="1" id="panelBodegasAsignados" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaUsuarioBodega}" id="tablaBodegasAsignadas"
+											rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_usuarioBodega" paginator="true" paginatorPosition="bottom"
+											style="width:100%" rowKey="#{_usuarioBodega.idUsuarioBodega}" rows="#{usuarioBean.numeroFilas}" binding="#{usuarioBean.dtBodegasAsignadas}">
+
+											<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_usuarioBodega.bodega.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_usuarioBodega.bodega.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_organizacion}">
+												<h:outputText value="#{_usuarioBodega.bodega.organizacion.razonSocial}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_predeterminado}">
+												<p:selectBooleanCheckbox value="#{_usuarioBodega.predeterminado}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<h:outputText value="#{_usuarioBodega.bodega.descripcion}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton actionListener="#{usuarioBean.eliminarBodega}" icon="ui-icon-trash"
+													process="@this :form:tabViewUsuario:panelBodegasAsignados" update=":form:tabViewUsuario:panelBodegasAsignados :form:panelBodegaAAsignar" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB ASIGNACION BODEGA -->
+							<!-- INICIO TAB ASIGNACION DIMENSION CONTABLE -->
+							<p:tab title="#{msgs.lbl_dimensiones}">
+
+								<p:outputPanel id="outputPanelDimension" style="width:100%">
+
+									<h:panelGrid columns="5" columnClasses="columnaEtiqueta,columnaEtiqueta,columnaEtiqueta,columnaValor">
+										<p:selectOneRadio id="ckbBusquedaPorOrdenFabricacion" value="#{usuarioBean.indicadorPresupuesto}">
+											<f:selectItem itemLabel="#{msgs.lbl_dimensiones}" itemValue="false" />
+											<f:selectItem itemLabel="#{msgs.lbl_presupuesto}" itemValue="true" />
+											<p:ajax process="@this" global="false" partialSubmit="true" update=":form:tabViewUsuario:outputPanelDimension"
+												listener="#{usuarioBean.changeTipoDimension}"></p:ajax>
+										</p:selectOneRadio>
+										<h:panelGrid columns="2">
+											<p:commandButton oncomplete="dimensionesDialog.show()" process="@this" update=":form:panelDimensionesAAsignar"
+												actionListener="#{usuarioBean.setDimensionesSeleccionadas(null)}" icon="ui-icon-plus" title="#{msgs.lbl_ver_dimension_contable}">
+											</p:commandButton>
+											<p:selectOneMenu styleClass="input-text" value="#{usuarioBean.numeroDimension}" id="cboGrupo" required="true"
+												rendered="#{!usuarioBean.indicadorPresupuesto}">
+												<f:selectItems value="#{usuarioBean.listaDimensionContableItems}" />
+												<p:ajax process="@this" global="false" partialSubmit="true" update=":form:tabViewUsuario:outputPanelDimension" />
+											</p:selectOneMenu>
+										</h:panelGrid>
+										<p:outputLabel value=""></p:outputLabel>
+										<p:outputLabel value=""></p:outputLabel>
+									</h:panelGrid>
+
+									<h:panelGrid columns="1" id="panelDimensionPresupuesto" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.entidadUsuario.listaDimensionContablesPresupuesto}"
+											id="tablaDimensionPresupuesto" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_usuarioDimension" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rowKey="#{_usuarioDimension.idUsuarioDimensionContable}" rows="#{usuarioBean.numeroFilas}"
+											binding="#{usuarioBean.dtDimensionPresupuesto}" rendered="#{usuarioBean.indicadorPresupuesto}">
+
+											<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_usuarioDimension.dimensionContable.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_usuarioDimension.dimensionContable.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton icon="ui-icon-trash" process="@this :form:tabViewUsuario:panelDimensionPresupuesto"
+													update=":form:tabViewUsuario:panelDimensionPresupuesto">
+													<f:setPropertyActionListener value="true" target="#{_usuarioDimension.eliminado}"></f:setPropertyActionListener>
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+
+									<h:panelGrid columns="1" id="panelDimensionNoPresupuesto" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaDimensionContablesNoPresupuesto}"
+											id="tablaDimensionesAsignadas" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_usuarioDimension" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rowKey="#{_usuarioDimension.idUsuarioDimensionContable}" rows="#{usuarioBean.numeroFilas}"
+											binding="#{usuarioBean.dtDimensionNoPresupuesto}" rendered="#{!usuarioBean.indicadorPresupuesto}">
+
+											<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_usuarioDimension.dimensionContable.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_usuarioDimension.dimensionContable.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton icon="ui-icon-trash" process="@this :form:tabViewUsuario:panelDimensionNoPresupuesto"
+													update=":form:tabViewUsuario:panelDimensionNoPresupuesto">
+													<f:setPropertyActionListener value="true" target="#{_usuarioDimension.eliminado}"></f:setPropertyActionListener>
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB ASIGNACION DIMENSION CONTABLE  -->
+
+							<!-- INICIO TAB ASIGNACION SUPERIORES -->
+							<p:tab title="#{msgs.lbl_asignacion_superiores}" id="tabAsignacionSuperiores" rendered="#{usuarioBean.entidadUsuario.indicadorAprobador}">
+								<p:commandButton value="#{msgs.lbl_agregar}" action="#{usuarioBean.agregarUsuarioSuperior}" process="@this" global="false"
+									update=":form:tabViewUsuario:outputPanelSuperiores" />
+
+								<p:outputPanel id="outputPanelSuperiores" style="width:100%">
+									<h:panelGrid columns="1" id="panelSuperioresAsignados" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{usuarioBean.listaUsuarioSuperior}" id="tablaSuperioresAsignadas"
+											rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_usuarioSuperior" paginator="true" paginatorPosition="bottom"
+											style="width:100%" rowKey="#{_usuarioSuperior.rowKey}" rows="#{usuarioBean.numeroFilas}"
+											rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}" binding="#{usuarioBean.dtSuperioresAsignados}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_superior}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_usuarioSuperior.superior}"
+													completeMethod="#{usuarioBean.autocompletarSuperior}" var="_usuario" itemLabel="#{_usuario.nombreUsuario}" itemValue="#{_usuario}"
+													forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+
+													<p:column headerText="#{msgs.lbl_nombre_usuario}">#{_usuario.nombreUsuario}</p:column>
+													<p:column headerText="#{msgs.lbl_nombres}">#{_usuario.nombre1}</p:column>
+													<p:column headerText="#{msgs.lbl_apellidos}">#{_usuario.nombre2}</p:column>
+
+													<p:ajax process="@this" global="false" event="itemSelect" />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_proceso}">
+												<p:selectOneMenu styleClass="input-text" value="#{_usuarioSuperior.documentoBase}" required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{usuarioBean.listaDocumentoBaseCombo}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+													<p:ajax process="@this" global="false" />
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTAccion">
+												<p:commandButton actionListener="#{usuarioBean.eliminarSuperior}" icon="ui-icon-trash" process="@this"
+													update=":form:tabViewUsuario:outputPanelSuperiores" />
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB ASIGNACION SUPERIORES -->
+
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!usuarioBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_usuario_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaUsuario" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{usuarioBean.listaEntidadUsuarios}" var="usuario" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{usuarioBean.dtEntidadUsuario}" rows="#{usuarioBean.numeroFilas}" rowsPerPageTemplate="#{usuarioBean.numeroFilasPorPagina}"
+							selection="#{usuarioBean.entidadUsuario}" selectionMode="single" rowKey="#{usuario.id}" sortBy="#{usuario.nombreUsuario}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{usuario.nombreUsuario}" sortBy="#{usuario.nombreUsuario}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_usuario}" />
+								</f:facet>
+								<h:outputText value="#{usuario.nombreUsuario}" />
+							</p:column>
+
+							<p:column filterBy="#{usuario.nombre1}" sortBy="#{usuario.nombre1}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{usuario.nombre1}" />
+							</p:column>
+
+							<p:column filterBy="#{usuario.nombre2}" sortBy="#{usuario.nombre2}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{usuario.nombre2}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{usuario.genero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_genero}" />
+								</f:facet>
+								<h:outputText value="#{usuario.genero.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{usuario.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{usuario.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{usuario.enlinea}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_en_linea}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{usuario.enlinea}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTDescripcion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{usuario.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{usuarioBean.entidadUsuario.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{usuarioBean.entidadUsuario.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{usuarioBean.entidadUsuario.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{usuarioBean.entidadUsuario.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

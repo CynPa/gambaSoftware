@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_sobre_pago}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteImpresionRolBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteImpresionRolBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteImpresionRolBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_sucursal_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpresionRolBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteImpresionRolBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show()" update=":form:panelListaEmpleado"
+									disabled="#{reporteImpresionRolBean.empleadoSimple or empty reporteImpresionRolBean.empleado and !reporteImpresionRolBean.entidadUsuario.indicadorAdministrador}">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado" value="#{reporteImpresionRolBean.empleado.apellidos} #{reporteImpresionRolBean.empleado.nombres}" />
+							</h:panelGroup>
+
+
+							<h:outputText value="#{msgs.lbl_fecha_rol}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpresionRolBean.pagoRol.idPagoRol}" id="cboPagoRol" required="true">
+								<f:selectItems value="#{reporteImpresionRolBean.listaPagoRol}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpresionRolBean.formaPagoEmpleado}" id="cboFormaPagoEmpleado" required="true">
+								<f:selectItems value="#{reporteImpresionRolBean.listaFormaPagoEmpleado}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print" 
+						disabled="#{empty reporteImpresionRolBean.empleado and !reporteImpresionRolBean.entidadUsuario.indicadorAdministrador}" />
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

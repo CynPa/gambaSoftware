@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{liquidacionCajaChicaBean}">
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_liquidacion_caja_chica}">
+						<p:fieldset>
+							<h:panelGrid id="panelLiquidacionCajaChica" columns="#{liquidacionCajaChicaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{liquidacionCajaChicaBean.cajaChica.nombre}" id="txtNombre" disabled="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{liquidacionCajaChicaBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{liquidacionCajaChicaBean.fechaContabilizacion}" id="calFechaLiquidacion" />
+
+								<h:outputText value="#{msgs.lbl_pagar_de}:" />
+								<p:selectOneMenu id="cboCuentaBancariaOrganizacion"
+									value="#{liquidacionCajaChicaBean.cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{liquidacionCajaChicaBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+										itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" />
+									<f:validateBean />
+
+									<p:ajax process="@this" update="cboFormaPago txtCuentaContableBanco" listener="#{liquidacionCajaChicaBean.actualizarCuentaBancaria}" />
+								</p:selectOneMenu>
+								
+								<h:outputText />
+								<p:column headerText="#{msgs.lbl_cuenta_contable}" styleClass="tableCell">
+									<p:outputPanel id="txtCuentaContableBanco">
+	
+										<h:outputText value="#{liquidacionCajaChicaBean.cuentaContable.codigo}"
+											rendered="#{!liquidacionCajaChicaBean.cuentaBancariaOrganizacion.indicadorCruce}" title="#{liquidacionCajaChicaBean.cuentaContable.nombre}">
+										</h:outputText>
+	
+										<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaPago" required="true"
+											value="#{liquidacionCajaChicaBean.cuentaContable}" rendered="#{liquidacionCajaChicaBean.cuentaBancariaOrganizacion.indicadorCruce}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{liquidacionCajaChicaBean.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+												var="_cuentaContableFormaPago"
+												itemLabel="#{_cuentaContableFormaPago.cuentaContable.codigo}   #{_cuentaContableFormaPago.cuentaContable.nombre}"
+												itemValue="#{_cuentaContableFormaPago.cuentaContable}" />
+											<p:ajax event="change" process="@this" global="false" update=":form:panelNuevo" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</p:outputPanel>
+								</p:column>
+								
+								<h:outputText value="#{msgs.lbl_forma_pago}:" />
+								<p:selectOneMenu id="cboFormaPago" required="true" value="#{liquidacionCajaChicaBean.formaPago}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{liquidacionCajaChicaBean.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+										itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+									<p:ajax process="@this,calFechaLiquidacion" update="txtNumeroReferencia" global="false"
+										listener="#{liquidacionCajaChicaBean.actualizarFormaPago}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_documento_referencia}:" />
+								<p:inputText styleClass="input-text" value="#{liquidacionCajaChicaBean.documentoReferencia}" id="txtNumeroReferencia" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_beneficiario}:" />
+								<p:inputText styleClass="input-text" value="#{liquidacionCajaChicaBean.beneficiario}" id="txtBeneficiario" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" id="txtNota" value="#{liquidacionCajaChicaBean.cajaChica.notaContabilizacion}">
+									<f:validateBean />
+								</p:inputTextarea>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:outputPanel id="panelDetalleAsiento">
+							<p:fieldset>
+
+								<h:panelGrid columns="1">
+
+									<h:panelGroup>
+										<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar" action="#{liquidacionCajaChicaBean.generarVistaPreviaAsiento}"
+											update=":form:panelDetalleAsiento,:form:panelLiquidacionCajaChica"
+											process="@this,:form:panelLiquidacionCajaChica" />
+
+										<p:commandButton value="#{msgs.btn_imprimir}" title="#{msgs.btn_imprimir}" id="btnImprimir" ajax="false" type="button" icon="print">
+											<p:printer target=":form:tablaDetalleAsiento" />
+										</p:commandButton>
+
+									</h:panelGroup>
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{liquidacionCajaChicaBean.listaDetalleAsiento}" id="tablaDetalleAsiento" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleAsiento" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rows="#{liquidacionCajaChicaBean.numeroFilas}" rowKey="#{_detalleAsiento.id}" lazy="true">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nª">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTCodigoCuenta" headerText="#{msgs.lbl_codigo}">
+											<h:outputText styleClass="input-text" value="#{_detalleAsiento.cuentaContable.codigo}" id="txtCodigoCuenta">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cuenta_contable}">
+											<h:outputText id="txtNombreCuenta" value="#{_detalleAsiento.cuentaContable.nombre}" />
+										</p:column>		
+										
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<h:outputText styleClass="input-text" id="txtDescripcion" value="#{_detalleAsiento.descripcion}">
+											</h:outputText>
+										</p:column>							
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_asiento_debe}">
+											<h:outputText value="#{_detalleAsiento.debe}" id="txtDebe">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_asiento_haber}">
+											<h:outputText value="#{_detalleAsiento.haber}" id="txtHaber">
+											</h:outputText>
+										</p:column>
+										
+										
+
+										<p:columnGroup type="footer">
+											<p:row>
+												<p:column colspan="4" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+												
+												<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" >
+															<h:outputText value="#{liquidacionCajaChicaBean.debe}"  >
+																<f:convertNumber pattern="#{liquidacionCajaChicaBean.formatoDinero}"/>
+															</h:outputText>
+														</f:facet>
+												</p:column>	
+												
+												<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" >
+															<h:outputText value="#{liquidacionCajaChicaBean.haber}"  >
+																<f:convertNumber pattern="#{liquidacionCajaChicaBean.formatoDinero}"/>
+															</h:outputText>
+														</f:facet>
+												</p:column>
+											</p:row>
+
+											<p:row>
+												<p:column colspan="4" footerText="#{msgs.lbl_diferencia}:" style="text-align:right" />
+												<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" >
+															<h:outputText value="#{liquidacionCajaChicaBean.diferencia}"  >
+																<f:convertNumber pattern="#{liquidacionCajaChicaBean.formatoDinero}"/>
+															</h:outputText>
+														</f:facet>
+												</p:column>
+											</p:row>
+
+										</p:columnGroup>
+
+									</p:dataTable>
+								</h:panelGrid>
+							</p:fieldset>
+						</p:outputPanel>
+
+					</p:panel>
+				</p:outputPanel>
+				
+				<p:outputPanel id="panelListado">
+				</p:outputPanel>
+				
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+				</ui:include>
+				
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

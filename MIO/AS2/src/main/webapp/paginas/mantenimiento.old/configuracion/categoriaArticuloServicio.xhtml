@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{categoriaArticuloServicioBean}" />s
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+
+					<h:outputText
+						value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.nombre}" />
+
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaCategoriaArticuloServicio,mensajes" process="@this"
+						actionListener="#{categoriaArticuloServicioBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{categoriaArticuloServicioBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_categoria_articulo_servicio}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{categoriaArticuloServicioBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.codigo}"
+								id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.nombre}"
+								id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.descripcion}"
+								id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.predeterminado}" />
+
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!categoriaArticuloServicioBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_categoria_articulo_servicio}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCategoriaArticuloServicio"
+							rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{categoriaArticuloServicioBean.listaCategoriaArticuloServicio}"
+							var="_categoria_articulo_servicio"
+							binding="#{categoriaArticuloServicioBean.dtCategoriaArticuloServicio}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{categoriaArticuloServicioBean.numeroFilas}"
+							rowsPerPageTemplate="#{categoriaArticuloServicioBean.numeroFilasPorPagina}"
+							selection="#{categoriaArticuloServicioBean.categoriaArticuloServicio}"
+							selectionMode="single"
+							rowKey="#{_categoria_articulo_servicio.id}">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_categoria_articulo_servicio.codigo}"
+								sortBy="#{_categoria_articulo_servicio.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_categoria_articulo_servicio.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_categoria_articulo_servicio.nombre}"
+								sortBy="#{_categoria_articulo_servicio.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_categoria_articulo_servicio.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_categoria_articulo_servicio.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText
+									value="#{_categoria_articulo_servicio.descripcion}" />
+							</p:column>
+
+							<p:column sortBy="#{_categoria_articulo_servicio.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox
+										value="#{_categoria_articulo_servicio.activo}" disabled="true" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{categoriaArticuloServicioBean.categoriaArticuloServicio.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

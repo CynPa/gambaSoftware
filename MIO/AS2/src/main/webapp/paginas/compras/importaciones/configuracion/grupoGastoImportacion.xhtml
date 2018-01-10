@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{grupoGastoImportacionBean}">
+					<as2:buttonEliminar bean="#{grupoGastoImportacionBean}" />
+					<as2:buttonExportaExcel bean="#{grupoGastoImportacionBean}" tabla=":form:tablaGrupoGasto" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_grupo_gasto_importacion}" rendered="#{grupoGastoImportacionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{grupoGastoImportacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText value="#{grupoGastoImportacionBean.grupoGastoImportacion.codigo}" styleClass="input-text" id="txtCodigo" maxlength="10" required="true"> 
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText value="#{grupoGastoImportacionBean.grupoGastoImportacion.nombre}" styleClass="input-text" id="txtNombre" maxlength="50" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{grupoGastoImportacionBean.grupoGastoImportacion.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{grupoGastoImportacionBean.grupoGastoImportacion.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{grupoGastoImportacionBean.grupoGastoImportacion.predeterminado}" />
+
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_grupo_gasto_importacion}" rendered="#{!grupoGastoImportacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGrupoGasto" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{grupoGastoImportacionBean.listaGrupoGastoImportacion}" var="_grupoGastoImportacion"
+							binding="#{grupoGastoImportacionBean.dtGrupoGastoImportacion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{grupoGastoImportacionBean.numeroFilas}" selection="#{grupoGastoImportacionBean.grupoGastoImportacion}" selectionMode="single"
+							rowKey="#{_grupoGastoImportacion.idGrupoGastoImportacion}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_grupoGastoImportacion.codigo}" filterBy="#{_grupoGastoImportacion.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_grupoGastoImportacion.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_grupoGastoImportacion.nombre}" filterBy="#{_grupoGastoImportacion.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_grupoGastoImportacion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_grupoGastoImportacion.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_grupoGastoImportacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_grupoGastoImportacion.predeterminado}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_grupoGastoImportacion.predeterminado}" disabled="true" />
+							</p:column>
+
+
+							<p:column filterBy="#{_grupoGastoImportacion.descripcion}" sortBy="#{_grupoGastoImportacion.descripcion}" styleClass="tableCell"
+								exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<as2:inputTextNota value="#{_grupoGastoImportacion.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{grupoGastoImportacionBean.grupoGastoImportacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{grupoGastoImportacionBean.grupoGastoImportacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{grupoGastoImportacionBean.grupoGastoImportacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{grupoGastoImportacionBean.grupoGastoImportacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

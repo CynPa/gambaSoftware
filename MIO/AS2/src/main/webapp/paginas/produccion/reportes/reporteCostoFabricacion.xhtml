@@ -1,0 +1,50 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<tnt:panelImprimir entidadDestino="" bean="#{reporteCostoFabricacionBean}" entidadOrigen=""></tnt:panelImprimir>
+			<p:outputPanel id="panelFiltros">
+				<p:fieldset>
+					<h:panelGrid id="panelDetalle" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+						<p:calendar id="calFechaDesde" pattern="#{reporteCostoFabricacionBean.formatoFecha}" showOn="button" navigator="true"
+							value="#{reporteCostoFabricacionBean.fechaDesde}" required="true">
+							<p:ajax event="dateSelect" update=":form:calFechaHasta :form:selectOrdenFabricacion"
+								listener="#{reporteCostoFabricacionBean.fechasCambiadasListener}"></p:ajax>
+							<p:ajax event="change" update=":form:calFechaHasta :form:selectOrdenFabricacion"
+								listener="#{reporteCostoFabricacionBean.fechasCambiadasListener}"></p:ajax>
+						</p:calendar>
+
+						<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+						<p:calendar id="calFechaHasta" pattern="#{reporteCostoFabricacionBean.formatoFecha}" showOn="button" navigator="true"
+							value="#{reporteCostoFabricacionBean.fechaHasta}" required="true">
+							<p:ajax event="dateSelect" update=":form:calFechaDesde :form:selectOrdenFabricacion"
+								listener="#{reporteCostoFabricacionBean.fechasCambiadasListener}"></p:ajax>
+							<p:ajax event="change" update=":form:calFechaDesde :form:selectOrdenFabricacion"
+								listener="#{reporteCostoFabricacionBean.fechasCambiadasListener}"></p:ajax>
+						</p:calendar>
+
+						<h:outputText value="#{msgs.lbl_orden_fabricacion}:" />
+						<p:selectOneMenu value="#{reporteCostoFabricacionBean.idOrdenFabricacionSeleccionada}" id="selectOrdenFabricacion">
+							<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="-1" />
+							<f:selectItems value="#{reporteCostoFabricacionBean.ordenesFabricacion}" var="_ordenes" itemLabel="#{_ordenes.numero}"
+								itemValue="#{_ordenes.idOrdenFabricacion}" />
+							<p:ajax process="@this" listener="#{reporteCostoFabricacionBean.ordenFabricacionSeleccionadaListener}" />
+						</p:selectOneMenu>
+					</h:panelGrid>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print" />
+					</h:panelGrid>
+				</p:fieldset>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

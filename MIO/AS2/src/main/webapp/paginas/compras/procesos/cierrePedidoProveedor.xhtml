@@ -1,0 +1,167 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{cierrePedidoProveedorBean}">
+					<as2:buttonExportaExcel bean="#{cierrePedidoProveedorBean}" tabla=":form:tablaDetallePedido" />
+				</as2:toolBar>
+				<p:outputPanel id="plDialogoListaRegistroPeso">
+					<p:dialog header="#{msgs.lbl_productos_titulo_panel_listado}" id="dlgListaFacturaDespacho" widgetVar="dialogListaProductosPedido" height="300"
+						width="650" closable="true">
+						<h:outputText styleClass="text_color_rojo" value="#{msgs.lbl_cerrar_orden_compra}" />
+						<p:spacer></p:spacer>
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRegistroPeso" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cierrePedidoProveedorBean.listaDetallePedidoProveedorSeleccionado}" var="_pedido"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{cierrePedidoProveedorBean.numeroFilas}" selectionMode="single"
+							rowKey="#{_pedido.pedidoProveedor.idPedidoProveedor}" sortBy="#{_pedido.pedidoProveedor.numero}" sortOrder="ASCENDING"
+							rowsPerPageTemplate="#{cierrePedidoProveedorBean.numeroFilasPorPagina}">
+							<p:column styleClass="columnaDTNumeroDocumento" headerText="#{msgs.lbl_orden_compra}">
+								<h:outputText value="#{_pedido.pedidoProveedor.numero}" />
+							</p:column>
+							<p:column styleClass="columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo} #{msgs.lbl_producto}">
+								<h:outputText value="#{_pedido.producto.codigo}" />
+							</p:column>
+							<p:column styleClass="columnaDTNombre" headerText="#{msgs.lbl_producto}">
+								<h:outputText value="#{_pedido.producto.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_cantidad}">
+								<h:outputText value="#{_pedido.cantidad}" />
+							</p:column>
+							<p:column styleClass="columnaDTValor"  headerText="#{msgs.lbl_saldo} x #{msgs.lbl_recibir}">
+								<h:outputText value="#{_pedido.cantidadPorRecibir}" />
+							</p:column>
+							<p:column styleClass="columnaDTValor" headerText="% #{msgs.lbl_cantidad_pendiente}">
+								<h:outputText value="#{_pedido.porcentajePorRecibir}" />
+							</p:column>
+						</p:dataTable>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnCerrar" action="#{cierrePedidoProveedorBean.cerrarPedidoProveedor}" value="#{msgs.btn_cerrar}"
+									oncomplete="dialogListaProductosPedido.hide();" process="@this" update=":form:tablaDetallePedido">
+								</p:commandButton>
+								<p:commandButton id="btnCancelar" value="#{msgs.btn_cancelar}" oncomplete="dialogListaProductosPedido.hide();" process="@this">
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+				<!-- Fin Dialogo Lista Productos -->
+				<p:outputPanel id="panelNuevo">
+				</p:outputPanel>
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_pedido_proveedor}" rendered="#{!cierrePedidoProveedorBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetallePedido" rowIndexVar="secuencialDetallePedido"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cierrePedidoProveedorBean.listaDetallePedidoProveedor}" var="_detallePedido" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{cierrePedidoProveedorBean.dtDetallePedido}"
+							rows="#{cierrePedidoProveedorBean.numeroFilas}" rowsPerPageTemplate="#{cierrePedidoProveedorBean.numeroFilasPorPagina}"
+							selection="#{cierrePedidoProveedorBean.detallePedidoProveedor}" selectionMode="single" rowKey="#{_detallePedido.id}" lazy="true">
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialDetallePedido+1}" />
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detallePedido.pedidoProveedor.fecha}" headerText="#{msgs.lbl_fecha}">
+								<h:outputText value="#{_detallePedido.pedidoProveedor.fecha}">
+									<f:convertDateTime pattern="#{cierrePedidoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_detallePedido.pedidoProveedor.numero}"
+								filterBy="#{_detallePedido.pedidoProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pedido}" />
+								</f:facet>
+								<h:link rendered="#{not empty _detallePedido.pedidoProveedor}" target="_blank" outcome="/paginas/compras/procesos/pedidoProveedor"
+									value="#{_detallePedido.pedidoProveedor.numero}" includeViewParams="true">
+									<f:param name="idPedidoProveedor" value="#{_detallePedido.pedidoProveedor.id}" />
+								</h:link>
+							</p:column>
+							<p:column styleClass="columnaDTNombre" sortBy="#{_detallePedido.pedidoProveedor.empresa.nombreFiscal}"
+								filterBy="#{_detallePedido.pedidoProveedor.empresa.nombreFiscal}" headerText="#{msgs.lbl_empresa}">
+								<h:outputText value="#{_detallePedido.pedidoProveedor.empresa.nombreFiscal}" />
+							</p:column>
+							<p:column styleClass="columnaDTCodigoProducto" sortBy="#{_detallePedido.producto.codigo}" filterBy="#{_detallePedido.producto.codigo}"
+								headerText="#{msgs.lbl_codigo} #{msgs.lbl_producto}">
+								<h:outputText value="#{_detallePedido.producto.codigo}" />
+							</p:column>
+							<p:column styleClass="columnaDTNombre" sortBy="#{_detallePedido.producto.nombre}" filterBy="#{_detallePedido.producto.nombre}"
+								headerText="#{msgs.lbl_producto}">
+								<h:outputText value="#{_detallePedido.producto.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTValor" sortBy="#{_detallePedido.cantidad}" headerText="#{msgs.lbl_cantidad}">
+								<h:outputText value="#{_detallePedido.cantidad}" />
+							</p:column>
+							<p:column styleClass="columnaDTValor" sortBy="#{_detallePedido.cantidadPorRecibir}" headerText="#{msgs.lbl_saldo} x #{msgs.lbl_recibir}">
+								<h:outputText value="#{_detallePedido.cantidadPorRecibir}" />
+							</p:column>
+							<p:column styleClass="columnaDTValor" headerText="% #{msgs.lbl_cantidad_pendiente}">
+								<h:outputText value="#{_detallePedido.porcentajePorRecibir}" />
+							</p:column>
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_detallePedido.descripcion}" />
+							</p:column>
+							<p:column styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_recepcion_proveedor}" />
+								</f:facet>
+								<ui:repeat size="#{_detallePedido.cantidadRecepcionesMostrar}" var="repcion" value="#{_detallePedido.listaDetalleRecepcionProveedor}">
+									<h:link target="_blank" outcome="/paginas/compras/procesos/recepcionProveedor" includeViewParams="true"
+										value="#{repcion.recepcionProveedor.numero}">
+										<f:param name="idRecepcionProveedor" value="#{repcion.recepcionProveedor.idRecepcionProveedor}" />
+									</h:link>
+									<h:outputText value=", " />
+								</ui:repeat>
+								<h:outputText rendered="#{_detallePedido.cantidadRecepcionesMostrar lt _detallePedido.listaDetalleRecepcionProveedor.size()}" value="... " />
+							</p:column>
+							<p:column styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_registroPeso_panel}" />
+								</f:facet>
+								<ui:repeat size="#{_detallePedido.cantidadRecepcionesMostrar}" var="registroPeso" value="#{_detallePedido.listaRegistroPeso}">
+									<h:link target="_blank" outcome="/paginas/inventario/procesos/registroPeso" includeViewParams="true" value="#{registroPeso.numero}">
+										<f:param name="idRegistroPeso" value="#{registroPeso.idRegistroPeso}" />
+									</h:link>
+									<h:outputText value=", " />
+								</ui:repeat>
+								<h:outputText rendered="#{_detallePedido.cantidadRecepcionesMostrar lt _detallePedido.listaRegistroPeso.size()}" value="... " />
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}">
+								<ui:repeat size="#{_detallePedido.cantidadRecepcionesMostrar}" var="repcion" value="#{_detallePedido.listaDetalleRecepcionProveedor}">
+									<h:outputText value="#{repcion.recepcionProveedor.fecha}">
+										<f:convertDateTime pattern="#{cierrePedidoProveedorBean.formatoFecha}" />
+									</h:outputText>
+									<h:outputText value=", " />
+								</ui:repeat>
+								<h:outputText rendered="#{_detallePedido.cantidadRecepcionesMostrar lt _detallePedido.listaDetalleRecepcionProveedor.size()}" value="... " />
+							</p:column>
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_detallePedido.pedidoProveedor.estado}"
+								filterBy="#{_detallePedido.pedidoProveedor.estado}" filterOptions="#{cierrePedidoProveedorBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_detallePedido.pedidoProveedor.estado.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton process="@this" value="#{msgs.btn_cerrar}" title="#{msgs.lbl_factura}" oncomplete="dialogListaProductosPedido.show();"
+									update=":form:plDialogoListaRegistroPeso" actionListener="#{cierrePedidoProveedorBean.cargarListaProductosPedido}"
+									disabled="#{(_detallePedido.pedidoProveedor.estado == 'ANULADO') or (_detallePedido.pedidoProveedor.estado == 'CERRADO')}">
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+				<p:separator />
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{cierrePedidoProveedorBean.detallePedidoProveedor.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{cierrePedidoProveedorBean.detallePedidoProveedor.usuarioCreacion}" />
+					<ui:param name="fechaModificacion" value="#{cierrePedidoProveedorBean.detallePedidoProveedor.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{cierrePedidoProveedorBean.detallePedidoProveedor.usuarioModificacion}" />
+				</ui:include>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

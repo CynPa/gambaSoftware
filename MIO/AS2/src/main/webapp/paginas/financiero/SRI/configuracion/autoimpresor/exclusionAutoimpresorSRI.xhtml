@@ -1,0 +1,161 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_autorizacionAutoImpresorSRI}"
+						rendered="#{exclusionAutorizacionAutoimpresorSRIBean.editado}">
+
+						<h:panelGrid columns="1">
+
+							<p:fieldset>
+
+								<h:panelGrid id="panelDetalle" columns="#{exclusionAutorizacionAutoimpresorSRIBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_documento_SRI_autorizacion}" />
+									<h:outputText value="#{exclusionAutorizacionAutoimpresorSRIBean.autorizacionAutoimpresorSRI.autorizacion}">
+									</h:outputText>
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<h:outputText value="#{exclusionAutorizacionAutoimpresorSRIBean.fecha}">
+										<f:convertDateTime pattern="#{exclusionAutorizacionAutoimpresorSRIBean.formatoFecha}" />
+									</h:outputText>
+
+								</h:panelGrid>
+
+							</p:fieldset>
+
+							<p:spacer width="2px" />
+
+							<p:tabView id="tabView">
+
+								<p:tab title="#{msgs.lbl_titulo_documento_base}" id="tabDetalleDocumento">
+
+									<p:outputPanel id="panelDetalleDocumento">
+										<h:panelGrid columns="1">
+											<p:outputPanel id="panelDocumentoNoAsignado">
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+													value="#{exclusionAutorizacionAutoimpresorSRIBean.autorizacionAutoimpresorSRI.listaAutorizacionDocumentoAutoimpresorSRIActivos}"
+													id="tablaDocumentosNoAsignados" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_documentoBase" paginator="true"
+													paginatorPosition="bottom" style="width:100%" binding="#{exclusionAutorizacionAutoimpresorSRIBean.dtDocumentoBaseAsignados}"
+													rows="#{exclusionAutorizacionAutoimpresorSRIBean.numeroFilas}" lazy="true">
+
+													<p:column headerText="No" styleClass="columnaDTAccion tableCell">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column sortBy="#{_documentoBase.documentoBase.nombre}" filterBy="#{_documentoBase.documentoBase.nombre}" styleClass="tableCell">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_titulo_documento_base}" />
+														</f:facet>
+
+														<p:commandLink value="#{_documentoBase.documentoBase.nombre}" action="#{exclusionAutorizacionAutoimpresorSRIBean.excluirDocumentoBase}"
+															process="@this" update=":form:tabView:panelDocumentoNoAsignado :form:tabView:panelDocumentoPuntoDeVenta">
+															<f:setPropertyActionListener target="#{exclusionAutorizacionAutoimpresorSRIBean.autorizacionDocumentoAutoimpresorSRI}"
+																value="#{_documentoBase}" />
+														</p:commandLink>
+													</p:column>
+
+												</p:dataTable>
+											</p:outputPanel>
+
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+								<p:tab title="#{msgs.lbl_punto_de_venta}" id="tabDetallePuntoDeVenta">
+
+									<p:outputPanel id="panelDetallePuntoDeVenta">
+										<h:panelGrid columns="1">
+											<p:outputPanel id="panelPuntoDeVentaNoAsignado">
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+													value="#{exclusionAutorizacionAutoimpresorSRIBean.autorizacionAutoimpresorSRI.listaAutorizacionPuntoDeVentaAutoimpresorSRIActivos}"
+													id="tablaPuntoDeVentasNoAsignados" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_puntoDeVenta" paginator="true"
+													paginatorPosition="bottom" style="width:100%" binding="#{exclusionAutorizacionAutoimpresorSRIBean.dtPuntoDeVentaAsignados}"
+													rows="#{exclusionAutorizacionAutoimpresorSRIBean.numeroFilas}" lazy="true">
+
+													<p:column headerText="No" styleClass="columnaDTAccion tableCell">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column sortBy="#{_puntoDeVenta.puntoDeVenta.codigo}" filterBy="#{_puntoDeVenta.puntoDeVenta.codigo}" styleClass="tableCell">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_punto_de_venta}" />
+														</f:facet>
+
+														<p:commandLink value="#{_puntoDeVenta.puntoDeVenta.sucursal.codigo}-#{_puntoDeVenta.puntoDeVenta.codigo}"
+															action="#{exclusionAutorizacionAutoimpresorSRIBean.excluirPuntoDeVenta}" process="@this"
+															update=":form:tabView:panelPuntoDeVentaNoAsignado :form:tabView:panelDocumentoPuntoDeVenta">
+															<f:setPropertyActionListener target="#{exclusionAutorizacionAutoimpresorSRIBean.autorizacionPuntoDeVentaAutoimpresorSRI}"
+																value="#{_puntoDeVenta}" />
+														</p:commandLink>
+													</p:column>
+
+												</p:dataTable>
+											</p:outputPanel>
+
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_titulo_documento_base}-#{msgs.lbl_punto_de_venta}" id="tabDetalleDocumentoPuntoDeVenta">
+
+									<p:outputPanel id="panelDetalleDocumentoPuntoDeVenta">
+										<h:panelGrid columns="1">
+											<p:outputPanel id="panelDocumentoPuntoDeVenta">
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+													value="#{exclusionAutorizacionAutoimpresorSRIBean.autorizacionAutoimpresorSRI.listaAutorizacionDocumentoPuntoDeVentaAutoimpresorSRIActivos}"
+													id="tablaDocumentoPuntoDeVenta" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_autorizacionDocumentoPuntoDeVenta"
+													paginator="true" paginatorPosition="bottom" style="width:100%"
+													binding="#{exclusionAutorizacionAutoimpresorSRIBean.dtAutorizacionDocumentoPuntoDeVentaAutoimpresorSRI}"
+													rowKey="#{_autorizacionDocumentoPuntoDeVenta.id}" rows="#{exclusionAutorizacionAutoimpresorSRIBean.numeroFilas}" lazy="true">
+
+													<p:column headerText="No" styleClass="columnaDTAccion tableCell">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_titulo_documento_base}" styleClass="tableCell">
+														<h:outputText value="#{_autorizacionDocumentoPuntoDeVenta.documentoBase.nombre}" />
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_punto_de_venta}" styleClass="columnaDTNombreCorto">
+														<h:outputText
+															value="#{_autorizacionDocumentoPuntoDeVenta.puntoDeVenta.sucursal.codigo}-#{_autorizacionDocumentoPuntoDeVenta.puntoDeVenta.codigo}" />
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_numero}" styleClass="columnaDTCodigo tableCell">
+														<p:inputText disabled="#{_autorizacionDocumentoPuntoDeVenta.indicadorImpreso}" value="#{_autorizacionDocumentoPuntoDeVenta.numero}" />
+													</p:column>
+
+													<p:column headerText="#{msgs.lbl_activo}" styleClass="columnaDTActivo tableCell">
+														<p:selectBooleanCheckbox disabled="true" value="#{_autorizacionDocumentoPuntoDeVenta.activo}" />
+													</p:column>
+												</p:dataTable>
+											</p:outputPanel>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+							</p:tabView>
+						</h:panelGrid>
+					</p:panel>
+					<p:panel style="text-align: center" id="panelGuardar">
+						<p:commandButton id="botonGuardar" value="#{msgs.btn_guardar}" process="@this" action="#{exclusionAutorizacionAutoimpresorSRIBean.guardar}" />
+					</p:panel>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

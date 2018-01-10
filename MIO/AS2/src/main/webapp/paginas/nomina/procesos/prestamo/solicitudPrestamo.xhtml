@@ -1,0 +1,285 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<as2:toolBar bean="#{prestamoBean}">
+					<as2:buttonEliminar bean="#{prestamoBean}">
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{prestamoBean.prestamo.numero}" />
+
+						<h:outputText value="#{msgs.lbl_monto}:" />
+						<h:outputText value="#{prestamoBean.prestamo.monto}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{permisoEmpleadoBean}" tabla=":form:tablaPrestamo" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{prestamoBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado, :form:cboPrestamoAprobados" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_prestamo} )" rendered="#{prestamoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{prestamoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboTipoPrestamo" value="#{msgs.lbl_tipo_prestamo}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{prestamoBean.prestamo.tipoPrestamo}" id="cboTipoPrestamo" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{prestamoBean.listaTipoPrestamo}" var="_tipoPrestamo" itemLabel="#{_tipoPrestamo.nombre}" itemValue="#{_tipoPrestamo}" />
+									<p:ajax process="@this" listener="#{prestamoBean.actualizarTipoPrestamo}" update="txtNumero,cboTipoPrestamo" event="change" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{prestamoBean.prestamo.numero}" id="txtNumero" mask="#{prestamoBean.mascara}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha_solicitud}:" />
+								<p:calendar pattern="#{prestamoBean.formatoFecha}" showOn="button" navigator="true" value="#{prestamoBean.prestamo.fechaSolicitud}"
+									id="calFechaSolicitud" rendered="true">
+									<p:ajax event="dateSelect" update="panelDetalle" process="@this" listener="#{prestamoBean.dateSelect}" />
+									<p:ajax event="change" update="panelDetalle" process="panelNuevo" listener="#{prestamoBean.tablaAmortizacion}" />
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show()" update="panelListaEmpleado" />
+									<h:outputText id="txtEmpleado" value="#{prestamoBean.empleado.apellidos} #{prestamoBean.empleado.nombres}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_prestamo_padre}:" />
+								<h:panelGroup>
+									<h:outputText value="#{prestamoBean.empleado.apellidos} #{prestamoBean.empleado.nombres}"
+										rendered="#{not empty prestamoBean.prestamo.prestamoPadre and prestamoBean.prestamo.idPrestamo > 0}" />
+									<p:selectOneMenu styleClass="input-text" value="#{prestamoBean.prestamo.prestamoPadre}" id="cboPrestamoAprobados" required="false"
+										rendered="#{prestamoBean.prestamo.idPrestamo == 0}">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{prestamoBean.listaPrestamoAprobados}" var="_prestamo" itemLabel="#{_prestamo.numero}" itemValue="#{_prestamo}" />
+										<p:ajax event="change" update="panelDetalle,txtSaldo" process="panelNuevo" listener="#{prestamoBean.actualizarPrestamo}" />
+									</p:selectOneMenu>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_saldo} #{msgs.lbl_prestamo_padre}:" />
+								<h:outputText id="txtSaldo" value="#{prestamoBean.saldoPrestamo}" styleClass="input-text-number">
+									<f:convertNumber pattern="#{prestamoBean.formatoDinero}" />
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_monto}:" />
+								<p:inputText value="#{prestamoBean.montoPrestamo}" styleClass="input-text-number">
+									<p:ajax event="change" update="panelDetalle,txtSaldo" process="panelNuevo" listener="#{prestamoBean.tablaAmortizacion}" />
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_interes}:" rendered="false" />
+								<p:inputText value="#{prestamoBean.prestamo.interes}" styleClass="input-text-number" rendered="false">
+									<p:ajax event="change" update="panelDetalle,txtSaldo" process="panelNuevo" listener="#{prestamoBean.tablaAmortizacion}" />
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_palzo}:" />
+								<p:inputText value="#{prestamoBean.prestamo.plazo}" styleClass="input-text-number">
+									<f:validateBean />
+									<p:ajax event="change" update="panelDetalle,txtSaldo" process="panelNuevo" listener="#{prestamoBean.tablaAmortizacion}" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{prestamoBean.prestamo.observacion}" id="txtDescripcionCabecera" size="400" maxlength="400">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="panelDetalle" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+								value="#{prestamoBean.listaDetallePrestamo}" var="_detallePrestamo" binding="#{prestamoBean.dtDetallePrestamo}" paginator="true"
+								paginatorPosition="bottom" style="width:100%" rows="#{prestamoBean.numeroFilas}" rowsPerPageTemplate="#{prestamoBean.numeroFilasPorPagina}"
+								rowKey="#{_detallePrestamo.idDetallePrestamo}" sortBy="#{_detallePrestamo.numeroCuota}">
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="N° Cuota">
+									<h:outputText value="#{_detallePrestamo.numeroCuota}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTFecha" headerText="#{msgs.lbl_fecha_cuota}">
+									<h:outputText  value="#{_detallePrestamo.fechaCuota}">
+										<f:convertDateTime pattern="#{prestamoBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_capital}" rendered="false">
+									<h:outputText value="#{_detallePrestamo.capitalTotal}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell"  headerText="#{msgs.lbl_cuota}">
+									<h:outputText value="#{_detallePrestamo.cuota}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_capital_cuota}" rendered="false">
+									<h:outputText value="#{_detallePrestamo.capitalCuota}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_interes_cuota}" rendered="false">
+									<h:outputText value="#{_detallePrestamo.interesCuota}" />
+								</p:column>
+
+								<p:columnGroup type="footer" id="panelTotal">
+									<p:row>
+										<p:column colspan="2" footerText="#{msgs.lbl_subtotal}:	" style="text-align:right">
+										</p:column>
+
+										<p:column colspan="1" >
+											<f:facet name="footer">
+												<h:outputText value="#{prestamoBean.prestamo.totalCuota}" style="text-align:right" id="txtTotal">
+													<f:convertNumber pattern="#{prestamoBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+								</p:columnGroup>
+
+							</p:dataTable>
+
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_prestamo} )" rendered="#{!prestamoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaPrestamo" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{prestamoBean.listaPrestamo}" var="_prestamo" binding="#{prestamoBean.dtPrestamo}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{prestamoBean.numeroFilas}"
+							rowsPerPageTemplate="#{prestamoBean.numeroFilasPorPagina}" selection="#{prestamoBean.prestamo}" selectionMode="single"
+							rowKey="#{_prestamo.idPrestamo}" sortBy="#{_prestamo.fechaSolicitud}" sortOrder="DESCENDING">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="N°">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							
+							<p:column sortBy="#{_prestamo.numero}" filterBy="#{_prestamo.numero}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_prestamo}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_prestamo.empleado.apellidos}" filterBy="#{_prestamo.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_prestamo.empleado.nombres}" filterBy="#{_prestamo.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_prestamo.monto}" filterBy="#{_prestamo.monto}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_monto}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.monto}">
+									<f:convertNumber pattern="#{prestamoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_prestamo.interes}" rendered="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_interes}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.interes}">
+									<f:convertNumber pattern="#{prestamoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_prestamo.plazo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_plazo}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.plazo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_prestamo.fechaSolicitud}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_solicitud}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.fechaSolicitud}">
+									<f:convertDateTime pattern="#{prestamoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_prestamo.fechaAprobacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_aprobacion}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.fechaAprobacion}">
+									<f:convertDateTime pattern="#{prestamoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_prestamo.fechaInicioDescuento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_inicio_descuento}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.fechaInicioDescuento}">
+									<f:convertDateTime pattern="#{prestamoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_prestamo.tipoPrestamo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_prestamo}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.tipoPrestamo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_prestamo.estado}" filterBy="#{_prestamo.estado}"
+								filterOptions="#{prestamoBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_prestamo.estado.nombre}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{prestamoBean.prestamo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{prestamoBean.prestamo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{prestamoBean.prestamo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{prestamoBean.prestamo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

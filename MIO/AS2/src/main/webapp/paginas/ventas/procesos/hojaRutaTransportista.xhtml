@@ -1,0 +1,368 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idHojaRuta" value="#{hojaRutaTransportistaBean.idHojaRuta}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{hojaRutaTransportistaBean}">
+
+					<p:commandButton id="btnEmitirGuiaRemision" value="#{msgs.lbl_emitir_guia_remision}" title="#{msgs.lbl_emitir_guia_remision}"
+						process="@this,:form:panelListado" action="#{hojaRutaTransportistaBean.emitirGuiaRemision}" rendered="#{!hojaRutaTransportistaBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonImprimir id="btnImprimirHojaRutaDetallado" beanReporte="#{reporteHojaRutaTransportistaDetalladoBean}"
+						bean="#{hojaRutaTransportistaBean}" target="#{reporteHojaRutaTransportistaDetalladoBean.hojaRuta}" value="#{hojaRutaTransportistaBean.hojaRuta}"
+						etiquetaImprimir="Detallado">
+					</as2:buttonImprimir>
+					<as2:buttonImprimir id="btnImprimirHojaRuta" beanReporte="#{reporteHojaRutaTransportistaBean}" bean="#{hojaRutaTransportistaBean}"
+						target="#{reporteHojaRutaTransportistaBean.hojaRuta}" value="#{hojaRutaTransportistaBean.hojaRuta}" etiquetaImprimir="Resumido">
+					</as2:buttonImprimir>
+
+
+					<as2:buttonImprimir beanReporte="#{reporteGuiaRemisionBean}" target="#{reporteGuiaRemisionBean.hojaRutaTransportista}"
+						bean="#{hojaRutaTransportistaBean}" value="#{hojaRutaTransportistaBean.hojaRuta}" etiquetaImprimir="#{msgs.lbl_imprimir_guia_remision}" />
+
+				</as2:toolBar>
+
+
+				<h:panelGroup id="pgPanelAgregarOtrosDespachos">
+					<p:dialog header="Despachos" widgetVar="agregarOtrosDespachos" modal="true" height="400" width="1200" showEffect="slide" hideEffect="slide"
+						closable="false">
+
+						<p:outputPanel id="panelFiltrosOtrosDespachos">
+
+							<h:panelGrid id="panelCabeceraOtrosDespachos" columns="#{hojaRutaTransportistaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboTransportistaOtrosDespachos" value="#{msgs.lbl_titulo_transportista}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{hojaRutaTransportistaBean.transportista}" id="cboTransportistaOtrosDespachos">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{hojaRutaTransportistaBean.listaTransportistaOtrosDespachos}" var="_transportista"
+										itemLabel="#{_transportista.nombre}" itemValue="#{_transportista}" />
+									<p:ajax process="@this" update=":form:panelFiltrosOtrosDespachos" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+
+								<p:outputLabel id="lbTex" for="txtCliente" value="#{msgs.lbl_cliente}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+									value="#{hojaRutaTransportistaBean.empresaSeleccionanda}" completeMethod="#{hojaRutaTransportistaBean.autocompletarClientes}" var="_cliente"
+									itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" id="txtCliente">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax process="@this" event="itemSelect" global="false" update=":form:cboTransportistaOtrosDespachos" />
+								</p:autoComplete>
+
+							</h:panelGrid>
+
+							<p:commandButton styleClass="columnaButton" icon="ejecutar" title="#{msgs.btn_cargar_despachos}"
+								process="@this,panelCabeceraOtrosDespachos,panelDetalleOtrosDespacho" update=":form:tablaDetalleOtrosDespachoCLiente"
+								action="#{hojaRutaTransportistaBean.cargarInformacionOtrosDespachos}" value="#{msgs.btn_cargar_despachos}">
+								<f:event type="preRenderView" listener="#{hojaRutaTransportistaBean.cargarTablaDialogo}" />
+							</p:commandButton>
+
+							<h:panelGrid columns="1">
+
+								<p:outputPanel id="panelDetalleOtrosDespacho">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{hojaRutaTransportistaBean.listaOtrosDespachos}"
+										id="tablaDetalleOtrosDespachoCLiente" rowIndexVar="secuencial" binding="#{hojaRutaTransportistaBean.dtDetalleHojaRutaOtrosDespachos}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleHojaRuta" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_detalleHojaRuta.rowKey}" selectionMode="single" rowsPerPageTemplate="#{hojaRutaTransportistaBean.numeroFilasPorPagina}"
+										filteredValue="#{hojaRutaTransportistaBean.listaDetalleFilterDialogo}">
+
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="No">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_despacho}"
+											sortBy="#{_detalleHojaRuta.despachoCliente.numero}" filterBy="#{_detalleHojaRuta.despachoCliente.numero}" filterMatchMode="contains">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.numero}">
+											</h:outputText>
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_cliente}" styleClass="tableCell" sortBy="#{_detalleHojaRuta.despachoCliente.empresa.nombreFiscal}"
+											filterBy="#{_detalleHojaRuta.despachoCliente.empresa.nombreFiscal}" filterMatchMode="contains">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.empresa.nombreFiscal}" id="txtClienteOtrosDespachos" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_subcliente}" styleClass="tableCell">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.subempresa.empresa.nombreFiscal}" id="txtSubClienteOtrosDespachos" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_titulo_transportista}" styleClass="tableCell">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.transportista.nombre}" id="txtTransportistaOtrosDespachos" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_direccion}" styleClass="tableCell">
+											<h:outputText
+												value="#{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion1} #{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion2} 
+												#{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion3} #{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion4}"
+												id="txtDireccionOtrosDespachos" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+											<h:outputText value="#{_detalleHojaRuta.descripcion}" id="txtDescripcionOtrosDespachos" />
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:selectBooleanCheckbox value="#{_detalleHojaRuta.seleccionado}">
+
+												<p:ajax process="@this" global="false"></p:ajax>
+											</p:selectBooleanCheckbox>
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+
+							</h:panelGrid>
+
+						</p:outputPanel>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnAdicionarOtrosDespachos" action="#{hojaRutaTransportistaBean.agregarOtrosDespachos}" value="Agregar Despachos"
+									oncomplete="agregarOtrosDespachos.hide();" process="@this" update=":form:panelDetalleDespacho :form:panelFiltrosOtrosDespachos">
+								</p:commandButton>
+								<p:commandButton id="btnCancelarRecepcionProveedor" value="#{msgs.btn_cancelar}" oncomplete="agregarOtrosDespachos.hide();" process="@this"
+									actionListener="#{hojaRutaTransportistaBean.limpiarOtrosDespachos}" update=":form:pgPanelAgregarOtrosDespachos">
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+				</h:panelGroup>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{hojaRutaTransportistaBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_hoja_ruta_panel}">
+
+						<p:outputPanel id="panelFiltros">
+
+							<h:panelGrid id="panelCabecera" columns="#{hojaRutaTransportistaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{hojaRutaTransportistaBean.sucursal}" id="cboSucursal">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{hojaRutaTransportistaBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+									<p:ajax process="@this" event="change" update="@none" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}" />
+								<p:selectOneMenu styleClass="input-text" value="#{hojaRutaTransportistaBean.hojaRuta.documento}" id="cboDocumento" required="true"
+									style="width:100%">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{hojaRutaTransportistaBean.listaDocumentoHojaRuta}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax process="@this" update="txtNumero" />
+
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{hojaRutaTransportistaBean.hojaRuta.numero}" id="txtNumero"
+									mask="#{hojaRutaTransportistaBean.hojaRuta.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{hojaRutaTransportistaBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{hojaRutaTransportistaBean.hojaRuta.fecha}" id="calFecha" required="true" />
+
+								<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+								<p:calendar pattern="#{hojaRutaTransportistaBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{hojaRutaTransportistaBean.fechaDesde}" id="calFechaDesde" required="true" />
+
+								<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+								<p:calendar pattern="#{hojaRutaTransportistaBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{hojaRutaTransportistaBean.fechaHasta}" id="calFechaHasta" required="true" />
+
+								<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{hojaRutaTransportistaBean.hojaRuta.transportista}" id="cboTransportista" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="null" />
+									<f:selectItems value="#{hojaRutaTransportistaBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+										itemValue="#{_transportista}" />
+									<p:ajax process="@this :form:panelAgregar" update=":form:panelAgregar" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{hojaRutaTransportistaBean.hojaRuta.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+
+
+							<h:panelGrid id="panelAgregar" style="text-align:center;">
+								<h:panelGroup>
+
+									<p:commandButton styleClass="columnaButton" icon="ejecutar" title="#{msgs.btn_cargar_despachos}" process="@this,panelFiltros"
+										update="panelDetalleDespacho" action="#{hojaRutaTransportistaBean.cargarInformacion}" value="#{msgs.btn_cargar_despachos}">
+										<f:event type="preRenderView" listener="#{hojaRutaTransportistaBean.cargarTabla}" />
+									</p:commandButton>
+
+									<p:commandButton rendered="#{not empty hojaRutaTransportistaBean.hojaRuta.transportista}" styleClass="columnaButton" icon="ejecutar"
+										title="#{msgs.btn_cargar_despachos}" oncomplete="agregarOtrosDespachos.show();" value="Cargar Otros Despachos"
+										actionListener="#{hojaRutaTransportistaBean.cargarTransportistasOtrosDespachos}" update=":form:pgPanelAgregarOtrosDespachos">
+									</p:commandButton>
+								</h:panelGroup>
+							</h:panelGrid>
+						</p:outputPanel>
+
+						<p:fieldset>
+							<h:panelGrid columns="1">
+
+								<p:outputPanel id="panelDetalleDespacho">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{hojaRutaTransportistaBean.listaDetalleHojaRuta}"
+										id="tablaDetalleDespachoCLiente" rowIndexVar="secuencial" binding="#{hojaRutaTransportistaBean.dtDetalleHojaRuta}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleHojaRuta" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rows="#{hojaRutaTransportistaBean.numeroFilas}" rowsPerPageTemplate="#{hojaRutaTransportistaBean.numeroFilasPorPagina}"
+										rowKey="#{_detalleHojaRuta.rowKey}" selectionMode="single" filteredValue="#{hojaRutaTransportistaBean.listaDetalleFilter}">
+
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="No">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_despacho}"
+											sortBy="#{_detalleHojaRuta.despachoCliente.numero}" filterBy="#{_detalleHojaRuta.despachoCliente.numero}" filterMatchMode="contains">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.numero}">
+											</h:outputText>
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_cliente}" styleClass="tableCell" sortBy="#{_detalleHojaRuta.despachoCliente.empresa.nombreFiscal}"
+											filterBy="#{_detalleHojaRuta.despachoCliente.empresa.nombreFiscal}" filterMatchMode="contains">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.empresa.nombreFiscal}" id="txtCliente" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_subcliente}" styleClass="tableCell">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.subempresa.empresa.nombreFiscal}" id="txtSubCliente" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_titulo_transportista}" styleClass="tableCell">
+											<h:outputText value="#{_detalleHojaRuta.despachoCliente.transportista.nombre}" id="txtTransportista" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_direccion}" styleClass="tableCell">
+											<h:outputText
+												value="#{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion1} #{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion2} 
+												#{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion3} #{_detalleHojaRuta.despachoCliente.direccionEmpresa.ubicacion.direccion4}"
+												id="txtDireccion" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+											<h:outputText value="#{_detalleHojaRuta.descripcion}" id="txtDescripcion" />
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<f:facet name="header">
+												<f:facet name="header">
+													<p:selectBooleanCheckbox value="#{hojaRutaTransportistaBean.aprobarTodos}">
+														<p:ajax event="change" listener="#{hojaRutaTransportistaBean.seleccionarTodos()}" process="@this" update=":form:panelDetalleDespacho" />
+													</p:selectBooleanCheckbox>
+												</f:facet>
+											</f:facet>
+
+											<p:selectBooleanCheckbox value="#{_detalleHojaRuta.seleccionado}">
+
+												<p:ajax process="@this" global="false"></p:ajax>
+											</p:selectBooleanCheckbox>
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+							</h:panelGrid>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!hojaRutaTransportistaBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_hoja_ruta_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaHojaRuta" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{hojaRutaTransportistaBean.listaHojaRuta}" var="_hojaRuta" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{hojaRutaTransportistaBean.dtHojaRuta}" rows="#{hojaRutaTransportistaBean.numeroFilas}"
+							rowsPerPageTemplate="#{hojaRutaTransportistaBean.numeroFilasPorPagina}" selection="#{hojaRutaTransportistaBean.hojaRuta}"
+							selectionMode="single" rowKey="#{_hojaRuta.id}" sortBy="#{_hojaRuta.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_hojaRuta.numero}" filterBy="#{_hojaRuta.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_hojaRuta.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_hojaRuta.fecha}">
+								<h:outputText value="#{_hojaRuta.fecha}">
+									<f:convertDateTime pattern="#{hojaRutaTransportistaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_hojaRuta.transportista.nombre}" filterBy="#{_hojaRuta.transportista.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_titulo_transportista}" />
+								</f:facet>
+								<h:outputText value="#{_hojaRuta.transportista.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_hojaRuta.estado}" filterBy="#{_hojaRuta.estado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_hojaRuta.estado}" />
+							</p:column>
+
+							<p:column sortBy="#{_hojaRuta.descripcion}" filterBy="#{_hojaRuta.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_hojaRuta.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{hojaRutaTransportistaBean.hojaRuta.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{hojaRutaTransportistaBean.hojaRuta.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{hojaRutaTransportistaBean.hojaRuta.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{hojaRutaTransportistaBean.hojaRuta.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

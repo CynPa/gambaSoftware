@@ -1,0 +1,399 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough"
+	xmlns:pe="http://primefaces.org/ui/extensions">
+
+
+<ui:composition template="../WEB-INF/template/principal.xhtml">
+	<ui:define name="content">
+
+		<h:form id="form">
+			<p:growl id="growl" life="2000" />
+
+
+			<p:remoteCommand name="refreshSections" update="panelgrlOperaciones" />
+			<p:panel id="panelgrlOperaciones" widgetVar="panelgrlOperaciones">
+				<p:panel id="basic" style="margin-bottom:10px;font-size:x-small;">
+
+					<p:commandButton value="Nuevo" type="button"
+						onclick="PF('dlgNewOperacion').show();"
+						styleClass="ui-priority-primary" />
+
+					<p:commandButton process="tblOperaciones"
+						update=":form:dlgActualizarOd" icon="ui-icon-search"
+						value="Modificar" oncomplete="PF('dlgActualizarOd').show()">
+
+
+					</p:commandButton>
+				</p:panel>
+				<!-- selectionMode="single"
+					selection="#{operacionesDiarias.operacionDiariaDatosSelect}"
+					rowKey="#{OpDiaria.idOperacionDiaria}" -->
+				<p:dataTable id="tblOperaciones" var="OpDiaria"
+					value="#{operacionesDiarias.listaOperacionDiariaDatos}"
+					style="margin-bottom:10px;font-size:x-small;font-weight: bold"
+					paginator="true" rows="22" selectionMode="single"
+					selection="#{operacionesDiarias.operacionDiariaDatosSelect}"
+					rowKey="#{OpDiaria.idOperacionDiaria}"
+					emptyMessage="Ningun dato cargado bajo el criterio"
+					filteredValue="#{operacionesDiarias.operacionDiariaDatosFiltered}"
+					scrollable="true" scrollHeight="200"
+					rowsPerPageTemplate="22,84,360,1000">
+					<f:facet name="header">
+        List of Cars
+ 
+        <p:commandButton id="toggler" type="button" value="Columnas a presentar"
+							style="float:right" icon="ui-icon-calculator" />
+						<p:columnToggler datasource="tblOperaciones" trigger="toggler" />
+					</f:facet>
+
+					<f:facet name="{Exporters}">
+						<h:commandLink>
+							<p:graphicImage url="/images/excel.ico" width="24" />
+							<p:dataExporter type="xls" target="tblOperaciones"
+								fileName="nivelOperativo" />
+						</h:commandLink>
+						<h:commandLink>
+							<p:graphicImage url="/images/pdf.jpg" height="20" width="30" />
+							<p:dataExporter type="pdf" target="tblOperaciones"
+								fileName="nivelOperativo" />
+						</h:commandLink>
+					</f:facet>
+
+					<p:column filterBy="#{OpDiaria.fecha}" sortBy="#{OpDiaria.fecha}"
+						headerText="Fecha:" filterMatchMode="contains">
+						<h:outputText value="#{OpDiaria.fecha}">
+							<f:convertDateTime type="date" dateStyle="short"
+								pattern="yyyy-MM-dd" />
+						</h:outputText>
+					</p:column>
+					<p:column sortBy="#{OpDiaria.nivelOperacion.piscina}">
+						<f:facet name="header">
+							<h:outputText value="Piscina" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.nivelOperacion.piscina}" />
+					</p:column>
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Nivel " />
+						</f:facet>
+						<h:outputText
+							value="#{OpDiaria.nivelDiario==0?'0': (OpDiaria.nivelDiario-OpDiaria.nivelOperacion.nivelOperacion)==0?'NIVEL': (OpDiaria.nivelDiario-OpDiaria.nivelOperacion.nivelOperacion)}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Duro" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.duro}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Flacido" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.flacido}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Mudado" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.mudado}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Peso" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.peso}" />
+					</p:column>
+
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Mort. Fresco" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.mortFresco}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Mort. Rojo" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.mortRojo}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Enfermos" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.enfermos}" />
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Salinidad" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.salinidad}">
+							<f:convertNumber type="number" groupingUsed="true"
+								minFractionDigits="0" pattern="#0" />
+						</h:outputText>
+
+					</p:column>
+					<p:column>
+						<f:facet name="header">
+							<h:outputText value="Temperatura" />
+						</f:facet>
+						<h:outputText value="#{OpDiaria.temperatura}">
+						</h:outputText>
+					</p:column>
+					<p:column headerText="Bocache">
+						<p:selectBooleanCheckbox value="#{OpDiaria.bocache}"
+							disabled="true" />
+					</p:column>
+					<!-- <p:column>
+
+						<p:commandButton process="@this" partialSubmit="true"
+							update=":form:dlgActualizarOd" icon="ui-icon-pencil"
+							value="Editar" title="Delete this actor"
+							oncomplete="PF('dlgActualizarOd').show();" ajax="true">
+							<f:setPropertyActionListener for="formActualizarOd"
+								value="#{OpDiaria}"
+								target="#{operacionesDiarias.operacionDiariaDatosSelect}" />
+						</p:commandButton>
+					</p:column> -->
+					<p:column headerText="Operaciones">
+						<p:commandButton icon="ui-icon-trash" value="Eliminar"
+							title="Delete this actor"
+							action="#{operacionesDiarias.eliminarOperacionDiaria(OpDiaria)}"
+							ajax="true" update=":form:tblOperaciones">
+							<p:confirm header="Confirmacion"
+								message="Esta seguro de eliminar este registro?"
+								icon="ui-icon-alert" />
+						</p:commandButton>
+					</p:column>
+
+				</p:dataTable>
+				<!-- +++++++++ EXPORTERS +++++++++++++++++++++++ -->
+				<h:commandLink>
+					<p:graphicImage url="/images/excel.ico" height="20" width="30"
+						style="font-size:small" />
+					<p:dataExporter type="xls" target=":form:tblOperaciones"
+						postProcessor="#{operacionesDiarias.postProcessXLS}"
+						fileName="ValoresCamaron" pageOnly="true" />
+				</h:commandLink>
+
+				  <h:commandLink>
+					<p:graphicImage url="/images/pdf.jpg" height="20" width="30" />
+					<p:dataExporter type="pdf" target=":form:tblOperaciones"
+						preProcessor="#{operacionesDiarias.preProcessPDF}"
+						fileName="ValoresCamaron" pageOnly="true" />
+				</h:commandLink>
+
+			</p:panel>
+
+			<!-- INSERT  oncomplet = "PF('dlgNewOperacion').hide();"-->
+			<p:dialog id="dlgNewOperacion" header="Ingresar"
+				widgetVar="dlgNewOperacion" modal="true">
+				<h:form id="formNewOperacion">
+
+					<p:panel id="panel1" style="margin-bottom:10px;font-size:x-small;">
+						<p:outputLabel value="#{operacionesDiarias.valorNoSelected}"></p:outputLabel>
+
+						<p:panelGrid columns="2" style="border:0;">
+							<p:outputLabel value="Fecha:" />
+							<p:calendar id="idFecha" value="#{operacionesDiarias.fecha}"
+								maxdate="#{operacionesDiarias.fechaActual}" showOn="button"
+								pattern="yyyy-MM-dd">
+
+							</p:calendar>
+							<h:outputText value="Piscina:" />
+							<p:selectOneMenu id="selectPiscina"
+								value="#{operacionesDiarias.objnivelOperacion}"
+								style="width:150px">
+								<p:ajax update="InputNivelOperacion"
+									listener="#{operacionesDiarias.llenarEtiquetaNivelOperacion}" />
+								<f:selectItem itemLabel="Seleccione un valor" itemValue=""
+									noSelectionOption="true" />
+								<f:selectItems
+									value="#{operacionesDiarias.listaObjNivelOperacion}"
+									var="nivel" itemLabel="nivel." />
+							</p:selectOneMenu>
+							<h:outputText value="Nivel Operacion:" />
+							<h:outputText id="InputNivelOperacion"
+								value="#{operacionesDiarias.objnivelOperacion}" />
+
+							<h:outputText value="Nivel Diario:" />
+							<p:inputNumber id="idNivelDiario"
+								value="#{operacionesDiarias.nivelDiario==99999?'NIVEL':operacionesDiarias.nivelDiario}"
+								decimalPlaces="0" >
+							</p:inputNumber>
+							<h:outputText value="Duro %:" />
+							<p:inputNumber id="idDuro" value="#{operacionesDiarias.duro}"
+								symbol="%" symbolPosition="s" decimalPlaces="0">
+							</p:inputNumber>
+							<h:outputText value="Flacido %:" />
+							<p:inputNumber id="idFlacido"
+								value="#{operacionesDiarias.flacido}" symbol="%"
+								symbolPosition="s"  decimalPlaces="0">
+
+							</p:inputNumber>
+							<h:outputText value="Mudado %:" />
+							<p:inputNumber id="idMudado" value="#{operacionesDiarias.mudado}"
+								symbol="%" symbolPosition="s"  decimalPlaces="0">
+							</p:inputNumber>
+							<h:outputText value="peso:" />
+							<p:inputNumber id="idPeso" value="#{operacionesDiarias.peso}"
+								symbol=" Gr." symbolPosition="s" >
+							</p:inputNumber>
+
+							<h:outputText value="Mort. Fresco:" />
+							<p:inputNumber id="idMortFresco"
+								value="#{operacionesDiarias.mortFresco}" symbol=" %"
+								symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Mort. Rojo:" />
+							<p:inputNumber id="idMortRojo"
+								value="#{operacionesDiarias.mortRojo}" symbol=" %"
+								symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Enfermo:" />
+							<p:inputNumber id="idEnfermos"
+								value="#{operacionesDiarias.enfermos}" symbol=" %"
+								symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Salinidad (En miles):" />
+							<p:inputNumber id="idSalinidad"
+								value="#{operacionesDiarias.salinidad}" symbol=""
+								decimalPlaces="0" symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Temperatura:" />
+							<p:inputNumber id="idTemperatura"
+								value="#{operacionesDiarias.temperatura}" symbol="°C."
+								symbolPosition="s">
+							</p:inputNumber>
+							<p:outputLabel value="Bocache"></p:outputLabel>
+							<p:selectBooleanCheckbox value="#{operacionesDiarias.bocache}" />
+							<p:commandButton value="Guardar"
+								action="#{operacionesDiarias.insertOperacionDiariaDatos}"
+								process=":form:formNewOperacion"
+								update=":form:tblOperaciones, :form:growl" ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+
+					</p:panel>
+				</h:form>
+			</p:dialog>
+
+			<!-- UPDATE -->
+			<p:dialog id="dlgActualizarOd" header="Modificar"
+				widgetVar="dlgActualizarOd" showEffect="fade" hideEffect="fade"
+				modal="true">
+				<h:form id="formActualizarOd">
+					<p:panel id="panel1" style="margin-bottom:10px;font-size:x-small;">
+						<h:outputText value="Seleccione un registro"
+							rendered="#{empty operacionesDiarias.operacionDiariaDatosSelect}" />
+
+						<p:panelGrid columns="2" style="border:0;"
+							rendered="#{not empty operacionesDiarias.operacionDiariaDatosSelect}">
+							<p:outputLabel value="Fecha:" />
+							<p:calendar id="idFecha"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.fecha}"
+								maxdate="#{operacionesDiarias.fechaActual}" showOn="button"
+								pattern="yyyy-MM-dd" />
+							<h:outputText value="Nivel Operacion" />
+							<h:outputText id="InputNivelOperacion"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.nivelOperacion.nivelOperacion}" />
+							<h:outputText value="Nivel Diario" />
+							<p:inputNumber id="idNivelDiario"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.nivelDiario}"
+								decimalPlaces="0"></p:inputNumber>
+							<h:outputText value="Duro" />
+							<p:inputNumber id="idDuro"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.duro}"
+								symbol="%" symbolPosition="s" decimalPlaces="0"></p:inputNumber>
+							<h:outputText value="Flacido" />
+							<p:inputNumber id="idFlacido"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.flacido}"
+								symbol="%" symbolPosition="s" decimalPlaces="0">
+								
+							</p:inputNumber>
+							<h:outputText value="Mudado" />
+							<p:inputNumber id="idFMudado"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.mudado}"
+								symbol="%" symbolPosition="s" decimalPlaces="0"></p:inputNumber>
+							<h:outputText value="Peso" />
+							<p:inputNumber id="idPesoM"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.peso}"
+								symbol=" Gr." symbolPosition="s" >
+							</p:inputNumber>
+
+							<h:outputText value="Mort. Fresco:" />
+							<p:inputNumber id="idMortFresco"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.mortFresco}"
+								symbol=" %" symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Mort. Rojo:" />
+							<p:inputNumber id="idMortRojo"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.mortRojo}"
+								symbol=" %" symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Enfermo:" />
+							<p:inputNumber id="idEnfermos"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.enfermos}"
+								symbol=" %" symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Salinidad (en miles):" />
+							<p:inputNumber id="idSalanidad"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.salinidad}"
+								symbol="" symbolPosition="s"  decimalPlaces="0">
+							</p:inputNumber>
+							<h:outputText value="Temperatura:" />
+							<p:inputNumber id="idTemperatura"
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.temperatura}"
+								symbol=" °C." symbolPosition="s" >
+							</p:inputNumber>
+							<h:outputText value="Bocache" />
+							<p:selectBooleanCheckbox
+								value="#{operacionesDiarias.operacionDiariaDatosSelect.bocache}" />
+							<p:commandButton value="Guardar"
+								action="#{operacionesDiarias.modificarOperacionDiaria}"
+								process=":form:formActualizarOd:panel1"
+								update=":form:tblOperaciones :form:growl" ajax="true">
+							</p:commandButton>
+						</p:panelGrid>
+					</p:panel>
+				</h:form>
+			</p:dialog>
+			<!-- Eliminar -->
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+				<p:commandButton value="Yes" styleClass="ui-confirmdialog-yes"
+					icon="ui-icon-check" />
+				<p:commandButton value="No" styleClass="ui-confirmdialog-no"
+					icon="ui-icon-close" />
+			</p:confirmDialog>
+		</h:form>
+	<!--  	 <p:ajaxStatus style="display:block;margin-bottom:2em;height:24px;">
+
+				<f:facet name="start">
+					<p:graphicImage url="/images/gifAnimado2.gif" />
+				</f:facet>
+
+
+			</p:ajaxStatus>
+
+			<p:ajaxStatus onstart="PF('statusDialog').show()"  style="display:block;margin-bottom:2em;height:24px;"
+				onsuccess="PF('statusDialog').hide()" >
+
+			<p:dialog widgetVar="statusDialog" modal="true" draggable="false"
+				closable="false" resizable="false" showHeader="false">
+				<p:graphicImage url="/images/gifAnimado2.gif" />
+			</p:dialog>
+			</p:ajaxStatus>
+											<p:ajax event="blur" process="@this" update="idMudado"
+									 />
+								<p:ajax update="msgFlacido" event="keyup" /> 
+								-->
+			
+	</ui:define>
+</ui:composition>
+
+</html>

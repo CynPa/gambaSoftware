@@ -1,0 +1,335 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tomaFisicaBean}">
+					<as2:buttonEliminar bean="#{tomaFisicaBean}" titulo="#{msgs.btn_eliminar}">
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{tomaFisicaBean.tomaFisica.numero}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir id="btnImprimirTomaFisica" beanReporte="#{reporteTomaFisicaBean}" bean="#{tomaFisicaBean}"
+						target="#{reporteTomaFisicaBean.tomaFisica}" value="#{tomaFisicaBean.tomaFisica}" />
+
+					<as2:buttonExportaExcel bean="#{tomaFisicaBean}" tabla=":form:tablaTomaFisica" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{tomaFisicaBean}" />
+					<ui:param name="mostrarCantidad" value="false" />
+					<ui:param name="listadoFiltrado" value="true" />
+				</ui:include>
+
+				<p:confirmDialog message="#{msgs.confirmacion_finalizar_toma_fisica}? " width="200" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionFinalizar">
+					<h:outputText id="confirmacionFinalizarText" value="#{tomaFisicaBean.tomaFisica.numero}" />
+					<p:spacer></p:spacer>
+					<p:spacer></p:spacer>
+
+					<p:commandButton value="#{msgs.confirmacion_si}" update=":form:tablaTomaFisica :form:panelListado" process="@this"
+						actionListener="#{tomaFisicaBean.finalizarTomaFisica}" oncomplete="confirmacionFinalizar.hide()" />
+					<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionFinalizar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{tomaFisicaBean.exContabilizacion.mensajes}" var="_mensaje"
+							rowIndexVar="secuencial" lazy="true">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_toma_fisica_panel}" rendered="#{tomaFisicaBean.editado}">
+						<h:panelGrid id="panelDatos" columns="#{tomaFisicaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{tomaFisicaBean.tomaFisica.documento}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{tomaFisicaBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputMask styleClass="input-text" value="#{tomaFisicaBean.tomaFisica.numero}" id="txtNumero"
+								mask="#{tomaFisicaBean.tomaFisica.documento.secuencia.patron}">
+								<f:validateBean />
+							</p:inputMask>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{tomaFisicaBean.formatoFecha}" showOn="button" navigator="true" value="#{tomaFisicaBean.tomaFisica.fecha}" id="calFecha" />
+
+							<p:outputLabel for="autoBodega" value="#{msgs.lbl_bodega_titulo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{tomaFisicaBean.tomaFisica.bodega}"
+								completeMethod="#{tomaFisicaBean.autocompletarBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" id="autoBodega" itemValue="#{_bodega}"
+								forceSelection="true" size="50" dropdown="true" minQueryLength="2" required="true">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_bodega.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_bodega.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" listener="#{tomaFisicaBean.eventBodegaOrigen}" update=":form:panelDetalle"/>
+
+							</p:autoComplete>
+
+							<p:outputLabel for="cboDocumentoIngreso" value="#{msgs.lbl_documento} #{msgs.lbl_ingreso_inventario}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumentoIngreso" required="true" value="#{tomaFisicaBean.tomaFisica.documentoAjusteIngreso}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{tomaFisicaBean.listaDocumentoAjusteIngreso}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboDocumentoEgreso" value="#{msgs.lbl_documento} #{msgs.lbl_egreso_inventario}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumentoEgreso" required="true" value="#{tomaFisicaBean.tomaFisica.documentoAjusteEgreso}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{tomaFisicaBean.listaDocumentoAjusteEgreso}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="acMotivoAjusteInventario" value="#{msgs.lbl_motivo} #{msgs.lbl_ajuste} #{msgs.lbl_inventario}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acMotivoAjusteInventario" styleClass="input-text"
+								value="#{tomaFisicaBean.tomaFisica.motivoAjusteInventario}" completeMethod="#{tomaFisicaBean.autocompletarMotivoAjusteInventario}"
+								var="_motivoAjusteInventario" itemLabel="#{_motivoAjusteInventario.nombre}" itemValue="#{_motivoAjusteInventario}" forceSelection="true"
+								dropdown="true" minQueryLength="1" required="true">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_motivoAjusteInventario.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_motivoAjusteInventario.nombre}</p:column>
+
+								<p:ajax process="@this" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tomaFisicaBean.tomaFisica.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_cargar_con_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tomaFisicaBean.codigoCabecera}" id="txtCodigoCabecera">
+								<p:ajax listener="#{tomaFisicaBean.agregarDetalleDesdeCodigoCabecera}" process="@this"
+									update=":form:panelDetalle #{p:component('txtCodigoCabecera')}" event="change" global="false"
+									oncomplete="nextFocus('#{p:component('txtCodigoCabecera')}')" />
+							</p:inputText>
+						</h:panelGrid>
+
+						<h:panelGrid columns="1" id="panelDetalle">
+
+							<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarAsignarRubros" modal="true" height="150" width="325" showEffect="clip"
+								hideEffect="clip" resizable="false">
+								<p:outputPanel id="outputCargarExcel">
+									<p:fieldset>
+										<center>
+											<p:fileUpload fileUploadListener="#{tomaFisicaBean.cargarTomaFisica}" mode="advanced" auto="true" update=":form:panelDetalle"
+												sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this outputCargarExcel"
+												oncomplete="dlgCargarAsignarRubros.hide()" />
+										</center>
+									</p:fieldset>
+								</p:outputPanel>
+							</p:dialog>
+
+							<h:panelGroup>
+								<p:commandButton value="Agregar Detalle" id="btnAgregarDetalle" action="#{tomaFisicaBean.agregarDetalle}" update=":form:panelDetalle"
+									process="@this,:form:panelDetalle" />
+
+								<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" process=":form:panelDatos,@this"
+									oncomplete="dglModalProducto.show();" />
+
+								<p:commandButton value="#{msgs.lbl_listar_todo}" icon="ui-icon-plus" process=":form:panelDatos,@this"
+									actionListener="#{tomaFisicaBean.cargarTodo}" update=":form:panelDetalle" />
+
+								<p:commandButton ajax="false" icon="excel" process="@this" title="#{msgs.lbl_exportar}">
+									<p:fileDownload value="#{tomaFisicaBean.file}"  />
+								</p:commandButton>
+
+								<p:commandButton id="btnCargarExcel" value="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update="outputCargarExcel"
+									onclick="dlgCargarAsignarRubros.show()" process="@this" />
+							</h:panelGroup>
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{tomaFisicaBean.detalleTomaFisica}" id="tablaDetalleTomaFisica"
+								rowIndexVar="secuencial" binding="#{tomaFisicaBean.dtDetalleTomaFisica}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleTomaFisica"
+								paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalleTomaFisica.id}" rows="#{tomaFisicaBean.numeroFilas}"
+								rowsPerPageTemplate="#{tomaFisicaBean.numeroFilasPorPagina}" sortBy="#{_detalleTomaFisica.producto.nombre}" sortOrder="ASCENDING">
+
+								<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo_producto}"
+									filterBy="#{_detalleTomaFisica.producto.codigo}" filterMatchMode="contains">
+									<p:inputText styleClass="input-text-col" value="#{_detalleTomaFisica.producto.codigo}" id="txtCodigoProducto">
+										<p:ajax listener="#{tomaFisicaBean.actualizarProducto}" process=":form:panelDatos,@this" event="change" update=":form:panelDetalle"
+											oncomplete="nextFocus('#{p:component('txtCantidadTomaFisica')}')" />
+										<f:validateBean for="txtCodigoProducto" />
+									</p:inputText>
+								</p:column>
+								
+								<p:column styleClass="columnaDTCodigoProducto tableCell" filterBy="#{_detalleTomaFisica.producto.codigoBarras}" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_producto_codigo_barras}" />
+									</f:facet>
+									<h:outputText value="#{_detalleTomaFisica.producto.codigoBarras}" />
+								</p:column>
+								
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" filterBy="#{_detalleTomaFisica.producto}" filterMatchMode="contains">
+									<h:outputText value="#{_detalleTomaFisica.producto.nombre}" id="txtNombreProducto">
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTUnidad" headerText="#{msgs.lbl_unidad_producto}"
+									filterBy="#{_detalleTomaFisica.producto.unidad.nombre}" filterMatchMode="contains">
+									<h:outputText value="#{_detalleTomaFisica.producto.unidad.nombre}" id="txtUnidadProducto" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTLote" headerText="#{msgs.lbl_lote}">
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" value="#{_detalleTomaFisica.lote}"
+										completeMethod="#{tomaFisicaBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}" forceSelection="true"
+										dropdown="false" minQueryLength="2" required="#{_detalleTomaFisica.producto.indicadorLote}"
+										rendered="#{_detalleTomaFisica.producto.indicadorLote}">
+										<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+										<p:ajax event="itemSelect" process="@this" update=":form:panelDetalle"
+											listener="#{tomaFisicaBean.actualizarCantidadesLote(_detalleTomaFisica)}" />
+									</p:autoComplete>
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_cantidad_sistema}">
+									<h:outputText value="#{_detalleTomaFisica.cantidadSistema}" id="txtCantidadSistema" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor">
+									<f:facet name="header">
+										<p:commandLink value="#{msgs.lbl_cantidad_toma_fisica}"
+											title="#{tomaFisicaBean.valoresTomaDiferenteCero ? msgs.lbl_asignar_valores_cero : msgs.lbl_asignar_valores_saldo_sistema}"
+											actionListener="#{tomaFisicaBean.asignarValorCeroODiferenteCeroMovimiento}" process=":form:panelDatos,@this" update=":form:panelDetalle"></p:commandLink>
+									</f:facet>
+									<p:inputText styleClass="input-text-col" value="#{_detalleTomaFisica.cantidadTomaFisica}" id="txtCantidadTomaFisica">
+										<p:ajax listener="#{tomaFisicaBean.asignarValorMovimiento}" process="@this" event="change" global="false" update=":form:panelDetalle" />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_movimiento_ajuste_ingreso}">
+									<h:outputText value="#{_detalleTomaFisica.traMovimientoIngreso}" id="lblMovIngreso" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_movimiento_ajuste_egreso}">
+									<h:outputText value="#{_detalleTomaFisica.traMovimientoEgreso}" id="lblMovEgreso" />
+								</p:column>
+
+								<p:column styleClass="tableCell columnaDTAccion">
+									<p:commandButton id="btnEliminarDetalle" action="#{tomaFisicaBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+										update=":form:panelDetalle" process="@this" />
+								</p:column>
+
+								<p:columnGroup type="footer">
+									<p:row>
+										<p:column colspan="8" footerText="#{msgs.lbl_total}" style="text-align:right" />
+										<p:column footerText="#{tomaFisicaBean.totalMovimientoIngreso}" style="text-align:right" id="colTotalIngreso" />
+										<p:column footerText="#{tomaFisicaBean.totalMovimientoEgreso}" style="text-align:right" id="colTotalEgreso" />
+										<p:column footerText="" style="text-align:left" />
+									</p:row>
+								</p:columnGroup>
+
+							</p:dataTable>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_toma_fisica_panel}" rendered="#{!tomaFisicaBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTomaFisica" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tomaFisicaBean.listaTomaFisica}" var="_tomaFisica" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{tomaFisicaBean.dtTomaFisica}" rows="#{tomaFisicaBean.numeroFilas}"
+							rowsPerPageTemplate="#{tomaFisicaBean.numeroFilasPorPagina}" selection="#{tomaFisicaBean.tomaFisica}" selectionMode="single"
+							rowKey="#{_tomaFisica.id}" sortBy="#{_tomaFisica.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_tomaFisica.numero}" filterBy="#{_tomaFisica.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_tomaFisica.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_tomaFisica.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_tomaFisica.fecha}">
+									<f:convertDateTime pattern="#{tomaFisicaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_bodega}" />
+								</f:facet>
+								<h:outputText value="#{_tomaFisica.traNombreBodega}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_tomaFisica.estado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_tomaFisica.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" filterBy="#{_tomaFisica.descripcion}" sortBy="#{_tomaFisica.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tomaFisica.descripcion}" />
+							</p:column>
+
+							<p:column exportable="false" styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_finalizar}" />
+								</f:facet>
+								<p:commandButton id="btnFinalizar" icon="action" oncomplete="confirmacionFinalizar.show()" title="#{msgs.lbl_finalizar_toma_fisica}"
+									update=":form:confirmacionFinalizarText :form:panelListado" process="@this"
+									disabled="#{_tomaFisica.estado=='APROBADO' or _tomaFisica.estado=='ANULADO'}">
+									<f:setPropertyActionListener value="#{_tomaFisica}" target="#{tomaFisicaBean.tomaFisica}" />
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tomaFisicaBean.tomaFisica.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tomaFisicaBean.tomaFisica.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{tomaFisicaBean.tomaFisica.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tomaFisicaBean.tomaFisica.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+
+				<p:separator />
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

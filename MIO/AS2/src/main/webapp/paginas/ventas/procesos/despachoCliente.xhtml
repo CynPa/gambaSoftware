@@ -1,0 +1,859 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idDespachoCliente" value="#{despachoClienteBean.idDespachoCliente}" />
+	<f:viewParam name="idFacturaCliente" value="#{despachoClienteBean.idFacturaCliente}" />
+	<f:event listener="#{despachoClienteBean.cargarDespachoDesdeFactura}" type="preRenderView" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{despachoClienteBean}">
+
+					<as2:buttonEliminar bean="#{despachoClienteBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{despachoClienteBean.despachoCliente.numero}" />
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<h:outputText value="#{despachoClienteBean.despachoCliente.empresa.nombreComercial}" />
+
+						<h:outputText value="#{msgs.lbl_valor}:" />
+						<h:outputText value="#{despachoClienteBean.despachoCliente.fecha}" />
+					</as2:buttonEliminar>
+
+					<p:commandButton id="btnEmitirGuiaRemision" value="#{msgs.lbl_emitir_guia_remision}" title="#{msgs.lbl_emitir_guia_remision}"
+						process="@this,:form:panelListado" action="#{despachoClienteBean.emitirGuiaRemision}" rendered="#{!despachoClienteBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonImprimir beanReporte="#{reporteDespachoClienteBean}" bean="#{despachoClienteBean}"
+						target="#{reporteDespachoClienteBean.despachoCliente}" value="#{despachoClienteBean.despachoCliente}" />
+
+					<h:panelGroup rendered="#{despachoClienteBean.tipoOrganizacion=='TIPO_ORGANIZACION_TEXTILES_PADILLA'}">
+						<as2:buttonImprimir beanReporte="#{reporteDespachoResumidoBean}" bean="#{despachoClienteBean}"
+							target="#{reporteDespachoResumidoBean.despachoCliente}" value="#{despachoClienteBean.despachoCliente}"
+							etiquetaImprimir="#{msgs.lbl_despacho_resumido}" />
+					</h:panelGroup>
+
+					<as2:buttonImprimir beanReporte="#{reporteGuiaRemisionBean}" bean="#{despachoClienteBean}" target="#{reporteGuiaRemisionBean.idDespachoCliente}"
+						value="#{despachoClienteBean.despachoCliente.idDespachoCliente}" etiquetaImprimir="#{msgs.lbl_imprimir_guia_remision}" />
+
+					<as2:buttonImprimir beanReporte="#{reporteSobreEmpresaBean}" bean="#{despachoClienteBean}" target="#{reporteSobreEmpresaBean.direccionEmpresa}"
+						value="#{despachoClienteBean.despachoCliente.direccionEmpresa}" etiquetaImprimir="#{msgs.lbl_imprimir_sobre_empresa}" />
+
+					<p:commandButton process="@this" value="#{msgs.lbl_reasignar_productos}" title="#{msgs.lbl_reasignar_productos}"
+						oncomplete="dialogReasignarProducto.show();" update=":form:panelListado" rendered="#{!despachoClienteBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonExportaExcel bean="#{despachoClienteBean}" tabla=":form:tablaDespachoCliente" />
+
+					<as2:buttonEnviarMail id="btnEnviarMail" bean="#{despachoClienteBean}" />
+
+					<p:commandButton ajax="false" icon="xml" process="@this" title="XML">
+						<p:fileDownload value="#{despachoClienteBean.XMLSRI}" />
+					</p:commandButton>
+				</as2:toolBar>
+
+				<!-- 
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{despachoClienteBean}" />
+					<ui:param name="btnAnular" value="true" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="btnEmitirGuiaRemision" value="true" />
+					<ui:param name="btnImprimirGuiaRemision" value="true" />
+					<ui:param name="btnImprimirSobre" value="true" />
+					<ui:param name="btnImprimirDespachoResumido"
+						value="#{despachoClienteBean.tipoOrganizacion=='TIPO_ORGANIZACION_TEXTILES_PADILLA' ? true :  false}" />
+					<ui:param name="tabla" value="tablaDespachoCliente" />
+					<ui:param name="columnasAExcluir" value="6" />
+					<ui:param name="columnasAExcluirPdf" value="6" />
+				</ui:include>
+ -->
+
+				<!-- INICIO DIALOG SUBIR ARCHIVO -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dglUploadFile" modal="true" height="150" width="325" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarPdf" autoUpdate="true">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{despachoClienteBean.processUpload}" mode="advanced" update=":form:panelListado" auto="true"
+									sizeLimit="10000000" allowTypes="/(\.|\/)(pdf|PDF)$/" label="#{msgs.btn_examinar}" process="@this" oncomplete="dglUploadFile.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+				<!-- INICIO DIALOG SUBIR ARCHIVO -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarArchivoTexto" modal="true" height="150" width="325" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarTxt">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{despachoClienteBean.cargarDetalleDespachoClienteTxt}" mode="advanced"
+									update=":form:panelDetalleDespacho :form:panelNuevo" auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(txt|TXT)$/"
+									label="#{msgs.btn_examinar}" process="@this" oncomplete="dlgCargarArchivoTexto.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+				
+				<!-- INICIO VER DETALLE DESAPCHO -->
+						<p:dialog header="Lista de Productos" id="dlgConsultaDetalleDespachoProducto" widgetVar="dialogConsultaDetalleDespachoProducto" height="350"
+							width="900" closable="true">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleProductoConsulta" rowIndexVar="secuencial"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{despachoClienteBean.listaDetalleProductoConsulta}" var="_detalleDespachoDestino"
+								paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{despachoClienteBean.numeroFilas}" selectionMode="single"
+								rowKey="#{_detalleDespachoDestino.idDetalleDespachoCliente}" sortBy="#{_detalleDespachoDestino.producto.codigo}" sortOrder="ASCENDING"
+								rowsPerPageTemplate="#{empresaBean.numeroFilasPorPagina}">
+
+								<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleDespachoDestino.producto.codigo}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_detalleDespachoDestino.producto.codigo}" />
+								</p:column>
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}" filterBy="#{_detalleDespachoDestino.producto.nombre}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_detalleDespachoDestino.producto.nombre}" />
+								</p:column>
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_cantidad}" filterMatchMode="contains">
+									<h:outputText value="#{_detalleDespachoDestino.cantidad}" />
+								</p:column>
+							</p:dataTable>
+						</p:dialog>
+				<!-- FIN DIALOG VER DETALLE DESPACHO -->
+				<!-- INICIO DIALOG REASIGNAR DESPACHOS -->
+				<p:dialog header="Reasignar Productos" id="dlgReasignarProducto" widgetVar="dialogReasignarProducto" height="550" width="900" closable="false">
+					<h:panelGroup>
+						<p:panel>
+							<h:panelGrid id="pGReasignar" columns="#{despachoClienteBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<p:outputLabel for="txtClienteReasignar" value="#{msgs.lbl_cliente}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{despachoClienteBean.empresaReasignar}"
+									completeMethod="#{despachoClienteBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+									forceSelection="true" dropdown="true" minQueryLength="2" id="txtClienteReasignar">
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+									<p:ajax process="@this" event="itemSelect" global="false" />
+								</p:autoComplete>
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar id="fechaReasignar" value="#{despachoClienteBean.fechaReasignar}" pattern="#{despachoClienteBean.formatoFecha}" showButtonPanel="true" locale="es"
+									showOn="button">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+									<f:validateBean />
+								</p:calendar>
+							</h:panelGrid>
+							<f:facet name="footer">   
+								<center> 
+									<p:commandButton process="@this" value="#{msgs.lbl_cargar_despachos}" title="#{msgs.lbl_cargar_despachos}"
+										actionListener="#{despachoClienteBean.cargarDespachosClienteReasignar}" update="tablaReasignarProducto">
+									</p:commandButton>
+									<p:commandButton value="#{msgs.btn_limpiar}" process="@this" actionListener="#{despachoClienteBean.reiniciarReasignar}"
+										update=":form:pGReasignar :form:tablaReasignarProducto" />
+								</center>
+							</f:facet>
+						</p:panel>
+					</h:panelGroup>
+					<h:panelGrid columns="3" cellpadding="2" columnClasses="alineacionSuperior,centrado, alineacionSuperior">
+						<p:panel id="panelOrigen" header="#{despachoClienteBean.despachoOrigen.numero}">
+							<p:commandButton value="#{msgs.btn_limpiar}" process="@this" actionListener="#{despachoClienteBean.limpiarOrigen}"
+								update="tablaDetalleReasignarProductoOrigen panelDespacho" />
+							<p:dataTable  filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleReasignarProductoOrigen" rowIndexVar="secuencial"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{despachoClienteBean.listaDetalleReasignarProductoOrigen}" var="_detalleDespachoOrigen"
+								binding="#{despachoClienteBean.dtDetalleReasignarProductoOrigen}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{despachoClienteBean.numeroFilas}" selection="#{despachoClienteBean.detalleReasignarProductoOrigen}"
+								rowKey="#{_detalleDespachoOrigen.idDetalleDespachoCliente}" rowsPerPageTemplate="#{despachoClienteBean.numeroFilasPorPagina}"
+								sortBy="#{_detalleDespachoOrigen.producto.nombre}" sortOrder="ASCENDING"
+								filteredValue="#{despachoClienteBean.listaDetalleReasignarProductoOrigenFiltros}">
+								<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+								<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleDespachoOrigen.producto.codigo}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_detalleDespachoOrigen.producto.codigo}" />
+								</p:column>
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}" filterBy="#{_detalleDespachoOrigen.producto.nombre}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_detalleDespachoOrigen.producto.nombre}" />
+								</p:column>
+								<p:column styleClass="tableCell columnaDTCantidad" headerText="#{msgs.lbl_cantidad}">
+									<h:outputText value="#{_detalleDespachoOrigen.cantidad}" />
+								</p:column>
+								<p:column styleClass="columnaDTAccion tableCell0" selectionMode="multiple" />
+							</p:dataTable>
+						</p:panel>
+						<h:panelGrid columns="1">
+							<p:commandButton process="@this :form:panelContenedor" icon="ui-icon-arrowthick-1-e" title="#{msgs.lbl_cargar_detalles}"
+								actionListener="#{despachoClienteBean.eliminarDetalleReasignarProductoOrigen}"
+								update="tablaDetalleReasignarProductoDestino tablaDetalleReasignarProductoOrigen">
+							</p:commandButton>
+							<p:commandButton process="@this :form:panelContenedor" icon="ui-icon-arrowthick-1-w" title="#{msgs.lbl_cargar_detalles}"
+								actionListener="#{despachoClienteBean.asignaDetalleDespachoDestino}"
+								update="tablaDetalleReasignarProductoDestino tablaDetalleReasignarProductoOrigen">
+							</p:commandButton>
+						</h:panelGrid>
+						<p:panel id="panelDestino" header="#{despachoClienteBean.despachoDestino.numero}">
+							<p:commandButton value="#{msgs.btn_limpiar}" process="@this" actionListener="#{despachoClienteBean.limpiarDestino}"
+								update=" tablaDetalleReasignarProductoDestino panelDespacho" />
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleReasignarProductoDestino" rowIndexVar="secuencial"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{despachoClienteBean.listaDetalleReasignarProductoDestino}"
+								var="_detalleDespachoDestino" binding="#{despachoClienteBean.dtDetalleReasignarProductoDestino}" paginator="true" paginatorPosition="bottom"
+								style="width:100%" rows="#{despachoClienteBean.numeroFilas}" selection="#{despachoClienteBean.detalleReasignarProductoDestino}"
+								rowKey="#{_detalleDespachoDestino.idDetalleDespachoCliente}" sortBy="#{_detalleDespachoDestino.producto.codigo}"
+								sortOrder="ASCENDING" rowsPerPageTemplate="#{empresaBean.numeroFilasPorPagina}">
+								
+								<p:column styleClass="columnaDTAccion tableCell0" selectionMode="multiple" />
+								<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+								
+								<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleDespachoDestino.producto.codigo}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_detalleDespachoDestino.producto.codigo}" />
+								</p:column>
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}" filterBy="#{_detalleDespachoDestino.producto.nombre}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_detalleDespachoDestino.producto.nombre}" />
+								</p:column>
+								<p:column styleClass="tableCell columnaDTCantidad" headerText="#{msgs.lbl_cantidad}">
+									<h:outputText value="#{_detalleDespachoDestino.cantidad}" />
+								</p:column>
+							</p:dataTable>
+						</p:panel>
+					</h:panelGrid>
+					<p:panel id="panelDespacho">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaReasignarProducto" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{despachoClienteBean.listaDespachoClienteReasignar}" var="_despachoClienteReasignar"
+							paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{despachoClienteBean.dtDespachoClienteReasignar}" rows="5"
+							selection="#{despachoClienteBean.despachoClienteReasignar}" rowsPerPageTemplate="#{despachoClienteBean.numeroFilasPorPagina}"
+							selectionMode="single" rowKey="#{_despachoClienteReasignar.id}" sortBy="#{_despachoClienteReasignar.numero}" sortOrder="DESCENDING">
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_despachoCliente.numero}" filterBy="#{_despachoClienteReasignar.numero}"
+								filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_despachoClienteReasignar.numero}" />
+							</p:column>
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_despachoClienteReasignar.descripcion}" />
+							</p:column>
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_orden_despacho}" />
+								</f:facet>
+								<h:outputText value="#{_despachoClienteReasignar.ordenDespachoCliente.numero}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton process="@this  "
+									icon="auditoria" title="#{msgs.btn_consultar}" oncomplete="dialogConsultaDetalleDespachoProducto.show();"
+									actionListener="#{despachoClienteBean.consultaDetallesDespachoClienteLista(_despachoClienteReasignar)}"
+									update=":form:tablaDetalleProductoConsulta">
+								</p:commandButton>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton id="btnOrigen" process="@this "
+									icon="ui-icon-arrowthick-1-w" title="#{msgs.lbl_cargar_detalles}" disabled="#{despachoClienteBean.cargaOrigen}"
+									actionListener="#{despachoClienteBean.cargarOrigen(_despachoClienteReasignar)}"
+									update=":form:panelOrigen tablaReasignarProducto">
+								</p:commandButton>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton id="btnDestino" process="@this "
+									icon="ui-icon-arrowthick-1-e" title="#{msgs.lbl_cargar_detalles}" disabled="#{despachoClienteBean.cargaDestino}"
+									actionListener="#{despachoClienteBean.cargarDestino(_despachoClienteReasignar)}"
+									update=":form:panelDestino tablaReasignarProducto">
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+						</p:panel>
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="Salir" process="@this" oncomplete="dialogReasignarProducto.hide()"
+								actionListener="#{despachoClienteBean.reiniciarReasignar}" update="txtClienteReasignar fechaReasignar tablaReasignarProducto tablaDetalleReasignarProductoOrigen tablaDetalleReasignarProductoDestino" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<!-- FIN DIALOG REASIGNAR DESPACHOS -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{despachoClienteBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_titulo_despacho_clientes})">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{despachoClienteBean}" />
+							<ui:param name="objetoActualizar" value=":form:panelDetalleDespacho" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:outputPanel id="panelErrores">
+							<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{despachoClienteBean.exContabilizacion.mensajes}" var="_mensaje"
+									rowIndexVar="secuencial">
+
+									<p:column headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="Error">
+										<h:outputText value="#{_mensaje}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:dialog>
+						</p:outputPanel>
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{despachoClienteBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{despachoClienteBean.despachoCliente.documento}" id="cboDocumento" required="true"
+									style="width:100%" disabled="#{despachoClienteBean.modoEdicion}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{despachoClienteBean.listaDocumentoDespacho}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax process="@this" update="txtNumero" event="change" global="false" listener="#{despachoClienteBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{despachoClienteBean.despachoCliente.numero}" id="txtNumero"
+									disabled="#{despachoClienteBean.modoEdicion or !despachoClienteBean.secuenciaEditable}"
+									mask="#{despachoClienteBean.despachoCliente.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{despachoClienteBean.formatoFecha}" showOn="button" navigator="true"
+									disabled="#{!despachoClienteBean.permitirFechaInventario}" value="#{despachoClienteBean.despachoCliente.fecha}" id="calFecha" required="true" />
+
+								<p:outputLabel for="txtCliente" value="#{msgs.lbl_cliente}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{despachoClienteBean.despachoCliente.empresa}"
+									completeMethod="#{despachoClienteBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+									forceSelection="true" dropdown="true" minQueryLength="2" disabled="#{despachoClienteBean.modoEdicion}" id="txtCliente" required="true">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{despachoClienteBean.actualizarCliente}" process="@this" event="itemSelect" global="false"
+										update="cboDireccionCliente,cboPedido,cboSubempresa" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_subcliente}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{despachoClienteBean.despachoCliente.subempresa}" id="cboSubempresa"
+									disabled="#{despachoClienteBean.modoEdicion}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{despachoClienteBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+										itemLabel="#{_subempresa.empresaFinal}" />
+									<p:ajax event="change" listener="#{despachoClienteBean.actualizarSubclienteListener}" process="@this" update="cboDireccionCliente,cboPedido"></p:ajax>
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboDireccionCliente" value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{despachoClienteBean.despachoCliente.direccionEmpresa}" id="cboDireccionCliente"
+									required="true" disabled="#{despachoClienteBean.modoEdicion}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{despachoClienteBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_pedido}:" rendered="#{empty despachoClienteBean.despachoCliente.facturaCliente}" />
+								<h:panelGroup rendered="#{empty despachoClienteBean.despachoCliente.facturaCliente}">
+									<p:selectOneMenu value="#{despachoClienteBean.despachoCliente.pedidoCliente}" id="cboPedido" disabled="#{despachoClienteBean.modoEdicion}">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{despachoClienteBean.listaPedidoCliente}" var="_pedidoCliente" itemLabel="#{_pedidoCliente.numero}"
+											itemValue="#{_pedidoCliente}" />
+
+										<p:ajax process="@this"
+											update=":form:panelDetalleDespacho :form:cboDireccionCliente #{p:component('txtDescripcion')} :form:cboSubempresa :form:panelProyecto :form:botonSaldosProyecto"
+											listener="#{despachoClienteBean.cargarDetallePedidoListener}" global="false" />
+									</p:selectOneMenu>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_responsable_salida_mercaderia}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+									value="#{despachoClienteBean.despachoCliente.responsableSalidaMercaderia}" completeMethod="#{despachoClienteBean.autocompletarResponsable}"
+									var="_responsableSalidaMercaderia" itemLabel="#{_responsableSalidaMercaderia.nombres} #{_responsableSalidaMercaderia.apellidos}"
+									itemValue="#{_responsableSalidaMercaderia}" forceSelection="true" dropdown="true" minQueryLength="2"
+									disabled="#{despachoClienteBean.modoEdicion}">
+
+									<p:column headerText="#{msgs.lbl_identificacion}">#{_responsableSalidaMercaderia.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_nombres}">#{_responsableSalidaMercaderia.nombres}</p:column>
+									<p:column headerText="#{msgs.lbl_apellidos}">#{_responsableSalidaMercaderia.apellidos}</p:column>
+
+									<p:ajax process="@this" event="itemSelect" global="false" />
+								</p:autoComplete>
+
+								<p:outputLabel for="autoProyecto:autoProyecto" rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_proyecto}:" />
+								<p:outputPanel id="panelProyecto">
+									<as2:autoCompletarProyecto value="#{despachoClienteBean.despachoCliente.proyecto}" update=":form:botonSaldosProyecto " required="true"
+										id="autoProyecto" />
+									<h:outputText rendered="#{!sesionControler.manejaProyectos}" value="#{msgs.lbl_descripcion}:" />
+								</p:outputPanel>
+
+								<h:outputText rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{despachoClienteBean.despachoCliente.descripcion}" id="txtDescripcion"
+									disabled="#{despachoClienteBean.modoEdicion}">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:panelGrid id="panelCargarArchivo" columns="2" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<h:outputText value="#{msgs.btn_cargar_texto}:" />
+								</h:panelGrid>
+								<h:panelGrid id="panelIngresarCodigo" columns="3">
+									<p:commandButton id="btnCargarTexto" title="#{msgs.btn_cargar_texto}" icon="ui-icon-bookmark" update="outputCargarTxt"
+										onclick="dlgCargarArchivoTexto.show()" process="@this" />
+
+									<h:outputText value="#{msgs.lbl_cargar_con_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{despachoClienteBean.codigoCabecera}" id="txtCodigoCabecera">
+										<p:ajax listener="#{despachoClienteBean.agregarDetalleDesdeCodigoCabecera}" process="@this"
+											update=":form:panelDetalleDespacho #{p:component('txtCodigoCabecera')}" event="change" global="false"
+											oncomplete="nextFocus('#{p:component('txtCodigoCabecera')}')" />
+									</p:inputText>
+								</h:panelGrid>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" width="100%">
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{despachoClienteBean.agregarDetalle}"
+										update=":form:panelDetalleDespacho" process="@this,:form:panelDetalleDespacho" icon="ui-icon-plus"
+										disabled="#{not empty despachoClienteBean.despachoCliente.facturaCliente}" />
+
+									<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button"
+										disabled="#{not empty despachoClienteBean.despachoCliente.facturaCliente}" />
+
+									<p:commandButton id="botonSaldosProyecto" rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_cargar_saldos_proyecto}"
+										icon="ui-icon-plus" action="#{despachoClienteBean.cargarSaldosProyecto()}" disabled="#{ empty despachoClienteBean.despachoCliente.proyecto}"
+										process="@this" update=":form:panelDetalleDespacho" />
+
+								</h:panelGroup>
+
+								<p:outputPanel id="panelDetalleDespacho">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{despachoClienteBean.listaDetalleDespachoCliente}"
+										id="tablaDetalleDespachoCLiente" rowIndexVar="secuencial" binding="#{despachoClienteBean.dtDetalleDespachoCliente}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleDespachoCliente" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_detalleDespachoCliente.id}" rows="#{despachoClienteBean.numeroFilas}"
+										rowsPerPageTemplate="#{despachoClienteBean.numeroFilasPorPagina}">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}">
+											<p:inputText value="#{_detalleDespachoCliente.producto.codigo}" id="txtCodigoProducto"
+												rendered="#{empty _detalleDespachoCliente.detalleFacturaCliente and empty _detalleDespachoCliente.detallePedidoCliente}"
+												disabled="#{_detalleDespachoCliente.id>0}">
+
+												<p:ajax listener="#{despachoClienteBean.actualizarProducto}" process="txtCodigoProducto" event="change" global="false"
+													oncomplete="nextFocus('#{p:component('txtCantidad')}')"
+													update="txtCodigoProducto,txtNombreProducto,txtUnidadProducto, :form:panelDetalleDespacho" />
+												<f:validateBean />
+											</p:inputText>
+
+											<h:outputText value="#{_detalleDespachoCliente.producto.codigo}"
+												rendered="#{not empty _detalleDespachoCliente.detalleFacturaCliente or not empty _detalleDespachoCliente.detallePedidoCliente}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="tableCell">
+											<h:outputText value="#{_detalleDespachoCliente.producto.nombre}" id="txtNombreProducto">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_venta}">
+											<h:outputText value="#{_detalleDespachoCliente.unidadVenta.nombre}" id="txtUnidadProducto">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTBodega tableCell" headerText="#{msgs.lbl_bodega}">
+											<p:selectOneMenu value="#{_detalleDespachoCliente.bodega}" id="cboBodega" required="true" disabled="#{_detalleDespachoCliente.id>0}"
+												rendered="#{_detalleDespachoCliente.producto.tipoProducto.nombre != 'Servicio'}">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{despachoClienteBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+												<f:validateBean />
+												<p:ajax process="@this" global="false" />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text100" value="#{_detalleDespachoCliente.descripcion}" id="txtDescripcion"
+												disabled="#{_detalleDespachoCliente.id>0}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_saldo}">
+											<h:outputText value="#{_detalleDespachoCliente.saldo}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+											<p:inputText value="#{_detalleDespachoCliente.cantidad}" id="txtCantidad" disabled="#{_detalleDespachoCliente.id>0}"
+												rendered="#{empty _detalleDespachoCliente.detalleFacturaCliente}" required="true">
+												<f:validateBean />
+												<p:ajax process="@this" event="change" global="flase" update=":form:panelDetalleDespacho"
+													oncomplete="nextFocus('#{p:component('txtCodigoProducto')}')" />
+											</p:inputText>
+
+											<h:outputText value="#{_detalleDespachoCliente.cantidad}" rendered="#{not empty _detalleDespachoCliente.detalleFacturaCliente}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_peso}" rendered="#{despachoClienteBean.indicadorManejoPeso}">
+											<p:inputText value="#{_detalleDespachoCliente.peso}" id="txtPeso"
+												rendered="#{empty _detalleDespachoCliente.detalleFacturaCliente and _detalleDespachoCliente.producto.indicadorManejoPeso}">
+												<f:validateBean />
+												<p:ajax process="@this" event="change" global="flase" update=":form:panelDetalleDespacho"
+													oncomplete="nextFocus('#{p:component('txtCodigoProducto')}')" />
+											</p:inputText>
+
+											<h:outputText value="#{_detalleDespachoCliente.peso}" rendered="#{not empty _detalleDespachoCliente.detalleFacturaCliente}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_pedido}" styleClass="tableCell">
+											<h:outputText
+												value="#{empty _detalleDespachoCliente.detallePedidoCliente ? '' : _detalleDespachoCliente.detallePedidoCliente.pedidoCliente.numero}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" headerText="#{msgs.lbl_lote}">
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" size="15"
+												value="#{_detalleDespachoCliente.inventarioProducto.lote}" completeMethod="#{despachoClienteBean.autocompletarLotes}" var="_lote"
+												itemLabel="#{_lote.codigo}" itemValue="#{_lote}" forceSelection="true" dropdown="false" minQueryLength="2"
+												required="#{_detalleDespachoCliente.producto.indicadorLote}" rendered="#{_detalleDespachoCliente.producto.indicadorLote}"
+												disabled="#{_detalleDespachoCliente.id>0}">
+
+												<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+												<p:ajax event="itemSelect" process="@this" update=":form:panelDetalleDespacho" />
+
+												<p:ajax event="itemSelect" process="@this" update=":form:panelDetalleDespacho" listener="#{despachoClienteBean.actualizarSaldo}" />
+											</p:autoComplete>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo1}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo1.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo1.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo2}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo2.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo2.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo3}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo3.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo3.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo4}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo4.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo4.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo5}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo5.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo5.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo6}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo6.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo6.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo7}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo7.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo7.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo8}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo8.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo8.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo9}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo9.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo9.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTLote tableCell" rendered="#{not empty despachoClienteBean.organizacionConfiguracion.atributo10}"
+											headerText="#{despachoClienteBean.organizacionConfiguracion.atributo10.nombre}">
+											<h:outputText value="#{_detalleDespachoCliente.inventarioProducto.lote.valorAtributo10.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_serie}">
+											<p:commandButton rendered="#{_detalleDespachoCliente.producto.indicadorSerie}" value="..." process="@this" partialSubmit="true"
+												id="btnSeries" actionListener="#{dialogoSerieProductoBean.abrirDialogo(_detalleDespachoCliente.inventarioProducto)}">
+
+												<p:ajax event="dialogReturn" oncomplete="nextFocus('#{p:component('btnSeries')}')" update="txtCantidad" />
+
+											</p:commandButton>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarDetalle" action="#{despachoClienteBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+												update=":form:panelDetalleDespacho" process="@this" disabled="#{_detalleDespachoCliente.id>0}" />
+										</p:column>
+
+										<p:columnGroup type="footer" id="panelTotal">
+											<p:row>
+												<p:column colspan="7" footerText="#{msgs.lbl_total}:" style="text-align:right">
+												</p:column>
+												<p:column footerText="#{despachoClienteBean.despachoCliente.total}" style="text-align:right" id="txtTotal" />
+												<p:column></p:column>
+												<p:column></p:column>
+												<p:column></p:column>
+											</p:row>
+										</p:columnGroup>
+									</p:dataTable>
+								</p:outputPanel>
+							</h:panelGrid>
+
+						</p:fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!despachoClienteBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_titulo_despacho_clientes})">
+						
+						<!-- Inicio Dialogo Factura -->
+						<p:outputPanel id="impr">
+							<tnt:panelImprimir entidadDestino="#{reporteFacturaClienteBean.facturaCliente}" bean="#{reporteFacturaClienteBean}"
+								entidadOrigen="#{despachoClienteBean.facturaDespacho}"></tnt:panelImprimir>
+						</p:outputPanel>
+
+
+
+						<p:outputPanel id="plDialogoListaFactura">
+							<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_factura_cliente}" id="dlgListaFacturaDespacho" widgetVar="dialogListaFacturaDespacho"
+								height="350" width="600" closable="true">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturasDespacho" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{despachoClienteBean.listaFacturaDespacho}" var="_facturaDespacho" paginator="true"
+									paginatorPosition="bottom" style="width:100%" rows="#{despachoClienteBean.numeroFilas}" selection="#{despachoClienteBean.facturaDespacho}"
+									selectionMode="single" rowKey="#{_facturaDespacho.idFacturaCliente}" sortBy="#{_facturaDespacho.numero}" sortOrder="ASCENDING"
+									rowsPerPageTemplate="#{empresaBean.numeroFilasPorPagina}" binding="#{despachoClienteBean.dtFacturaDespacho}">
+
+									<p:column headerText="#{msgs.lbl_factura}" styleClass="columnaDTNombreLargo tableCell">
+										<h:link target="_blank" outcome="/paginas/ventas/procesos/facturaCliente" includeViewParams="true" value="#{_facturaDespacho.numero}">
+											<!-- <f:param name="numero" value="#{_notaCreditoCliente.facturaClientePadre.numero}" /> -->
+											<f:param name="idFacturaCliente" value="#{_facturaDespacho.idFacturaCliente}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre}">
+										<h:outputText value="#{_facturaDespacho.empresa.nombreFiscal}" />
+									</p:column>
+
+									<p:column styleClass="tableCell0">
+										<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+											<p:ajax listener="#{despachoClienteBean.facturaDespachoImprimir}" update=":form:tablaFacturasDespacho"></p:ajax>
+										</p:commandButton>
+									</p:column>
+
+								</p:dataTable>
+							</p:dialog>
+						</p:outputPanel>
+						<!-- Fin Dialogo Factura -->
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDespachoCliente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{despachoClienteBean.listaDespachoCliente}" var="_despachoCliente" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{despachoClienteBean.dtDespachoCliente}" rows="#{despachoClienteBean.numeroFilas}"
+							selection="#{despachoClienteBean.despachoCliente}" rowsPerPageTemplate="#{despachoClienteBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_despachoCliente.id}" sortBy="#{_despachoCliente.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_despachoCliente.numero}" filterBy="#{_despachoCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_despachoCliente.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_despachoCliente.fecha}">
+								<h:outputText value="#{_despachoCliente.fecha}">
+									<f:convertDateTime pattern="#{despachoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_despachoCliente.empresa.nombreFiscal}" filterBy="#{_despachoCliente.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+
+								<h:outputText value="#{_despachoCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_despachoCliente.pedidoCliente.numero}"
+								filterBy="#{_despachoCliente.pedidoCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pedido}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _despachoCliente.pedidoCliente}" target="_blank" outcome="/paginas/ventas/procesos/pedidoCliente"
+									value="#{_despachoCliente.pedidoCliente.numero}" includeViewParams="true">
+									<f:param name="idPedidoCliente" value="#{_despachoCliente.pedidoCliente.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroFactura" sortBy="#{_despachoCliente.asiento.numero}"
+								filterBy="#{_despachoCliente.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _despachoCliente.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_despachoCliente.asiento.numero}">
+									<f:param name="tipoAsiento" value="#{_despachoCliente.asiento.tipoAsiento.nombre}" />
+									<f:param name="idAsiento" value="#{_despachoCliente.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" sortBy="#{_despachoCliente.indicadorGeneradoPrefactura}"
+								filterBy="#{_despachoCliente.indicadorGeneradoPrefactura}" filterOptions="#{despachoClienteBean.listaActivoItem}"
+								rendered="#{despachoClienteBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_prefactura}" />
+								</f:facet>
+								<h:selectBooleanCheckbox value="#{_despachoCliente.indicadorGeneradoPrefactura}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_despachoCliente.prefacturaCliente.numero}"
+								filterBy="#{_despachoCliente.prefacturaCliente.numero}" rendered="#{despachoClienteBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_prefactura}" />
+								</f:facet>
+
+								<h:outputText rendered="#{_despachoCliente.indicadorGeneradoPrefactura == true}" value="#{_despachoCliente.prefacturaCliente.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_guia_remision}" sortBy="#{_despachoCliente.fecha}"
+								filterBy="#{_despachoCliente.guiaRemision.numero}">
+								<h:outputText value="#{_despachoCliente.guiaRemision.numero}">
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_despachoCliente.estado}" filterBy="#{_despachoCliente.estado}"
+								filterOptions="#{despachoClienteBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_despachoCliente.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_anulacion}" sortBy="#{_despachoCliente.fechaAnulacion}">
+								<h:outputText value="#{_despachoCliente.fechaAnulacion}">
+									<f:convertDateTime pattern="#{despachoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell" rendered="#{sesionControler.manejaProyectos}" filterBy="#{_despachoCliente.proyecto.nombre}"
+								sortBy="#{_despachoCliente.proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proyecto}" />
+								</f:facet>
+								<h:outputText value="#{_despachoCliente.proyecto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_despachoCliente.descripcion}" filterBy="#{_despachoCliente.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<p:inputTextarea value="#{_despachoCliente.descripcion}" rows="1" readonly="true" styleClass="input-text">
+								</p:inputTextarea>
+							</p:column>
+
+							<p:column sortBy="#{_despachoCliente.guiaRemision.mensajeSRI}" filterBy="#{_despachoCliente.guiaRemision.mensajeSRI}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado } SRI" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_despachoCliente.guiaRemision.mensajeSRI}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="" />
+								</f:facet>
+
+								<h:link target="_blank" outcome="/paginas/ventas/procesos/facturaCliente" includeViewParams="true" value="#{msgs.lbl_facturar}"
+									rendered="#{_despachoCliente.estado!='ANULADO' and !_despachoCliente.indicadorGeneradoFactura}">
+									<f:param name="idDespachoCliente" value="#{_despachoCliente.id}" />
+								</h:link>
+
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton process="@this" value="#{msgs.lbl_factura}" title="#{msgs.lbl_factura}" oncomplete="dialogListaFacturaDespacho.show();"
+									update=":form:plDialogoListaFactura" actionListener="#{despachoClienteBean.cargarListaFacturaDespacho}">
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{despachoClienteBean.despachoCliente}" value="#{_despachoCliente}" bean="#{despachoClienteBean}"
+									formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado" visible="#{_despachoCliente.pdf!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{despachoClienteBean.despachoCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{despachoClienteBean.despachoCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{despachoClienteBean.despachoCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{despachoClienteBean.despachoCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

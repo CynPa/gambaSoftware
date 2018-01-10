@@ -1,0 +1,220 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{visualizacionBean}">
+					<as2:buttonEliminar bean="#{visualizacionBean}" titulo="#{msg.btn_eliminar}">
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{visualizacionBean.visualizacion.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{visualizacionBean}" tabla=":form:tablaVisualizacion" />
+				</as2:toolBar>
+
+				<p:outputPanel>
+					<!-- PANEL CATEGORIA/SUBCATEGORIA PRODUCTO -->
+					<p:dialog header="#{msgs.lbl_categoria_subcategoria_panel}" widgetVar="dglAgregarDetalle" modal="true" height="100" width="800"
+						showEffect="slide" hideEffect="slide">
+
+						<p:outputPanel id="panelDatosCategoriaSubcategoria">
+							<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+
+								<p:outputLabel value="#{msgs.lbl_subcategoria_producto_categoriaProducto}:" />
+								<p:autoComplete styleClass="input-text" id="cboCategoriaProducto" value="#{visualizacionBean.categoriaProductoSeleccionada}"
+									completeMethod="#{visualizacionBean.autocompleatarCategoriaProducto}" var="_vcp" itemLabel="#{_vcp.nombre}" itemValue="#{_vcp}"
+									dropdown="true" forceSelection="true" minQueryLength="2" required="true">
+
+									<p:column headerText="#{msgs.lbl_codigo_producto}">#{_vcp.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">#{_vcp.nombre}</p:column>
+
+									<p:ajax process="@this" global="false" event="itemSelect" update="cboSubcategoriaProducto" />
+									<f:validateBean />
+								</p:autoComplete>
+
+								<p:outputLabel value="#{msgs.lbl_producto_subcategoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+									value="#{visualizacionBean.subcategoriaProducto}" completeMethod="#{visualizacionBean.autocompletarSubcategoriaProducto}" var="_vscp"
+									itemLabel="#{_vscp.nombre}" itemValue="#{_vscp}" dropdown="true" minQueryLength="2">
+
+									<p:column headerText="#{msgs.lbl_codigo_producto}">#{_vscp.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">#{_vscp.nombre}</p:column>
+
+								</p:autoComplete>
+
+							</h:panelGrid>
+						</p:outputPanel>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_aceptar}" action="#{visualizacionBean.cargarDetalleVisualizacion}"
+									process="@this,panelDatosCategoriaSubcategoria" update=":form:tvDetalleVisualizacion:panelDetallesFiltro"
+									oncomplete="validacionesModal(xhr, status, args, dglAgregarDetalle)" />
+							</center>
+						</f:facet>
+					</p:dialog>
+					<!-- FIN PANEL CATEGORIA/SUBCATEGORIA PRODUCTO -->
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_visualizacion_producto}" rendered="#{visualizacionBean.editado}">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+								<h:panelGrid id="panelDetalle" columns="#{visualizacionBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{visualizacionBean.visualizacion.codigo}" id="txtCodigo" required="true">
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{visualizacionBean.visualizacion.nombre}" id="txtNombre" required="true" size="50"
+										maxlength="50">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{visualizacionBean.visualizacion.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{visualizacionBean.visualizacion.predeterminado}" />
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{visualizacionBean.visualizacion.descripcion}" id="txtDescripcion" size="100"
+										maxlength="200">
+										<f:validateBean />
+									</p:inputTextarea>
+								</h:panelGrid>
+
+							</p:fieldset>
+
+							<p:spacer width="2px" />
+
+							<p:tabView cache="true" dynamic="false" id="tvDetalleVisualizacion">
+
+								<p:tab title="#{msgs.lbl_filtros_producto}" id="tabFiltrosProductos">
+
+									<p:outputPanel id="panelDetallesFiltro">
+
+										<h:panelGrid columns="1" id="panelSubcategoriaProducto" width="100%">
+
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" icon="ui-icon-plus" oncomplete="dglAgregarDetalle.show();"
+												process="@this" update=":form:panelDatosCategoriaSubcategoria" actionListener="#{visualizacionBean.limpiarCombos}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSubcategoriaProducto" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}" value="#{visualizacionBean.listaDetalleVisualizacion}"
+												binding="#{visualizacionBean.dtDetalleVisualizacion}" var="_dvu" paginator="false" style="width:100%"
+												rows="#{visualizacionBean.numeroFilas}" rowsPerPageTemplate="#{visualizacionBean.numeroFilasPorPagina}" lazy="true">
+
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_filtros}" />
+												</f:facet>
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_categoria_producto}" styleClass="columnaDTNombre tableCell" >
+													<h:outputText value="#{_dvu.categoriaProducto.nombre}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_producto_subcategoria_producto}" styleClass="tableCell" >
+													<h:outputText value="#{_dvu.subcategoriaProducto.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion">
+													<p:commandButton id="btnEliminarSubcategoria" action="#{visualizacionBean.eliminarDetalle(_dvu)}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tvDetalleVisualizacion:panelDetallesFiltro" process="@this" />
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+
+								</p:tab>
+
+							</p:tabView>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_visualizacion_producto}" rendered="#{!visualizacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaVisualizacion" rowIndexVar="secuencialVisualizacion"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{visualizacionBean.listaVisualizacion}" var="_visualizacionUsuario" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{visualizacionBean.dataTableVisualizacion}" rows="#{visualizacionBean.numeroFilas}"
+							selection="#{visualizacionBean.visualizacion}" rowsPerPageTemplate="#{visualizacionBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_visualizacionUsuario.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialVisualizacion+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_visualizacionUsuario.codigo}" filterBy="#{_visualizacionUsuario.codigo}" styleClass="columnaDTUnidad">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_visualizacionUsuario.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_visualizacionUsuario.nombre}" filterBy="#{_visualizacionUsuario.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_visualizacionUsuario.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_visualizacionUsuario.activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_visualizacionUsuario.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_predeterminado}" styleClass="columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_visualizacionUsuario.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_visualizacionUsuario.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{visualizacionBean.visualizacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{visualizacionBean.visualizacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{visualizacionBean.visualizacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{visualizacionBean.visualizacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

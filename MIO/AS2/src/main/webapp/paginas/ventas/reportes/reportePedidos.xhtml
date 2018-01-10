@@ -1,0 +1,77 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_pedidos}">
+			
+			<ui:include src="/template/listaProducto.xhtml">
+					<ui:param name="bean" value="#{reportePedidosBean}" />
+					<ui:param name="objetoActualizar" value="#{p:component('lblProducto')}" />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+			</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reportePedidosBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid id="panelCabecera"
+							columns="#{reporteAsistenciaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reportePedidosBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reportePedidosBean.fechaDesde}" id="calFechaDesde" required="true">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reportePedidosBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reportePedidosBean.fechaHasta}" id="calFechaHasta" required="true">
+							</p:calendar>
+							
+							<h:outputText value="#{msgs.lbl_nombre_producto}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." onclick="dglModalProducto.show();" type="button"  />
+								<h:outputText id="lblProducto"
+									value="#{reportePedidosBean.producto.codigo} #{reportePedidosBean.producto.nombreComercial}" />
+							</h:panelGroup>
+							
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente" value="#{reportePedidosBean.empresa}"
+								completeMethod="#{reportePedidosBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+								itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+							</p:autoComplete>
+							
+					
+							
+							<h:outputText value="#{msgs.lbl_estado_elaborado}:" />
+							<p:selectBooleanCheckbox value="#{reportePedidosBean.indicadorElaborado}" />
+							
+							<h:outputText value="#{msgs.lbl_pedidos_vs_stock}:" />
+							<p:selectBooleanCheckbox value="#{reportePedidosBean.indicadorResumen}" />
+							
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

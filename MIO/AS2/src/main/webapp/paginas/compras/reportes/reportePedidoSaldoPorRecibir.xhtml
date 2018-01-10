@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_pedido_saldo_por_recibir}">
+			
+				<tnt:panelImprimir entidadDestino="" bean="#{reportePedidoSaldoPorRecibirBean}" entidadOrigen="" />
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" style="width:100%" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reportePedidoSaldoPorRecibirBean.formatoFecha}" showOn="button"
+								navigator="true"
+								value="#{reportePedidoSaldoPorRecibirBean.fechaDesde}"
+								id="calFechaDesde" required="true" />
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reportePedidoSaldoPorRecibirBean.formatoFecha}" showOn="button"
+								navigator="true"
+								value="#{reportePedidoSaldoPorRecibirBean.fechaHasta}"
+								id="calFechaHasta" required="true" />
+								
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}" />
+							<p:selectOneMenu value="#{reportePedidoSaldoPorRecibirBean.categoriaProductoSeleccionado}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePedidoSaldoPorRecibirBean.listaCategoriaProductos}" var="_categoriaProducto"
+									itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+								<p:ajax process="@this" listener="#{reportePedidoSaldoPorRecibirBean.cargarListaSubcategoriaProducto}" update="cboSubcategoriaProducto" />
+							</p:selectOneMenu>
+
+
+							<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}" />
+							<p:selectOneMenu value="#{reportePedidoSaldoPorRecibirBean.subcategoriaProductoSeleccionado}" id="cboSubcategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePedidoSaldoPorRecibirBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+								
+								
+							<h:outputText value="#{msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="cboProveedor" styleClass="input-text"
+								value="#{reportePedidoSaldoPorRecibirBean.empresa}"
+								completeMethod="#{reportePedidoSaldoPorRecibirBean.empresaBean.autocompletarProveedores}"
+								var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+								itemValue="#{_proveedor}" forceSelection="true" size="50"
+								dropdown="true" minQueryLength="2">
+
+								<p:column>#{_proveedor.identificacion}</p:column>
+								<p:column>#{_proveedor.nombreFiscal}</p:column>
+								<p:column>#{_proveedor.nombreComercial}</p:column>
+							</p:autoComplete>
+							
+							<h:outputText value="#{msgs.lbl_solo_pendientes}:" />
+							<p:selectBooleanCheckbox value="#{reportePedidoSaldoPorRecibirBean.soloPendientes}" id="ckFiltroPendientes"/>
+							
+							<p:outputLabel for="cboSeleccionReporte" value="#{msgs.lbl_seleccione_reporte}" />
+							<p:selectOneMenu value="#{reportePedidoSaldoPorRecibirBean.tipoReporte}" required="true" id="cboSeleccionReporte">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePedidoSaldoPorRecibirBean.listaTipoReporte}"  />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+					
+					<p:separator />
+				
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this :form:cboProveedor :form:ckFiltroPendientes calFechaHasta calFechaDesde" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+					
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

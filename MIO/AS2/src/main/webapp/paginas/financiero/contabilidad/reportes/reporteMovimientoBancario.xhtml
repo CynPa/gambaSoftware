@@ -1,0 +1,228 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<tnt:panelImprimir entidadDestino="" bean="#{reporteMovimientoBancarioBean}" entidadOrigen=""></tnt:panelImprimir>
+
+			<ui:include src="/template/barraReportes.xhtml">
+				<ui:param name="bean" value="#{reporteMovimientoBancarioBean}" />
+				<ui:param name="btnImprimir" value="true" />
+				<ui:param name="tabla" value=":form:tablaMovimientoBancario" />
+				<ui:param name="columnasAExcluir" value="" />
+				<ui:param name="columnasAExcluirPdf" value="" />
+			</ui:include>
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_movimiento_bancario}">
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteMovimientoBancarioBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteMovimientoBancarioBean.fechaDesde}" id="calFechaDesde">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaHasta"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaHasta"></p:ajax>-->
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteMovimientoBancarioBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteMovimientoBancarioBean.fechaHasta}" id="calFechaHasta">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaDesde"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaDesde"></p:ajax>-->
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_cuenta_bancaria}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion"
+								value="#{reporteMovimientoBancarioBean.idCuentaBancariaOrganizacion}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteMovimientoBancarioBean.listaCuentaBancariaOrganizacionCombo}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" listener="#{reporteMovimientoBancarioBean.actualizarFormaPago}" update="cboFormaPago" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboFormaPago" value="#{reporteMovimientoBancarioBean.idFormaPago}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteMovimientoBancarioBean.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+									itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago.idFormaPago}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_concepto_contable}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCompleteConceptocontable"
+								value="#{reporteMovimientoBancarioBean.conceptoContable}" completeMethod="#{reporteMovimientoBancarioBean.autocompletarConceptoContable}"
+								var="_conceptoContable" itemLabel="#{_conceptoContable.nombre}" itemValue="#{_conceptoContable}" forceSelection="true" size="50"
+								dropdown="true" minQueryLength="2">
+
+								<p:column>#{_conceptoContable.codigo}</p:column>
+								<p:column>#{_conceptoContable.nombre}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_indicador_anulados}:" />
+							<p:selectBooleanCheckbox value="#{reporteMovimientoBancarioBean.indicadorEstado}" />
+
+							<h:outputText value="#{msgs.lbl_girados_no_cobrados}:" />
+							<p:selectBooleanCheckbox value="#{reporteMovimientoBancarioBean.giradosNocobrados}" />
+
+							<h:outputText value="#{msgs.lbl_tipo}:" />
+							<p:selectOneMenu value="#{reporteMovimientoBancarioBean.tipoReporte}" id="cboTipoReporte">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteMovimientoBancarioBean.listaTipoReporte}" var="_tipoReporte" itemLabel="#{_tipoReporte.label}"
+									itemValue="#{_tipoReporte.value}">
+								</f:selectItems>
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+				</p:outputPanel>
+
+				<p:panel header="#{msgs.lbl_reporte}">
+					<p:outputPanel id="panelConsulta">
+						<h:panelGrid columns="1" width="100%">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{reporteMovimientoBancarioBean.listaMovimientoBancario}"
+								id="tablaMovimientoBancario" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_movimientoBancario" paginator="true"
+								binding="#{reporteMovimientoBancarioBean.dtMovimientoBancario}" rows="#{reporteMovimientoBancarioBean.numeroFilasReporte}"
+								paginatorPosition="bottom" style="width:100%" rowsPerPageTemplate="#{reporteMovimientoBancarioBean.numeroFilasPorPagina}"
+								sortBy="#{_movimientoBancario.fecha}" sortOrder="DESCENDING">
+
+								<p:column headerText="Nº" styleClass="columnaDTActivo tableCell">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column filterBy="#{_movimientoBancario.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}"
+									sortBy="#{_movimientoBancario.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" styleClass="columnaDTNombre tableCell"
+									filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_banco}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.cuentaBancariaOrganizacion.cuentaBancaria.banco.nombre}" />
+								</p:column>
+
+								<p:column filterBy="#{_movimientoBancario.cuentaBancariaOrganizacion.cuentaBancaria.numero}"
+									sortBy="#{_movimientoBancario.cuentaBancariaOrganizacion.cuentaBancaria.numero}" styleClass="columnaDTNombreCorto tableCell"
+									filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_numero_cuenta_bancaria}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.cuentaBancariaOrganizacion.cuentaBancaria.numero}" />
+								</p:column>
+
+								<p:column sortBy="#{_movimientoBancario.fecha}" styleClass="columnaDTFecha tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_fecha}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.fecha}">
+										<f:convertDateTime pattern="#{reporteMovimientoBancarioBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column filterBy="#{_movimientoBancario.formaPago.nombre}" sortBy="#{_movimientoBancario.formaPago.nombre}"
+									styleClass="columnaDTNombre tableCell" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_forma_pago}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.formaPago.nombre}" />
+								</p:column>
+
+								<p:column sortBy="#{_movimientoBancario.documentoReferencia}" filterBy="#{_movimientoBancario.documentoReferencia}"
+									styleClass="columnaDTNombreCorto NumeroDocumento tableCell" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_documento_referencia}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.documentoReferencia}" />
+								</p:column>
+
+								<p:column sortBy="#{_movimientoBancario.beneficiario}" filterBy="#{_movimientoBancario.beneficiario}" styleClass="columnaDTNombre tableCell"
+									filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_beneficiario}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.beneficiario}" />
+								</p:column>
+
+								<p:column sortBy="#{_movimientoBancario.detalleAsiento.debe}" styleClass="columnaDTValorGrande input-text-number tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_valor_cobrado}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.detalleAsiento.debe}" rendered="#{_movimientoBancario.detalleAsiento.debe>0}">
+										<f:convertNumber pattern="#{reporteMovimientoBancarioBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column sortBy="#{_movimientoBancario.detalleAsiento.haber}" styleClass="columnaDTValorGrande input-text-number tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_valor_pagado}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.detalleAsiento.haber}" rendered="#{_movimientoBancario.detalleAsiento.haber>0}">
+										<f:convertNumber pattern="#{reporteMovimientoBancarioBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column sortBy="#{_movimientoBancario.estado.nombre}" styleClass="columnaDTEstado tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_estado}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.estado.nombre}" />
+								</p:column>
+
+								<p:column filterBy="#{_movimientoBancario.detalleAsiento.asiento.numero}" sortBy="#{_movimientoBancario.detalleAsiento.asiento.numero}"
+									styleClass="columnaDTNombreCorto tableCell" filterMatchMode="contains">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_asiento}" />
+									</f:facet>
+									<h:link rendered="#{not empty _movimientoBancario.detalleAsiento.asiento}" target="_blank"
+										outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+										value="#{_movimientoBancario.detalleAsiento.asiento.numero}">
+										<f:param name="idAsiento" value="#{_movimientoBancario.detalleAsiento.asiento.idAsiento}" />
+									</h:link>
+								</p:column>
+
+								<p:column styleClass="tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_descripcion}" />
+									</f:facet>
+									<h:outputText value="#{_movimientoBancario.detalleAsiento.descripcion}" />
+								</p:column>
+
+								<p:columnGroup type="footer">
+									<p:row>
+										<p:column colspan="7" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+										<p:column>
+											<f:facet name="footer" colspan="10" style="text-align:right">
+												<h:outputText value="#{reporteMovimientoBancarioBean.debe}">
+													<f:convertNumber pattern="#{reporteMovimientoBancarioBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+
+										<p:column>
+											<f:facet name="footer" colspan="10" style="text-align:right">
+												<h:outputText value="#{reporteMovimientoBancarioBean.haber}">
+													<f:convertNumber pattern="#{reporteMovimientoBancarioBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+
+										<p:column />
+										<p:column />
+									</p:row>
+								</p:columnGroup>
+							</p:dataTable>
+						</h:panelGrid>
+
+					</p:outputPanel>
+				</p:panel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

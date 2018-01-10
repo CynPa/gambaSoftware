@@ -1,0 +1,161 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{entregaChequeBean}">
+				<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{entregaChequeBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{entregaChequeBean.movimientoBancario.detalleAsiento.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>	
+					<as2:buttonExportaExcel bean="#{entregaChequeBean}" tabla=":form:tablaCheque" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+				</p:outputPanel>
+
+				<!-- Inicio Dialog Cambiar Estado -->
+				<p:dialog header="#{msgs.lbl_cambiar_estado}" widgetVar="cambiarEstadoDialog" modal="true" height="150" width="400" showEffect="slide"
+					hideEffect="slide" resizable="false">
+					<p:outputPanel id="panelCambiarEstado">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<p:outputLabel for="cboEstadoCheque" value="#{msgs.lbl_estado_cheque}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{entregaChequeBean.estadoCheque}" id="cboEstadoCheque"
+								required="#{entregaChequeBean.validarEstadoCheque}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{entregaChequeBean.listaEstadoCheque}" var="_estadoCheque" itemLabel="#{_estadoCheque.nombre}"
+									itemValue="#{_estadoCheque}" />
+								<f:validateBean />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtObservacion" value="#{msgs.lbl_observacion}:" />
+							<p:inputText styleClass="input-text" id="txtObservacion" value="#{entregaChequeBean.observacionCambioEstado}" />
+						</h:panelGrid>
+					</p:outputPanel>
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" actionListener="#{entregaChequeBean.cambiarEstado}" process="@this panelCambiarEstado"
+								oncomplete="cambiarEstadoDialog.hide()" update=":form:panelListado" icon="ui-icon-plus" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<!-- Fin Dialog Cambiar Estado -->
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_entrega_cheques_panel}" rendered="#{!entregaChequeBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCheque" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{entregaChequeBean.listaCheque}" var="_cheque" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{entregaChequeBean.dtMovimientoBancario}" rows="#{entregaChequeBean.numeroFilas}" selection="#{entregaChequeBean.movimientoBancario}"
+							rowsPerPageTemplate="#{entregaChequeBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_cheque.id}" sortBy="#{_cheque.fecha}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:ajax process="@this" partialSubmit="true" global="false" event="rowToggle" listener="#{entregaChequeBean.cargarEstadosCheque}"
+								update=":form:tablaCheque:outListaEstadoChequeMI" />
+
+							<p:column style="width:16px" exportable="false">
+								<p:rowToggler />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_cheque.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_cheque.fecha}">
+									<f:convertDateTime pattern="#{entregaChequeBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_cheque.detalleAsiento.asiento.numero}"
+								filterBy="#{_cheque.detalleAsiento.asiento.numero}" filterMatchMode="contains">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_egreso}" />
+								</f:facet>
+								<h:link rendered="#{not empty _cheque.detalleAsiento.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_cheque.detalleAsiento.asiento.numero}">
+									<f:param name="idAsiento" value="#{_cheque.detalleAsiento.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_cheque.documentoReferencia}" filterBy="#{_cheque.documentoReferencia}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cheque}" />
+								</f:facet>
+								<h:outputText value="#{_cheque.documentoReferencia}" />
+							</p:column>
+
+							<p:column sortBy="#{_cheque.beneficiario}" filterBy="#{_cheque.beneficiario}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_beneficiario}" />
+								</f:facet>
+								<h:outputText value="#{_cheque.beneficiario}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor" sortBy="#{_cheque.valor}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_cheque.valor >= 0 ? _cheque.valor : -(_cheque.valor)}">
+									<f:convertNumber pattern="#{entregaChequeBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_cheque.detalleAsiento.asiento.documentoReferencia}"
+								filterBy="#{_cheque.detalleAsiento.asiento.documentoReferencia}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_referencia}" />
+								</f:facet>
+								<h:outputText value="#{_cheque.detalleAsiento.asiento.documentoReferencia}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_cheque.estadoCheque.nombre}" filterBy="#{_cheque.estadoCheque.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado_cheque}" />
+								</f:facet>
+								<h:outputText value="#{_cheque.estadoCheque.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cambiar_estado}" />
+								</f:facet>
+								<center>
+									<p:commandButton id="btnCambiarEstado" title="#{msgs.lbl_cambiar_estado}" icon="ui-icon-document"
+										action="#{entregaChequeBean.seleccionarMovimientoBancario}" update=":form:panelCambiarEstado" oncomplete="cambiarEstadoDialog.show()"
+										process="@this :form:panelListado" partialSubmit="true">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+							<p:rowExpansion>
+								<ui:include src="/template/listaEstadoChequeMovimientoInventario.xhtml">
+									<ui:param name="bean" value="#{entregaChequeBean}" />
+								</ui:include>
+							</p:rowExpansion>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{entregaChequeBean.movimientoBancario.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{entregaChequeBean.movimientoBancario.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{entregaChequeBean.movimientoBancario.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{entregaChequeBean.movimientoBancario.usuarioModificacion}" />
+				</ui:include>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

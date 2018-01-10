@@ -1,0 +1,275 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{aprobacionSolicitudCompraBean}">
+
+					<as2:buttonImprimir id="btnImprimirSolicitudCompra" beanReporte="#{reporteSolicitudCompraBean}" bean="#{aprobacionSolicitudCompraBean}"
+						target="#{reporteSolicitudCompraBean.solicitudCompra}" value="#{aprobacionSolicitudCompraBean.solicitudCompra}" />
+
+					<as2:buttonEnviarMail id="btnEnviarMail" bean="#{aprobacionSolicitudCompraBean}" />
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_solicitud_compra})" rendered="#{aprobacionSolicitudCompraBean.editado}">
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{aprobacionSolicitudCompraBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<h:outputText styleClass="input-text" value="#{aprobacionSolicitudCompraBean.solicitudCompra.sucursal}" />
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<h:outputText styleClass="input-text" value="#{aprobacionSolicitudCompraBean.solicitudCompra.documento}" />
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<h:outputText styleClass="input-text" value="#{aprobacionSolicitudCompraBean.solicitudCompra.numero}" />
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:outputText id="txtEmpleado"
+									value="#{aprobacionSolicitudCompraBean.solicitudCompra.empleado.apellidos} #{aprobacionSolicitudCompraBean.solicitudCompra.empleado.nombres}" />
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{aprobacionSolicitudCompraBean.formatoFecha}" showOn="button" navigator="true" disabled="true"
+									value="#{aprobacionSolicitudCompraBean.solicitudCompra.fecha}" id="calFecha">
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<h:outputText styleClass="input-text" value="#{aprobacionSolicitudCompraBean.solicitudCompra.descripcion}" />
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:outputPanel id="panelDetalleSolicitudCompra">
+
+							<h:panelGrid columns="1" style="width:100%" border="0">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobacionSolicitudCompraBean.listaDetalleSolicitudCompra}"
+									id="tablaDetalleSolicitudCompra" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePedidoProveedor"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detallePedidoProveedor.id}"
+									rows="#{aprobacionSolicitudCompraBean.numeroFilas}" rowsPerPageTemplate="#{aprobacionSolicitudCompraBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+										<h:outputText value="#{_detallePedidoProveedor.producto.codigo}" id="txtCodigoProducto" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+										<h:outputText value="#{_detallePedidoProveedor.producto.nombre}" id="txtNombreProducto" />
+									</p:column>
+
+									<p:column styleClass="columnaDTUnidad tableCell">
+										<f:facet name="header">
+											<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_unidad_compra}" />
+										</f:facet>
+
+										<h:outputText value="#{_detallePedidoProveedor.unidadCompra.nombre}" id="txtUnidadCompraProducto" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+										<h:outputText value="#{_detallePedidoProveedor.cantidadOriginal}" id="txtCantidad" size="10" />
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+										<h:outputText styleClass="input-text" value="#{_detallePedidoProveedor.descripcion}" id="txtDescripcion" />
+									</p:column>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<!-- inicio dialogo reversarAprobacion solicitud -->
+					<p:dialog header="#{msgs.lbl_reversarAprobacion}" id="dlgReversarAprobacionSolicitudCompra" widgetVar="dialogReversarAprobacionSolicitudCompra" height="30" width="200"
+						closable="true">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<p:outputLabel value="#{msgs.lbl_solicitud_compra}:" />
+							<p:outputLabel value="#{aprobacionSolicitudCompraBean.solicitudCompra.numero}" />
+						</h:panelGrid>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton process="@this" value="#{msgs.lbl_reversarAprobacion}" update=":form:tablaSolicitudCompra"
+									oncomplete="PF('dialogReversarAprobacionSolicitudCompra').hide();"
+									action="#{aprobacionSolicitudCompraBean.reversarAprobacionSolicitudCompra}">
+								</p:commandButton>
+								<p:commandButton value="#{msgs.btn_cancelar}" process="@this" update="@none" oncomplete="PF('dialogReversarAprobacionSolicitudCompra').hide();" />
+							</center>
+						</f:facet>
+					</p:dialog>
+					<!-- fin dialogo reversarAprobacion solicitud -->
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_solicitud_compra})" rendered="#{!aprobacionSolicitudCompraBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSolicitudCompra" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobacionSolicitudCompraBean.listaSolicitudCompra}" var="_solicitudCompra" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{aprobacionSolicitudCompraBean.dtSolicitudCompra}"
+							rows="#{pedidoProveedorBean.numeroFilas}" rowsPerPageTemplate="#{pedidoProveedorBean.numeroFilasPorPagina}"
+							selection="#{aprobacionSolicitudCompraBean.solicitudCompra}" selectionMode="single" rowKey="#{_solicitudCompra.id}"
+							sortBy="#{_solicitudCompra.idSolicitudCompra}" sortOrder="DESCENDING" lazy="true">
+
+							<p:ajax process="@this" partialSubmit="true" global="false" event="rowToggle" listener="#{aprobacionSolicitudCompraBean.cargarDetallesListado}"
+								update=":form:tablaSolicitudCompra:outListaDetallesSolicitud" />
+
+							<p:column style="width:16px">
+								<p:rowToggler />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_solicitudCompra.numero}" filterBy="#{_solicitudCompra.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.numero}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_solicitudCompra.fecha}">
+								<h:outputText value="#{_solicitudCompra.fecha}">
+									<f:convertDateTime pattern="#{pedidoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell" filterBy="#{_solicitudCompra.sucursal.nombre}" sortBy="#{_solicitudCompra.sucursal.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.sucursal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaNombre tableCell" filterBy="#{_solicitudCompra.empleado.filtro}" sortBy="#{_solicitudCompra.empleado.filtro}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.empleado.nombres} #{_solicitudCompra.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_solicitudCompra.descripcion}" filterBy="#{_solicitudCompra.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.descripcion}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_solicitudCompra.estado}" filterBy="#{_solicitudCompra.estado}"
+								filterOptions="#{aprobacionSolicitudCompraBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_solicitudCompra.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandButton process="@this" update=":form:dlgReversarAprobacionSolicitudCompra" title="#{msgs.lbl_reversarAprobacion}"
+									oncomplete="dialogReversarAprobacionSolicitudCompra.show();" icon="ui-icon-close" rendered="#{_solicitudCompra.estado == 'APROBADO'}">
+									<f:setPropertyActionListener target="#{aprobacionSolicitudCompraBean.solicitudCompra}" value="#{_solicitudCompra}"></f:setPropertyActionListener>
+								</p:commandButton>
+							</p:column>
+
+							<p:rowExpansion>
+
+								<p:outputPanel id="outListaDetallesSolicitud">
+
+									<p:panel header="#{msgs.lbl_detalle}">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetallesSolicitudCompra" rowIndexVar="secuencialD"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobacionSolicitudCompraBean.listaDetalleSolicitudSeleccionado}" var="_detalleSolicitud"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{aprobacionSolicitudCompraBean.numeroFilas}"
+											sortBy="#{_detalleSolicitud.id}" sortOrder="ASCENDING">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencialD+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_detalleSolicitud.producto.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_detalleSolicitud.producto.nombre}" id="txtNombreProducto" />
+											</p:column>
+
+											<p:column styleClass="columnaDTUnidad tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_unidad_compra}" />
+												</f:facet>
+
+												<h:outputText value="#{_detalleSolicitud.unidadCompra.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+												<h:outputText value="#{_detalleSolicitud.cantidadOriginal}" id="txtCantidad" size="10" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad_aprobada}">
+												<h:outputText value="#{_detalleSolicitud.cantidadOriginal-_detalleSolicitud.cantidad}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<h:outputText styleClass="input-text" value="#{_detalleSolicitud.descripcion}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_consolidacion}">
+
+												<h:link rendered="#{not empty _detalleSolicitud.detalleSolicitudCompraPadre}" target="_blank"
+													outcome="/paginas/compras/procesos/consolidarSolicitudCompra"
+													value="#{_detalleSolicitud.detalleSolicitudCompraPadre.solicitudCompra.numero}" includeViewParams="true">
+													<f:param name="idSolicitudCompra" value="#{_detalleSolicitud.detalleSolicitudCompraPadre.solicitudCompra.id}" />
+												</h:link>
+
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+
+							</p:rowExpansion>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{aprobacionSolicitudCompraBean.solicitudCompra.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{aprobacionSolicitudCompraBean.solicitudCompra.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{aprobacionSolicitudCompraBean.solicitudCompra.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{aprobacionSolicitudCompraBean.solicitudCompra.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

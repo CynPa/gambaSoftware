@@ -1,0 +1,66 @@
+<p:outputPanel id="panelListaDimensionContable" xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+
+	<p:dialog header="#{msgs.lbl_panel_listado} (#{msgs.lbl_titulo_plantillaAsiento})" widgetVar="dimensionContableDialog" id="dimensionContableDialog"
+		modal="true" height="350" width="800" showEffect="slide" hideEffect="slide">
+
+		<p:fieldset>
+
+			<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDimensionContable" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+				value="#{bean.listaDimensionContableBean.listaDimensionContable}" var="_dimensionContable" paginator="true" paginatorPosition="bottom"
+				style="width:100%" rowsPerPageTemplate="#{listaDimensionContableBean.numeroFilasPorPagina}" rows="10" rowKey="#{_dimensionContable.id}"
+				selectionMode="single" lazy="true">
+
+				<p:column headerText="Nº">
+					<h:outputText value="#{secuencia+1}" />
+				</p:column>
+
+				<p:column sortBy="#{_dimensionContable.codigo}" filterBy="#{_dimensionContable.codigo}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_codigo}" />
+					</f:facet>
+
+					<p:commandLink action="#{bean.cargarDimensionContableListener(_dimensionContable)}" title="#{msgs.lbl_seleccionar}" process="@this"
+						oncomplete="dimensionContableDialog.hide()" update="#{objetoActualizar}" icon="ui-icon-plus"
+						rendered="#{(_dimensionContable.indicadorMovimiento or !(empty indicadorSeleccionarTodo ? true : !indicadorSeleccionarTodo)) and _dimensionContable.activo}">
+
+						<h:outputText value="#{_dimensionContable.codigo}" />
+					</p:commandLink>
+
+					<h:outputText value="#{_dimensionContable.codigo}"
+						rendered="#{!(_dimensionContable.indicadorMovimiento or !(empty indicadorSeleccionarTodo ? true : !indicadorSeleccionarTodo)) or !_dimensionContable.activo}" />
+
+				</p:column>
+
+				<p:column sortBy="#{_dimensionContable.nombre}" filterBy="#{_dimensionContable.nombre}">
+					<f:facet name="header">
+						<h:outputText value="#{msgs.lbl_nombre}" />
+					</f:facet>
+
+					<h:outputText value="#{_dimensionContable.nombre}" title="#{_dimensionContable.nombre}">
+						<f:attribute name="limit" value="40" />
+						<f:converter converterId="stringLimitConverter" />
+					</h:outputText>
+				</p:column>
+
+				<p:column>
+					<p:commandLink action="#{bean.cargarDimensionContableListener(_dimensionContable)}" title="#{msgs.lbl_seleccionar}" process="@this"
+						oncomplete="dimensionContableDialog.hide()" update="#{objetoActualizar}" icon="ui-icon-plus"
+						disabled="#{(!_dimensionContable.indicadorMovimiento and (empty indicadorSeleccionarTodo ? true : !indicadorSeleccionarTodo)) or !_dimensionContable.activo}">
+						<h:graphicImage library="images" name="seleccion.png" style="height : 16px; width : 16px;" />
+					</p:commandLink>
+				</p:column>
+			</p:dataTable>
+		</p:fieldset>
+
+		<f:facet name="footer">
+			<center>
+				<p:commandButton value="#{msgs.btn_cancelar}" oncomplete="dimensionContableDialog.hide()" />
+			</center>
+		</f:facet>
+
+	</p:dialog>
+
+</p:outputPanel>

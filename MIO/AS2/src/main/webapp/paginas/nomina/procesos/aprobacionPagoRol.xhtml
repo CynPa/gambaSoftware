@@ -1,0 +1,310 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:toolbar>
+				<p:toolbarGroup align="left">
+
+					<p:commandButton value="#{msgs.btn_cargar_valores}" id="btnProcesar" action="#{aprobacionPagoRolBean.cargarDatosDepartamento}"
+						process="@this, panelFiltros ,panelConsulta" update="panelConsulta,panelFiltros" icon="ui-icon-refresh" />
+
+					<p:commandButton value="#{msgs.btn_guardar}" id="btnGuardar" action="#{aprobacionPagoRolBean.guardar}" process="@this, panelFiltros"
+						update="panelConsulta,panelFiltros" icon="ui-icon-disk" />
+
+				</p:toolbarGroup>
+			</p:toolbar>
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<p:spacer height="4px" />
+
+				<p:fieldset>
+					<h:panelGrid id="panelFiltros" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<p:outputLabel for="cboPagoRol" value="#{msgs.lbl_fecha_rol}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{aprobacionPagoRolBean.pagoRol}" id="cboPagoRol" required="true">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+							<f:selectItems value="#{aprobacionPagoRolBean.listaPagoRol}" />
+							<p:ajax process="@this" global="false" update="@this" />
+							<f:validateBean />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{aprobacionPagoRolBean.departamento}" id="cboDepartamento">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{aprobacionPagoRolBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+								itemValue="#{_departamento}" />
+							<p:ajax process="@this" global="false" update="@this" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_totalIngresos}:" />
+						<h:outputText value="#{aprobacionPagoRolBean.totalIngresos}">
+							<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_totalEgresos}:" />
+						<h:outputText value="#{aprobacionPagoRolBean.totalEgresos}">
+							<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_total}:" />
+						<h:outputText value="#{aprobacionPagoRolBean.totalIngresos + aprobacionPagoRolBean.totalEgresos}">
+							<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+						</h:outputText>
+						
+						
+						<h:outputText value="" />
+						<p:panelGrid columns="#{aprobacionPagoRolBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<h:outputText value="#CAF9C1" style="background-color:#CAF9C1; color:#CAF9C1" />
+							<h:outputText value="#{msgs.lbl_total_ingresos_t2}" />
+							<h:outputText value="#F3F781" style="background-color:#F3F781; color:#F3F781" />
+							<h:outputText value="#{msgs.lbl_total_ingresos_t1}" />
+						</p:panelGrid>
+
+					</h:panelGrid>
+				</p:fieldset>
+				<p:spacer height="4px" />
+
+
+				<p:outputPanel id="panelConsulta">
+					<h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobacionPagoRolBean.listaDepartamentoAsiciados}" id="tablaDepartamento"
+							rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_departamento" style="width:100%" lazy="true" paginator="true"
+							paginatorPosition="bottom" rowKey="#{_departamento.idDepartamento}" binding="#{aprobacionPagoRolBean.dtDepartamentoGrupo}"
+							filteredValue="#{aprobacionPagoRolBean.listaDepartamentoAsociadosFilter}">
+
+
+
+							<p:column styleClass="columnaDTAccion tableCell0">
+								<p:rowToggler>
+								</p:rowToggler>
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell0" headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_departamento.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0" headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_departamento.nombre}" />
+							</p:column>
+
+
+							<p:column styleClass="tableCell0 columnaDTValor" headerText="#{msgs.lbl_totalIngresost_2}">
+								<h:outputText value="#{_departamento.totalIngresosT2}" />
+							</p:column>
+
+
+							<p:column styleClass="tableCell0 columnaDTValor" headerText="#{msgs.lbl_totalIngresost_1}">
+								<h:outputText value="#{_departamento.totalIngresosT1}" />
+							</p:column>
+
+
+							<p:column styleClass="tableCell0 columnaDTValor" headerText="#{msgs.lbl_ingreso}">
+								<h:outputText value="#{_departamento.totalIngresos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0 columnaDTValor" headerText="#{msgs.lbl_egreso_inventario}">
+								<h:outputText value="#{_departamento.totalEgresos}" />
+							</p:column>
+
+							<p:column id="columnaPorAprobarEmpleados" styleClass="tableCell0 columnaDTValor" headerText="Por Aprobar">
+								<h:outputText value="#{_departamento.numeroEmpleadosPorAprobar}" />
+							</p:column>
+
+							<p:column styleClass="tableCell0 columnaDTAccion">
+
+								<f:facet name="header">
+									<center>
+										<p:commandButton value="#{msgs.btn_aprobar}" process="@this :form:panelConsulta" global="false"
+											actionListener="#{aprobacionPagoRolBean.aprobarTodosListener}" update=":form:panelConsulta">
+										</p:commandButton>
+									</center>
+								</f:facet>
+
+								<p:commandButton value="..." process="@this :form:tablaDepartamento:panelDetalleAprobacionPagoRol" global="false"
+									actionListener="#{aprobacionPagoRolBean.aprobarGrupoListener}" update=":form:tablaDepartamento:tablaAprobarPagoRol">
+								</p:commandButton>
+
+							</p:column>
+
+
+							<p:rowExpansion>
+								<p:outputPanel id="panelDetalleAprobacionPagoRol">
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAprobarPagoRol" rowIndexVar="secuencial"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{_departamento.listaAprobacionPagoRol}" var="_pagoRol" paginator="true"
+										paginatorPosition="bottom" rows="#{aprobacionPagoRolBean.numeroFilas}" rowsPerPageTemplate="#{facturaClienteBean.numeroFilasPorPagina}"
+										rowKey="#{_pagoRol.idPagoRolEmpleado}" style="font-size: 10px !important;" filteredValue="#{_departamento.listaAprobacionPagoRolFiltrado}">
+
+										<p:column styleClass="columnaDTAccion tableCell0" headerText="No">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column
+											styleClass="tableCell0 #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											sortBy="#{_pagoRol.identificacion}" filterBy="#{_pagoRol.identificacion}">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_identificacion}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.identificacion}" />
+										</p:column>
+
+										<p:column
+											styleClass="tableCell0 #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											sortBy="#{_pagoRol.apellidos}" filterBy="#{_pagoRol.apellidos}">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_apellidos}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.apellidos}" />
+										</p:column>
+
+										<p:column
+											styleClass="tableCell0 #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											sortBy="#{_pagoRol.nombres}" filterBy="#{_pagoRol.nombres}">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_nombres}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.nombres}" />
+										</p:column>
+
+										<p:column
+											styleClass="tableCell0 #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											sortBy="#{_pagoRol.cargo}">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_cargo}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.cargo}" />
+										</p:column>
+
+										<p:column
+											styleClass="tableCell0 columnaDTValor #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											sortBy="#{_pagoRol.diasTrabajados}">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_dias_trabajados}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.diasTrabajados}" />
+										</p:column>
+
+										<p:column
+											styleClass="tableCell0 columnaDTValor #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											sortBy="#{_pagoRol.sueldo}">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_sueldo}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.sueldo}">
+												<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell0 columnaDTValorGrande registro_total">
+											<f:facet name="header">
+												<h:outputText styleClass="registro_viejo_2" style="white-space:normal !important;" value="#{msgs.lbl_totalIngresost_2}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.totalIngresost_2}">
+												<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell0 columnaDTValorGrande registro_total">
+											<f:facet name="header">
+												<h:outputText styleClass="registro_viejo_1" style="white-space:normal !important;" value="#{msgs.lbl_totalIngresost_1}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.totalIngresost_1}">
+												<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:columns
+											styleClass="tableCell0 columnaDTValor #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											value="#{aprobacionPagoRolBean.cabecerasIngresos}" var="_columna" columnIndexVar="colIndex">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{_columna}" />
+											</f:facet>
+
+											<p:column
+												styleClass="tableCell0 #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''} input-text-number">
+												<h:outputText value="#{_pagoRol.ingresos[colIndex]}">
+													<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+										</p:columns>
+
+										<p:column styleClass="tableCell0 columnaDTValor registro_total">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_totalIngresos}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.totalIngresos}">
+												<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:columns
+											styleClass="tableCell0 columnaDTValor #{_pagoRol.indicadorVariaciont_1 ? 'registro_viejo_1' : _pagoRol.indicadorVariaciont_2 ? 'registro_viejo_2' : ''}"
+											value="#{aprobacionPagoRolBean.cabecerasEgresos}" var="_columna" columnIndexVar="colIndex">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{_columna}" />
+											</f:facet>
+
+											<p:column>
+												<h:outputText value="#{_pagoRol.egresos[colIndex]}">
+													<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+										</p:columns>
+
+										<p:column styleClass="tableCell0 columnaDTValorGrande registro_total">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_totalEgresos}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.totalEgresos}">
+												<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell0 columnaDTValorGrande registro_total">
+											<f:facet name="header">
+												<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_liquidoARecibir}" />
+											</f:facet>
+											<h:outputText value="#{_pagoRol.totalIngresos+_pagoRol.totalEgresos}">
+												<f:convertNumber pattern="#{aprobacionPagoRolBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell0" filterBy="#{_pagoRol.indicadorAprobado}" filterOptions="#{aprobacionPagoRolBean.listaActivoItem}">
+
+											<f:facet name="header">
+												<center>
+													<h:outputText value="#{msgs.lbl_filtros}" />
+												</center>
+											</f:facet>
+
+											<center>
+												<p:selectBooleanCheckbox value="#{_pagoRol.indicadorAprobado}" disabled="#{_pagoRol.indicadorCobrado}">
+													<p:ajax process="@this :form:tablaDepartamento:panelDetalleAprobacionPagoRol" global="false" />
+												</p:selectBooleanCheckbox>
+											</center>
+										</p:column>
+
+
+									</p:dataTable>
+
+								</p:outputPanel>
+							</p:rowExpansion>
+
+						</p:dataTable>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

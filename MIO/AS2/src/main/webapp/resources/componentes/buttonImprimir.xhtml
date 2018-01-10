@@ -1,0 +1,64 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:composite="http://java.sun.com/jsf/composite" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:p="http://primefaces.org/ui">
+
+<!-- INTERFACE -->
+<composite:interface displayName="Imprimir">
+	<composite:attribute required="true" name="bean" />
+	<composite:attribute required="true" name="beanReporte" />
+
+	<composite:attribute required="false" name="id" default="dialogoImprimir" />
+	<composite:attribute required="false" name="visibleNuevo" />
+	<composite:attribute required="false" name="target" />
+	<composite:attribute required="false" name="value" />
+	<composite:attribute required="false" name="icon" />
+	<composite:attribute required="false" name="etiquetaImprimir" />
+	<composite:attribute required="false" name="toUpdate" default="@none" />
+	<composite:attribute required="false" name="toProcess" default="" />
+	<composite:attribute required="false" name="toHeight" default="120" />
+	<composite:attribute required="false" name="toWidth" default="300" />
+
+
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation>
+
+	<p:commandButton rendered="#{empty cc.attrs.visibleNuevo ? !cc.attrs.bean.editado: true}"
+		value="#{empty cc.attrs.etiquetaImprimir ? msgs.btn_imprimir : cc.attrs.etiquetaImprimir}"
+		title="#{empty cc.attrs.etiquetaImprimir ? msgs.btn_imprimir : cc.attrs.etiquetaImprimir}" icon="#{empty cc.attrs.icon ? 'print' : cc.attrs.icon}"
+		oncomplete="#{cc.attrs.id}.show()" process="@this #{cc.attrs.toProcess}" update="#{cc.attrs.toUpdate}">
+	</p:commandButton>
+
+	<p:dialog id="#{cc.attrs.id}" header="#{msgs.btn_imprimir}" widgetVar="#{cc.attrs.id}" modal="false" style="border-width:0px;border-style:none;"
+		height="#{cc.attrs.toHeight}" width="#{cc.attrs.toWidth}">
+
+		<h:panelGrid columns="1" cellpadding="0" cellspacing="0" border="0">
+
+			<composite:insertChildren />
+
+			<f:facet name="footer">
+				<br />
+				<center>
+					<p:selectOneRadio value="#{cc.attrs.beanReporte.exportOption}">
+						<f:selectItems value="#{cc.attrs.beanReporte.listaExportOption}" />
+						<p:ajax process="@this"></p:ajax>
+					</p:selectOneRadio>
+				</center>
+				<br />
+				<center>
+					<p:commandButton value="#{msgs.btn_imprimir}" action="#{cc.attrs.beanReporte.execute}" process="@this" ajax="false" partialSubmit="true"
+						onclick="form.target='_blank'">
+						<f:setPropertyActionListener target="#{cc.attrs.target}" value="#{cc.attrs.value}" />
+					</p:commandButton>
+
+					<p:commandButton process="@this" value="#{msgs.btn_cancelar}" oncomplete="#{cc.attrs.id}.hide()" />
+				</center>
+			</f:facet>
+		</h:panelGrid>
+
+	</p:dialog>
+
+</composite:implementation>
+</html>

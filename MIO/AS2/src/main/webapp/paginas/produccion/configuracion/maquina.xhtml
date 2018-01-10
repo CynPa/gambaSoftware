@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<!-- 
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{maquinaBean}" />
+					<ui:param name="tabla" value="tablaMaquina" />
+					<ui:param name="columnasAExcluir" value="4" />
+					<ui:param name="columnasAExcluirPdf" value="4" />
+				</ui:include>
+ -->
+				<as2:toolBar bean="#{maquinaBean}">
+
+					<as2:buttonEliminar bean="#{maquinaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{maquinaBean.maquina.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{maquinaBean.maquina.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{pedidoProveedorBean}" tabla=":form:tablaMaquina" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{maquinaBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_maquina_panel}">
+
+						<h:panelGrid id="panelDetalle" columns="#{maquinaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{maquinaBean.maquina.codigo}" id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{maquinaBean.maquina.nombre}" id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_tarifa}:" />
+							<p:inputText styleClass="input-text" value="#{maquinaBean.maquina.tarifa}" id="txtTarifa" />
+
+							<h:outputText value="#{msgs.lbl_centro_trabajo}:" />
+							<p:selectOneMenu value="#{maquinaBean.maquina.centroTrabajo}" id="cboCentroTrabajo" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{maquinaBean.listaCentroTrabajo}" var="_centroTrabajo" itemLabel="#{_centroTrabajo.nombre}"
+									itemValue="#{_centroTrabajo}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{maquinaBean.maquina.descripcion}" id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{maquinaBean.maquina.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{maquinaBean.maquina.predeterminado}" />
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!maquinaBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_maquina_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMaquina" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{maquinaBean.listaMaquina}" var="_maquina" binding="#{maquinaBean.dtMaquina}" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{maquinaBean.numeroFilas}" rowsPerPageTemplate="#{maquinaBean.numeroFilasPorPagina}"
+							selection="#{maquinaBean.maquina}" selectionMode="single" rowKey="#{_maquina.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_maquina.codigo}" sortBy="#{_maquina.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_maquina.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_maquina.nombre}" sortBy="#{_maquina.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_maquina.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_maquina.activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_maquina.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTPredeterminado" sortBy="#{_maquina.predeterminado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_maquina.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_maquina.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_maquina.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{maquinaBean.maquina.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{maquinaBean.maquina.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{maquinaBean.maquina.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{maquinaBean.maquina.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

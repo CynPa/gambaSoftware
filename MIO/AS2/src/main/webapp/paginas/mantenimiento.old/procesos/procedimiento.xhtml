@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form>
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{procedimientoBean}" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+
+					<h:outputText value="#{procedimientoBean.procedimiento.nombre}" />
+
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaServicioMantenimiento,mensajes" process="@this"
+						actionListener="#{procedimientoBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{procedimientoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_procedimiento}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{procedimientoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{procedimientoBean.procedimiento.codigo}" id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{procedimientoBean.procedimiento.nombre}" id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{procedimientoBean.procedimiento.descripcion}"
+								id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_tipo_servicio_mantenimiento}:" />
+							<h:panelGroup>
+								<p:selectOneMenu
+									value="#{procedimientoBean.procedimiento.tipoMantenimiento}"
+									id="cbotipoServicioMantenimiento">
+									<f:selectItem itemValue=" " itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems
+										value="#{procedimientoBean.listaTipoMantenimiento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cbotipoServicioMantenimiento" />
+							</h:panelGroup>
+
+
+							<h:outputText value="#{msgs.lbl_tipo_servicio_mantenimiento}:" />
+							<ui:include src="/template/seleccionGenerico.xhtml">
+								<ui:param name="lista"
+									value="#{procedimientoBean.listaTipoServicioMantenimiento}" />
+								<ui:param name="objeto"
+									value="#{procedimientoBean.procedimiento.tipoServicioMantenimiento}" />
+								<ui:param name="bean" value="#{procedimientoBean}" />
+							</ui:include>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{procedimientoBean.procedimiento.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{procedimientoBean.procedimiento.predeterminado}" />
+
+						</h:panelGrid>
+
+						<p:spacer width="2px" />
+
+						<fieldset>
+							<p:tabView>
+								<p:ajax event="tabChange" process="panelListaActividades"
+									update="panelListaTareas"
+									listener="#{procedimientoBean.cargarDetalleActividad}">
+									<f:setPropertyActionListener
+										target="#{procedimientoBean.procedimientoActividad}"
+										value="#{_procedimientoActividad}" />
+								</p:ajax>
+								<p:tab title="#{msgs.lbl_actividad}">
+									<p:outputPanel id="panelListaActividades">
+										<h:panelGrid columns="1">
+											<p:commandButton value="#{msgs.btn_agregar_detalle}"
+												id="btnAgregar"
+												action="#{procedimientoBean.agregarProcedimientoActividad}"
+												update="panelListaActividades" process="@this" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{procedimientoBean.listaProcedimientoActividad}"
+												id="tablaProcedimientoActividad" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												var="_procedimientoActividad" paginator="true"
+												paginatorPosition="bottom" style="width:100%"
+												selection="#{procedimientoBean.procedimientoActividad}"
+												selectionMode="single"
+												binding="#{procedimientoBean.dtProcedimientoActividad}"
+												rowKey="#{_procedimientoActividad.idHashCode}"
+												rows="#{procedimientoBean.numeroFilas}"
+												rowsPerPageTemplate="#{procedimientoBean.numeroFilasPorPagina}">
+
+												<p:column headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+												<p:column headerText="No">
+													<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+														value="#{_procedimientoActividad.actividad}"
+														completeMethod="#{procedimientoBean.autocompletarActividad}"
+														var="_actividad" itemLabel="#{_actividad.nombre}"
+														itemValue="#{_actividad}" forceSelection="true"
+														dropdown="true" minQueryLength="2">
+
+														<p:column headerText="Codigo">#{_actividad.codigo}</p:column>
+														<p:column headerText="nombre">#{_actividad.nombre}</p:column>
+														<p:ajax event="itemSelect" process="@this"
+															update="#{p:component('panelListaActividades')}" />
+													</p:autoComplete>
+												</p:column>
+												<p:column headerText="#{msgs.lbl_codigo}">
+													<h:outputText
+														value="#{_procedimientoActividad.actividad.codigo}">
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre}">
+													<h:outputText
+														value="#{_procedimientoActividad.actividad.nombre}">
+													</h:outputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_lista_verificacion}">
+													<h:outputText
+														value="#{_procedimientoActividad.actividad.listaVerificacion.nombre}" />
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+								<p:tab title="#{msgs.lbl_tarea}">
+									<p:outputPanel id="panelListaTareas">
+										<h:panelGrid columns="1">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{procedimientoBean.procedimientoActividad.actividad.listaTarea}"
+												id="tablaTarea" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_tarea"
+												paginator="true" paginatorPosition="bottom"
+												style="width:100%" rowKey="#{_tarea.id}"
+												rows="#{procedimientoBean.numeroFilas}"
+												rowsPerPageTemplate="#{procedimientoBean.numeroFilasPorPagina}">
+
+												<p:column headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_codigo}">
+													<h:outputText value="#{_tarea.codigo}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre}">
+													<h:outputText value="#{_tarea.nombre}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_descripcion}">
+													<h:outputText value="#{_tarea.descripcion}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_numero_personas}">
+													<h:outputText value="#{_tarea.numeroPersonas}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_duracion}">
+													<h:outputText value="#{_tarea.duracion}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_tarifa_salarial}">
+													<h:outputText value="#{_tarea.tarifaSalarial.nombre}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_activo}">
+													<center>
+														<p:selectBooleanCheckbox id="chkTareaActivo"
+															value="#{_tarea.activo}" disabled="true" />
+													</center>
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+						</fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!procedimientoBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_procedimiento}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMantenimiento" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{procedimientoBean.listaMantenimiento}"
+							var="_procedimiento"
+							binding="#{procedimientoBean.dtMantenimiento}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{procedimientoBean.numeroFilas}"
+							rowsPerPageTemplate="#{procedimientoBean.numeroFilasPorPagina}"
+							selection="#{procedimientoBean.procedimiento}"
+							selectionMode="single" rowKey="#{_procedimiento.id}">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_procedimiento.codigo}"
+								sortBy="#{_procedimiento.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_procedimiento.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_procedimiento.nombre}"
+								sortBy="#{_procedimiento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_procedimiento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_procedimiento.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_procedimiento.descripcion}" />
+							</p:column>
+
+							<p:column sortBy="#{_procedimiento.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_procedimiento.activo}"
+										disabled="true" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{procedimientoBean.procedimiento.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{procedimientoBean.procedimiento.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{procedimientoBean.procedimiento.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{procedimientoBean.procedimiento.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

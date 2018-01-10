@@ -1,0 +1,652 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+				<p:outputPanel id="panelMigracion">
+					<p:panel header="#{msgs.lbl_migracion} #{msgs.lbl_carga_tickets} ">
+						<p:fileUpload fileUploadListener="#{cargarTicketsBean.migrarCargaTickets}" mode="advanced" update=":form:panelListado" auto="true"
+							sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_cargar_excel}" process="@this" />
+					</p:panel>
+				</p:outputPanel>
+			</p:outputPanel>
+			<p:outputPanel id="panelListado">
+				<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_ticket}">
+					<center>
+						<p:commandButton value="#{msgs.lbl_guardar}" id="btnGuardar" action="#{cargarTicketsBean.guardar}" process="@this" icon="ui-icon-disk"
+							rendered="#{cargarTicketsBean.listTickets.size()>0}" />
+					</center>
+					<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTickets" rowIndexVar="secuencialPlan"
+						rendered="#{cargarTicketsBean.listTickets.size()>0}" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cargarTicketsBean.listTickets}"
+						var="_ticket" paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{cargarTicketsBean.numeroFilas}"
+						rowsPerPageTemplate="#{cargarTicketsBean.numeroFilasPorPagina}" rowKey="#{_ticket.id}">
+						<p:column style="width:16px">
+							<p:rowToggler />
+						</p:column>
+						<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+							<h:outputText value="#{secuencialPlan+1}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_tkt_revision}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.listaDetalleTicket.get(0).tktDocNum}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_tipo_emision}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.operacion}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_porcentaje_ec}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.iva}%">
+								<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_tipo_boleto}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.tipoDeDocumento}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_identificacion_tributaria}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.identificacionTributaria}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell" style="white-space: nowrap">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_ruta}" style="width:60px" />
+							</f:facet>
+							<h:outputText value="#{_ticket.ruta}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_fecha_viaje}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.fechaViaje}">
+								<f:convertDateTime pattern="#{consultaVoucherBean.formatoFecha}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_codigo_servicio}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.codigoDeServicio}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_desglose_servicio}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.penalty}">
+								<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_tipo_tarjeta_credito}" />
+							</f:facet>
+							<h:outputText
+								value="#{_ticket.listaDetalleTicket.get(0).fopType.length()>2 ? _ticket.listaDetalleTicket.get(0).fopType.substring(2,4)!='0.'?_ticket.listaDetalleTicket.get(0).fopType.substring(2,4):'' :''}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_valor_cuentas_corporativas}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.listaDetalleTicket.get(0).fopType.substring(0,1)=='CO'?_ticket.listaDetalleTicket.get(0).fopAmt:0}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_n_documento_relacionado}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.listaDetalleTicket.get(0).reltTktDocNum}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_valor_mco}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.anticipo}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_observaciones}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.observaciones}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_currency}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.moneda}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_city_code}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.codigoEstacion}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_tssr_status}" />
+							</f:facet>
+							<h:outputText value="" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_agent_sine}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.listaDetalleTicket.get(0).agentNumCd}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_rec_loc}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.listaDetalleTicket.get(0).recLoc}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_tkt_numer}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.listaDetalleTicket.get(0).tktDocNum}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_fop}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.listaDetalleTicket.get(0).fopType.substring(0,2)}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_pax_name}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.pasajero}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_fare_amount}" />
+
+							</f:facet>
+							<h:outputText value="#{_ticket.tarifaPreliminar}">
+								<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_total_amount}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.valorTotalPreliminar}">
+								<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_commission_pc}" />
+							</f:facet>
+							<h:outputText value="">
+								<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_commission_amount}" />
+							</f:facet>
+							<h:outputText value="">
+								<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_remitance}">
+									<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+								</h:outputText>
+							</f:facet>
+							<h:outputText value="" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_ticket_bulking}" />
+							</f:facet>
+							<h:outputText value="">
+								<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_ticket_conj_num}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.originalConjuncion}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_ticket.isCredito}">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_locally_billed}" />
+							</f:facet>
+							<h:outputText value="#{_ticket.isCredito? 'YES' : 'NO'}" />
+						</p:column>
+						<p:column styleClass="columnaDTNombre tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_endorsement_restriction}" />
+							</f:facet>
+							<h:outputText value="" />
+						</p:column>
+
+						<p:rowExpansion>
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaImpuestos" rowIndexVar="secuencialPlan"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{_ticket.listaDetalleTicket}" var="_detalleTicket" style="width:60px"
+								rows="#{cargarTicketsBean.numeroFilas}" rowsPerPageTemplate="#{cargarTicketsBean.numeroFilasPorPagina}" rowKey="#{_detalleTicket.id}">
+								<p:column styleClass="columnaDTNombre tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre_impuesto}" />
+									</f:facet>
+									<h:outputText value="#{_detalleTicket.taxMiscFeeType1}" />
+								</p:column>
+								<p:column styleClass="columnaDTNombre tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_valor_impuesto}" />
+									</f:facet>
+									<h:outputText value="#{_detalleTicket.taxMiscFeeAmt1}">
+										<f:convertNumber pattern="#{cargarTicketsBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+							</p:dataTable>
+						</p:rowExpansion>
+					</p:dataTable>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>
+<!-- 					<p:dataTable rendered="false" filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlan" rowIndexVar="secuencialPlan" -->
+<!-- 						emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cargarTicketsBean.listDetalleTickets}" var="_detalleTicket" paginator="true" -->
+<!-- 						paginatorPosition="bottom" style="width:100%" rows="#{cargarTicketsBean.numeroFilas}" -->
+<!-- 						rowsPerPageTemplate="#{cargarTicketsBean.numeroFilasPorPagina}" rowKey="#{_ticket.id}" sortBy="#{_ticket.fechaViaje}" lazy="true"> -->
+
+<!-- 						<p:column styleClass="columnaDTAccion tableCell" headerText="Nº"> -->
+<!-- 							<h:outputText value="#{secuencialPlan+1}" /> -->
+<!-- 						</p:column> -->
+
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_moneda}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.moneda}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_codigo_estacion}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.puntoVenta.codigoAlterno}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_codigo_agente}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.agentNumCd}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_fecha_reporte}"> -->
+<!-- 									<f:convertDateTime pattern="#{consultaVoucherBean.formatoFecha}" /> -->
+<!-- 								</h:outputText> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_fecha_emision}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.dateOfIssue}"> -->
+<!-- 								<f:convertDateTime pattern="#{consultaVoucherBean.formatoFecha}" /> -->
+<!-- 							</h:outputText> -->
+<!-- 						</p:column> -->
+<!-- 												creada -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_record}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.recLoc}" /> -->
+<!-- 						</p:column> -->
+
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_numero_documento}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.tktDocNum}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_original_conjuncion}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.originalConjuncion}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_documento_relacionado}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.reltTktDocNum}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tipo_emision}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tipo_documento}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tipo_transaccion}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.transCd}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_nombre_pasajero}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.pasajero}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_identificacion_tributaria}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ruta}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.ruta}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_fecha_viaje}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.fechaViaje}"> -->
+<!-- 								<f:convertDateTime pattern="#{consultaVoucherBean.formatoFecha}" /> -->
+<!-- 							</h:outputText> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_credito}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_forma_pago}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.fopType}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_efectivo}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tarjeta_credito}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.tarjeta}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tipo_tarjeta_credito}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_cuentas_corporativas}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_valor_total_preliminar}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_valor_total}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_exceso_faltante}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_observaciones}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tarifa_preliminar}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tarifa}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tarifa_12}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_tarifa_0}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_yq}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.yq}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_yq_12}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_yq_0}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_anticipo}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_descuento}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_penalidades_servicios}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.penalty}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_codigo_servicio}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ec}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ed}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.ed}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_e2}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.e2}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_qb}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.qb}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_qi}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.qi}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_wt}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="#{_detalleTicket.ticket.wt}" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ah}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ay}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ca}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ch}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_de}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ra}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_rc}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_sq}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_ub}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_uk}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_us}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_xa}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_xd}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_xf}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_xg}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_xy}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_yc}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 						<p:column styleClass="columnaDTNombre tableCell"> -->
+<!-- 							<f:facet name="header"> -->
+<!-- 								<h:outputText value="#{msgs.lbl_zo}" /> -->
+<!-- 							</f:facet> -->
+<!-- 							<h:outputText value="" /> -->
+<!-- 						</p:column> -->
+<!-- 					</p:dataTable> -->

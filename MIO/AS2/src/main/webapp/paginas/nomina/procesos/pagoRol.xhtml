@@ -1,0 +1,256 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{pagoRolBean}">
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{pagoRolBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{pagoRolBean.pagoRol.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+
+					<as2:buttonExportaExcel bean="#{pagoRolBean}" tabla=":form:tablaPagoRol" />
+
+				</as2:toolBar>
+
+				<h:panelGroup id="panelPagoRolEmpleadoNegativo">
+
+					<p:dialog widgetVar="dialogoPagoRolEmpleadoNegativo" modal="true" height="200" width="800" showEffect="slide" hideEffect="slide">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaPagoRolEmpleado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pagoRolBean.listaPagoRolEmpleadoNegativo}" var="_pagoRolEmpleado"
+							sortBy="#{_pagoRolEmpleado.empleado.apellidos}">
+
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_errores}" />
+							</f:facet>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTIdentificacion tableCell" headerText="#{msgs.lbl_identificacion}"
+								sortBy="#{_pagoRolEmpleado.empleado.empresa.identificacion}">
+								<h:outputText value="#{_pagoRolEmpleado.empleado.empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_apellidos}" sortBy="#{_pagoRolEmpleado.empleado.apellidos}">
+								<h:outputText value="#{_pagoRolEmpleado.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombres}" sortBy="#{_pagoRolEmpleado.empleado.nombres}">
+								<h:outputText value="#{_pagoRolEmpleado.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_a_pagar}">
+								<h:outputText styleClass="input-text" value="#{_pagoRolEmpleado.valorAPagar}">
+									<f:convertNumber pattern="#{pagoRolBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+
+						</p:dataTable>
+					</p:dialog>
+				</h:panelGroup>
+
+				<p:outputPanel id="panelErrores">
+					<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pagoRolBean.exContabilizacion.mensajes}" var="_mensaje" rowIndexVar="secuencial">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="Error">
+								<h:outputText value="#{_mensaje}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:dialog>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_pago_rol} )" rendered="#{pagoRolBean.editado}">
+						<h:panelGrid id="panelCabecera" columns="#{pagoRolBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}" />
+							<p:selectOneMenu styleClass="input-text" value="#{pagoRolBean.pagoRol.documento}" id="cboDocumento" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{pagoRolBean.listaDocumentoPagoRol}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+								<f:validateBean />
+								<p:ajax global="false" event="change" process="@this" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboQuincena" value="#{msgs.lbl_quincena}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{pagoRolBean.pagoRol.quincena}" id="cboQuincena" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{pagoRolBean.listaQuincena}" var="_quincena" itemLabel="#{_quincena.nombre}" itemValue="#{_quincena}" />
+								<p:ajax event="change" update="panelNuevo" listener="#{pagoRolBean.selectQuincena}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_anio}:" />
+							<p:inputText styleClass="input-text" mask="9999" value="#{pagoRolBean.pagoRol.anio}" id="txtAnio">
+								<p:ajax event="change" process="@this" update="panelNuevo" listener="#{pagoRolBean.changeAnio}" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_mes}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{pagoRolBean.pagoRol.mes}" id="cboMes" disabled="#{pagoRolBean.quincena.mesPago != 0}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{pagoRolBean.listaMes}" />
+								<p:ajax event="change" process="@this" update="panelNuevo" listener="#{pagoRolBean.selectMes}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{pagoRolBean.formatoFecha}" disabled="true" value="#{pagoRolBean.pagoRol.fecha}" id="calenFecha">
+								<f:validateBean />
+							</p:calendar>
+
+							<h:panelGroup rendered="#{pagoRolBean.mostrarSaldoInicial}">
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_saldo_inicial}:" />
+									<p:selectBooleanCheckbox value="#{pagoRolBean.pagoRol.indicadorSaldoInicial}" />
+								</h:panelGrid>
+							</h:panelGroup>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_pago_rol} )" rendered="#{!pagoRolBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaPagoRol" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pagoRolBean.listaPagoRol}"
+							var="_pago_rol" binding="#{pagoRolBean.dtPagoRol}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{pagoRolBean.numeroFilas}" rowsPerPageTemplate="#{pagoRolBean.numeroFilasPorPagina}" selection="#{pagoRolBean.pagoRol}"
+							selectionMode="single" rowKey="#{_pago_rol.idPagoRol}" sortOrder="DESCENDING" sortBy="#{_pago_rol.fecha}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_rol}" sortBy="#{_pago_rol.fecha}">
+								<h:outputText value="#{_pago_rol.fecha}">
+									<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_anio}" filterBy="#{_pago_rol.anio}" sortBy="#{_pago_rol.anio}">
+								<h:outputText value="#{_pago_rol.anio}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_mes}" filterBy="#{_pago_rol.mes}" sortBy="#{_pago_rol.mes}">
+								<h:outputText value="#{_pago_rol.mes}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_quincena}" filterBy="#{_pago_rol.quincena.nombre}"
+								sortBy="#{_pago_rol.quincena.nombre}">
+								<h:outputText value="#{_pago_rol.quincena.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_estado}" sortBy="estado" filterBy="estado"
+								filterOptions="#{pagoRolBean.listaEstadoItem}">
+								<h:outputText value="#{_pago_rol.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nota}" >
+								<h:outputText value="#{msgs.msg_reprocesar_nomina}" rendered="#{_pago_rol.indicadorReprocesar}"
+									styleClass="text_color_rojo" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" filterBy="#{_pago_rol.asiento.numero}" sortBy="#{_pago_rol.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _pago_rol.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_pago_rol.asiento}">
+									<f:param name="idAsiento" value="#{_pago_rol.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_procesar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="action" id="btnProcesarRol" action="#{pagoRolBean.procesarPagoRol}" update=":form:panelListado"
+										process=":form:panelListado"
+										disabled="#{_pago_rol.estado=='ANULADO' or _pago_rol.estado=='CONTABILIZADO' or _pago_rol.estado=='APROBADO' or _pago_rol.indicadorSaldoInicial}">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_rubros_variables}" />
+								</f:facet>
+								<center>
+									<p:commandButton id="btnRubroVariable" process="@this" icon="action" action="#{pagoRolBean.pasarRubrosVariables}"
+										disabled="#{_pago_rol.estado=='ANULADO' or _pago_rol.estado=='CONTABILIZADO' or _pago_rol.estado=='APROBADO' or _pago_rol.indicadorSaldoInicial}">
+										<f:setPropertyActionListener value="#{_pago_rol}" target="#{pagoRolBean.pagoRol}" />
+									</p:commandButton>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_dias_falta}" />
+								</f:facet>
+								<center>
+									<p:commandButton id="btnDiasFalta" process="@this" icon="action" action="#{pagoRolBean.pasarDiasFalta}"
+										disabled="#{_pago_rol.estado=='ANULADO' or _pago_rol.estado=='CONTABILIZADO' or _pago_rol.estado=='APROBADO' or _pago_rol.indicadorSaldoInicial}">
+										<f:setPropertyActionListener value="#{_pago_rol}" target="#{pagoRolBean.pagoRol}" />
+									</p:commandButton>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="action" id="btnContabilizarRol" action="#{pagoRolBean.comprobantePagoRol}"
+										update=":form:panelListado :form:panelErrores" process=":form:panelListado"
+										disabled="#{_pago_rol.asiento != null or _pago_rol.indicadorSaldoInicial}">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anular_asiento}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="action" id="btnAnularAsientoRol" action="#{pagoRolBean.anularAsientoPagoRol}" update=":form:panelListado"
+										process=":form:panelListado" disabled="#{_pago_rol.asiento == null or _pago_rol.indicadorSaldoInicial}">
+									</p:commandButton>
+								</center>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{pagoRolBean.pagoRol.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{pagoRolBean.pagoRol.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{pagoRolBean.pagoRol.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{pagoRolBean.pagoRol.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

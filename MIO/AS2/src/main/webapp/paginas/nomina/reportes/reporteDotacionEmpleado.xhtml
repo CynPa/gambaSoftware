@@ -1,0 +1,107 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_dotacion}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteDotacionEmpleadoBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+				<ui:include src="/template/listaProducto.xhtml">
+					<ui:param name="bean" value="#{reporteDotacionEmpleadoBean}" />
+					<ui:param name="objetoActualizar"
+						value="#{p:component('lblProducto')}" />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino=""
+					bean="#{reporteDotacionEmpleadoBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera"
+							columns="#{reporteDotacionEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_desde}:" />
+							<p:calendar id="calFechaDesde"
+								value="#{reporteDotacionEmpleadoBean.fechaDesde}"
+								showOn="button" navigator="true"
+								pattern="#{reporteDotacionEmpleadoBean.formatoFecha}">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_hasta}:" />
+							<p:calendar id="calFechaHasta"
+								value="#{reporteDotacionEmpleadoBean.fechaHasta}"
+								showOn="button" navigator="true"
+								pattern="#{reporteDotacionEmpleadoBean.formatoFecha}">
+							</p:calendar>
+							
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." process="@this"
+									oncomplete="dglModalEmpleado.show();"
+									update=":form:panelListaEmpleado">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado"
+									value="#{reporteDotacionEmpleadoBean.empleado.apellidos} #{reporteDotacionEmpleado.empleado.nombres}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}:" />
+							<h:panelGroup>
+								<p:commandButton value="..." onclick="dglModalProducto.show();"
+									type="button" />
+								<h:outputText id="lblProducto"
+									value="#{reporteDotacionEmpleadoBean.producto.codigo} #{reporteDotacionEmpleado.producto.nombreComercial}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteDotacionEmpleadoBean.departamento.idDepartamento}"
+								id="cboDepartamento" required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems
+									value="#{reporteDotacionEmpleadoBean.listaDepartamento}"
+									var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento.idDepartamento}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTipoReporte" value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu id="cboTipoReporte" value="#{reporteDotacionEmpleadoBean.tipoReporteEnum}" required="true">
+								<f:selectItems value="#{reporteDotacionEmpleadoBean.listaTipoReporteEnum}">
+								</f:selectItems>
+								<f:validateBean />
+								<p:ajax process="@this" global="false" event="change"></p:ajax>
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+
+					</p:fieldset>
+					<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

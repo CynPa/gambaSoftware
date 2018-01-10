@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<p:dialog id="detalleNotaCreditoDialog" widgetVar="detalleNotaCreditoDialog" height="auto" width="960" closable="false">
+					<p:outputPanel id="panelDetalleNotaCredito">
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+							rendered="#{not empty aprobarNotaCreditoClienteBean.notaFacturaCliente}">
+							<p:outputLabel for="txtNotaFacturaCliente" value="#{msgs.lbl_descripcion}" />
+							<h:inputTextarea value="#{aprobarNotaCreditoClienteBean.notaFacturaCliente.descripcion}" id="txtNotaFacturaCliente" required="true"
+								styleClass="input-text">
+								<p:ajax process="@this" global="false" />
+							</h:inputTextarea>
+
+							<p:spacer />
+							<p:spacer />
+						</h:panelGrid>
+						<h:panelGrid columns="1" style="width:100%" border="0" rendered="#{not empty aprobarNotaCreditoClienteBean.notaFacturaCliente}">
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFacturaCliente" rowIndexVar="secuencial"
+								value="#{aprobarNotaCreditoClienteBean.listaDetalleFacturaCliente}" binding="#{aprobarNotaCreditoClienteBean.dtDetalleNotaCreditoCliente}"
+								emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleNC" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{aprobarNotaCreditoClienteBean.numeroFilas}" rowsPerPageTemplate="#{aprobarNotaCreditoClienteBean.numeroFilasPorPagina}"
+								rowKey="#{_detalleNC.id}">
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_codigo}" sortBy="#{_detalleNC.producto.codigo}" styleClass="columnaDTCodigoProducto tableCell">
+									<h:outputText value="#{_detalleNC.producto.codigo}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="columnaDTNombre tableCell">
+									<h:outputText value="#{_detalleNC.producto.nombre}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_unidad_producto}" styleClass="columnaDTUnidad tableCell">
+									<h:outputText value="#{_detalleNC.producto.unidad.nombre}" id="txtUnidadProducto">
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+									<h:outputText value="#{_detalleNC.descripcion}">
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_producto_indicador_impuestos}" styleClass="columnaDTActivo tableCell">
+									<p:selectBooleanCheckbox disabled="true" value="#{_detalleNC.indicadorImpuesto}">
+									</p:selectBooleanCheckbox>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValorGrande input-text-number tableCell">
+									<h:outputText value="#{_detalleNC.precio}" />
+								</p:column>
+
+								<p:columnGroup type="footer" id="panelTotal">
+									<p:row>
+										<p:column colspan="6" footerText="#{msgs.lbl_subtotal}:" style="text-align:right">
+										</p:column>
+										<p:column>
+											<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotal">
+												<h:outputText value="#{aprobarNotaCreditoClienteBean.notaCreditoCliente.total}">
+													<f:convertNumber pattern="#{aprobarNotaCreditoClienteBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+									<p:row>
+										<p:column colspan="6" footerText="#{msgs.lbl_producto_indicador_impuestos}:" style="text-align:right">
+										</p:column>
+										<p:column>
+											<f:facet name="footer" colspan="10" style="text-align:right" id="txtImpuesto">
+												<h:outputText value="#{aprobarNotaCreditoClienteBean.notaCreditoCliente.impuesto}">
+													<f:convertNumber pattern="#{aprobarNotaCreditoClienteBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+									<p:row>
+										<p:column colspan="6" footerText="#{msgs.lbl_total}:" style="text-align:right">
+										</p:column>
+										<p:column>
+											<f:facet name="footer" colspan="10" style="text-align:right" id="txtSubtotal">
+												<h:outputText value="#{aprobarNotaCreditoClienteBean.notaCreditoCliente.totalFactura}">
+													<f:convertNumber pattern="#{aprobarNotaCreditoClienteBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+								</p:columnGroup>
+							</p:dataTable>
+						</h:panelGrid>
+					</p:outputPanel>
+					<f:facet name="footer">
+						<center>
+							<p:commandButton process="@this :form:txtNotaFacturaCliente" value="#{msgs.lbl_aprobar}" update=":form:panelListado"
+								actionListener="#{aprobarNotaCreditoClienteBean.aprobarNotaCreditoCliente}" />
+
+							<p:commandButton process="@this :form:txtNotaFacturaCliente" value="#{msgs.lbl_rechazar}" update=":form:panelListado"
+								actionListener="#{aprobarNotaCreditoClienteBean.rechazarNotaCreditoCliente}" />
+
+							<p:commandButton process="@this" value="#{msgs.btn_cancelar}" oncomplete="PF('detalleNotaCreditoDialog').hide();"
+								update=":form:panelDetalleNotaCredito">
+								<f:setPropertyActionListener value="" target="#{aprobarNotaCreditoClienteBean.notaFacturaCliente}"></f:setPropertyActionListener>
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+
+				<p:outputPanel id="panelListado">
+
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_nota_credito_cliente_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaNotaCreditoCliente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{aprobarNotaCreditoClienteBean.listaNotaCreditoCliente}" var="_notaCreditoCliente"
+							paginator="true" binding="#{aprobarNotaCreditoClienteBean.dtNotaCreditoCliente}" rows="#{aprobarNotaCreditoClienteBean.numeroFilas}"
+							paginatorPosition="bottom" style="width:100%" rowsPerPageTemplate="#{aprobarNotaCreditoClienteBean.numeroFilasPorPagina}"
+							selection="#{aprobarNotaCreditoClienteBean.notaCreditoCliente}" selectionMode="single" rowKey="#{_notaCreditoCliente.id}"
+							sortBy="#{_notaCreditoCliente.fechaCreacion}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_numero}" sortBy="#{_notaCreditoCliente.numero}" filterBy="#{_notaCreditoCliente.numero}"
+								styleClass="columnaDTNombreCorto tableCell">
+								<h:outputText value="#{_notaCreditoCliente.numero}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_fecha}" sortBy="#{_notaCreditoCliente.fecha}" styleClass="columnaDTFecha tableCell">
+								<h:outputText value="#{_notaCreditoCliente.fecha}">
+									<f:convertDateTime pattern="#{aprobarNotaCreditoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_factura}" sortBy="#{_notaCreditoCliente.facturaClientePadre.numero}"
+								styleClass="columnaDTNombreCorto tableCell">
+								<h:link rendered="#{not empty _notaCreditoCliente.facturaClientePadre}" target="_blank" outcome="/paginas/ventas/procesos/facturaCliente"
+									includeViewParams="true" value="#{_notaCreditoCliente.facturaClientePadre.numero}">
+									<f:param name="numero" value="#{_notaCreditoCliente.facturaClientePadre.numero}" />
+								</h:link>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_cliente}" sortBy="#{_notaCreditoCliente.empresa.nombreFiscal}"
+								filterBy="#{_notaCreditoCliente.empresa.nombreFiscal}" styleClass="columnaDTNombre tableCell">
+								<h:outputText value="#{_notaCreditoCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_subtotal}" sortBy="#{_notaCreditoCliente.total}" styleClass="columnaDTValorGrande input-text-number tableCell">
+								<h:outputText value="#{_notaCreditoCliente.total}">
+									<f:convertNumber pattern="#{aprobarNotaCreditoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_producto_indicador_impuestos}" sortBy="#{_notaCreditoCliente.impuesto}"
+								styleClass="columnaDTValorGrande input-text-number tableCell">
+								<h:outputText value="#{_notaCreditoCliente.impuesto}">
+									<f:convertNumber pattern="#{aprobarNotaCreditoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_total}" styleClass="columnaDTValorGrande input-text-number tableCell">
+								<h:outputText value="#{_notaCreditoCliente.totalFactura}">
+									<f:convertNumber pattern="#{aprobarNotaCreditoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+
+								<h:outputText value="#{_notaCreditoCliente.descripcion}" />
+								<!--<p:commandLink onclick="panelDescripcion.show()" process="@this" update=":form:txtDescripcionModal" title="#{_notaCreditoCliente.descripcion}">
+									<h:graphicImage library="images" name="nota.png" style="height : 16px; width : 16px;" />
+									<f:setPropertyActionListener value="#{_notaCreditoCliente}" target="#{aprobarNotaCreditoClienteBean.notaCreditoCliente}" />
+								</p:commandLink>-->
+
+							</p:column>
+
+							<p:column headerText="#{msgs.btn_ver}" styleClass="columnaDTAccion tableCell">
+								<p:commandButton oncomplete="detalleNotaCreditoDialog.show();" icon="ui-icon-newwin" process="@this"
+									action="#{aprobarNotaCreditoClienteBean.cargarDetalles}" update=":form:panelDetalleNotaCredito">
+								</p:commandButton>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

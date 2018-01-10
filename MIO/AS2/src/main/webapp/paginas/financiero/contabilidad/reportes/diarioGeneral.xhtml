@@ -1,0 +1,152 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+				<as2:panelImprimir entidadOrigen="" entidadDestino="" bean="#{reporteDiarioGeneralBean}">
+				</as2:panelImprimir>
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{diarioGeneralBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="ocultarBtnExportarTabla" value="true" />
+				</ui:include>
+				<p:panel header="#{msgs.lbl_titulo_diario_general}">
+					<p:outputPanel id="panelFiltros">
+						<p:fieldset>
+							<h:panelGrid columns="4">
+								<h:outputText value="#{msgs.lbl_anio_desde}:" />
+								<p:inputMask id="txtAnioDesde" mask="9999" required="true" value="#{diarioGeneralBean.anioDesde}">
+									<f:validateBean />
+								</p:inputMask>
+								<h:outputText value="#{msgs.lbl_mes_desde}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{diarioGeneralBean.mesDesde}" id="cboMesDesde">
+									<f:selectItems value="#{diarioGeneralBean.listaMes}" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_anio_hasta}:" />
+								<p:inputMask id="txtAnioHasta" mask="9999" required="true" value="#{diarioGeneralBean.anioHasta}">
+									<f:validateBean />
+								</p:inputMask>
+								<h:outputText value="#{msgs.lbl_mes_hasta}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{diarioGeneralBean.mesHasta}" id="cboMesHasta">
+									<f:selectItems value="#{diarioGeneralBean.listaMes}" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu id="cboSucursal" value="#{diarioGeneralBean.sucursal}">
+									<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+									<f:selectItems value="#{diarioGeneralBean.listaSucursal}" var="_sucursal" itemValue="#{_sucursal}" itemLabel="#{_sucursal.nombre}" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_tipo_asiento}:" />
+								<p:selectOneMenu id="cboTipoAsiento" value="#{diarioGeneralBean.tipoAsiento}">
+									<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+									<f:selectItems value="#{diarioGeneralBean.listaTipoAsiento}" var="_tipoAsiento" itemValue="#{_tipoAsiento}"
+										itemLabel="#{_tipoAsiento.nombre}" />
+									<p:ajax event="change" process="@this" global="false" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_numero_asiento}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="columnaDTNombreCorto" value="#{diarioGeneralBean.asiento}"
+									completeMethod="#{diarioGeneralBean.autocompletarAsiento}" var="_asiento" itemLabel="#{_asiento.numero}" itemValue="#{_asiento}"
+									minQueryLength="2" id="cboAsiento">
+									<p:column headerText="#{msgs.lbl_numero}">
+										<h:outputText value="#{_asiento.numero}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_concepto}">
+										<h:outputText value="#{_asiento.concepto}">
+											<f:attribute name="limit" value="40" />
+											<f:converter converterId="stringLimitConverter" />
+										</h:outputText>
+									</p:column>
+									<p:ajax event="itemSelect" process="@this" />
+								</p:autoComplete>
+							</h:panelGrid>
+						</p:fieldset>
+					</p:outputPanel>
+					<p:panel header="#{msgs.lbl_reporte}">
+						<p:outputPanel id="panelConsulta">
+							<h:panelGrid columns="1" width="100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{diarioGeneralBean.listaAsiento}" id="tablaDetalleAsiento"
+									rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_asiento" paginator="true" paginatorPosition="bottom"
+									style="width:100%" binding="#{diarioGeneralBean.dtDetalleDiarioGeneral}" rows="#{diarioGeneralBean.numeroFilasReporte}"
+									rowsPerPageTemplate="#{diarioGeneralBean.numeroFilasPorPagina}">
+									<p:column styleClass="columnaDTCodigoCuenta tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}:" />
+										</f:facet>
+									</p:column>
+									<p:column styleClass="columnaDTNombre tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_cuenta_contable}:" />
+										</f:facet>
+									</p:column>
+									<p:column styleClass="columnaDTValorGrande input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_asiento_debe}:" />
+										</f:facet>
+									</p:column>
+									<p:column styleClass="columnaDTValorGrande input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_asiento_haber}:" />
+										</f:facet>
+									</p:column>
+									<p:column styleClass="tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_descripcion}:" />
+										</f:facet>
+									</p:column>
+									<p:column styleClass="columnaDTValorGrande input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_usuario}" />
+										</f:facet>
+									</p:column>
+									<p:column styleClass="columnaDTValorGrande input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha_registro}" />
+										</f:facet>
+									</p:column>
+									<p:subTable value="#{_asiento.listaDetalleAsiento}" var="_detalleAsiento">
+										<f:facet name="header">
+											<h:outputText
+												value="#{msgs.lbl_fecha}: #{_asiento.fecha}    /    #{_asiento.tipoAsiento.nombre}    /    #{msgs.lbl_numero}: #{_asiento.numero}" />
+										</f:facet>
+										<p:column headerText="#{msgs.lbl_codigo}">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_fecha}: #{_asiento.fecha}-" />
+											</f:facet>
+											<h:outputText value="#{_detalleAsiento.cuentaContable.codigo}" />
+										</p:column>
+										<p:column headerText="#{msgs.lbl_cuenta_contable}">
+											<h:outputText value="#{_detalleAsiento.cuentaContable.nombre}" />
+										</p:column>
+										<p:column headerText="#{msgs.lbl_asiento_debe}" style="text-align:right">
+											<h:outputText value="#{_detalleAsiento.debe}">
+												<f:convertNumber pattern="#{diarioGeneralBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+										<p:column headerText="#{msgs.lbl_asiento_haber}" style="text-align:right">
+											<h:outputText value="#{_detalleAsiento.haber}">
+												<f:convertNumber pattern="#{diarioGeneralBean.formatoDinero}" />
+											</h:outputText>
+										</p:column>
+										<p:column headerText="#{msgs.lbl_descripcion}">
+											<h:outputText value="#{_detalleAsiento.descripcion}" />
+										</p:column>
+										<p:column headerText="#{msgs.lbl_usuario}">
+											<h:outputText value="#{_detalleAsiento.usuarioCreacion}" />
+										</p:column>
+										<p:column headerText="#{msgs.lbl_fecha_registro}">
+											<h:outputText value="#{_detalleAsiento.fechaCreacion}">
+												<f:convertDateTime pattern="#{libroAuxiliarBean.formatoFecha}" />
+											</h:outputText>
+										</p:column>
+									</p:subTable>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,1156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<update>
+	<version id="0">
+		<!-- aqui van las sentencias que se van a ejecutar siempre -->
+		<sql><![CDATA[
+		IF EXISTS(SELECT 1 FROM sys.procedures WHERE name = 'DROP_COLUMN')
+		BEGIN
+			DROP PROCEDURE DROP_COLUMN
+		END
+	    ]]></sql>
+		<sql><![CDATA[ CREATE PROCEDURE DBO.DROP_COLUMN 
+		@TABLENAME VARCHAR(128), 
+		@COLUMNNAME VARCHAR(128) 
+		AS 
+		BEGIN 
+			SET NOCOUNT ON 
+			SET XACT_ABORT ON 
+			WHILE 0=0 BEGIN 
+				DECLARE @CONSTRAINTNAME VARCHAR(128) 
+				SET @CONSTRAINTNAME = ( 
+				SELECT TOP 1 
+				DF.NAME CONSTRAINT_NAME    
+				FROM SYS.DEFAULT_CONSTRAINTS DF 
+				INNER JOIN SYS.TABLES T ON DF.PARENT_OBJECT_ID = T.OBJECT_ID 
+				INNER JOIN SYS.COLUMNS C ON DF.PARENT_OBJECT_ID = C.OBJECT_ID AND DF.PARENT_COLUMN_ID = C.COLUMN_ID 
+				WHERE T.NAME=@TABLENAME AND C.NAME=@COLUMNNAME ) 
+				IF @CONSTRAINTNAME IS NULL BREAK 
+					EXEC ('ALTER TABLE "'+@TABLENAME+'" DROP CONSTRAINT "'+@CONSTRAINTNAME+'"') 
+			END 
+			SET NOCOUNT ON 
+			SET XACT_ABORT ON 
+			WHILE 0=0 BEGIN 
+				SET @CONSTRAINTNAME = ( 
+				SELECT TOP 1 CONSTRAINT_NAME 
+				FROM INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE 
+				WHERE TABLE_NAME = @TABLENAME AND COLUMN_NAME = @COLUMNNAME ) 
+				IF @CONSTRAINTNAME IS NULL BREAK 
+					EXEC ('ALTER TABLE "'+@TABLENAME+'" DROP CONSTRAINT "'+@CONSTRAINTNAME+'"') 
+			END 
+			DECLARE @SQL AS VARCHAR(500) 
+			SELECT @SQL='ALTER TABLE '+@TABLENAME+' DROP COLUMN '+@COLUMNNAME   
+			FROM SYSCOLUMNS WHERE NAME = @COLUMNNAME AND OBJECT_NAME(ID)= @TABLENAME 
+			IF @SQL IS NOT NULL 
+				EXEC(@SQL) 
+		END ]]></sql>
+	</version>
+	<version id="2.2.10.030">
+		<sql><![CDATA[alter table movimiento_bancario alter column beneficiario varchar(100)]]></sql>
+		<sql><![CDATA[declare @nombre_indice1 as varchar(200) select @nombre_indice1=object_name(constid) from sysconstraints where object_name(id)='frecuencia' and col_name(id,colid) = 'id_tipo_frecuencia' if(@nombre_indice1 is not null) execute('alter table frecuencia drop constraint '+ @nombre_indice1)]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='usuarios_autorizacion' AND object_name(id)='pedido_cliente') BEGIN declare @sql as varchar(2000) set @sql='update pedido_cliente set usuarios_autorizacion = '''' where usuarios_autorizacion IS NULL'  exec(@sql) END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='usuario_autoriza' AND object_name(id)='pedido_cliente') BEGIN declare @sql1 as varchar(2000) set @sql1='update pedido_cliente set usuario_autoriza = '''' where usuario_autoriza IS NULL'  exec(@sql1) END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT * FROM estado_proceso WHERE documento_base = 10 AND estado = 14) BEGIN insert into estado_proceso (id_estado_proceso,id_organizacion,id_sucursal,documento_base,estado) VALUES (-100, 1,1, 10, 14) END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='usuarios_autorizacion' AND object_name(id)='pedido_proveedor') BEGIN declare @sql2 as varchar(2000) set @sql2='update pedido_proveedor set usuarios_autorizacion = usuario_cambio_estado where usuarios_autorizacion IS NULL'  exec(@sql2) END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='indicador_solicitud_cambio_precio' AND object_name(id)='pedido_proveedor') BEGIN declare @sql3 as varchar(2000) set @sql3='update pedido_proveedor set indicador_solicitud_cambio_precio = 0 where indicador_solicitud_cambio_precio IS NULL'  exec(@sql3) END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='usuario_aprobacion_cambio_precio' AND object_name(id)='pedido_proveedor') BEGIN declare @sql4 as varchar(2000) set @sql4='update pedido_proveedor set usuario_aprobacion_cambio_precio = '''' where usuario_aprobacion_cambio_precio IS NULL'  exec(@sql4) END]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='fecha_desde' and object_name(id)='pago_comision') BEGIN drop table detalle_pago_comision drop table pago_comision END]]></sql>
+		<sql><![CDATA[update a set meses_por_amortizar_real = d.meses_amortizar from amortizacion a inner join (select id_amortizacion, count(1) meses_amortizar from detalle_amortizacion group by id_amortizacion ) d on a.id_amortizacion = d.id_amortizacion where meses_por_amortizar_real is null]]></sql>
+		<sql><![CDATA[update mb set estado_cheque = (select id_estado_cheque from estado_cheque where estado_inicial = 1 and id_organizacion = 1) from movimiento_bancario mb inner join forma_pago fp on fp.id_forma_pago = mb.id_forma_pago where fp.indicador_cheque = 1 and mb.estado_cheque is null and mb.id_organizacion = 1]]></sql>
+		<sql><![CDATA[update registro_peso set estado_control_calidad = 0 where estado_control_calidad is null]]></sql>
+		<sql><![CDATA[update proceso set view_id = '/paginas/inventario/calidad/procesos/controlCalidadMP.xhtml', view_name = 'Control de Calidad Materia Prima' where view_id = '/paginas/inventario/calidad/procesos/controlCalidad.xhtml']]></sql>
+		<sql><![CDATA[update orden_fabricacion set cantidad_liberada_calidad = 0 where cantidad_liberada_calidad is null]]></sql>
+		<sql><![CDATA[update orden_fabricacion set cantidad_rechazada_calidad = 0 where cantidad_rechazada_calidad is null]]></sql>
+		<sql><![CDATA[update orden_fabricacion set cantidad_cuarentena_calidad = 0 where cantidad_cuarentena_calidad is null]]></sql>
+		<sql><![CDATA[update orden_fabricacion set cantidad_reproceso_calidad = 0 where cantidad_reproceso_calidad is null]]></sql>
+		<sql><![CDATA[delete from permiso_accion where id_permiso in (select id_permiso from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id like '%/paginas/mantenimiento/configuracion/tipoFrecuencia.xhtml%')))]]></sql>
+		<sql><![CDATA[delete from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id like '%/paginas/mantenimiento/configuracion/tipoFrecuencia.xhtml%'))]]></sql>
+		<sql><![CDATA[delete from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id like '%/paginas/mantenimiento/configuracion/tipoFrecuencia.xhtml%')]]></sql>
+		<sql><![CDATA[delete from proceso where view_id like '%/paginas/mantenimiento/configuracion/tipoFrecuencia.xhtml%']]></sql>
+		<sql><![CDATA[if exists (select 1 from syscolumns where name = 'cantidad_devuelta' and object_name(id) = 'detalle_movimiento_inventario') update detalle_movimiento_inventario set cantidad_devuelta = 0 where cantidad_devuelta IS NULL]]></sql>
+		<sql><![CDATA[update lectura_mantenimiento set valor_acumulado = valor where valor_acumulado IS NULL]]></sql>
+		<sql><![CDATA[delete from configuracion where parametro ='REALIZA_LOGISTICA']]></sql>
+		<sql><![CDATA[update detalle_factura_cliente set ice = 0 where ice is null]]></sql>
+		<sql><![CDATA[update detalle_factura_cliente set ice_linea = 0 where ice_linea is null]]></sql>
+		<sql><![CDATA[update producto set ice = 0 where ice is null]]></sql>
+		<sql><![CDATA[update producto set codigo_ice = '' where codigo_ice is null]]></sql>
+		<sql><![CDATA[update detalle_factura_cliente set codigo_ice = '' where codigo_ice is null]]></sql>
+		<sql><![CDATA[update detalle_pedido_cliente set ice = 0 where ice is null]]></sql>
+		<sql><![CDATA[update detalle_pedido_cliente set ice_linea = 0 where ice_linea is null]]></sql>
+		<sql><![CDATA[update detalle_pedido_cliente set codigo_ice = '' where codigo_ice is null]]></sql>
+		<sql><![CDATA[update asiento set indicador_automatico_editado = 0 where indicador_automatico_editado is null]]></sql>
+		<sql><![CDATA[update fcSRI set fcSRI.codigo_forma_pago_sri = '02' from factura_cliente fc inner join factura_clienteSRI fcSRI on fc.id_factura_cliente = fcSRI.id_factura_cliente where fcSRI.codigo_forma_pago_sri is null and fc.fecha < '01-08-2016']]></sql>
+		<sql><![CDATA[update fcSRI set fcSRI.codigo_forma_pago_sri = '20' from factura_cliente fc inner join factura_clienteSRI fcSRI on fc.id_factura_cliente = fcSRI.id_factura_cliente where fcSRI.codigo_forma_pago_sri is null and fc.fecha >= '01-08-2016']]></sql>
+		<sql><![CDATA[declare @id_documento_contabilizacion as int select @id_documento_contabilizacion = max(id_documento_contabilizacion) from documento_contabilizacion  insert into documento_contabilizacion (id_documento_contabilizacion,fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,activo,debe,documento_base,id_organizacion,id_sucursal,proceso_contabilizacion,reversa_proceso,id_documento_contabilizacion_padre) select @id_documento_contabilizacion+row_number() over(order by id_organizacion),null,null,null,null,1,0,6,id_organizacion,1,37,0,null from organizacion o where not exists (select 1 from documento_contabilizacion d where o.id_organizacion = d.id_organizacion and documento_base = 6 and proceso_contabilizacion = 37)]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='id_tipo_frecuencia' and object_name(id)='frecuencia') alter table frecuencia drop column id_tipo_frecuencia]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='id_tipo_frecuencia' and object_name(id)='frecuencia') alter table frecuencia drop column id_tipo_frecuencia]]></sql>
+		<sql><![CDATA[if exists(select 1 from syscolumns where name = 'indicador_acumula' and object_name(id) = 'detalle_plan_mantenimiento_frecuencia') alter table detalle_plan_mantenimiento_frecuencia drop column indicador_acumula]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='detalle_consumo_agil_mantenimiento' and object_name(id)='detalle_consumo_agil_mantenimiento') alter table detalle_consumo_agil_mantenimiento drop column codigo_producto]]></sql>
+		<sql><![CDATA[declare @nombre_indice as varchar(200) select @nombre_indice=object_name(constid) from sysconstraints where object_name(id)='maquina' and col_name(id,colid) = 'id_componente_costo' if(@nombre_indice is not null) execute('alter table maquina drop constraint '+ @nombre_indice) IF EXISTS (SELECT * FROM syscolumns WHERE name='id_componente_costo' AND object_name(id)='maquina') BEGIN declare @sql10 as varchar(2000) set @sql10='alter table maquina drop column id_componente_costo' exec(@sql10) END]]></sql>
+		<sql><![CDATA[alter table presupuesto alter column id_periodo int null]]></sql>
+		<sql><![CDATA[if  exists (select 1 from sys.indexes where object_id = object_id('inventario_producto') and name = 'IX_inventario_producto_fecha') drop index IX_inventario_producto_fecha on inventario_producto]]></sql>
+		<sql><![CDATA[if  exists (select 1 from sys.indexes where object_id = object_id('inventario_producto') and name = 'IX_ip_detalle_despacho') drop index IX_ip_detalle_despacho on inventario_product]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='id_orden_salida_material_principal' and object_name(id)='orden_fabricacion') BEGIN execute('update ofa set ofa.id_orden_salida_material_principal = ofosm.id_orden_salida_material from orden_fabricacion ofa INNER JOIN orden_fabricacion_orden_salida_material ofosm on ofosm.id_orden_fabricacion = ofa.id_orden_fabricacion') END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT * FROM syscolumns WHERE name='tipo_visualizacion' AND object_name(id)='usuario') BEGIN alter table usuario add tipo_visualizacion int not null default 2 END]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.10.031', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.10.031">
+		<sql><![CDATA[IF EXISTS(SELECT * FROM syscolumns WHERE name='cantidad_desecho' AND object_name(id)='detalle_orden_salida_material') BEGIN	execute('update detalle_orden_salida_material set cantidad_desecho = 0 where cantidad_desecho is null') END]]></sql>
+		<sql><![CDATA[update ld set indicador_carga_automatica = 1 from lista_descuentos ld inner join organizacion_configuracion oc on ld.id_organizacion = oc.id_organizacion where oc.tipo_organizacion = 'TIPO_ORGANIZACION_TEXTILES_PADILLA']]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.10.032', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.10.032">
+		<sql><![CDATA[update pais set codigo = '593' where nombre = 'Ecuador']]></sql>
+		<sql><![CDATA[update fcSRI set fcSRI.codigo_forma_pago_sri = '02' from factura_cliente fc inner join factura_clienteSRI fcSRI on fc.id_factura_cliente = fcSRI.id_factura_cliente where fcSRI.codigo_forma_pago_sri is null and fc.fecha < '01-08-2016']]></sql>
+		<sql><![CDATA[update fcSRI set fcSRI.codigo_forma_pago_sri = '20' from factura_cliente fc inner join factura_clienteSRI fcSRI on fc.id_factura_cliente = fcSRI.id_factura_cliente where fcSRI.codigo_forma_pago_sri is null and fc.fecha >= '01-08-2016']]></sql>
+		<sql><![CDATA[if  exists (select 1 from sys.indexes where object_id = object_id('inventario_producto') and name = 'IX_ip_detalle_despacho') drop index IX_ip_detalle_despacho on inventario_producto]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='activo' AND object_name(id)='periodo')
+		BEGIN 
+				declare @query as varchar(2000) set @query='update periodo set indicador_cierre_cobros=activo, indicador_cierre_pagos=activo, indicador_cierre_contabilidad=activo, indicador_cierre_presupuesto=activo, indicador_cierre_activos_fijos=activo, indicador_cierre_compras=activo, indicador_cierre_ventas=activo, indicador_cierre_produccion=activo, indicador_cierre_inventario=activo, indicador_cierre_nomina=activo'  exec(@query) 
+			    execute('alter table periodo drop column activo') 
+				execute('alter table periodo drop column indicador_cierre_crm') 
+				execute('alter table periodo drop column indicador_cierre_financiero') 
+				execute('alter table periodo drop column indicador_cierre_rrhh') 
+				END]]></sql>
+		<sql><![CDATA[alter table empresa alter column nombre_fiscal varchar(200)]]></sql>
+		<sql><![CDATA[alter table empresa alter column nombre_comercial varchar(200)]]></sql>
+		<sql><![CDATA[alter table empresa alter column texto_busqueda varchar(1000)]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.10.033', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.10.033">
+		<sql><![CDATA[update documento set reporte = 'reportePedidoCliente' where documento_base = 9 and reporte = 'NA']]></sql>
+		<sql><![CDATA[declare @id_documento_variable_proceso1 as int
+				select @id_documento_variable_proceso1 = max(id_documento_variable_proceso) from documento_variable_proceso
+				insert into documento_variable_proceso (id_documento_variable_proceso,fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,documento_base,id_organizacion,id_sucursal,variable_proceso) 
+				select @id_documento_variable_proceso1 +row_number() over(order by id_organizacion),null,null, null, null, 6,id_organizacion,1,'CATEGORIA_IMPUESTO'
+				from organizacion o where not exists (select 1 from documento_variable_proceso d where documento_base = 6 and d.id_organizacion = o.id_organizacion and variable_proceso = 'CATEGORIA_IMPUESTO' )]]></sql>
+		<sql><![CDATA[declare @id_documento_variable_proceso2 as int
+			select @id_documento_variable_proceso2 = max(id_documento_variable_proceso) from documento_variable_proceso
+			insert into documento_variable_proceso (id_documento_variable_proceso,fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,documento_base,id_organizacion,id_sucursal,variable_proceso) 
+			select @id_documento_variable_proceso2 +row_number() over(order by id_organizacion),null,null, null, null, 16,id_organizacion,1,'CATEGORIA_IMPUESTO'
+			from organizacion o where not exists (select 1 from documento_variable_proceso d where documento_base = 16 and d.id_organizacion = o.id_organizacion and variable_proceso = 'CATEGORIA_IMPUESTO' )]]></sql>
+		<sql><![CDATA[declare @id_documento_variable_proceso3 as int
+			select @id_documento_variable_proceso3 = max(id_documento_variable_proceso) from documento_variable_proceso
+			insert into documento_variable_proceso (id_documento_variable_proceso,fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,documento_base,id_organizacion,id_sucursal,variable_proceso) 
+			select @id_documento_variable_proceso3 +row_number() over(order by id_organizacion),null,null, null, null, 19,id_organizacion,1,'CATEGORIA_IMPUESTO'
+			from organizacion o where not exists (select 1 from documento_variable_proceso d where documento_base = 19 and d.id_organizacion = o.id_organizacion and variable_proceso = 'CATEGORIA_IMPUESTO' )]]></sql>
+		<sql><![CDATA[if exists(select * from sysindexes where  name='IX_detalle_movimiento_inventario') DROP INDEX [IX_detalle_movimiento_inventario] ON [dbo].[detalle_movimiento_inventario]]]></sql>
+		<sql><![CDATA[if exists(select * from sysindexes where  name='IX_inventario_producto_devolucion') DROP INDEX [IX_inventario_producto_devolucion] ON [dbo].[inventario_producto]]]></sql>
+		<sql><![CDATA[if exists(select * from sysindexes where  name='IX_producto_activo') DROP INDEX [IX_producto_activo] ON [dbo].[producto]]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT 1 FROM organizacion WHERE razon_social LIKE '%mystic%')
+				IF NOT EXISTS (SELECT 1 FROM hora_extra WHERE codigo = '25COMP_DH')
+				BEGIN 
+					DECLARE @idRubro25 AS INT
+					DECLARE @idRubro100 AS INT
+					DECLARE @idHoraExtra AS INT
+					SELECT @idRubro25 = id_rubro FROM rubro WHERE nombre like '%25%' AND id_organizacion=1 AND tipo ='HORAS_EXTRA'
+					SELECT @idRubro100 = id_rubro FROM rubro WHERE nombre like '%100%' AND id_organizacion=1 AND tipo ='HORAS_EXTRA'
+					SELECT @idHoraExtra = MIN(id_hora_extra) FROM hora_extra 
+					INSERT INTO hora_extra
+					(id_hora_extra,codigo,hora_desde,hora_hasta,id_organizacion,id_sucursal,indicador_dentro_horario,indicador_dia_festivo,nombre,por_ciento,id_rubro
+					,indicador_dia_descanso,indicador_dia_complementario)
+					VALUES
+					((@idHoraExtra-1),'25COMP_DH','07:00:00.0000000','12:00:00.0000000',1,1,1,0,'HORAS 25 COMPLEMENTARIO DENTRO HORARIO',1,@idRubro25,0,1),
+					((@idHoraExtra-2),'100COMP_FH','12:00:00.0000000','00:00:00.0000000',1,1,0,0,'HORAS 100 COMPLEMENTARIO FUERA HORARIO',3,@idRubro100,0,1)
+			END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT 1 FROM organizacion WHERE razon_social LIKE '%jardines%')
+				IF NOT EXISTS (SELECT 1 FROM hora_extra WHERE codigo = '25COMP_DH')
+				BEGIN 
+					DECLARE @idRubro100_2 AS INT
+					DECLARE @idHoraExtra_2 AS INT
+					SELECT @idRubro100_2 = id_rubro FROM rubro WHERE nombre like '%100%' AND id_organizacion=1 AND tipo ='HORAS_EXTRA'
+					SELECT @idHoraExtra_2 = MIN(id_hora_extra) FROM hora_extra 
+					INSERT INTO hora_extra
+					(id_hora_extra,codigo,hora_desde,hora_hasta,id_organizacion,id_sucursal,indicador_dentro_horario,indicador_dia_festivo,nombre,por_ciento,id_rubro
+					,indicador_dia_descanso,indicador_dia_complementario)
+					VALUES
+					((@idHoraExtra_2-1),'100COMP_FH','09:30:00.0000000','14:00:00.0000000',1,1,0,0,'HORAS 100 COMPLEMENTARIO FUERA HORARIO',3,@idRubro100_2,0,1)
+			END]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.10.034', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.10.034">
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.10.035', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.10.035">
+		<sql><![CDATA[UPDATE tipo_falta SET numero_dias_falta = 0 WHERE numero_dias_falta IS NULL]]></sql>
+		<sql><![CDATA[ALTER TABLE tipo_falta ALTER COLUMN id_rubro int null]]></sql>
+		<sql><![CDATA[delete from permiso_accion where id_permiso in (select id_permiso from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/produccion/procesos/registroDesecho.xhtml')))]]></sql>
+		<sql><![CDATA[delete from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/produccion/procesos/registroDesecho.xhtml'))]]></sql>
+		<sql><![CDATA[delete from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/produccion/procesos/registroDesecho.xhtml')]]></sql>
+		<sql><![CDATA[delete from proceso where view_id = '/paginas/produccion/procesos/registroDesecho.xhtml']]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM syscolumns WHERE name='cantidad_unidad_informativa_desecho' AND object_name(id)='detalle_orden_salida_material') 
+				BEGIN 
+					ALTER TABLE detalle_orden_salida_material ADD cantidad_unidad_informativa_desecho decimal(12,2) null
+				END]]></sql>
+		<sql><![CDATA[declare @nombre_indice_dosmof as varchar(200)
+				select @nombre_indice_dosmof=object_name(constid) from sysconstraints where object_name(id)='detalle_orden_salida_material_orden_fabricacion' and col_name(id,colid) = 'cantidad_desecho_unidad_informativa'
+				if(@nombre_indice_dosmof is not null)
+				BEGIN 
+				      execute('alter table detalle_orden_salida_material_orden_fabricacion drop constraint '+ @nombre_indice_dosmof)
+				END]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='cantidad_desecho_unidad_informativa' and object_name(id)='detalle_orden_salida_material_orden_fabricacion')
+				BEGIN
+					alter table detalle_orden_salida_material_orden_fabricacion drop column cantidad_desecho_unidad_informativa
+				END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='autorizacion' AND object_name(id)='guia_remision') BEGIN exec('alter table guia_remision alter column autorizacion varchar(49)')  END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='autorizacion' AND object_name(id)='anuladoSRI') BEGIN exec('alter table anuladoSRI alter column autorizacion varchar(49)')  END]]></sql>
+		<sql><![CDATA[delete from configuracion where parametro = 'FACTURACION_ELECTRONICA_ESPERA']]></sql>
+		<sql><![CDATA[if exists (select 1 from sysobjects where type = 'U' and name = 'comprobante_electronico_pendiente')
+				begin
+				insert into comprobante_electronico_pendiente_sri
+				select
+				-1000000 - ROW_NUMBER()over(order by cep.id_comprobante_electronico_pendiente),
+				null,
+				null,
+				'admin',
+				null,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.ambiente end else fpSRI.ambiente end else fcSRI.ambiente end,
+				cep.cantidad_intentos,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.clave_acceso end else fpSRI.clave_acceso end else fcSRI.clave_acceso end,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else dgr.documento_base end else dfpSRI.documento_base end else dfc.documento_base end,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.email end else fpSRI.email end else fcSRI.email end,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.fecha end else fpSRI.fecha_emision_retencion end else fcSRI.fecha_emision end,
+				cep.fecha_ultimo_intento,
+				cep.id_factura_cliente,
+				cep.id_factura_proveedorSRI,
+				cep.id_guia_remision,
+				cep.id_organizacion,
+				cep.id_sucursal,
+				cep.indicador_comprobar_autorizacion,
+				cep.indicador_autorizar_contingencia,
+				cep.indicador_no_autorizado,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.mensaje_sri end else fpSRI.mensaje_sri end else fcSRI.mensaje_sri end,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.numero end else (fpSRI.establecimiento_retencion+'-'+fpSRI.punto_emision_retencion+'-'+fpSRI.numero_retencion) end else fc.numero end,
+				case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then case when dfc.documento_base = 6 then 0 else case when dfc.documento_base = 16 or dfc.documento_base = 19 then 1 else 2 end end else 3 end else 4 end,
+				case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.tipo_emision end else fpSRI.tipo_emision end else fcSRI.tipo_emision end
+				from comprobante_electronico_pendiente cep
+				left join factura_cliente fc on fc.id_factura_cliente = cep.id_factura_cliente
+				left join documento dfc on dfc.id_documento = fc.id_documento
+				left join factura_clienteSRI fcSRI on fcSRI.id_factura_cliente = fc.id_factura_cliente
+				left join factura_proveedorSRI fpSRI on fpSRI.id_factura_proveedorSRI = cep.id_factura_proveedorSRI
+				left join documento dfpSRI on dfpSRI.id_documento = fpSRI.id_documento
+				left join guia_remision gr on gr.id_guia_remision = cep.id_guia_remision
+				left join documento dgr on dgr.id_documento = gr.id_documento
+				where cep.indicador_autorizado <> 1
+				and case when cep.id_factura_cliente is null then case when cep.id_factura_proveedorSRI is null then case when cep.id_guia_remision is null then null else gr.fecha end else fpSRI.fecha_emision_retencion end else fcSRI.fecha_emision end is not null
+				delete from comprobante_electronico_pendiente
+				end	]]></sql>
+		<sql><![CDATA[update proceso set view_name = 'SRI Clasificacion' where view_id = '/paginas/financiero/SRI/configuracion/ibpClasificacion.xhtml']]></sql>
+		<sql><![CDATA[update proceso set view_name = 'SRI Marca' where view_id = '/paginas/financiero/SRI/configuracion/ibpMarca.xhtml']]></sql>
+		<sql><![CDATA[update proceso set view_name = 'SRI Capacidad' where view_id = '/paginas/financiero/SRI/configuracion/ibpCapacidad.xhtml']]></sql>
+		<sql><![CDATA[update proceso set view_name = 'SRI Unidad' where view_id = '/paginas/financiero/SRI/configuracion/ibpUnidad.xhtml']]></sql>
+		<sql><![CDATA[update proceso set view_name = 'SRI Producto' where view_id = '/paginas/financiero/SRI/configuracion/ibpProducto.xhtml']]></sql>
+		<sql><![CDATA[update rubro_otra_empresa set meses_trabajados_vigencia_contribucion =0 where meses_trabajados_vigencia_contribucion is null]]></sql>
+		<sql><![CDATA[update rubro_otra_empresa set meses_trabajados_contribucion =0 where meses_trabajados_contribucion is null]]></sql>
+		<sql><![CDATA[update rubro_otra_empresa set sueldo_agravada_contribucion =0 where sueldo_agravada_contribucion is null]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.10.036', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.10.036">
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='autorizacion' AND object_name(id)='guia_remision') BEGIN exec('alter table guia_remision alter column autorizacion varchar(49)')  END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='autorizacion' AND object_name(id)='anuladoSRI') BEGIN exec('alter table anuladoSRI alter column autorizacion varchar(49)')  END]]></sql>
+		<sql><![CDATA[declare @idDocumentoContabilizacion22 as bigint
+				select @idDocumentoContabilizacion22 = min(id_documento_contabilizacion) -1
+				from documento_contabilizacion
+				insert into documento_contabilizacion
+				(id_documento_contabilizacion,fecha_creacion,fecha_modificacion,usuario_creacion,
+				usuario_modificacion,activo,debe,documento_base,id_organizacion,id_sucursal,proceso_contabilizacion,reversa_proceso,id_documento_contabilizacion_padre) 
+				select @idDocumentoContabilizacion22 - row_number() over (order by id_organizacion) id_documento_contabilizacion,
+				fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,
+				1 activo,0 debe,48 documento_base,id_organizacion,1 id_sucursal,8 proceso_contabilizacion,0 reversa_proceso,null id_documento_contabilizacion_padre
+				from organizacion o
+				where not exists (select 1 from documento_contabilizacion d where o.id_organizacion = d.id_organizacion and d.documento_base = 48 and d.proceso_contabilizacion = 8)]]></sql>
+		<sql><![CDATA[declare @id_documento_variable_proceso33 as int   	
+				select @id_documento_variable_proceso33 = max(id_documento_variable_proceso) from documento_variable_proceso
+				insert into documento_variable_proceso (id_documento_variable_proceso,fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,documento_base,id_organizacion,id_sucursal,variable_proceso) 
+				select @id_documento_variable_proceso33 +row_number() over(order by id_organizacion),null,null, null, null, 48,id_organizacion,1,'CATEGORIA_EMPRESA'
+				from organizacion o where not exists (select 1 from documento_variable_proceso d where documento_base = 48 and d.id_organizacion = o.id_organizacion and variable_proceso = 'CATEGORIA_EMPRESA' )]]></sql>
+		<sql><![CDATA[delete documento_contabilizacion where documento_base = 88]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='id_agente_comercial' and object_name(id)='factura_cliente')
+				begin
+					declare @sql22 as varchar(2000)
+					set @sql22='UPDATE fc SET fc.id_agente_comercial = t.agente FROM (
+					SELECT fc.id_factura_cliente AS factura, fc.id_agente_comercial AS agente
+					FROM Factura_Cliente nc 
+					INNER JOIN factura_cliente fc ON nc.id_factura_Cliente_Padre = fc.id_factura_cliente
+					INNER JOIN documento d ON d.id_documento = nc.id_documento
+					WHERE fc.estado != 0 AND nc.estado != 0
+					AND d.documento_Base IN (16, 19)
+					) AS t inner join factura_cliente fc ON fc.id_factura_cliente_padre = t.factura
+				WHERE fc.id_agente_comercial IS NULL' 
+					exec(@sql22)
+				end]]></sql>
+		<sql><![CDATA[if exists(select * from syscolumns where name='codigo_forma_pago_sri' and object_name(id)='factura_clienteSRI')
+				begin
+					declare @sql23 as varchar(2000)
+					set @sql23='UPDATE fcsrii SET fcsrii.codigo_forma_pago_sri = t.forma FROM (
+					SELECT fc.id_factura_cliente AS factura, fcsri.codigo_forma_pago_sri AS forma , fcsrii.codigo_forma_pago_sri
+					FROM Factura_Cliente nc 
+					INNER JOIN factura_cliente fc ON nc.id_factura_Cliente_Padre = fc.id_factura_cliente
+					INNER JOIN factura_clienteSRI fcsri on nc.id_factura_Cliente_Padre = fcsri.id_factura_cliente
+					INNER JOIN factura_clienteSRI fcsrii on nc.id_factura_Cliente = fcsrii.id_factura_cliente
+					INNER JOIN documento d ON d.id_documento = nc.id_documento
+					WHERE fc.estado != 0 AND nc.estado != 0
+					AND d.documento_Base IN (16, 19)
+					) AS t 
+					inner join factura_cliente fc ON fc.id_factura_cliente_padre = t.factura
+					inner join factura_clienteSRI fcsrii ON fcsrii.id_factura_cliente = fc.id_factura_cliente
+				WHERE fcsrii.codigo_forma_pago_sri IS NULL' 
+					exec(@sql23)
+				end ]]></sql>
+		<sql><![CDATA[UPDATE documento SET documento_base = 89 WHERE documento_base=7 AND indicador_documento_exterior=1]]></sql>
+		<sql><![CDATA[DECLARE @idDocumentoContabilizacion AS BIGINT
+				SELECT @idDocumentoContabilizacion = MIN(id_documento_contabilizacion) -1 FROM documento_contabilizacion
+				INSERT INTO documento_contabilizacion
+				(id_documento_contabilizacion,fecha_creacion,fecha_modificacion,usuario_creacion,
+				usuario_modificacion,activo,debe,documento_base,id_organizacion,id_sucursal,proceso_contabilizacion,reversa_proceso,id_documento_contabilizacion_padre) 
+				SELECT @idDocumentoContabilizacion - ROW_NUMBER() OVER (ORDER BY id_organizacion) id_documento_contabilizacion,
+				fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,
+				1 activo,1 debe,89 documento_base,id_organizacion,1 id_sucursal,41 proceso_contabilizacion,0 reversa_proceso,null id_documento_contabilizacion_padre
+				FROM organizacion o
+				WHERE NOT EXISTS (SELECT 1 FROM documento_contabilizacion d WHERE o.id_organizacion = d.id_organizacion AND d.documento_base = 89 AND d.proceso_contabilizacion = 41)]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (select 1 from documento_variable_proceso where documento_base = 89 AND variable_proceso = 'CATEGORIA_PRODUCTO')
+				BEGIN 
+					DECLARE @idDocumentoVariableProceso AS BIGINT
+					SELECT @idDocumentoVariableProceso = MAX(id_documento_variable_proceso) +1 FROM documento_variable_proceso
+					INSERT INTO documento_variable_proceso (id_documento_variable_proceso, documento_base, id_organizacion, id_sucursal, variable_proceso) 
+					SELECT @idDocumentoVariableProceso+ROW_NUMBER() OVER (ORDER BY id_organizacion), 89, id_organizacion, 1, variable FROM organizacion o ,
+					(SELECT 'SUCURSAL' variable UNION ALL 
+					SELECT 'PRODUCTO' variable UNION ALL 
+					SELECT 'SUBCATEGORIA_PRODUCTO' variable UNION ALL
+					SELECT 'CATEGORIA_PRODUCTO' variable) variables;
+				END]]></sql>
+		<!-- <sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM codigo_forma_pagoSRI WHERE codigo='01' ) -->
+		<!-- BEGIN -->
+		<!-- INSERT INTO codigo_forma_pagoSRI (id_codigo_forma_pagoSRI, id_organizacion, codigo, nombre, activo, predeterminado) -->
+		<!-- SELECT ROW_NUMBER() OVER (ORDER BY id_organizacion) , id_organizacion, codigo1, nombre2, activo3, predeterminado4 FROM organizacion o , -->
+		<!-- (SELECT '01' codigo1 , 'Sin utilizacion del sistema financiero' nombre2, 1 activo3, 0 predeterminado4 UNION ALL -->
+		<!-- SELECT '15' codigo1 , 'Compensacion de deudas' nombre2, 1 activo3, 0 predeterminado4 UNION ALL -->
+		<!-- SELECT '16' codigo1 , 'Tarjeta de Debito' nombre2, 1 activo3, 0 predeterminado4 UNION ALL -->
+		<!-- SELECT '17' codigo1 , 'Dinero Electronico' nombre2, 1 activo3, 0 predeterminado4 UNION ALL -->
+		<!-- SELECT '18' codigo1 , 'Tarjeta Prepago' nombre2, 1 activo3, 0 predeterminado4 UNION ALL -->
+		<!-- SELECT '19' codigo1 , 'Tarjeta Credito' nombre2, 1 activo3, 0 predeterminado4 UNION ALL -->
+		<!-- SELECT '20' codigo1 , 'Otros con utilizacion del sistema financiero' nombre2, 1 activo3, 0 predeterminado4 UNION ALL -->
+		<!-- SELECT '21' codigo1 , 'Endoso de Titulos' nombre2, 1 activo3, 0 predeterminado4) datos_forma_pagoSRI; -->
+		<!-- END]]></sql> -->
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='hora_desde' AND object_name(id)='permiso_empleado') BEGIN
+					exec('INSERT INTO detalle_permiso_empleado (id_detalle_permiso_empleado,fecha_creacion,fecha_modificacion,usuario_creacion,usuario_modificacion,descripcion,fecha_permiso,hora_desde,hora_hasta,horas,id_organizacion,id_sucursal,id_permiso_empleado,indicador_dia_completo) SELECT -1 - ROW_NUMBER()OVER(ORDER BY pe.id_permiso_empleado), pe.fecha_creacion, pe.fecha_modificacion, pe.usuario_creacion, pe.usuario_modificacion, pe.descripcion, CASE WHEN pe.dia_desde IS NULL THEN pe.fecha_permiso ElSE pe.dia_desde END, pe.hora_desde, pe.hora_hasta, pe.horas, pe.id_organizacion, pe.id_sucursal, pe.id_permiso_empleado,0 FROM permiso_empleado pe')
+					ALTER TABLE permiso_empleado DROP COLUMN hora_desde
+					ALTER TABLE permiso_empleado DROP COLUMN hora_hasta
+				END]]></sql>
+		<sql><![CDATA[alter table producto alter column codigo_alterno varchar(50)]]></sql>
+		<sql><![CDATA[UPDATE a SET fecha_filtro = COALESCE(ap.fecha, a.fecha) FROM asistencia a LEFT JOIN asistencia ap ON a.id_asistencia_padre = ap.id_asistencia]]></sql>
+		<sql><![CDATA[DECLARE @idHoraExtraOp AS INT
+				SELECT @idHoraExtraOp = MIN(id_hora_extra) FROM hora_extra 
+				insert into hora_extra(id_hora_extra,codigo,hora_desde,hora_hasta,id_organizacion,id_sucursal,nombre,por_ciento,id_rubro,indicador_dia_descanso,indicador_dia_complementario,indicador_dentro_horario,indicador_dia_festivo)
+				select @idHoraExtraOp -1-row_number() over(order by id_organizacion),'100COMP_FH','12:00:00.0000000','00:00:00.0000000',o.id_organizacion,1,'HORAS 100 COMPLEMENTARIO FUERA HORARIO',3,(SELECT id_rubro FROM rubro WHERE nombre like '%100%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA'),0,1,0,0
+				from organizacion o where not exists (select 1 from hora_extra he where codigo='100COMP_FH' and he.id_organizacion = o.id_organizacion and indicador_dentro_horario=0 and indicador_dia_festivo=0 and por_ciento=3 and id_rubro=(SELECT id_rubro FROM rubro WHERE nombre like '%100%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA') and indicador_dia_descanso=0 and indicador_dia_complementario=1)
+				and exists (SELECT id_rubro FROM rubro WHERE nombre like '%100%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA') AND NOT EXISTS(SELECT 1 FROM hora_extra WHERE id_organizacion=o.id_organizacion AND codigo='100COMP_FH')
+				SELECT @idHoraExtraOp = MIN(id_hora_extra) FROM hora_extra 
+				insert into hora_extra(id_hora_extra,codigo,hora_desde,hora_hasta,id_organizacion,id_sucursal,nombre,por_ciento,id_rubro,indicador_dia_descanso,indicador_dia_complementario,indicador_dentro_horario,indicador_dia_festivo)
+				select @idHoraExtraOp -1-row_number() over(order by id_organizacion),'25COMP_1','19:00:00.0000000','00:00:00.0000000',o.id_organizacion,1,'HORAS 25 COMPLEMENTARIO DENTRO HORARIO',1,(SELECT id_rubro FROM rubro WHERE nombre like '%25%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA'),0,1,1,0
+				from organizacion o where not exists (select 1 from hora_extra he where codigo='25COMP_1' and hora_desde='19:00:00.0000000' and hora_hasta='00:00:00.0000000' and he.id_organizacion = o.id_organizacion and por_ciento=1 and id_rubro=(SELECT id_rubro FROM rubro WHERE nombre like '%25%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA') and indicador_dia_descanso=0 and indicador_dia_complementario=1 and indicador_dentro_horario=1 and indicador_dia_festivo=0)
+				and exists (SELECT id_rubro FROM rubro WHERE nombre like '%25%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA') AND NOT EXISTS(SELECT 1 FROM hora_extra WHERE id_organizacion=o.id_organizacion AND codigo='25COMP_1')
+				SELECT @idHoraExtraOp = MIN(id_hora_extra) FROM hora_extra 
+				insert into hora_extra(id_hora_extra,codigo,hora_desde,hora_hasta,id_organizacion,id_sucursal,nombre,por_ciento,id_rubro,indicador_dia_descanso,indicador_dia_complementario,indicador_dentro_horario,indicador_dia_festivo)
+				select @idHoraExtraOp -1-row_number() over(order by id_organizacion),'25COMP_2','00:00:00.0000000','06:00:00.0000000',o.id_organizacion,1,'HORAS 25 COMPLEMENTARIO DENTRO HORARIO',1,(SELECT id_rubro FROM rubro WHERE nombre like '%25%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA'),0,1,1,0
+				from organizacion o where not exists (select 1 from hora_extra he where codigo='25COMP_2' and he.id_organizacion = o.id_organizacion and por_ciento=1 and id_rubro=(SELECT id_rubro FROM rubro WHERE nombre like '%25%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA') and indicador_dia_descanso=0 and indicador_dia_complementario=1 and indicador_dentro_horario=1 and indicador_dia_festivo=0 and hora_desde='00:00:00.0000000' and hora_hasta='06:00:00.0000000')
+				and exists (SELECT id_rubro FROM rubro WHERE nombre like '%25%' AND id_organizacion=o.id_organizacion AND tipo ='HORAS_EXTRA') AND NOT EXISTS(SELECT 1 FROM hora_extra WHERE id_organizacion=o.id_organizacion AND codigo='25COMP_2')]]></sql>
+		<sql><![CDATA[update cb set cb.predeterminado = 1  FROM cuenta_bancaria_empresa cbe
+				INNER JOIN empresa e on cbe.id_empresa= e.id_empresa 
+				INNER  JOIN cuenta_Bancaria cb on cbe.id_cuenta_bancaria = cb.id_cuenta_bancaria]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='id_cuenta_contable' AND object_name(id)='caja_chica') BEGIN
+					alter table caja_chica alter column id_cuenta_contable int null
+				END]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT * FROM syscolumns WHERE name='valor' AND object_name(id)='caja_chica') BEGIN
+				alter table caja_chica alter column valor int null
+				END]]></sql>
+		<sql><![CDATA[if exists (select 1 from syscolumns where name = 'codigo_banco' and object_name(id) = 'detalle_pago_cash')
+				BEGIN
+				alter table detalle_pago_cash alter column codigo_banco varchar(50) null
+				END]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.001', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.11.001">
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM estado_proceso WHERE documento_base=79 )
+				BEGIN
+					DECLARE @idEstadoProceso AS BIGINT
+					SELECT @idEstadoProceso = MIN(id_estado_proceso) -1 FROM estado_proceso
+					INSERT INTO estado_proceso (id_estado_proceso, id_organizacion, documento_base, estado, id_sucursal) 
+					VALUES
+					(@idEstadoProceso,1, 79, 1, 1),
+					(@idEstadoProceso-1,1, 79, 3, 1),
+					(@idEstadoProceso-2,1, 79, 14, 1),
+					(@idEstadoProceso-3,1, 79, 6, 1),
+					(@idEstadoProceso-4,1, 79, 2, 1),
+					(@idEstadoProceso-5,1, 79, 0, 1)
+				END]]></sql>
+		<sql><![CDATA[alter table contacto alter column id_sucursal int null]]></sql>
+		<sql><![CDATA[update contacto set id_sucursal = null where id_empresa is not null]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteAsistencia' AND version='2.2.11.001' )
+				 BEGIN
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , nombre_reporte, GETDATE(),'2.2.11.001',  razon_social, 0, 1 FROM organizacion o  ,
+					(SELECT 'reporteAsistencia' nombre_reporte) dat
+				 END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='permisoEmpleado' AND version='2.2.11.001' )
+				BEGIN 
+		 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+		 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , nombre_reporte, GETDATE(),'2.2.11.001',  razon_social, 0, 1 FROM organizacion o  ,
+		 			(SELECT 'permisoEmpleado' nombre_reporte) dat
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteFacturaImportacion_subreport1' AND version='2.2.11.001' )
+				BEGIN 
+		 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+		 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , nombre_reporte, GETDATE(),'2.2.11.001',  razon_social, 0, 1 FROM organizacion o  ,
+		 			(SELECT 'reporteFacturaImportacion_subreport1' nombre_reporte) dat
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteAgrupadoAsistencia' AND version='2.2.11.001' )
+		 		 BEGIN
+		 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+		 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , nombre_reporte, GETDATE(),'2.2.11.001',  razon_social, 0, 1 FROM organizacion o  ,
+		 			(SELECT 'reporteAgrupadoAsistencia' nombre_reporte) dat
+				 END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reportePermiso' AND version='2.2.11.001' )
+		 		 BEGIN
+		 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+		 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , nombre_reporte, GETDATE(),'2.2.11.001',  razon_social, 0, 1 FROM organizacion o  ,
+		 			(SELECT 'reportePermiso' nombre_reporte) dat
+				 END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='vacacionPorFechas' AND version='2.2.11.001' )
+		 		 BEGIN
+		 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+		 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , nombre_reporte, GETDATE(),'2.2.11.001',  razon_social, 0, 1 FROM organizacion o  ,
+		 			(SELECT 'vacacionPorFechas' nombre_reporte) dat
+				 END]]></sql>
+		<sql><![CDATA[update forma_pago set codigo = 'CHQ' where codigo = 'CHEQ']]></sql>
+		<sql><![CDATA[update detalle_forma_cobro set retencion_iva = 0 where retencion_iva is null]]></sql>
+		<sql><![CDATA[update detalle_forma_cobro set retencion_fuente = 0 where retencion_fuente is null]]></sql>
+		<sql><![CDATA[update forma_pago set porcentaje_retencion_renta = 0 where porcentaje_retencion_renta is null]]></sql>
+		<sql><![CDATA[update forma_pago set porcentaje_retencion_iva = 0 where porcentaje_retencion_iva is null]]></sql>
+		<sql><![CDATA[if exists (select 1 from sysobjects where type = 'U' and name = 'detalle_deposito_tarjeta_credito')
+		         begin
+		            exec('drop table detalle_deposito_tarjeta_credito')
+		         end]]></sql>
+
+		<sql><![CDATA[if exists (select 1 from sysobjects where type = 'U' and name = 'deposito_tarjeta_credito')
+		         begin
+		            exec('drop table deposito_tarjeta_credito')
+		         end]]></sql>
+		<sql><![CDATA[delete from permiso_accion where id_permiso in (select id_permiso from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/financiero/cobros/procesos/depositoTarjetaCredito.xhtml')))]]></sql>
+		<sql><![CDATA[delete from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/financiero/cobros/procesos/depositoTarjetaCredito.xhtml'))]]></sql>
+		<sql><![CDATA[delete from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/financiero/cobros/procesos/depositoTarjetaCredito.xhtml')]]></sql>
+		<sql><![CDATA[delete from proceso where view_id = '/paginas/financiero/cobros/procesos/depositoTarjetaCredito.xhtml']]></sql>
+		<sql><![CDATA[delete from permiso_accion where id_permiso in (select id_permiso from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/financiero/cobros/reportes/reporteDepositoTarjetaCredito.xhtml')))]]></sql>
+		<sql><![CDATA[delete from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/financiero/cobros/reportes/reporteDepositoTarjetaCredito.xhtml'))]]></sql>
+		<sql><![CDATA[delete from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/financiero/cobros/reportes/reporteDepositoTarjetaCredito.xhtml')]]></sql>
+		<sql><![CDATA[delete from proceso where view_id = '/paginas/financiero/cobros/reportes/reporteDepositoTarjetaCredito.xhtml']]></sql>
+
+		<sql><![CDATA[update detalle_vacacion set dias_tomados_old=dias_tomados where dias_tomados_old=0]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.002', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.11.002">
+		<sql><![CDATA[UPDATE asistencia SET indicador_dia_complementario = 0 WHERE indicador_dia_descanso=1 AND indicador_dia_complementario = 1]]></sql>
+		<sql><![CDATA[UPDATE asistencia SET indicador_dia_complementario = 0 WHERE indicador_dia_festivo=1 AND indicador_dia_complementario = 1]]></sql>
+		<sql><![CDATA[UPDATE asistencia SET indicador_dia_complementario = 0 WHERE indicador_dia_opcional=0 AND indicador_dia_complementario = 1]]></sql>
+		<sql><![CDATA[UPDATE asistencia SET horas_falta = 0 WHERE indicador_vacacion=1 AND horas_falta<>0]]></sql>
+		<sql><![CDATA[UPDATE he SET hora_desde='00:00:00.0000000' 
+				FROM hora_extra he JOIN organizacion o ON he.id_organizacion=o.id_organizacion
+				WHERE indicador_dentro_horario=0 AND indicador_dia_descanso=0 AND indicador_dia_festivo=0 AND indicador_dia_complementario=1
+				AND o.razon_social NOT IN ('MYSTICFLOWERS S.A.','JARDINES DE CAYAMBE C. LTDA.','EMPROTRAB S.A.','RENE HIDROBO')
+				update asistencia set horas_falta = 0 where horas_falta<0;]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='solicitudVacacion' AND version='2.2.11.002' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'solicitudVacacion', GETDATE(),'2.2.11.002',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRetencionSRIDetalladoPorFactura' AND version='2.2.11.002' ) 
+				BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRetencionSRIDetalladoPorFactura', GETDATE(),'2.2.11.002',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[if not exists(select * from syscolumns where object_name(id)='tmp_detalle_factura_proveedorSRI20170327')
+				begin
+				SELECT dfpdri.* INTO tmp_detalle_factura_proveedorSRI20170327  
+				FROM  detalle_factura_proveedorSRI dfpdri
+				INNER JOIN factura_proveedorSRI fcsri ON dfpdri.id_factura_proveedorSRI = fcsri.id_factura_proveedorSRI
+				INNER JOIN  tipo_comprobanteSRI tc ON tc.id_tipo_comprobanteSRI  = fcsri.id_tipo_comprobante
+				WHERE tc.codigo  = '41'
+				end]]></sql>
+		<sql><![CDATA[DELETE dfpdri
+				FROM detalle_factura_proveedorSRI dfpdri
+				INNER JOIN factura_proveedorSRI fcsri on dfpdri.id_factura_proveedorSRI = fcsri.id_factura_proveedorSRI
+				INNER JOIN tipo_comprobanteSRI tc on tc.id_tipo_comprobanteSRI  = fcsri.id_tipo_comprobante
+				WHERE tc.codigo  = '41']]></sql>
+		<sql><![CDATA[delete from permiso_accion where id_permiso in (select id_permiso from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/compras/procesos/notaDebitoProveedor.xhtml')))]]></sql>
+		<sql><![CDATA[delete from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/compras/procesos/notaDebitoProveedor.xhtml'))]]></sql>
+		<sql><![CDATA[delete from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id = '/paginas/compras/procesos/notaDebitoProveedor.xhtml')]]></sql>
+		<sql><![CDATA[delete from proceso where view_id = '/paginas/compras/procesos/notaDebitoProveedor.xhtml']]></sql>
+		<sql><![CDATA[alter table  caja_chica alter column valor numeric (9,2)]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteImpuestoVentasProductoFactura' AND version='2.2.11.002' ) 
+				BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteImpuestoVentasProductoFactura', GETDATE(),'2.2.11.002',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteImpuestoVentasClienteFactura' AND version='2.2.11.002' ) 
+				BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteImpuestoVentasClienteFactura', GETDATE(),'2.2.11.002',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.003', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.11.003">
+		<sql><![CDATA[IF EXISTS(SELECT * FROM syscolumns WHERE name='volumen' AND object_name(id)='producto')
+		       	BEGIN
+				alter table producto alter column volumen numeric(12,4)
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteFacturacionResumido' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteFacturacionResumido', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteFacturacionDetallado' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteFacturacionDetallado', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteStockValoradoSaldo' AND version='2.2.11.003' ) 
+				BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteStockValoradoSaldo', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteStockValoradoSaldoAgrupado' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteStockValoradoSaldoAgrupado', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[update configuracion set parametro='NOTA_CREDITO_REQUIERE_APROBACION' where parametro='NOTA_CREDITO_FINANCIERA_REQUIERE_APROBACION'	
+				IF EXISTS (SELECT * FROM syscolumns WHERE name='id_lote' AND object_name(id)='detalle_registro_peso') BEGIN
+					DELETE FROM detalle_registro_peso
+					DELETE FROM registro_peso_detalle_pedido_cliente
+					DROP TABLE registro_peso_detalle_pedido_cliente
+					ALTER TABLE detalle_registro_peso DROP CONSTRAINT FK_17mkml2vr0x2a30a7tw00x6es;
+					ALTER TABLE detalle_registro_peso DROP CONSTRAINT FK_jfnl1nvna7xowkp7ecs3baw3o;
+					ALTER TABLE detalle_registro_peso DROP COLUMN peso
+					ALTER TABLE detalle_registro_peso DROP CONSTRAINT UK_tir79benmrgbqtykclmmiqvma;
+					ALTER TABLE detalle_registro_peso DROP COLUMN id_lote
+					ALTER TABLE detalle_registro_peso DROP COLUMN id_producto
+					DROP TABLE detalle_registro_peso
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteAsistenciaResumido' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteAsistenciaResumido', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteComprasResumido' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteComprasResumido', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+<!-- 		<sql><![CDATA[update proceso set view_id = '/paginas/inventario/reportes/reporteStock.xhtml' , view_name = 'Stock' where view_id = '/paginas/inventario/reportes/reporteStockValoradoSaldo.xhtml']]></sql> -->
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRecepcionesProducto' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRecepcionesProducto', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END ]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteStockValoradoSaldo' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteStockValoradoSaldo', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END ]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteStockValoradoSaldoAgrupado' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteStockValoradoSaldoAgrupado', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteComprasResumido' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteComprasResumido', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+<!-- 		<sql><![CDATA[update proceso set view_id = '/paginas/inventario/reportes/reporteStock.xhtml' , view_name = 'Stock' where view_id = '/paginas/inventario/reportes/reporteStockValoradoSaldo.xhtml']]></sql> -->
+
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRecepcionesProducto' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRecepcionesProducto', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRecepcionesLote' AND version='2.2.11.003' ) 
+				BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRecepcionesLote', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRecepcionesProveedor' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRecepcionesProveedor', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteUtilidadEmpleado' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteUtilidadEmpleado', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRecepcionesLote' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRecepcionesLote', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRecepcionesProveedor' AND version='2.2.11.003' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRecepcionesProveedor', GETDATE(),'2.2.11.003',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+		<sql><![CDATA[update historico_empleado set estado_finiquito = 12  where fecha_salida is not null and fecha_finiquito is null and estado_finiquito is null]]></sql>
+		<sql><![CDATA[update historico_empleado set estado_finiquito = 1 where fecha_salida is not null and fecha_finiquito is not null and estado_finiquito is null]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.004', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.11.004">
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteStockValoradoResumido' AND version='2.2.11.004' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteStockValoradoResumido', GETDATE(),'2.2.11.004',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteStockValoradoAgrupado' AND version='2.2.11.004' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteStockValoradoAgrupado', GETDATE(),'2.2.11.004',  razon_social, 0, 1 FROM organizacion o  
+				END]]></sql>
+
+		<sql><![CDATA[IF (select character_maximum_length from information_schema.columns  where table_name = 'direccion_empresa' and COLUMN_NAME like 'telefono1') = 13 
+				 BEGIN 
+				 ALTER TABLE direccion_empresa ALTER COLUMN telefono1 varchar(20) 
+				 END]]></sql>
+
+		<sql><![CDATA[ IF (select character_maximum_length from information_schema.columns  where table_name = 'direccion_empresa' and COLUMN_NAME like 'telefono2') = 13 
+				 BEGIN  
+				 ALTER TABLE direccion_empresa ALTER COLUMN telefono2 varchar(20) 
+				 END]]></sql>
+
+		<sql><![CDATA[delete from permiso_accion where id_permiso in (select id_permiso from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id like '%/paginas/ventas/reportes/reporteFacturaVsDespacho.xhtml%')))]]></sql>
+		<sql><![CDATA[delete from permiso where id_proceso_organizacion in (select id_proceso_organizacion from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id like '%/paginas/ventas/reportes/reporteFacturaVsDespacho.xhtml%'))]]></sql>
+		<sql><![CDATA[delete from proceso_organizacion where id_proceso in (select id_proceso from proceso where view_id like '%/paginas/ventas/reportes/reporteFacturaVsDespacho.xhtml%')]]></sql>
+		<sql><![CDATA[delete from proceso where view_id like '%/paginas/ventas/reportes/reporteFacturaVsDespacho.xhtml%']]></sql>
+
+		<sql><![CDATA[update proceso set view_name = 'Reporte Listado Transacciones Banco' where view_id = '/paginas/nomina/reportes/reporteListaTransaccionBanco.xhtml' ]]></sql>
+		<sql><![CDATA[update dpc set dpc.nombre_banco = ba.nombre FROM detalle_pago_cash dpc 
+				JOIN cuenta_bancaria cb	on dpc.cuenta_bancaria_empleado = cb.numero 
+				JOIN banco ba on cb.id_banco = ba.id_banco 
+				WHERE dpc.cuenta_bancaria_empleado is not null 
+				and dpc.id_empleado is not null 
+				and dpc.nombre_banco is null]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.005', fecha=getdate() where  id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.11.005">
+	<sql><![CDATA[update ip set ip.nombre_fiscal_empresa = e.nombre_fiscal from inventario_producto ip
+		inner join despacho_cliente dc on ip.numero_documento = dc.numero
+		inner join empresa e on e.id_empresa = dc.id_empresa]]></sql>
+	<sql><![CDATA[update ip set ip.nombre_fiscal_empresa = e.nombre_fiscal from inventario_producto ip
+		inner join factura_cliente fc on ip.numero_documento = fc.numero
+		inner join empresa e on e.id_empresa = fc.id_empresa]]></sql>
+	<sql><![CDATA[update ip set ip.nombre_fiscal_empresa = e.nombre_fiscal from inventario_producto ip
+		inner join recepcion_proveedor rp on ip.numero_documento = rp.numero
+		inner join empresa e on e.id_empresa = rp.id_empresa]]></sql>
+	<sql><![CDATA[update ip set ip.nombre_fiscal_empresa = e.nombre_fiscal from inventario_producto ip
+		inner join factura_proveedor fp on ip.numero_documento = fp.numero
+		inner join empresa e on e.id_empresa = fp.id_empresa]]></sql>
+		<sql><![CDATA[IF EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS WHERE CONSTRAINT_NAME ='UK_dc03kwx2yalcueymxk64aqc43') 
+		BEGIN
+			ALTER TABLE producto_ultima_compra DROP CONSTRAINT UK_dc03kwx2yalcueymxk64aqc43;
+		END]]></sql>
+		<sql><![CDATA[update forma_pagoSRI set codigo = '20' where codigo = '02']]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.006', fecha=getdate() where id_sistema = @idSistema]]></sql>
+	</version>
+	<version id="2.2.11.006">
+		<sql><![CDATA[ALTER TABLE factura_proveedorSRI ALTER COLUMN nombre_proveedor varchar(200)]]></sql>
+		<sql><![CDATA[ALTER TABLE detalle_solicitud_compra_proveedor ALTER COLUMN total numeric (12,6);]]></sql>
+		<sql><![CDATA[if not exists (select 1 from proceso where view_id = '/paginas/inventario/reportes/reporteStockValoradoSaldo.xhtml')
+		declare @id_proceso as int
+		select @id_proceso=id_proceso from proceso where view_id ='/paginas/inventario/reportes/reporteStockValoradoSaldo.xhtml'
+		delete from permiso_accion where id_permiso in(select id_permiso from permiso where id_proceso_organizacion in(select id_proceso_organizacion from proceso_organizacion where id_proceso=@id_proceso))
+		delete from permiso where id_proceso_organizacion in(select id_proceso_organizacion from proceso_organizacion where id_proceso=@id_proceso)
+		delete from proceso_organizacion where id_proceso=@id_proceso
+		delete from proceso where @id_proceso=id_proceso]]></sql>
+		<sql><![CDATA[ALTER TABLE lote ALTER COLUMN codigo varchar(50)]]></sql>
+				<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteCobroFormaPago' AND version='2.2.11.006' ) 
+				 BEGIN 
+					INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+					SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteCobroFormaPago', GETDATE(),'2.2.11.006',  razon_social, 0, 1 FROM organizacion o  
+				 END]]></sql>
+		<sql><![CDATA[
+			declare @w_maxIdConfiguracion int
+			select @w_maxIdConfiguracion = max(id_configuracion) from configuracion
+			INSERT INTO configuracion (id_configuracion, fecha_creacion, fecha_modificacion, usuario_creacion, usuario_modificacion, id_organizacion, id_sucursal, parametro, valor, valor_mostrar, id_modulo)
+			SELECT @w_maxIdConfiguracion + ROW_NUMBER() OVER(ORDER BY o.id_organizacion),null,null,null,null,o.id_organizacion,0,'MANEJA_CODIGO_EMPRESA','true','true',(select max(id_modulo) from modulo where id_organizacion = o.id_organizacion and nombre = 'Datos Base')
+			FROM organizacion o where not exists (select 1 from configuracion c where c.id_organizacion = o.id_organizacion and c.parametro = 'MANEJA_CODIGO_EMPRESA')
+		]]></sql>
+		
+		<sql><![CDATA[
+			if not exists(select 1 from syscolumns where name='id_version_lista_descuentos' and OBJECT_NAME(id)='detalle_lista_descuentos')
+			begin
+			    alter table detalle_lista_descuentos add id_version_lista_descuentos int
+			end 
+		]]></sql>
+		<sql><![CDATA[
+			if exists (select 1 from syscolumns where name='id_lista_descuentos' and object_name(id)='detalle_lista_descuentos')
+			begin
+			
+				exec('insert into version_lista_descuentos (id_version_lista_descuentos, id_organizacion, id_sucursal, activo, predeterminado, descripcion, valido_desde, valido_hasta, id_lista_descuentos, porcentaje_descuento_maximo)
+			    select -id_lista_descuentos, id_organizacion, id_sucursal, activo, predeterminado, nombre, getdate(),null, id_lista_descuentos,0
+			    from lista_descuentos l 
+			    where not exists (select 1 from version_lista_descuentos v where v.id_version_lista_descuentos = -l.id_lista_descuentos)')
+			
+			    exec('update detalle_lista_descuentos set id_version_lista_descuentos = -id_lista_descuentos')
+
+			    declare @nlp1 as varchar(100) 
+			    select @nlp1= name from sysobjects where id = 
+			    (select constid from sysforeignkeys where object_name(rkeyid)='lista_descuentos'
+			    and fkeyid = (select id from syscolumns where name='id_lista_descuentos' and object_name(id)='detalle_lista_descuentos'))
+			    if @nlp1 is not null
+			        exec('ALTER TABLE detalle_lista_descuentos DROP CONSTRAINT ' + @nlp1) 
+			
+			    declare @nlp2 as varchar(100) 
+			    select  @nlp2 = name from sysobjects where object_name(parent_obj) ='detalle_lista_descuentos' and xtype='UQ'
+			    if @nlp2 is not null
+			        exec('ALTER TABLE detalle_lista_descuentos DROP CONSTRAINT ' + @nlp2) 
+			
+			    EXEC DROP_COLUMN 'detalle_lista_descuentos','id_lista_descuentos'
+						
+			end
+		]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.007', fecha=getdate() where id_sistema = @idSistema]]></sql>
+	</version>
+	
+	<version id="2.2.11.007">
+		<sql><![CDATA[EXEC DROP_COLUMN 'forma_pago','porcentaje_comision']]></sql>
+		<sql><![CDATA[
+			declare @w_minIdVersionListaDescuentos int
+			select  @w_minIdVersionListaDescuentos = min(id_version_lista_descuentos) from version_lista_descuentos
+			
+			insert  into version_lista_descuentos (id_version_lista_descuentos,descripcion,id_organizacion,id_sucursal,activo,predeterminado,valido_desde,valido_hasta,id_lista_descuentos,porcentaje_descuento_maximo) 
+			select  @w_minIdVersionListaDescuentos - ROW_NUMBER() OVER(ORDER BY l.id_lista_descuentos),l.nombre,l.id_organizacion,l.id_sucursal,1,1,'01/01/2015',null,l.id_lista_descuentos,0 
+			from lista_descuentos l
+			where not exists (select 1 from version_lista_descuentos v where v.id_lista_descuentos = l.id_lista_descuentos)
+			and l.indicador_descuento_por_producto = 0
+		]]></sql>
+		
+		<sql><![CDATA[
+		if exists(select * from syscolumns where name='porcentaje_descuento_maximo' and object_name(id)='lista_descuentos')
+		begin
+			exec ('update vld set vld.porcentaje_descuento_maximo = ld.porcentaje_descuento_maximo
+			from version_lista_descuentos vld
+			inner join lista_descuentos ld on ld.id_lista_descuentos = vld.id_lista_descuentos
+			where ld.indicador_descuento_por_producto = 0
+			and   vld.porcentaje_descuento_maximo = 0')
+			
+			EXEC DROP_COLUMN 'lista_descuentos','porcentaje_descuento_maximo'
+		end
+		]]></sql>
+		<sql><![CDATA[alter table detalle_movimiento_inventario alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_movimiento_inventario alter column cantidad_origen numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_recepcion_proveedor alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_factura_proveedor alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_orden_salida_material alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_solicitud_compra alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_solicitud_compra alter column cantidad_original numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_solicitud_compra alter column cantidad_aprobada numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_pedido_proveedor alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_pedido_proveedor alter column cantidad_por_facturar numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_pedido_proveedor alter column cantidad_por_recibir numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_factura_cliente alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_pedido_cliente alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_pedido_cliente alter column cantidad_por_facturar numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_pedido_cliente alter column cantidad_por_despachar numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_despacho_cliente alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table detalle_costo_fabricacion alter column cantidad_fabricada_mes numeric(12,4)]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.008', fecha=getdate() where id_sistema = @idSistema]]></sql>		
+	</version>
+	
+	<version id="2.2.11.008">
+		<sql><![CDATA[alter table detalle_guia_remision alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[UPDATE documento SET operacion = 1 WHERE documento_base = 7 AND operacion != 1]]></sql>
+		<sql><![CDATA[
+			declare @constraint varchar(30)
+			SELECT @constraint = cc.CONSTRAINT_NAME 
+			FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS cc 
+			INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE c ON cc.CONSTRAINT_NAME = c.CONSTRAINT_NAME 
+			where TABLE_NAME = 'detalle_toma_fisica' and COLUMN_NAME = 'cantidad_sistema'
+			if(@constraint is not null)
+			BEGIN
+				exec('ALTER TABLE detalle_toma_fisica DROP CONSTRAINT '+ @constraint)
+			END
+		]]></sql>
+		<sql><![CDATA[
+			declare @constraint varchar(30)
+			SELECT @constraint = cc.CONSTRAINT_NAME 
+			FROM INFORMATION_SCHEMA.CHECK_CONSTRAINTS cc 
+			INNER JOIN INFORMATION_SCHEMA.CONSTRAINT_COLUMN_USAGE c ON cc.CONSTRAINT_NAME = c.CONSTRAINT_NAME 
+			where TABLE_NAME = 'detalle_toma_fisica' and COLUMN_NAME = 'cantidad_toma_fisica'
+			
+			if(@constraint is not null)
+			BEGIN
+				exec('ALTER TABLE detalle_toma_fisica DROP CONSTRAINT '+ @constraint)
+			END
+		]]></sql>
+		<sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM syscolumns WHERE name='mes' AND object_name(id)='operacion_orden_fabricacion') 
+			BEGIN 
+			    ALTER TABLE operacion_orden_fabricacion ADD mes int null
+			END
+		]]></sql>
+		<sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM syscolumns WHERE name='anio' AND object_name(id)='operacion_orden_fabricacion') 
+			BEGIN 
+			    ALTER TABLE operacion_orden_fabricacion ADD anio int null
+			END
+		]]></sql>
+		<sql><![CDATA[
+			update operacion_orden_fabricacion set mes = month(fecha_creacion) , anio = year(fecha_creacion) where mes is null and anio is null
+		]]></sql>
+		<sql><![CDATA[
+			ALTER TABLE orden_fabricacion ALTER COLUMN id_producto int null
+		]]></sql>
+		<sql><![CDATA[
+			ALTER TABLE orden_fabricacion ALTER COLUMN id_ruta_fabricacion int null
+		]]></sql>
+		<sql><![CDATA[
+			ALTER TABLE lectura_balanza ALTER COLUMN id_detalle_orden_despacho_cliente int null
+		]]></sql>
+		<sql><![CDATA[
+			update p set p.indicador_lista_material = 1
+			from producto p 
+			inner join producto_material pm on pm.id_producto = p.id_producto
+		]]></sql>
+		<sql><![CDATA[
+			declare @w_secuencia_lote_1 int, @w_secuencia_lote_2 int, @w_secuencia_lote int
+			select @w_secuencia_lote_1 = coalesce(max(inicio_serie),0) from organizacion_configuracion 
+			select @w_secuencia_lote_2 = coalesce(max(siguiente_secuencia),0) from secuencia_as2
+			select @w_secuencia_lote = case when @w_secuencia_lote_1 > @w_secuencia_lote_2 then @w_secuencia_lote_1 else @w_secuencia_lote_2 end
+			update organizacion_configuracion set inicio_serie = @w_secuencia_lote + 1
+		]]></sql>
+		<sql><![CDATA[alter table detalle_orden_fabricacion_material alter column cantidad numeric(14,4)]]></sql>
+		<sql><![CDATA[alter table detalle_orden_fabricacion_material_mezcla alter column cantidad numeric(14,4)]]></sql>
+		<sql><![CDATA[alter table historico_calidad_orden_fabricacion alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_batch numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_fabricada numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_batch_fabricados numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_rechazada numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_liberada_calidad numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_rechazada_calidad numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_cuarentena_calidad numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_reproceso_calidad numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_utilizada_calidad numeric(12,4)]]></sql>    
+		<sql><![CDATA[alter table orden_fabricacion alter column cantidad_formulacion numeric(12,4)]]></sql>
+		<sql><![CDATA[UPDATE rubro SET indicador_decimo_cuarto_acumulado = 1 WHERE tipo='DECIMO_CUARTO' AND mes_calculo_desde=8 AND mes_calculo_hasta=7]]></sql> 
+		<sql><![CDATA[
+			declare @w_maxIdConfiguracion int
+			select @w_maxIdConfiguracion = max(id_configuracion) from configuracion
+			INSERT INTO configuracion (id_configuracion, fecha_creacion, fecha_modificacion, usuario_creacion, usuario_modificacion, id_organizacion, id_sucursal, parametro, valor, valor_mostrar, id_modulo)
+			SELECT @w_maxIdConfiguracion + ROW_NUMBER() OVER(ORDER BY o.id_organizacion),null,null,null,null,o.id_organizacion,0,'DIMENSION_PEDIDO_PROVEEDOR','false','false',(select max(id_modulo) from modulo where id_organizacion = o.id_organizacion and nombre = 'Compras')
+			FROM organizacion o where not exists (select 1 from configuracion c where c.id_organizacion = o.id_organizacion and c.parametro = 'DIMENSION_PEDIDO_PROVEEDOR')
+		]]></sql>
+		<sql><![CDATA[
+			declare @constraint varchar(50)
+			SELECT @constraint = CONSTRAINT_NAME 
+			FROM INFORMATION_SCHEMA.TABLE_CONSTRAINTS
+			WHERE TABLE_NAME = 'usuario_dimension_contable'
+			AND CONSTRAINT_TYPE = 'UNIQUE'
+			AND CONSTRAINT_NAME <> 'UQ_usuario_dimension_contable'
+			if(@constraint is not null)
+			BEGIN
+				exec('ALTER TABLE usuario_dimension_contable DROP CONSTRAINT '+ @constraint)
+			END
+		]]></sql>  
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteEstadoCuenta' AND version='2.2.11.008' ) 
+		BEGIN 
+		INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+		SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteEstadoCuenta', GETDATE(),'2.2.11.008',  razon_social, 0, 1 FROM organizacion o  
+		END]]></sql>
+		<sql><![CDATA[
+			update documento_contabilizacion set debe = 0 where documento_base in (20, 17) and debe = 1;
+		]]></sql>
+		<sql><![CDATA[
+		update pre set base_imponible_iees = a.val from pago_rol_empleado pre 
+			inner join (
+				select pre_1.id_pago_rol_empleado,sum(prer_1.valor) val
+ 				from pago_rol_empleado_rubro prer_1
+				inner join pago_rol_empleado pre_1 on pre_1.id_pago_rol_empleado=prer_1.id_pago_rol_empleado
+				where prer_1.indicador_calculo_IESS=1
+				group by pre_1.id_pago_rol_empleado
+			) a on a.id_pago_rol_empleado=pre.id_pago_rol_empleado
+		where base_imponible_iees <> a.val]]></sql>
+		<sql><![CDATA[alter table detalle_orden_despacho_cliente alter column cantidad_pedido numeric(12,4)]]></sql>
+		<sql><![CDATA[
+			update pre set pre.fecha_salida_empleado= he.fecha_salida  
+			from pago_rol_empleado pre
+			inner join historico_empleado he on he.id_historico_empleado=pre.id_historico_empleado
+			inner join pago_rol pr on pr.id_pago_rol=pre.id_pago_rol
+			where he.fecha_salida is not null
+			and he.indicador_finiquito=0
+			and MONTH(he.fecha_salida)=MONTH(pr.fecha)
+			and year(he.fecha_salida)=year(pr.fecha)
+		]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteRetencionSRIDetalladoPorRetencion' AND version='2.2.11.008' ) 
+			BEGIN 
+			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteRetencionSRIDetalladoPorRetencion', GETDATE(),'2.2.11.008',  razon_social, 0, 1 FROM organizacion o  
+			END
+		]]></sql>
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteIngresoFabricacion' AND version='2.2.11.008' ) 
+			BEGIN 
+			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteIngresoFabricacion', GETDATE(),'2.2.11.008',  razon_social, 0, 1 FROM organizacion o  
+			END
+		]]></sql>
+		<sql><![CDATA[alter table detalle_orden_despacho_cliente_pedido_cliente alter column cantidad numeric(12,4)]]></sql>
+		<sql><![CDATA[UPDATE proceso SET view_name='Asignación Masiva Rubros' WHERE view_id LIKE '%/paginas/nomina/procesos/asignacionMasivaRubros.xhtml%']]></sql>			
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.009', fecha=getdate() where id_sistema = @idSistema]]></sql>	
+	</version>	
+
+	<version id="2.2.11.009">
+		<sql><![CDATA[update producto set indicador_control_calidad=0 where indicador_control_calidad is null]]></sql>	
+		<sql><![CDATA[update p set indicador_lista_material=0
+		from producto p
+		where p.id_producto not in (
+			select pm.id_producto from producto_material pm
+		)
+		and p.indicador_lista_material=1]]></sql>		
+		<sql><![CDATA[EXEC DROP_COLUMN 'permiso','id_proceso']]></sql>
+		<sql><![CDATA[	declare @permiso as int 
+			select @permiso = (select min(id_permiso) from permiso)
+			insert into permiso (id_permiso ,fecha_creacion, fecha_modificacion, usuario_creacion , usuario_modificacion, id_rol ,id_proceso_organizacion, acciones)
+			select  @permiso-row_number() over(order by id_organizacion) as id_permiso_, fecha_creacion, fecha_modificacion, usuario_creacion, usuario_modificacion, id_rol, id_proceso_organizacion, acciones from (
+			select distinct id_permiso=1, getdate() fecha_creacion, null fecha_modificacion, 'migracion' usuario_creacion, null usuario_modificacion, pe.id_rol, id_proceso_organizacion= (select top 1 id_proceso_organizacion from proceso_organizacion a join proceso b on a.id_proceso = b.id_proceso where  b.view_id='/paginas/datosBase/empresaAgil.xhtml'),
+			p.id_organizacion, acciones='ALL'  
+			from proceso p join proceso_organizacion po on p.id_proceso = po.id_proceso
+			join permiso pe on pe.id_proceso_organizacion = po.id_proceso_organizacion
+			 where p.view_id in(
+			 '/paginas/ventas/procesos/pedidoCliente.xhtml',
+			'/paginas/ventas/procesos/facturaCliente.xhtml',
+			'/paginas/ventas/procesos/facturaClienteAgil.xhtml')
+			) as t
+			where not exists (
+			select 1 from proceso_organizacion a join proceso b on a.id_proceso = b.id_proceso 
+			join permiso pee on pee.id_proceso_organizacion = a.id_proceso_organizacion 
+			join rol rl on rl.id_rol = pee.id_rol where  b.view_id='/paginas/datosBase/empresaAgil.xhtml' and t.id_rol=rl.id_rol and t.id_proceso_organizacion = a.id_proceso_organizacion)  ]]></sql>	
+		<sql><![CDATA[IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteFacturasProveedorImportacionPorLiquidar' AND version='2.2.11.009' ) 
+			BEGIN 
+			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema)  
+			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes) , 'reporteFacturasProveedorImportacionPorLiquidar', GETDATE(),'2.2.11.009',  razon_social, 0, 1 FROM organizacion o  
+			END
+		]]></sql>
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.010', fecha=getdate() where id_sistema = @idSistema]]></sql>	
+	</version>
+	
+	<version id="2.2.11.010">
+		<sql><![CDATA[update documento set reporte = 'reportePagoCash' where documento_base = 38 and (reporte is null or reporte='NA' or reporte='N/A')]]></sql>
+		<sql><![CDATA[update documento set reporte = 'reportePagoCashEmpleado' where documento_base = 40 and (reporte is null or reporte='NA' or reporte='N/A')]]></sql>	
+		<sql><![CDATA[EXEC DROP_COLUMN 'pago_cash','id_persona_responsable']]></sql>
+		<sql><![CDATA[EXEC DROP_COLUMN 'orden_pago_proveedor','id_persona_responsable']]></sql>
+		<sql><![CDATA[update cuenta_por_cobrar set dias_rotacion = 0 where dias_rotacion is null]]></sql>
+		<sql><![CDATA[update cuenta_por_cobrar set dias_plazo = 0 where dias_plazo is null]]></sql>
+		<sql><![CDATA[update gasto_deducibleSRI set total_gastos_deducibles = (isnull(valor_alimentacion,0) + isnull(valor_Educacion,0) + isnull(valor_salud,0) + isnull(valor_vestimenta,0) + isnull(valor_vivienda,0))]]></sql>
+		<sql><![CDATA[
+			update cc set cc.dias_plazo = datediff(day,fc.fecha,cc.fecha_vencimiento)
+			from cuenta_por_cobrar cc 
+			inner join factura_cliente fc on  cc.id_factura_cliente = fc.id_factura_cliente
+			where dias_plazo = 0
+		]]></sql>
+		<sql><![CDATA[
+			update cc set cc.dias_rotacion = datediff(day,fc.fecha,cc.fecha_cancelacion)
+			from cuenta_por_cobrar cc 
+			inner join factura_cliente fc on  cc.id_factura_cliente = fc.id_factura_cliente
+			where cc.dias_rotacion = 0
+			and cc.fecha_cancelacion is not null
+		]]></sql>
+		<sql><![CDATA[update cuenta_por_cobrar set dias_rotacion = 0 where dias_rotacion is null]]></sql>	
+		<sql><![CDATA[alter table ruta alter column tarifa numeric(12,4)]]></sql>
+		<sql><![CDATA[update factura_proveedor set fecha_vencimiento = (select MAX(cuenta_por_pagar.fecha_vencimiento) from cuenta_por_pagar where cuenta_por_pagar.id_factura_proveedor = factura_proveedor.id_factura_proveedor)]]></sql>    
+				<sql><![CDATA[if not exists (select 1 from secuencia where nombre='LLAMADO DE ATENCION')
+			begin
+			insert into secuencia (id_secuencia, fecha_creacion, fecha_modificacion, usuario_creacion, usuario_modificacion, desde, fecha_desde, fecha_hasta, hasta, id_organizacion,
+			id_sucursal, indicador_bloqueada, longitud, nombre, numero, prefijo, sufijo)
+			select (select max(id_secuencia) from secuencia) +row_number() over(order by o.id_organizacion) id_secuencia, getdate() fecha_creacion , null fecha_modificacion, 'migracion' usuario_creacion, 
+			null usuario_modificacion, 1 desde, '2017-01-01' fecha_desde, '2050-01-01' fecha_hasta, 999999 hasta, o.id_organizacion, 1 id_sucursal, 0 indicador_bloqueada , 
+			8 longitud, 'LLAMADO DE ATENCION' nombre , 0 numero ,'LLDA-' prefijo, '' sufijo  from organizacion o 
+			
+			insert into documento (id_documento, fecha_creacion, fecha_modificacion, usuario_creacion, usuario_modificacion, activo, descripcion, documento_base, id_organizacion, id_sucursal,
+			indicador_documento_exterior, indicador_documento_tributario, indicador_genera_costo, nombre, operacion, predeterminado, reporte, id_secuencia, id_tipo_asiento, id_tipo_comprobante,
+			codigo, indicador_costo_estandar, indicador_documento_electronico, indicador_bloqueo_secuencia, indicador_contabilizar) 
+			select (select max(id_documento) from documento)+row_number() over(order by o.id_organizacion) id_documento, getdate() fecha_creacion , null fecha_modificacion, 'migracion' usuario_creacion, 
+			null usuario_modificacion, 1 activo, '' descripcion, 91 documento_base, o.id_organizacion, 1 id_sucursal,
+			0 indicador_documento_exterior, 0 indicador_documento_tributario, 0 indicador_genera_costo, 'LLAMADO DE ATENCION' nombre, 0 operacion, 0 predeterminado, 'na' 
+			reporte, (select id_secuencia from secuencia where nombre like 'LLAMADO DE ATENCION' and id_organizacion = o.id_organizacion and id_sucursal = 1) id_secuencia,
+			null id_tipo_asiento, null id_tipo_comprobante, 'LLDA' ,0,0,0,0  
+			from organizacion o 
+			update llamado_atencion set numero = 'LLDA-'+RIGHT('000' + Ltrim(Rtrim(id_llamado_atencion)),3)
+			update a set id_documento = b.id_documento  from llamado_atencion a inner join documento b on a.id_organizacion = b.id_organizacion and b.documento_base=91
+			if exists (select 1 from llamado_atencion) 
+ 			begin   
+				update secuencia set numero = (select max(id_llamado_atencion) from llamado_atencion)+1 where nombre='LLAMADO DE ATENCION'
+			end
+			end
+		]]></sql>
+		<sql><![CDATA[alter table variable_calidad_producto alter column valor_maximo numeric(12,4)]]></sql>  
+		<sql><![CDATA[alter table variable_calidad_producto alter column valor_minimo numeric(12,4)]]></sql>
+		<sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteDespachoClienteDetalladoPorLote' AND version='2.2.11.010')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.010',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteDespachoClienteDetalladoPorLote' nombre_reporte) dat
+		 	END
+		 ]]></sql>
+		 <sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteFormulacion' AND version='2.2.11.010')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.010',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteFormulacion' nombre_reporte) dat
+		 	END
+		 ]]></sql>
+		 
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.011', fecha=getdate() where id_sistema = @idSistema]]></sql>		 
+	</version>
+	<version id="2.2.11.011">
+		<sql><![CDATA[	update a
+			set nombres = c.nombres, apellidos = c.apellidos, identificacion = c.identificacion  from  pago_empleado  a join (
+			select b.id_pago_empleado, b.cantidad_empleados, pre.id_empleado, ep.nombres, ep.apellidos, em.identificacion from 
+			(select id_pago_empleado, count(id_pago_rol_empleado) cantidad_empleados 
+			from pago_rol_empleado where id_pago_empleado is not null
+			group by id_pago_empleado
+			having count(id_pago_rol_empleado)=1) b join pago_rol_empleado pre on b.id_pago_empleado = pre.id_pago_empleado 
+			join empleado ep on ep.id_empleado = pre.id_empleado join empresa em on ep.id_empresa = em.id_empresa) c 
+			on a.id_pago_empleado = c.id_pago_empleado ]]></sql>
+			
+		<sql><![CDATA[update a set valor_pago = b.valor_pago from pago_cash a join (
+			select p.id_pago_cash, sum(dpc.valor/100) valor_pago from detalle_pago_cash dpc
+			inner join pago_cash p on p.id_pago_cash=dpc.id_pago_cash
+			inner join documento d on d.id_documento=p.id_documento
+			where d.documento_base=40
+			group by p.id_pago_cash)
+			b on a.id_pago_cash = b.id_pago_cash]]></sql>
+			
+		<sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteCorte' AND version='2.2.11.011')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.011',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteCorte' nombre_reporte) dat
+		 	END
+		 ]]></sql>
+		 
+		 <sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteCorteResumido' AND version='2.2.11.011')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.011',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteCorteResumido' nombre_reporte) dat
+		 	END
+		 ]]></sql>
+
+		 <sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteComprasResumido' AND version='2.2.11.011')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.011',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteComprasResumido' nombre_reporte) dat
+		 	END
+		 ]]></sql>
+		 
+		 <sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteOrdenTrabajoMantenimiento' AND version='2.2.11.011')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.011',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteOrdenTrabajoMantenimiento' nombre_reporte) dat
+		 	END
+		 ]]></sql>
+		 
+		 <sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteComprasResumido' AND version='2.2.11.011')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.011',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteComprasResumido' nombre_reporte) dat
+		 	END
+		 ]]></sql>
+		 
+		 <sql><![CDATA[UPDATE documento SET reporte = 'reporteOrdenPagoProveedor' where documento_base=79 and reporte not like '%reporteOrdenPagoProveedor%']]></sql>
+		 
+		 <sql><![CDATA[update a set valor_pago = b.valor_pago from pago_cash a join (
+			select p.id_pago_cash, sum(dpc.valor) valor_pago from detalle_pago_cash dpc
+			inner join pago_cash p on p.id_pago_cash=dpc.id_pago_cash
+			inner join documento d on d.id_documento=p.id_documento
+			where d.documento_base!=40
+			group by p.id_pago_cash)
+			b on a.id_pago_cash = b.id_pago_cash ]]></sql>
+		 
+		 <!-- Aplica para todas las empresa menos para alimentsa -->
+		 <sql><![CDATA[
+			update d set d.indicador_consumo_directo = p.indicador_consumo_directo
+			from detalle_orden_salida_material d
+			inner join producto p on d.id_producto = d.id_producto
+			where p.id_producto = d.id_producto
+			and p.id_organizacion not in (select id_organizacion from organizacion where identificacion = '0990881847001')
+		 ]]></sql>
+
+		<sql><![CDATA[		 
+			update configuracion set valor='true', valor_mostrar='true'
+			where parametro='VENCIMIENTO_POR_FECHA_RECEPCION'
+			and exists (
+				select 1 from organizacion_configuracion 
+				where tipo_organizacion='TIPO_ORGANIZACION_ADRIALPETRO'
+				and configuracion.id_organizacion = organizacion_configuracion.id_organizacion
+			)
+		]]></sql>
+		<sql><![CDATA[		 
+			update documento_contabilizacion set debe = 1 where proceso_contabilizacion =15
+		]]></sql>	
+		
+		<sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteProduccion' AND version='2.2.11.011')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.012',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteProduccion' nombre_reporte) dat
+		 	END
+		]]></sql>
+		
+		<!-- Solo Aplica para alimentsa -->
+		<sql><![CDATA[
+			update r set r.control_calidad_finalizado = 0, r.estado_control_calidad = 0
+			from registro_peso r
+			inner join producto p on p.id_producto = r.id_producto
+			where tipo_registro_peso = 2 
+			and r.control_calidad_finalizado is null
+			and r.estado_control_calidad is null 
+			and	p.indicador_control_calidad = 1
+		]]></sql>
+		
+		<sql><![CDATA[UPDATE version_sistema set numero = '2.2.11.012', fecha=getdate() where id_sistema = @idSistema]]></sql>		 
+	</version>
+	
+	<version id="2.2.11.012">
+		<sql><![CDATA[
+			IF NOT EXISTS (SELECT 1 FROM reportes WHERE nombre='reporteCorteResumido' AND version='2.2.11.012')
+		 	BEGIN
+	 			INSERT INTO reportes (id_reporte, nombre, fecha, version, organizacion, actualizado, id_sistema) 
+	 			SELECT (SELECT COALESCE(MAX(id_reporte),0)+1+id_organizacion from reportes), nombre_reporte, GETDATE(),'2.2.11.012',  razon_social, 0, 1 FROM organizacion o  ,
+	 			(SELECT 'reporteCorteResumido' nombre_reporte) dat
+		 	END
+		]]></sql>
+		<sql><![CDATA[ update estado_proceso set estado = 3 where documento_base = 10 and estado = 5  ]]></sql>
+		<sql><![CDATA[ update pedido_proveedor set estado = 3 where estado = 5  ]]></sql>
+	</version>
+</update>

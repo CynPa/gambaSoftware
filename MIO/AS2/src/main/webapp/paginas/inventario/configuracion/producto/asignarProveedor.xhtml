@@ -1,0 +1,262 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form enctype="multipart/form-data" prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{asignarProveedorBean}">
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_proveedor_titulo_panel_edicion}" rendered="#{asignarProveedorBean.editado}">
+
+							<h:panelGrid columns="#{asignarProveedorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel value="#{msgs.lbl_proveedor}:" />
+								<h:outputText value="#{asignarProveedorBean.proveedor.nombreComercial}" />
+							</h:panelGrid>
+							<p:separator />
+							<h:panelGrid id="panelDetalle" columns="#{asignarProveedorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<p:outputLabel for="cboCategoriaProducto" value="#{msgs.lbl_categoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCategoriaProducto"
+									value="#{asignarProveedorBean.categoriaProducto}" completeMethod="#{asignarProveedorBean.autocompletarCategoriaProducto}"
+									var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" forceSelection="true" dropdown="true"
+									minQueryLength="2">
+
+									<p:column headerText="#{msgs.lbl_codigo_producto}">#{_categoriaProducto.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">#{_categoriaProducto.nombre}</p:column>
+									<p:ajax process="@this" event="itemSelect" global="false" update="@this" />
+								</p:autoComplete>
+
+								<p:outputLabel for="cboSubcategoriaProducto" value="#{msgs.lbl_producto_subcategoria_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+									value="#{asignarProveedorBean.subcategoriaProducto}" completeMethod="#{asignarProveedorBean.autocompletarSubcategoriaProducto}"
+									var="_subcategoriaProducto" itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" forceSelection="true"
+									dropdown="true" minQueryLength="2">
+
+									<p:column headerText="#{msgs.lbl_codigo_producto}">#{_subcategoriaProducto.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">#{_subcategoriaProducto.nombre}</p:column>
+									<p:ajax process="@this" event="itemSelect" global="false" update="@this" />
+								</p:autoComplete>
+
+								<p:outputLabel for="cboProducto" value="#{msgs.lbl_producto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboProducto"
+									value="#{asignarProveedorBean.producto}" completeMethod="#{asignarProveedorBean.autocompletarProducto}" var="_producto"
+									itemLabel="#{_producto.nombre}" itemValue="#{_producto}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+									<p:column headerText="#{msgs.lbl_codigo_producto}">#{_producto.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">#{_producto.nombre}</p:column>
+									<p:ajax process="@this" event="itemSelect" global="false" update="@this" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_precio_pactado}:" />
+								<p:inputText value="#{asignarProveedorBean.precioPactado}" id="txtPrecioPactado" rendered="true">
+									<f:validateBean />
+								</p:inputText>
+
+							</h:panelGrid>
+							<h:panelGrid columns="1" style="text-align:center;">
+								<p:commandButton process="@this :form:panelDetalle" title="#{msgs.lbl_asignar}" value="#{msgs.lbl_asignar}" global="true"
+									action="#{asignarProveedorBean.asignar}" update="@this :form:tablaProductos :form:panelDetalle">
+								</p:commandButton>
+							</h:panelGrid>
+
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProductos" rowIndexVar="secuencialProducto"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{asignarProveedorBean.listaProductoProveedor}" var="_productoProveedor" paginator="true"
+								paginatorPosition="bottom" style="width:100%" binding="#{asignarProveedorBean.dtProducto}" rows="#{asignarProveedorBean.numeroFilas}"
+								rowsPerPageTemplate="#{asignarProveedorBean.numeroFilasPorPagina}" selection="#{asignarProveedorBean.productoProveedor}"
+								selectionMode="single" rowKey="#{_productoProveedor.id}" styleClass="tablaProducto" sortBy="#{_productoProveedor.producto.codigo}">
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+									<h:outputText value="#{secuencialProducto+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigoProducto tableCell" sortBy="#{_productoProveedor.producto.codigo}"
+									filterBy="#{_productoProveedor.producto.codigo}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.producto.codigo}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigoProducto tableCell" sortBy="#{_productoProveedor.producto.codigoAlterno}"
+									filterBy="#{_productoProveedor.producto.codigoAlterno}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.producto.codigoAlterno}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_productoProveedor.producto.nombre}"
+									filterBy="#{_productoProveedor.producto.nombre}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.producto.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_producto.nombreComercial}" filterBy="#{_producto.nombreComercial}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_empresa_nombre_comercial}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.producto.nombreComercial}" />
+								</p:column>
+								<!-- 
+								<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_productoProveedor.producto.subcategoriaProducto.categoriaProducto.nombre}"
+									filterBy="#{_productoProveedor.producto.subcategoriaProducto.categoriaProducto.nombre}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_producto_categoria_producto}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.producto.subcategoriaProducto.categoriaProducto.nombre}" />
+								</p:column> -->
+
+								<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_productoProveedor.producto.subcategoriaProducto.nombre}"
+									filterBy="#{_productoProveedor.producto.subcategoriaProducto.nombre}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.producto.subcategoriaProducto.nombre}" />
+								</p:column>
+
+								<!-- <p:column styleClass="columnaDTNombre tableCell" sortBy="#{_productoProveedor.empresa.nombreComercial}"
+									filterBy="#{_productoProveedor.empresa.nombreComercial}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_proveedor}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.empresa.nombreComercial}" />
+								</p:column> -->
+
+								<p:column styleClass="columnaDTValor tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_precio_pactado}" />
+									</f:facet>
+									<p:inputText styleClass="input-text" value="#{_productoProveedor.precioPactado}">
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_precio_ultima_compra}" />
+									</f:facet>
+									<h:outputText value="#{_productoProveedor.precio}">
+										<f:convertNumber pattern="#{asignarProveedorBean.formatoDinero}" />
+									</h:outputText>
+									<!-- <p:inputText value="#{_productoProveedor.precio}">
+										<f:validateBean />
+									</p:inputText> -->
+								</p:column>
+
+							</p:dataTable>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_proveedor_titulo_panel}" rendered="#{!asignarProveedorBean.editado}">
+
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpresa" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{asignarProveedorBean.listaProveedor}" var="empresa" binding="#{asignarProveedorBean.dtProveedor}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rowsPerPageTemplate="#{asignarProveedorBean.numeroFilasPorPagina}"
+							rows="#{asignarProveedorBean.numeroFilas}" selection="#{asignarProveedorBean.proveedor}" selectionMode="single" rowKey="#{empresa.id}"
+							sortBy="#{empresa.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{empresa.codigo}" filterBy="#{empresa.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{empresa.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{empresa.tipoIdentificacion.nombre}"
+								filterBy="#{empresa.tipoIdentificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTIdentificacion tableCell" sortBy="#{empresa.identificacion}" filterBy="#{empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.nombreComercial}" filterBy="#{empresa.nombreComercial}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_comercial}" />
+								</f:facet>
+								<h:outputText value="#{empresa.nombreComercial}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.nombreFiscal}" filterBy="#{empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}" />
+								</f:facet>
+								<h:outputText value="#{empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{empresa.categoriaEmpresa.nombre}" filterBy="#{empresa.categoriaEmpresa.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}" />
+								</f:facet>
+								<h:outputText value="#{empresa.categoriaEmpresa.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_empresa}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoEmpresa.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{empresa.codigoAlterno}" filterBy="#{empresa.codigoAlterno}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+								</f:facet>
+								<h:outputText value="#{empresa.codigoAlterno}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{empresa.descripcion}" filterBy="#{empresa.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{asignarProveedorBean.proveedor.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{asignarProveedorBean.proveedor.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{asignarProveedorBean.proveedor.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{asignarProveedorBean.proveedor.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

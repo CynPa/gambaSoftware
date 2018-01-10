@@ -1,0 +1,250 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{partidaArancelariaBean}">
+					<as2:buttonEliminar bean="#{partidaArancelariaBean}" />
+					<as2:buttonExportaExcel bean="#{partidaArancelariaBean}" tabla=":form:tablaPartidaArancelaria" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{partidaArancelariaBean}" />
+					<ui:param name="objetoActualizar" value=":form:tabView:outputPanelDetalleProducto" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_partida_arancelaria} )" rendered="#{partidaArancelariaBean.editado}">
+
+						<p:fieldset>
+
+							<h:panelGrid id="panelCabecera" columns="#{partidaArancelariaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{partidaArancelariaBean.partidaArancelaria.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{partidaArancelariaBean.partidaArancelaria.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{partidaArancelariaBean.partidaArancelaria.descripcion}" id="txtDescripcion" size="100"
+									maxlength="200">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{partidaArancelariaBean.partidaArancelaria.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{partidaArancelariaBean.partidaArancelaria.predeterminado}" />
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<p:tabView id="tabView" cache="true" dynamic="true">
+
+								<p:tab title="#{msgs.lbl_detalle_partida_arancelaria}">
+
+									<p:outputPanel id="ouputPanelDetallePartidaArancelaria">
+
+										<h:panelGrid columns="1" id="panelDetallePartidaArancelaria" style="width:100%">
+
+											<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarDetalle" action="#{partidaArancelariaBean.agregarDetalle}"
+												update=":form:tabView:panelDetallePartidaArancelaria" process="@this, :form:tabView:panelDetallePartidaArancelaria" icon="ui-icon-plus" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{partidaArancelariaBean.listaDetallePartidaArancelaria}" id="tablaDetallePartidaArancelaria" rowIndexVar="secuencial"
+												binding="#{partidaArancelariaBean.dtDetallePartidaArancelaria}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePartidaArancelaria"
+												paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{partidaArancelariaBean.numeroFilas}"
+												rowKey="#{_detallePartidaArancelaria.id}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_fecha_desde}" styleClass="columnaDTFechaInput tableCell">
+													<p:calendar pattern="#{partidaArancelariaBean.formatoFecha}" showOn="button" navigator="true"
+														value="#{_detallePartidaArancelaria.fechaDesde}" id="calFechaDesde">
+														<f:validateBean />
+													</p:calendar>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_fecha_hasta}" styleClass="columnaDTFechaInput tableCell">
+													<p:calendar pattern="#{partidaArancelariaBean.formatoFecha}" showOn="button" navigator="true"
+														value="#{_detallePartidaArancelaria.fechaHasta}" id="calFechaHasta">
+														<f:validateBean />
+													</p:calendar>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_porcentaje}" styleClass="columnaDTPorcentaje tableCell">
+													<p:inputText value="#{_detallePartidaArancelaria.porcentaje}">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_valor_base}" styleClass="columnaDTValorGrande tableCell">
+													<p:inputText value="#{_detallePartidaArancelaria.valorBase}">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_activo}" styleClass="columnaDTAccion tableCell">
+													<p:selectBooleanCheckbox value="#{_detallePartidaArancelaria.activo}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+													<p:inputText value="#{_detallePartidaArancelaria.descripcion}" styleClass="input-text-col" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{partidaArancelariaBean.eliminarDetalle}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabView:ouputPanelDetallePartidaArancelaria" process="@this">
+													</p:commandButton>
+												</p:column>
+
+
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+
+								<p:tab title="#{msgs.lbl_panel_listado} #{msgs.lbl_producto}">
+									<p:outputPanel id="outputPanelDetalleProducto">
+
+										<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" process="@this" oncomplete="dglModalProducto.show();" />
+
+										<h:panelGrid columns="1" id="panelDetalleProducto" style="width:100%">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{partidaArancelariaBean.listaDetalleProducto}" id="tablaDetalleProducto" rowIndexVar="secuencial"
+												binding="#{partidaArancelariaBean.dtDetalleProducto}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_producto" paginator="true"
+												paginatorPosition="bottom" style="width:100%" rows="#{partidaArancelariaBean.numeroFilas}" rowKey="#{_producto.id}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencia+1}" />
+												</p:column>
+
+												<p:column sortBy="#{_producto.codigo}" filterEvent="change" filterBy="#{_producto.codigo}" styleClass="columnaDTCodigo tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_codigo}" />
+													</f:facet>
+													<h:outputText value="#{_producto.codigo}" />
+												</p:column>
+
+												<p:column sortBy="#{_producto.nombreComercial}" filterEvent="change" filterBy="#{_producto.nombreComercial}" styleClass="tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_nombre_producto}" />
+													</f:facet>
+													<h:outputText value="#{_producto.nombreComercial}" />
+												</p:column>
+
+												<p:column sortBy="#{_producto.unidad.nombre}" filterEvent="change" filterBy="#{_producto.unidad.nombre}"
+													styleClass="columnaDTUnidad tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_unidad_producto}" />
+													</f:facet>
+													<h:outputText value="#{_producto.unidad.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{partidaArancelariaBean.eliminarDetalleProducto}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabView:outputPanelDetalleProducto" process="@this">
+													</p:commandButton>
+												</p:column>
+
+
+											</p:dataTable>
+
+										</h:panelGrid>
+									</p:outputPanel>
+
+								</p:tab>
+							</p:tabView>
+						</p:fieldset>
+
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_partida_arancelaria} )" rendered="#{!partidaArancelariaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPartidaArancelaria" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{partidaArancelariaBean.listaPartidaArancelaria}" var="_partidaArancelaria" paginator="true"
+							binding="#{partidaArancelariaBean.dtPartidaArancelaria}" rows="#{partidaArancelariaBean.numeroFilas}" paginatorPosition="bottom"
+							style="width:100%" rowsPerPageTemplate="#{partidaArancelariaBean.numeroFilasPorPagina}"
+							selection="#{partidaArancelariaBean.partidaArancelaria}" selectionMode="single" rowKey="#{_partidaArancelaria.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_partidaArancelaria.codigo}" filterBy="#{_partidaArancelaria.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_partidaArancelaria.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_partidaArancelaria.nombre}" filterBy="#{_partidaArancelaria.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_partidaArancelaria.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_partidaArancelaria.activo}" headerText="#{msgs.lbl_activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{_partidaArancelaria.activo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_partidaArancelaria.predeterminado}" headerText="#{msgs.lbl_predeterminado}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{_partidaArancelaria.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_partidaArancelaria.descripcion}" headerText="#{msgs.lbl_descripcion}" exportable="false" styleClass="tableCell">
+								<f:facet name="header"></f:facet>
+								<h:outputText value="#{_partidaArancelaria.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{partidaArancelariaBean.partidaArancelaria.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{partidaArancelariaBean.partidaArancelaria.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{partidaArancelariaBean.partidaArancelaria.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{partidaArancelariaBean.partidaArancelaria.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{controlCalidadPTBean}">
+					<as2:buttonExportaExcel bean="#{controlCalidadPTBean}" tabla=":form:tablaControlCalidad" />
+
+					<p:commandButton id="btnLiberar" value="#{msgs.lbl_liberar}" title="#{msgs.lbl_liberar}" process="@this"
+						rendered="#{controlCalidadPTBean.editado and controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion}" icon="ui-icon-document"
+						disabled="#{empty controlCalidadPTBean.historicoCalidadOrdenFabricacion.detalleIngresoFabricacion}" oncomplete="dialogProcesar.show();"
+						update=":form:panelProcesar">
+						<f:setPropertyActionListener value="LIBERADO" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.bodegaDestino}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.productoNuevo}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.cantidadTransformacion}" />
+						<f:setPropertyActionListener value="false" target="#{controlCalidadPTBean.indicadorCambiarProducto}" />
+						<f:setPropertyActionListener value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidad}"
+							target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidadControlCalidad}" />
+					</p:commandButton>
+
+					<p:commandButton id="btnCambioProducto" value="#{msgs.lbl_cambiar_producto}" title="#{msgs.lbl_cambiar_producto}" process="@this"
+						rendered="#{controlCalidadPTBean.editado and controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion}" icon="ui-icon-document"
+						disabled="#{empty controlCalidadPTBean.historicoCalidadOrdenFabricacion.detalleIngresoFabricacion}" oncomplete="dialogProcesar.show();"
+						update=":form:panelProcesar">
+						<f:setPropertyActionListener value="LIBERADO" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado}" />
+						<f:setPropertyActionListener value="true" target="#{controlCalidadPTBean.indicadorCambiarProducto}" />
+						<f:setPropertyActionListener value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.detalleIngresoFabricacion.bodegaOrigen}"
+							target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.bodegaDestino}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.cantidadTransformacion}" />
+						<f:setPropertyActionListener value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidad}"
+							target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidadControlCalidad}" />
+					</p:commandButton>
+
+					<p:commandButton id="btnRechazar" value="#{msgs.lbl_rechazar}" title="#{msgs.lbl_rechazar}" process="@this"
+						rendered="#{controlCalidadPTBean.editado and controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion}" icon="ui-icon-document"
+						disabled="#{empty controlCalidadPTBean.historicoCalidadOrdenFabricacion.detalleIngresoFabricacion}" update=":form:panelProcesar"
+						oncomplete="dialogProcesar.show();">
+						<f:setPropertyActionListener value="RECHAZADO" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.bodegaDestino}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.productoNuevo}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.cantidadTransformacion}" />
+						<f:setPropertyActionListener value="false" target="#{controlCalidadPTBean.indicadorCambiarProducto}" />
+						<f:setPropertyActionListener value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidad}"
+							target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidadControlCalidad}" />
+					</p:commandButton>
+
+					<p:commandButton id="btnReprocesar" value="#{msgs.lbl_reprocesar}" title="#{msgs.lbl_reprocesar}" process="@this" icon="ui-icon-document"
+						update=":form:panelProcesar" oncomplete="dialogProcesar.show();"
+						rendered="#{controlCalidadPTBean.editado and controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion}"
+						disabled="#{empty controlCalidadPTBean.historicoCalidadOrdenFabricacion.detalleIngresoFabricacion}">
+						<f:setPropertyActionListener value="REPROCESO" target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado}" />
+						<f:setPropertyActionListener value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.detalleIngresoFabricacion.bodegaOrigen}"
+							target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.bodegaDestino}" />
+						<f:setPropertyActionListener value="" target="#{controlCalidadPTBean.cantidadTransformacion}" />
+						<f:setPropertyActionListener value="false" target="#{controlCalidadPTBean.indicadorCambiarProducto}" />
+						<f:setPropertyActionListener value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidad}"
+							target="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidadControlCalidad}" />
+					</p:commandButton>
+				</as2:toolBar>
+
+				<!-- PANEL PROCESAR -->
+				<p:panel id="panelProcesar">
+					<ui:include src="/template/listaProductoMultiple.xhtml">
+						<ui:param name="bean" value="#{controlCalidadPTBean}" />
+						<ui:param name="objetoActualizar" value=":form:groupProducto :form:groupCantidadCalidad :form:groupCantidad" />
+						<ui:param name="renderedBotonLimpiar" value="true" />
+					</ui:include>
+					<p:dialog widgetVar="dialogProcesar" modal="true" height="240" width="600" showEffect="slide" hideEffect="slide"
+						header="#{controlCalidadPTBean.indicadorCambiarProducto ? msgs.lbl_cambiar_producto : controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'LIBERADO' ? msgs.lbl_liberar : controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO' ? msgs.lbl_reprocesar : controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'RECHAZADO' ? msgs.lbl_rechazar : msgs.lbl_cuarentena}">
+
+						<h:panelGrid columns="2" columnClasses="columna40,columna60">
+							<p:outputLabel for="cboMotivoProcesar" value="#{msgs.lbl_motivo_castigo_calidad}:"
+								rendered="#{controlCalidadPTBean.indicadorCambiarProducto or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO' or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'RECHAZADO'}" />
+							<p:selectOneMenu value="#{controlCalidadPTBean.motivoReprocesar}" id="cboMotivoProcesar"
+								required="#{controlCalidadPTBean.indicadorCambiarProducto or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO' or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'RECHAZADO'}"
+								rendered="#{controlCalidadPTBean.indicadorCambiarProducto or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO' or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'RECHAZADO'}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{controlCalidadPTBean.listaMotivoCastigoCalidad}" var="_motivo" itemLabel="#{_motivo.nombre}" itemValue="#{_motivo}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}:"
+								rendered="#{controlCalidadPTBean.indicadorCambiarProducto or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO'}" />
+							<h:panelGroup id="groupProducto"
+								rendered="#{controlCalidadPTBean.indicadorCambiarProducto or controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO'}">
+								<p:commandButton value="..." onclick="dglModalProducto.show();" type="button" />
+								<h:outputText id="lblProducto" value="#{controlCalidadPTBean.productoNuevo.codigo} #{controlCalidadPTBean.productoNuevo.nombreComercial}" />
+							</h:panelGroup>
+
+							<p:outputLabel for="cboBodegaDestino" value="#{msgs.lbl_bodega}:"
+								rendered="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO' or controlCalidadPTBean.indicadorCambiarProducto}" />
+							<p:selectOneMenu value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.bodegaDestino}" id="cboBodegaDestino"
+								required="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO' or controlCalidadPTBean.indicadorCambiarProducto}"
+								rendered="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'REPROCESO' or controlCalidadPTBean.indicadorCambiarProducto}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{controlCalidadPTBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtCantidad" value="#{msgs.lbl_cantidad}:" />
+							<h:panelGrid id="groupCantidad" columns="2">
+								<h:outputText styleClass="input-text"
+									value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidad} #{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.producto.unidad.codigo}"
+									id="txtCantidad">
+								</h:outputText>
+							</h:panelGrid>
+
+							<p:outputLabel for="txtCantidadControlCalidad" value="#{msgs.lbl_cantidad} #{msgs.lbl_control_calidad}:"
+								rendered="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado != 'CUARENTENA'}" />
+							<h:panelGrid id="groupCantidadCalidad" columns="2"
+								rendered="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado != 'CUARENTENA'}">
+								<p:inputText styleClass="input-text" value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidadControlCalidad}"
+									id="txtCantidadControlCalidad">
+									<p:ajax process="@this" update="groupCantidadCalidad" global="false" listener="#{controlCalidadPTBean.actualizarConversion}"></p:ajax>
+								</p:inputText>
+								<h:outputText styleClass="input-text" value="#{controlCalidadPTBean.cantidadTransformacion}" id="txtCantidadTransformacion">
+								</h:outputText>
+							</h:panelGrid>
+
+							<p:spacer rendered="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'LIBERADO'}" />
+							<h:outputText value="#{msgs.confirmacion_liberar_calidad}"
+								rendered="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.estado == 'LIBERADO'}" />
+
+							<p:outputLabel for="txtMotivoCambioEstado" value="#{msgs.lbl_motivo_cambio_estado}:" />
+							<p:inputTextarea styleClass="input-text" value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.motivoCambioEstado}"
+								id="txtMotivoCambioEstado">
+								<p:ajax process="@this" global="false" />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnAceptarProcesar" action="#{controlCalidadPTBean.procesar}" value="#{msgs.btn_guardar}"
+									oncomplete="dialogProcesar.hide();" process="@this" update=":form:panelContenedor">
+								</p:commandButton>
+								<p:commandButton id="btnCancelarProcesarr" value="#{msgs.btn_cancelar}" oncomplete="dialogProcesar.hide();" process="@this"
+									actionListener="#{controlCalidadPTBean.cancelarProceso}">
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:panel>
+
+				<!-- INICIO DIALOG CARGAR EXCEL -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarExcel" modal="true" height="150" width="400" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarExcel">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{controlCalidadPTBean.cargarExcel}" mode="advanced" update=":form:vistaTab:panelVariableCalidad"
+									auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xlsx)$/" label="#{msgs.btn_examinar}" process="@this"
+									oncomplete="dlgCargarExcel.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG CARGAR EXCEL -->
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{controlCalidadPTBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_control_calidad_panel}" toggleable="true">
+						<h:panelGrid columns="#{controlCalidadPTBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor" id="panelAutocompletar">
+							<p:outputLabel for="autoOrden" value="#{msgs.lbl_orden_fabricacion}:" />
+							<h:panelGrid columns="2" columnClasses="columnaValor,columnaEtiqueta">
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoSubOrden"
+									value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion}"
+									completeMethod="#{controlCalidadPTBean.autocompletarOrdenFabricacion}" var="_ordenFabricacion" itemValue="#{_ordenFabricacion}"
+									itemLabel="#{_ordenFabricacion.numero}#{empty _ordenFabricacion ? '' : ' - '}#{_ordenFabricacion.producto.nombre}" forceSelection="true"
+									required="true" minQueryLength="2" dropdown="true" disabled="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.id != 0}"
+									rendered="#{!controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion}">
+									<p:column headerText="#{msgs.lbl_numero}">
+										<h:outputText value="#{_ordenFabricacion.numero}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_codigo_producto}">
+										<h:outputText value="#{_ordenFabricacion.producto.codigo}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">
+										<h:outputText value="#{_ordenFabricacion.producto.nombre}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_fecha_lanzamiento}">
+										<h:outputText value="#{_ordenFabricacion.fechaLanzamiento}">
+											<f:convertDateTime pattern="dd/MM/yyyy HH:mm" timeZone="America/Guayaquil" />
+										</h:outputText>
+									</p:column>
+									<p:ajax process="@this" global="false" event="itemSelect" listener="#{controlCalidadPTBean.detalleIngresoFabricacionValueChanged}"
+										update=":form:panelContenedor" />
+								</p:autoComplete>
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoOrden"
+									value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.detalleIngresoFabricacion}"
+									completeMethod="#{controlCalidadPTBean.autocompletarDetalleIngresoFabricacion}" var="_detalleIngresoFabricacion"
+									itemValue="#{_detalleIngresoFabricacion}"
+									itemLabel="#{_detalleIngresoFabricacion.movimientoInventario.ordenFabricacion.numero}#{empty _detalleIngresoFabricacion ? '' : ' - '}#{_detalleIngresoFabricacion.movimientoInventario.ordenFabricacion.producto.nombre}"
+									forceSelection="true" required="true" minQueryLength="2" dropdown="true"
+									disabled="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.id != 0}"
+									rendered="#{controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion}">
+									<p:column headerText="#{msgs.lbl_numero}">
+										<h:outputText value="#{_detalleIngresoFabricacion.movimientoInventario.ordenFabricacion.numero}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_fecha}">
+										<h:outputText value="#{_detalleIngresoFabricacion.fechaCreacion}">
+											<f:convertDateTime pattern="#{controlCalidadPTBean.formatoFecha} HH:mm:ss" timeZone="America/Guayaquil" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="#{msgs.lbl_codigo_producto}">
+										<h:outputText value="#{_detalleIngresoFabricacion.movimientoInventario.ordenFabricacion.producto.codigo}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_nombre_producto}">
+										<h:outputText value="#{_detalleIngresoFabricacion.movimientoInventario.ordenFabricacion.producto.nombre}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_lote}">
+										<h:outputText value="#{_detalleIngresoFabricacion.lote.codigo}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_ingreso_fabricacion}">
+										<h:outputText value="#{_detalleIngresoFabricacion.movimientoInventario.numero}" />
+									</p:column>
+									<p:ajax process="@this" global="false" event="itemSelect" listener="#{controlCalidadPTBean.detalleIngresoFabricacionValueChanged}"
+										update=":form:panelContenedor" />
+								</p:autoComplete>
+								<p:selectOneRadio id="ckbBusquedaPorOrdenFabricacion" value="#{controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion}"
+									disabled="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.id != 0}">
+									<f:selectItem itemLabel="#{msgs.lbl_ingreso_fabricacion}" itemValue="true" />
+									<f:selectItem itemLabel="#{msgs.lbl_orden}" itemValue="false" />
+									<p:ajax process="@this" global="false" partialSubmit="true" update=":form:panelContenedor"
+										listener="#{controlCalidadPTBean.changeBusquedaOrdenFabricacion}"></p:ajax>
+								</p:selectOneRadio>
+							</h:panelGrid>
+
+							<p:spacer />
+							<h:outputText value="#{!controlCalidadPTBean.indicadorBusquedaPorOrdenFabricacion ? msgs.lbl_producto_proceso : msgs.lbl_producto_terminado}" />
+
+							<p:outputLabel value="#{msgs.lbl_producto}:" />
+							<h:panelGrid columns="3" columnClasses="columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText
+									value="(#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.producto.codigo}) #{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.producto.nombre}" />
+								<p:outputLabel value="#{msgs.lbl_cantidad}:" />
+								<h:outputText value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.cantidad}" />
+							</h:panelGrid>
+
+							<p:outputLabel value="#{msgs.lbl_fecha_caducidad}:" rendered="#{not empty controlCalidadPTBean.historicoCalidadOrdenFabricacion.lote}" />
+							<p:calendar pattern="#{controlCalidadPTBean.formatoFecha}" showOn="button" navigator="true"
+								rendered="#{not empty controlCalidadPTBean.historicoCalidadOrdenFabricacion.lote}"
+								value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.lote.fechaCaducidad}" id="calFechaCaducidad">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel value="#{msgs.lbl_cantidad_planificada}:" />
+							<h:outputText value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.cantidad}" />
+
+							<p:outputLabel value="#{msgs.lbl_producida}:" />
+							<h:outputText value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.cantidadFabricada}" />
+
+							<p:outputLabel value="#{msgs.lbl_cantidad_liberada}:" />
+							<h:outputText
+								value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.indicadorSuborden ? '' : controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.cantidadLiberadaCalidad}" />
+
+							<p:outputLabel value="#{msgs.lbl_cantidad_rechazada}:" />
+							<h:outputText value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.cantidadRechazadaCalidad}" />
+
+							<p:outputLabel value="#{msgs.lbl_cantidad_cuarentena}:" />
+							<h:outputText value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.cantidadCuarentenaCalidad}" />
+
+							<p:outputLabel value="#{msgs.lbl_cantidad_reproceso}:" />
+							<h:outputText value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.ordenFabricacion.cantidadReprocesoCalidad}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.descripcion}" id="txtDescripcion">
+								<p:ajax process="@this" global="false" />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<p:tabView id="vistaTab" cache="true" dynamic="true">
+							<p:tab title="#{msgs.lbl_variable_calidad}" id="tabVariableCalidad">
+								<p:outputPanel id="panelVariableCalidad">
+									<p:panel>
+										<h:panelGrid id="panelBtnCargarExcel" columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+											<h:outputText value="#{msgs.btn_cargar_excel}:" />
+											<p:commandButton id="btnCargarExcel" title="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update=":form:outputCargarExcel"
+												onclick="dlgCargarExcel.show()" process="@this" />
+											<h:outputText value="" />
+											<h:outputText value="" />
+										</h:panelGrid>
+
+										<p:dataList value="#{controlCalidadPTBean.mapaCVCEntryList}" var="_mcvc" style="width:100%" type="definition">
+											<p:fieldset legend="#{_mcvc.key.nombre}">
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{_mcvc.value}" id="tablaVariableCalidad" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" var="_vcrp" paginator="true" paginatorPosition="bottom" style="width:100%"
+													rows="#{controlCalidadPTBean.numeroFilas}" rowsPerPageTemplate="#{controlCalidadPTBean.numeroFilasPorPagina}">
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_vcrp.variableCalidadProducto.variableCalidad.codigo}"
+														filterBy="#{_vcrp.variableCalidadProducto.variableCalidad.codigo}" filterMatchMode="contains">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_codigo}" />
+														</f:facet>
+														<h:outputText value="#{_vcrp.variableCalidadProducto.variableCalidad.codigo}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" sortBy="#{_vcrp.variableCalidadProducto.variableCalidad.nombre}"
+														filterBy="#{_vcrp.variableCalidadProducto.variableCalidad.nombre}" filterMatchMode="contains">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre}" />
+														</f:facet>
+														<h:outputText value="#{_vcrp.variableCalidadProducto.variableCalidad.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_minimo}">
+														<h:outputText value="#{_vcrp.variableCalidadProducto.valorMinimo}"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_maximo}">
+														<h:outputText value="#{_vcrp.variableCalidadProducto.valorMaximo}"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_nir}">
+														<h:outputText value="#{_vcrp.valorNir}" size="8" id="outValorNir"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and _vcrp.variableCalidadProducto.variableCalidad.indicadorAutomatica}" />
+														<p:inputText styleClass="input-text" value="#{_vcrp.valorNir}" size="8" id="txtValorNir"
+															rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and !_vcrp.variableCalidadProducto.variableCalidad.indicadorAutomatica}">
+															<p:ajax process="@this" global="false" listener="#{controlCalidadPTBean.actualizaValorNIRAceptable(_vcrp)}" update="btnAceptable" />
+														</p:inputText>
+														<p:inputText styleClass="input-text" value="#{_vcrp.valorUnico}" id="txtValorUnico"
+															rendered="#{_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica}">
+															<p:ajax process="@this" global="false" />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_aceptable}">
+														<p:outputPanel id="btnAceptable">
+															<center>
+																<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;"
+																	rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and _vcrp.aceptable}" />
+																<h:graphicImage library="images" name="cancel_icon.png" style="height : 16px; width : 16px;"
+																	rendered="#{!_vcrp.variableCalidadProducto.variableCalidad.indicadorMedicionUnica and !_vcrp.aceptable}" />
+															</center>
+														</p:outputPanel>
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_observacion}">
+														<p:inputText value="#{_vcrp.observacion}" id="txtObservacion" styleClass="input-text100">
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+												</p:dataTable>
+											</p:fieldset>
+										</p:dataList>
+									</p:panel>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!controlCalidadPTBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_control_calidad_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaOdenFabricacion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{controlCalidadPTBean.listaOrdenFabricacion}" var="_ordenFabricacion"
+							binding="#{controlCalidadPTBean.dtOrdenFabricacion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{controlCalidadPTBean.numeroFilas}" rowsPerPageTemplate="#{controlCalidadPTBean.numeroFilasPorPagina}" rowKey="#{_ordenFabricacion.id}"
+							sortBy="#{_ordenFabricacion.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column style="width:16px">
+								<p:rowToggler />
+							</p:column>
+
+							<p:ajax update="tablaControlCalidad" process="@this" partialSubmit="true" global="false" event="rowToggle"
+								listener="#{controlCalidadPTBean.cargarHistoricoCalidadOrdenFabricacion}" />
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento" sortBy="#{_ordenFabricacion.numero}" filterBy="#{_ordenFabricacion.numero}"
+								headerText="#{msgs.lbl_orden_fabricacion}">
+								<h:outputText value="#{_ordenFabricacion.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_ordenFabricacion.fecha}" styleClass="columnaDTFecha tableCell" filterBy="#{_ordenFabricacion.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.fecha}">
+									<f:convertDateTime pattern="#{ordenFabricacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_ordenFabricacion.estado}" filterBy="estado"
+								filterOptions="#{ordenFabricacionBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto" sortBy="#{_ordenFabricacion.producto.codigo}" filterBy="#{_ordenFabricacion.producto.codigo}"
+								headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_ordenFabricacion.producto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_ordenFabricacion.producto.nombre}" filterBy="#{_ordenFabricacion.producto.nombre}"
+								headerText="#{msgs.lbl_producto}">
+								<h:outputText value="#{_ordenFabricacion.producto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" filterBy="#{_ordenFabricacion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_ordenFabricacion.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad_planificada}" sortBy="#{_ordenFabricacion.cantidad}">
+								<h:outputText value="#{_ordenFabricacion.cantidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_ordenFabricacion.cantidadFabricada}" headerText="#{msgs.lbl_producida}">
+								<h:outputText value="#{_ordenFabricacion.cantidadFabricada}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="KGs #{msgs.lbl_producidos}" sortBy="#{_ordenFabricacion.cantidadFabricada}">
+								<h:outputText value="#{_ordenFabricacion.cantidadFabricada * _ordenFabricacion.producto.peso}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_totenalas} #{msgs.lbl_producidos}"
+								sortBy="#{_ordenFabricacion.cantidadFabricada}">
+								<h:outputText value="#{_ordenFabricacion.cantidadFabricada * _ordenFabricacion.producto.peso / 1000}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_ordenFabricacion.cantidadLiberadaCalidad}"
+								headerText="#{msgs.lbl_cantidad_liberada}">
+								<h:outputText value="#{_ordenFabricacion.cantidadLiberadaCalidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_ordenFabricacion.cantidadRechazadaCalidad}"
+								headerText="#{msgs.lbl_cantidad_rechazada}">
+								<h:outputText value="#{_ordenFabricacion.cantidadRechazadaCalidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_ordenFabricacion.cantidadCuarentenaCalidad}"
+								headerText="#{msgs.lbl_cantidad_cuarentena}">
+								<h:outputText value="#{_ordenFabricacion.cantidadCuarentenaCalidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_ordenFabricacion.cantidadReprocesoCalidad}"
+								headerText="#{msgs.lbl_cantidad_reproceso}">
+								<h:outputText value="#{_ordenFabricacion.cantidadReprocesoCalidad}" />
+							</p:column>
+
+							<p:rowExpansion>
+
+								<p:dataTable id="tablaControlCalidad" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+									value="#{_ordenFabricacion.listaHistoricoCalidadOrdenFabricacion}" var="_historico"
+									binding="#{controlCalidadPTBean.dtHistoricoCalidadOrdenFabricacion}" style="width:100%" selectionMode="single" rowKey="#{_historico.id}"
+									sortBy="#{_historico.fechaControlCalidad}" sortOrder="DESCENDING">
+
+									<p:column styleClass="columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:ajax event="rowSelect" listener="#{controlCalidadPTBean.onRowSelectHistoricoCalidadOrdenFabricacion}" process="@this tablaControlCalidad"
+										global="false" />
+
+									<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_historico.fechaControlCalidad}" headerText="#{msgs.lbl_fecha}">
+										<h:outputText value="#{_historico.fechaControlCalidad}">
+											<f:convertDateTime pattern="#{controlCalidadPTBean.formatoFecha} HH:mm:ss" timeZone="America/Guayaquil" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroDocumento" sortBy="#{_historico.detalleIngresoFabricacion.movimientoInventario.numero}"
+										filterBy="#{_historico.detalleIngresoFabricacion.movimientoInventario.numero}" headerText="#{msgs.lbl_orden_fabricacion}">
+										<h:outputText value="#{_historico.detalleIngresoFabricacion.movimientoInventario.numero}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTEstado" sortBy="#{_historico.estado}" headerText="#{msgs.lbl_estado}">
+										<h:outputText value="#{_historico.estado}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroDocumento" headerText="#{msgs.lbl_transformacion_producto}">
+										<h:link rendered="#{not empty _historico.transformacion}" target="_blank" outcome="/paginas/produccion/procesos/produccionBom"
+											value="#{_historico.transformacion.numero}" includeViewParams="true">
+											<f:param name="numeroTransformacion" value="#{_historico.transformacion.numero}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="columnaDTDescripcion" headerText="#{msgs.lbl_descripcion}">
+										<h:outputText value="#{_historico.descripcion}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTDescripcion" headerText="#{msgs.lbl_motivo_cambio_estado}">
+										<h:outputText value="#{_historico.motivoCambioEstado}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" sortBy="#{_historico.cantidadLiberado}" headerText="#{msgs.lbl_cantidad_liberada}">
+										<h:outputText value="#{_historico.cantidadLiberado}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" sortBy="#{_historico.cantidadRechazado}" headerText="#{msgs.lbl_cantidad_rechazada}">
+										<h:outputText value="#{_historico.cantidadRechazado}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" sortBy="#{_historico.cantidadCuarentena}" headerText="#{msgs.lbl_cantidad_cuarentena}">
+										<h:outputText value="#{_historico.cantidadCuarentena}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" sortBy="#{_historico.cantidadReproceso}" headerText="#{msgs.lbl_cantidad_reproceso}">
+										<h:outputText value="#{_historico.cantidadReproceso}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:rowExpansion>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{controlCalidadPTBean.historicoCalidadOrdenFabricacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

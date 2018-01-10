@@ -1,0 +1,331 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{configuracionExtractoBancarioBean}">
+					<as2:buttonExportaExcel bean="#{configuracionExtractoBancarioBean}" tabla=":form:tablaConfiguracionExtracto" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_configuracion_extracto_bancario}" rendered="#{configuracionExtractoBancarioBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{configuracionExtractoBancarioBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboCuentaPago" value="#{msgs.lbl_cuenta_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{configuracionExtractoBancarioBean.configuracionExtracto.cuentaBancariaOrganizacion}"
+								id="cboCuentaPago" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{configuracionExtractoBancarioBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+								<p:ajax process="@this" partialSubmit="@true" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtColumnaFecha" value="#{msgs.lbl_columna_fecha}" />
+							<p:inputText styleClass="input-text100" value="#{configuracionExtractoBancarioBean.configuracionExtracto.columnaFecha}" id="txtColumnaFecha">
+								<p:ajax process="@this" global="false" partialSubmit="true" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtColumnaFormatoFecha" value="#{msgs.lbl_columna_fecha} (Formato)" />
+							<p:inputText styleClass="input-text100" value="#{configuracionExtractoBancarioBean.configuracionExtracto.formatoFecha}"
+								id="txtColumnaFormatoFecha">
+								<p:ajax process="@this" global="false" partialSubmit="true" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtColumnaOperacion" value="#{msgs.lbl_columna_operacion}" />
+							<p:inputText styleClass="input-text100" value="#{configuracionExtractoBancarioBean.configuracionExtracto.columnaOperacion}"
+								id="txtColumnaOperacion">
+								<p:ajax process="@this" global="false" partialSubmit="true" />
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtColumnaMonto" value="#{msgs.lbl_columna_monto}" />
+							<p:inputText styleClass="input-text100" value="#{configuracionExtractoBancarioBean.configuracionExtracto.columnaMonto}" id="txtColumnaMonto">
+								<p:ajax process="@this" global="false" partialSubmit="true" />
+								<f:validateBean />
+							</p:inputText>
+
+
+							<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox id="ckActivo" value="#{configuracionExtractoBancarioBean.configuracionExtracto.activo}" />
+
+							<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox id="ckPredeterminado" value="#{configuracionExtractoBancarioBean.configuracionExtracto.predeterminado}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea id="txtDescripcion" styleClass="input-text" value="#{configuracionExtractoBancarioBean.configuracionExtracto.descripcion}"
+								rows="1">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<p:spacer width="2px" />
+
+						<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle"
+							actionListener="#{configuracionExtractoBancarioBean.agregarDetalleListener}" update=":form:panelDetalleConfiguracion"
+							process="@this :form:tablaDetalle" icon="ui-icon-plus" />
+
+						<p:outputPanel id="panelDetalleConfiguracion">
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+								value="#{configuracionExtractoBancarioBean.listaDetalleConfiguracionExtractoBancario}" id="tablaDetalle" rowIndexVar="secuencial"
+								binding="#{configuracionExtractoBancarioBean.dtConfiguracionExtracto}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle" paginator="true"
+								paginatorPosition="bottom" style="width:100%;font-size: 10px !important;" rowKey="#{_detalle.rowKey}"
+								rows="#{configuracionExtractoBancarioBean.numeroFilas}" rowsPerPageTemplate="#{configuracionExtractoBancarioBean.numeroFilasPorPagina}">
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_orden}">
+									<p:inputText styleClass="input-text100" value="#{_detalle.orden}" id="txtOrden">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="%">
+									<p:inputText styleClass="input-text100" value="#{_detalle.porcentaje}" id="txtPorcentaje">
+										<p:ajax process="@this" global="false" partialSubmit="true" update=":form:tablaDetalle:panelCuenta2" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell0">
+									<p:commandButton value="..." actionListener="#{configuracionExtractoBancarioBean.listaCuentaContableBean.listarCuentaContable}"
+										process="@this" propartialSubmit="true">
+										<p:ajax event="dialogReturn" listener="#{configuracionExtractoBancarioBean.cargarCuentaContable}"
+											update=":form:tablaDetalle:lblCuentaContable" />
+
+										<f:setPropertyActionListener target="#{configuracionExtractoBancarioBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+										<f:setPropertyActionListener target="#{configuracionExtractoBancarioBean.detalleExtractoBancarioSeleccionado}" value="#{_detalle}" />
+										<f:setPropertyActionListener target="#{configuracionExtractoBancarioBean.opcionCuenta}" value="1" />
+									</p:commandButton>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_codigo} 1">
+
+									<p:commandLink id="lblCuentaContable" value="#{empty _detalle.cuentaContable ? '' : _detalle.cuentaContable.codigo}"
+										action="#{configuracionExtractoBancarioBean.eliminarCuenta(_detalle,1)}" title="#{msgs.lbl_eliminar}"
+										update="@this" process="@this">
+									</p:commandLink>
+									
+								</p:column>
+
+
+								<p:column styleClass="columnaDTAccion tableCell0">
+									<p:outputPanel id="panelCuenta2">
+										<p:commandButton rendered="#{_detalle.porcentaje != 100}" value="..."
+											actionListener="#{configuracionExtractoBancarioBean.listaCuentaContableBean.listarCuentaContable}" process="@this" propartialSubmit="true">
+											<p:ajax event="dialogReturn" listener="#{configuracionExtractoBancarioBean.cargarCuentaContable}"
+												update=":form:tablaDetalle:lblCuentaContable2" />
+
+											<f:setPropertyActionListener target="#{configuracionExtractoBancarioBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+											<f:setPropertyActionListener target="#{configuracionExtractoBancarioBean.detalleExtractoBancarioSeleccionado}" value="#{_detalle}" />
+											<f:setPropertyActionListener target="#{configuracionExtractoBancarioBean.opcionCuenta}" value="2" />
+										</p:commandButton>
+									</p:outputPanel>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_codigo} 2">
+									<p:commandLink id="lblCuentaContable2" value="#{empty _detalle.cuentaContable2 ? '' : _detalle.cuentaContable2.codigo}"
+										action="#{configuracionExtractoBancarioBean.eliminarCuenta(_detalle, 2)}" title="#{msgs.lbl_eliminar}"
+										update="@this" process="@this">
+									</p:commandLink>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell0">
+									<p:selectBooleanCheckbox value="#{_detalle.indicadorValidarOperacion}">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+									</p:selectBooleanCheckbox>
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo tableCell0" headerText="#{msgs.lbl_operacion}">
+									<p:selectOneMenu styleClass="input-text" id="cboOperacion" value="#{_detalle.operacion}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{configuracionExtractoBancarioBean.listaOperaciones}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:selectOneMenu>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell0" headerText="#{msgs.lbl_columna_criterio_de_busqueda}" filterMatchMode="contains">
+									<p:inputText styleClass="input-text100" value="#{_detalle.columnaCriterioDeBusqueda}" id="txtColumnaCriterioDeBusqueda">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_criterio_de_busqueda}">
+									<p:inputText styleClass="input-text100" value="#{_detalle.criterioDeBusqueda}" id="txtCriterioDeBusqueda">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell0" headerText="#{msgs.lbl_columna_criterio_de_busqueda}2">
+									<p:inputText styleClass="input-text100" value="#{_detalle.columnaCriterioDeBusqueda2}" id="txtColumnaCriterioDeBusqueda2">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_criterio_de_busqueda}2">
+									<p:inputText styleClass="input-text100" value="#{_detalle.criterioDeBusqueda2}" id="txtCriterioDeBusqueda2">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo tableCell">
+									<p:selectOneMenu styleClass="input-text" id="cboOperacionMonto" value="#{_detalle.operacionMonto}">
+										<f:selectItems value="#{configuracionExtractoBancarioBean.listaOpercionEnum}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:selectOneMenu>
+								</p:column>
+
+								<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_monto}">
+									<p:inputText styleClass="input-text100" value="#{_detalle.monto}" id="txtMontoMaximo">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo tableCell">
+									<p:selectOneMenu styleClass="input-text" id="cboOperacionDia" value="#{_detalle.operacionDia}">
+										<f:selectItems value="#{configuracionExtractoBancarioBean.listaOpercionEnum}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:selectOneMenu>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_dia_pago}">
+									<p:inputText styleClass="input-text100" value="#{_detalle.dia}" id="txtDiaMaximo">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+									<p:inputText styleClass="input-text100" value="#{_detalle.descripcion}" id="txtDescripcion">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion} 2 CuentaBanco">
+									<p:inputText styleClass="input-text100" value="#{_detalle.descripcion2CuentaBanco}" id="txtDescripcion2CuentaBanco">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion} Cuenta Contrapartida">
+									<p:inputText styleClass="input-text100" value="#{_detalle.descripcion2CuentaContrapartida}" id="txtDescripcion2CuentaContrapartida">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_editar} (#{msgs.lbl_cuenta_contable})">
+									<p:selectBooleanCheckbox value="#{_detalle.indicadorModificaCuentaContable}">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+									</p:selectBooleanCheckbox>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell0" headerText="#{msgs.lbl_contabilizar}">
+									<p:selectBooleanCheckbox value="#{_detalle.indicadorContabilizar}">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+									</p:selectBooleanCheckbox>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell0">
+									<p:commandButton id="btnEliminarDetalle" action="#{configuracionExtractoBancarioBean.eliminarDetalle(_detalle)}" icon="ui-icon-trash"
+										title="#{msgs.lbl_eliminar}" update=":form:tablaDetalle" process="@this">
+									</p:commandButton>
+								</p:column>
+
+							</p:dataTable>
+
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_configuracion_extracto_bancario}" rendered="#{!configuracionExtractoBancarioBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaConfiguracionExtracto" rowIndexVar="secuencialGaveta"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{configuracionExtractoBancarioBean.listaConfiguracionExtracto}" var="_configuracion"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{configuracionExtractoBancarioBean.numeroFilas}"
+							rowsPerPageTemplate="#{configuracionExtractoBancarioBean.numeroFilasPorPagina}"
+							selection="#{configuracionExtractoBancarioBean.configuracionExtracto}" selectionMode="single" rowKey="#{_configuracion.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialGaveta+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cuenta_pago}" />
+								</f:facet>
+								<h:outputText value="#{_configuracion.cuentaBancariaOrganizacion.nombreCompleto}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_configuracion.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_configuracion.activo}">
+								<p:selectBooleanCheckbox value="#{_configuracion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_configuracion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_configuracion.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{configuracionExtractoBancarioBean.configuracionExtracto.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{configuracionExtractoBancarioBean.configuracionExtracto.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{configuracionExtractoBancarioBean.configuracionExtracto.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{configuracionExtractoBancarioBean.configuracionExtracto.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

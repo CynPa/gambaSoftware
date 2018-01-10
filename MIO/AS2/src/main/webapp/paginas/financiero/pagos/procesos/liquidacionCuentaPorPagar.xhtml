@@ -1,0 +1,437 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{liquidacionCuentaPorPagarBean}">
+				</as2:toolBar>
+
+				<ui:include src="/template/verDetalle.xhtml">
+					<ui:param name="descripcion" value="#{liquidacionCuentaPorPagarBean.pago.descripcion}" />
+				</ui:include>
+
+				<!-- Inicio Dialog Contabilizar -->
+				<p:outputPanel id="panelPagoContabilizar">
+					<p:panel rendered="#{liquidacionCuentaPorPagarBean.mostrarDialogContabilizar}">
+						<p:dialog header="#{msgs.lbl_contabilizar} #{msgs.lbl_pago_panel}" widgetVar="pagosAContabilizarDialog" id="pagosAContabilizarDialog"
+							modal="true" height="400" width="800" showEffect="slide" hideEffect="slide">
+
+							<h:panelGrid id="panelGridPagosContabilizar" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<h:panelGroup>
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.numero}" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<h:panelGroup>
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.empresa.proveedor.empresa.nombreFiscal}" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_pago_valor}:" />
+									<h:panelGroup>
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.valor}" />
+									</h:panelGroup>
+								</h:panelGrid>
+
+								<h:panelGrid columns="1">
+									<p:fieldset>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaPagoCont" rowIndexVar="secuencialFormaPagoCont" emptyMessage="#{msgs.msg_no_hay_datos}"
+											value="#{liquidacionCuentaPorPagarBean.listaDetalleFormaPago}" var="_detalleFormaPago"
+											binding="#{liquidacionCuentaPorPagarBean.dtFormaPagoDialog}" style="width:100%" rows="5" paginatorPosition="buttom" paginator="true">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencialFormaPago+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_pagar_de}" styleClass="tableCell">
+												<h:outputText value="#{_detalleFormaPago.cuentaBancariaOrganizacion.nombreCompleto}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombre tableCell">
+												<h:outputText value="#{_detalleFormaPago.formaPago.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+												<h:outputText value="#{_detalleFormaPago.valor}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+												<p:inputText styleClass="input-text" id="txtReferenciaFormaPagoCont" value="#{_detalleFormaPago.documentoReferencia}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+										</p:dataTable>
+									</p:fieldset>
+								</h:panelGrid>
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_procesar}" actionListener="#{liquidacionCuentaPorPagarBean.contabilizarPago}"
+										process="@this :form:panelPagoContabilizar :form:tablaDetalleFormaPagoCont" oncomplete="pagosAContabilizarDialog.hide()" icon="ui-icon-plus" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:panel>
+				</p:outputPanel>
+				<!-- Fin Dialog Contabilizar -->
+
+				<!-- Inicio Dialog Entregar Cheque -->
+				<p:outputPanel id="panelPagoEntregarCheque">
+					<p:panel rendered="#{liquidacionCuentaPorPagarBean.mostrarDialogEntregarCheque}">
+						<p:dialog header="#{msgs.lbl_entregar_cheque} #{msgs.lbl_pago_panel}" widgetVar="chequesAEntregarDialog" id="chequesAEntregarDialog"
+							modal="true" height="400" width="800" showEffect="slide" hideEffect="slide">
+
+							<h:panelGrid id="panelGridChequesAEntregar" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<h:panelGroup>
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.numero}" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<h:panelGroup>
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.empresa.proveedor.empresa.nombreFiscal}" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_pago_valor}:" />
+									<h:panelGroup>
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.valor}" />
+									</h:panelGroup>
+
+									<h:outputText value="#{msgs.lbl_fecha_entrega_cheque}:" />
+									<p:calendar pattern="#{liquidacionCuentaPorPagarBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{liquidacionCuentaPorPagarBean.pago.fechaEntregaCheque}" id="calFechaEntregaCheque" disabled="true">
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_usuario_entrega_cheques}:" />
+									<h:panelGroup>
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.usuarioEntregaCheque}" />
+									</h:panelGroup>
+
+								</h:panelGrid>
+
+								<h:panelGrid columns="1">
+									<p:fieldset>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaPagoCheque" rowIndexVar="secuencialFormaPagoCont" emptyMessage="#{msgs.msg_no_hay_datos}"
+											value="#{liquidacionCuentaPorPagarBean.listaDetalleFormaPago}" var="_detalleFormaPago" style="width:100%" rows="5"
+											paginatorPosition="buttom" paginator="true">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencialFormaPago+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_pagar_de}" styleClass="tableCell">
+												<h:outputText value="#{_detalleFormaPago.cuentaBancariaOrganizacion.nombreCompleto}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombre tableCell">
+												<h:outputText value="#{_detalleFormaPago.formaPago.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValorGrande tableCell">
+												<h:outputText value="#{_detalleFormaPago.valor}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+												<h:outputText value="#{_detalleFormaPago.documentoReferencia}">
+												</h:outputText>
+											</p:column>
+										</p:dataTable>
+									</p:fieldset>
+								</h:panelGrid>
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_procesar}" actionListener="#{liquidacionCuentaPorPagarBean.entregarCheque}"
+										process="@this :form:panelPagoEntregarCheque :form:tablaDetalleFormaPagoCheque" oncomplete="chequesAEntregarDialog.hide()"
+										icon="ui-icon-plus" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:panel>
+				</p:outputPanel>
+				<!-- Fin Dialog Cheque -->
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_pago_panel}" rendered="#{liquidacionCuentaPorPagarBean.editado}">
+						<p:tabView dynamic="false" cache="true" id="tabView">
+							<p:tab title="#{msgs.lbl_pago_titulo_tab_pago}">
+
+								<h:panelGrid id="panelDetalle" columns="#{liquidacionCuentaPorPagarBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_documento}" />
+									<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true"
+										value="#{liquidacionCuentaPorPagarBean.pago.documento.idDocumento}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{liquidacionCuentaPorPagarBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+											itemValue="#{_documento.idDocumento}" />
+
+										<p:ajax process="@this" update=":form:tabView:txtNumero" global="false" listener="#{liquidacionCuentaPorPagarBean.actualizarDocumento}" />
+
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<p:inputMask styleClass="input-text" id="txtNumero" value="#{liquidacionCuentaPorPagarBean.pago.numero}"
+										mask="#{liquidacionCuentaPorPagarBean.pago.documento.secuencia.patron}">
+										<f:validateBean />
+									</p:inputMask>
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{liquidacionCuentaPorPagarBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{liquidacionCuentaPorPagarBean.pago.fecha}" id="calFecha" required="true">
+										<p:ajax event="change" listener="#{liquidacionCuentaPorPagarBean.cargarFacturasPendientes}"
+											process="@this,:form:tabView:txtValorPago"
+											update=":form:panelGridFacturas :form:tabView:txtValorPago" />
+										<p:ajax event="dateSelect" listener="#{liquidacionCuentaPorPagarBean.cargarFacturasPendientesDateSelect}"
+											process="@this,:form:tabView:txtValorPago"
+											update=":form:panelGridFacturas :form:tabView:txtValorPago" />
+										<f:validateBean />
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{liquidacionCuentaPorPagarBean.pago.empresa}"
+										completeMethod="#{liquidacionCuentaPorPagarBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+										itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" disabled="#{liquidacionCuentaPorPagarBean.pago.id>0}">
+
+										<p:column>#{_proveedor.identificacion}</p:column>
+										<p:column>#{_proveedor.nombreFiscal}</p:column>
+										<p:column>#{_proveedor.nombreComercial}</p:column>
+
+										<p:ajax listener="#{liquidacionCuentaPorPagarBean.actualizarProveedor}" global="false" process="@this" event="itemSelect"
+											update=":form:tabView:txtBeneficiario,:form:tablaFacturas" />
+									</p:autoComplete>
+
+									<h:outputText value="#{msgs.lbl_pago_valor}:" />
+									<p:outputPanel id="txtValorPago">
+										<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.valor}" />
+									</p:outputPanel>
+
+									<h:outputText value="#{msgs.lbl_beneficiario}:" />
+									<p:inputText styleClass="input-text" id="txtBeneficiario" value="#{liquidacionCuentaPorPagarBean.pago.beneficiario}">
+										<f:validateBean for="" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" id="txtDescripcion" value="#{liquidacionCuentaPorPagarBean.pago.descripcion}">
+										<f:validateBean />
+									</p:inputTextarea>
+								</h:panelGrid>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_forma_pago}">
+
+								<p:commandButton process="@this,:form:tabView:tablaDetalleFormaPago" value="#{msgs.btn_agregar_detalle}"
+									update=":form:tabView:panelDetalleFormaPago" action="#{liquidacionCuentaPorPagarBean.crearFormaPago}" />
+
+								<p:outputPanel id="panelDetFormaPago">
+
+									<h:panelGrid columns="1" id="panelDetalleFormaPago" width="100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaPago" rowIndexVar="secuencialFormaPago" emptyMessage="#{msgs.msg_no_hay_datos}"
+											value="#{liquidacionCuentaPorPagarBean.listaDetalleFormaPago}" var="_detalleFormaPago"
+											binding="#{liquidacionCuentaPorPagarBean.dtFormaPago}" paginator="false" style="width:100%"
+											rows="#{liquidacionCuentaPorPagarBean.numeroFilas}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencialFormaPago+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_pagar_de}" styleClass="tableCell">
+												<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+													value="#{_detalleFormaPago.cuentaBancariaOrganizacion}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{liquidacionCuentaPorPagarBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+														itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+													<f:validateBean />
+
+													<p:ajax process="@this" listener="#{liquidacionCuentaPorPagarBean.actualizarCuentaBancaria}" global="false"
+														update=":form:tabView:tablaDetalleFormaPago:cboFormaPago,:form:tabView:tablaDetalleFormaPago:txtCuentaContableBanco" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cuenta_contable}" styleClass="columnaDTNombre tableCell">
+												<p:outputPanel id="txtCuentaContableBanco">
+													<h:outputText value="#{_detalleFormaPago.cuentaContableFormaPago.codigo}"
+														rendered="#{!_detalleFormaPago.cuentaBancariaOrganizacion.indicadorCruce}" title="#{_detalleFormaPago.cuentaContableFormaPago.nombre}">
+													</h:outputText>
+
+													<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaPago" required="true"
+														value="#{_detalleFormaPago.cuentaContableFormaPago}" rendered="#{_detalleFormaPago.cuentaBancariaOrganizacion.indicadorCruce}">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{_detalleFormaPago.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+															var="_cuentaContableFormaPago"
+															itemLabel="#{_cuentaContableFormaPago.cuentaContable.codigo}   #{_cuentaContableFormaPago.cuentaContable.nombre}"
+															itemValue="#{_cuentaContableFormaPago.cuentaContable}" />
+														<p:ajax event="change" process="@this" global="false" update=":form:tabView:panelDetFormaPago" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:outputPanel>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombre tableCell">
+												<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{_detalleFormaPago.formaPago}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{_detalleFormaPago.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+														itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+													<f:validateBean />
+													<p:ajax process="@this" update=":form:tabView:tablaDetalleFormaPago:txtReferenciaFormaPago" global="false"
+														listener="#{liquidacionCuentaPorPagarBean.actualizarFormaPago}">
+													</p:ajax>
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValorGrande tableCell">
+												<p:inputText styleClass="input-text" id="txtValorFormaPago" value="#{_detalleFormaPago.valor}">
+													<f:validateBean />
+													<p:ajax event="change" update=":form:tabView:panelDetFormaPago" global="false" process="@this"
+														oncomplete="nextFocus(':form:tabView:tablaDetalleFormaPago:txtReferenciaFormaPago')"></p:ajax>
+												</p:inputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+												<p:inputMask styleClass="input-text" id="txtReferenciaFormaPago" value="#{_detalleFormaPago.documentoReferencia}"
+													mask="#{_detalleFormaPago.secuencia.patron}">
+													<f:validateBean />
+												</p:inputMask>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarFormaPago" action="#{liquidacionCuentaPorPagarBean.eliminarFormaPago}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tabView:panelDetalleFormaPago" process="@this" />
+											</p:column>
+
+											<p:columnGroup type="footer">
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_total}" style="text-align:right" />
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{liquidacionCuentaPorPagarBean.totalLiquidarFormaPago}">
+																<f:convertNumber pattern="#{liquidacionCuentaPorPagarBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_pago_diferencia}" style="text-align:right" />
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.valor-liquidacionCuentaPorPagarBean.totalLiquidarFormaPago}">
+																<f:convertNumber pattern="#{liquidacionCuentaPorPagarBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+											</p:columnGroup>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+						<h:panelGrid columns="1" id="panelGridFacturas" width="100%">
+
+							<p:commandButton process="@this,:form:tabView:txtValorPago"
+								value="#{msgs.btn_pago_cargar_facturas_pendientes}" update=":form:tablaFacturas, :form:tabView:txtValorPago"
+								action="#{liquidacionCuentaPorPagarBean.cargarFacturasPendientes}" disabled="#{liquidacionCuentaPorPagarBean.pago.id>0}" />
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturas" rowIndexVar="secuencialFacturas" emptyMessage="#{msgs.msg_no_hay_datos}"
+								binding="#{liquidacionCuentaPorPagarBean.dtDetallePago}" value="#{liquidacionCuentaPorPagarBean.listaDetallePago}" var="_factura"
+								paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{liquidacionCuentaPorPagarBean.numeroFilas}" selectionMode="single"
+								rowKey="#{_factura.cuentaPorPagar.id}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pago_titulo_panel_facturas}" />
+								</f:facet>
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencialFacturas+1}" />
+								</p:column>
+
+								<p:column sortBy="#{_factura.cuentaPorPagar.facturaProveedor.numero}" filterBy="#{_factura.cuentaPorPagar.facturaProveedor.numero}"
+									styleClass="columnaDTNumeroFactura tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_numero}" />
+									</f:facet>
+									<h:outputText value="#{_factura.cuentaPorPagar.facturaProveedor.numero}" />
+								</p:column>
+
+								<p:column sortBy="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+									filterBy="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" styleClass="columnaDTNumeroFactura tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_pago_numero_factura}" />
+									</f:facet>
+									<h:outputText
+										value="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_fecha} #{msgs.lbl_registro}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.facturaProveedor.fecha}">
+										<f:convertDateTime pattern="#{liquidacionCuentaPorPagarBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.fechaVencimiento}">
+										<f:convertDateTime pattern="#{liquidacionCuentaPorPagarBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_numero_cuota}" styleClass="columnaDTCodigo tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.numeroCuota}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}" styleClass="columnaDTValorGrande tableCell">
+									<h:outputText id="txtValor" value="#{_factura.valor}" />
+								</p:column>
+
+								<p:columnGroup type="footer">
+									<p:row>
+										<p:column colspan="6" footerText="#{msgs.lbl_pago_total_liquidado}" style="text-align:right" />
+										<p:column>
+											<f:facet name="footer" colspan="10" style="text-align:right">
+												<h:outputText value="#{liquidacionCuentaPorPagarBean.totalLiquidado}">
+													<f:convertNumber pattern="#{liquidacionCuentaPorPagarBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+
+									<p:row>
+										<p:column colspan="6" footerText="#{msgs.lbl_pago_diferencia}" style="text-align:right" />
+										<p:column>
+											<f:facet name="footer" colspan="10" style="text-align:right">
+												<h:outputText value="#{liquidacionCuentaPorPagarBean.pago.valor-liquidacionCuentaPorPagarBean.totalLiquidado}">
+													<f:convertNumber pattern="#{liquidacionCuentaPorPagarBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+								</p:columnGroup>
+							</p:dataTable>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+				<p:outputPanel id="panelListado" />
+				<p:outputPanel id="panelAuditoriaInfo" />
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_stock_minimo}">
+
+
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteLimireSaldoProductosPorBodegaBean}" entidadOrigen=""></tnt:panelImprimir>
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera" columns="#{reporteLimireSaldoProductosPorBodegaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+							<h:outputText value="#{msgs.lbl_categoria}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteLimireSaldoProductosPorBodegaBean.categoriaProductoSelected}" id="cboCategoria"
+								required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteLimireSaldoProductosPorBodegaBean.listaCategoriaProducto}" var="_categoria" itemLabel="#{_categoria.nombre}"
+									itemValue="#{_categoria}" />
+								<p:ajax process="@this" event="change" update="cboSubcategoria" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_bodega}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteLimireSaldoProductosPorBodegaBean.bodegaSelected}" id="cboBodega" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteLimireSaldoProductosPorBodegaBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}"
+									itemValue="#{_bodega}" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_subcategoria_producto_panel}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteLimireSaldoProductosPorBodegaBean.subcategoriaProductoSelected}" id="cboSubcategoria"
+								required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteLimireSaldoProductosPorBodegaBean.listaSubcategoriaProducto}" var="_subcategoria"
+									itemLabel="#{_subcategoria.nombre}" itemValue="#{_subcategoria}" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_bajo_saldo_minimo}:" />
+							<p:selectBooleanCheckbox id="sbchSaldoMinimo" value="#{reporteLimireSaldoProductosPorBodegaBean.indicadorBajoSaldoMinimo}" disabled="false">
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_atributo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteLimireSaldoProductosPorBodegaBean.atributo}" id="cboAtributo">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteLimireSaldoProductosPorBodegaBean.listaAtributo}" var="_atributo" itemLabel="#{_atributo.nombre}"
+									itemValue="#{_atributo}" />
+								<p:ajax process="@this"  />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_valor_atributo}:" />
+
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoValorAtributo"
+								value="#{reporteLimireSaldoProductosPorBodegaBean.valorAtributoSeleccionado}"
+								completeMethod="#{reporteLimireSaldoProductosPorBodegaBean.autocompletarValorAtributo}" var="_valorAtributo"
+								itemLabel="#{_valorAtributo.nombre}" itemValue="#{_valorAtributo}" forceSelection="true" dropdown="true" minQueryLength="2" size="50"
+								required="#{reporteLimireSaldoProductosPorBodegaBean.atributo != null}">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_valorAtributo.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_valorAtributo.nombre}</p:column>
+							</p:autoComplete>
+
+						</h:panelGrid>
+
+					</p:fieldset>
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+							process="@this :form:panelFiltros :form:cboCategoria :form:cboBodega :form:cboSubcategoria :form:cboSubcategoria"
+							oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

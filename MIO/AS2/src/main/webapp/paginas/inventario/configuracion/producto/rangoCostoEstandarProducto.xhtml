@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{rangoCostoEstandarProductoBean}">
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{rangoCostoEstandarProductoBean.copiar}" update=":form:panelContenedor" disabled="#{rangoCostoEstandarProductoBean.editado}">
+					</p:commandButton>
+					<!--<as2:buttonEliminar bean="#{rangoCostoEstandarProductoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.nombre}" />
+					</as2:buttonEliminar>-->					
+					
+					<as2:buttonExportaExcel bean="#{rangoCostoEstandarProductoBean}" tabla=":form:tablaRangoCostoEstandarProducto"/>
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{rangoCostoEstandarProductoBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelDetalleCostoEstandarProducto" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_costo} #{msgs.lbl_produccion})" rendered="#{rangoCostoEstandarProductoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelDetalle" columns="#{rangoCostoEstandarProductoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText required="true" styleClass="input-text" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.codigo}" id="txtCodigo">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText required="true" styleClass="input-text" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.nombre}" id="txtNombre">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_anio}:" />
+								<p:inputText styleClass="input-text" mask="9999" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.anio}" id="txtAnio">
+									<p:ajax event="change" process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_mes}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.mes}" id="cboMes">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{rangoCostoEstandarProductoBean.listaMes}" />
+									<p:ajax event="change" process="@this" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.activo}" />
+
+								<h:outputText value="#{msgs.lbl_generar_archivo}:" />
+								<p:commandButton ajax="false" icon="ui-icon-bookmark" process="@this">
+									<p:fileDownload value="#{rangoCostoEstandarProductoBean.file}" />
+								</p:commandButton>
+
+
+								<h:outputText value="#{msgs.btn_cargar_excel}:" />
+								<p:fileUpload fileUploadListener="#{rangoCostoEstandarProductoBean.cargaCostoEstadarProducto}" mode="advanced"
+									update=":form:panelDetalleCostoEstandarProducto" auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/"
+									label="#{msgs.btn_examinar}" process="@this" />
+
+							</h:panelGrid>
+
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalleCostoEstandarProducto" style="width:100%">
+
+								<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{rangoCostoEstandarProductoBean.listaCostoEstandarProducto}" id="tablaCostoEstandarProducto" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_costoEstandarProducto" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{rangoCostoEstandarProductoBean.numeroFilas}" rowKey="#{_costoEstandarProducto.rowKey}" rowsPerPageTemplate="#{rangoCostoEstandarProductoBean.numeroFilasPorPagina}"
+									binding="#{rangoCostoEstandarProductoBean.dtCostoEstandarProducto}">
+
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_producto}" />
+									</f:facet>
+									
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigoProducto tableCell" 
+										headerText="#{msgs.lbl_codigo}" filterBy="#{_costoEstandarProducto.producto.codigo}" sortBy="#{_costoEstandarProducto.producto.codigo}">
+										<h:outputText value="#{_costoEstandarProducto.producto.codigo}" />
+									</p:column>
+
+									<p:column styleClass="tableCell" 
+										headerText="#{msgs.lbl_nombre}" filterBy="#{_costoEstandarProducto.producto.nombre}" sortBy="#{_costoEstandarProducto.producto.nombre}">
+										<h:outputText value="#{_costoEstandarProducto.producto.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell">
+										<f:facet name="header">
+											<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_costo}" />
+										</f:facet>
+										<p:inputText value="#{_costoEstandarProducto.costo}" id="txtCosto">
+											<p:ajax process="@this" event="change" global="false" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarDetalle" action="#{rangoCostoEstandarProductoBean.eliminarCostoEstandarProducto(_costoEstandarProducto)}"
+											icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:panelDetalleCostoEstandarProducto" process="@this">
+										</p:commandButton>
+									</p:column>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_costo} #{msgs.lbl_produccion})" rendered="#{!rangoCostoEstandarProductoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRangoCostoEstandarProducto" rowIndexVar="secuencialrangoCostoEstandarProducto" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{rangoCostoEstandarProductoBean.listaRangoCostoEstandarProducto}" var="_rangoCostoEstandarProducto"
+							binding="#{rangoCostoEstandarProductoBean.dtRangoCostoEstandarProducto}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{rangoCostoEstandarProductoBean.numeroFilas}" rowsPerPageTemplate="#{rangoCostoEstandarProductoBean.numeroFilasPorPagina}"
+							selection="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto}" selectionMode="single" rowKey="#{_rangoCostoEstandarProducto.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialrangoCostoEstandarProducto+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto" sortBy="#{_rangoCostoEstandarProducto.codigo}" filterBy="#{_rangoCostoEstandarProducto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_rangoCostoEstandarProducto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_rangoCostoEstandarProducto.nombre}" filterBy="#{_rangoCostoEstandarProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_rangoCostoEstandarProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" sortBy="#{_rangoCostoEstandarProducto.anio}" filterBy="#{_rangoCostoEstandarProducto.anio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anio}" />
+								</f:facet>
+								<h:outputText value="#{_rangoCostoEstandarProducto.anio}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" sortBy="#{_rangoCostoEstandarProducto.mes}" filterBy="#{_rangoCostoEstandarProducto.anio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_mes}" />
+								</f:facet>
+								<h:outputText value="#{_rangoCostoEstandarProducto.mes}" />
+							</p:column>							
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{_rangoCostoEstandarProducto.activo}" headerText="#{msgs.lbl_activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_rangoCostoEstandarProducto.activo}" disabled="true" />
+							</p:column>
+							
+							<p:column sortBy="#{_rangoCostoEstandarProducto.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_rangoCostoEstandarProducto.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{rangoCostoEstandarProductoBean.rangoCostoEstandarProducto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

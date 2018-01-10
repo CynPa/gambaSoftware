@@ -1,0 +1,304 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{movimientoArticuloServicioBean}" />
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{movimientoArticuloServicioBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_movimiento_articulo_servicio}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{movimientoArticuloServicioBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl__articulo_servicio_hijo}:" />
+							<h:panelGroup>
+								<p:selectOneMenu
+									value="#{movimientoArticuloServicioBean.historicoArticuloServicio.articuloServicioHijo}"
+									id="cboArticuloServicioHijo" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems
+										value="#{movimientoArticuloServicioBean.listaArticuloServicioHijo}"
+										var="_articuloServicioHijo"
+										itemValue="#{_articuloServicioHijo}"
+										itemLabel="#{_articuloServicioHijo.nombre}">
+									</f:selectItems>
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboArticuloServicioHijo" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_articulo_servicio_padre}:" />
+							<h:panelGroup>
+								<p:selectOneMenu
+									value="#{movimientoArticuloServicioBean.historicoArticuloServicio.articuloServicioPadre}"
+									id="cboArticuloServicioPadre" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems
+										value="#{movimientoArticuloServicioBean.listaArticuloServicioPadre}"
+										var="_articuloServicioPadre"
+										itemValue="#{_articuloServicioPadre}"
+										itemLabel="#{_articuloServicioPadre.nombre}">
+									</f:selectItems>
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboArticuloServicioPadre" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar
+								value="#{movimientoArticuloServicioBean.historicoArticuloServicio.fechaDesde}"
+								pattern="#{movimientoArticuloServicioBean.formatoFecha}" />
+
+							<h:outputText value="#{msgs.lbl_hora_desde}:" />
+							<p:calendar
+								value="#{movimientoArticuloServicioBean.historicoArticuloServicio.horaDesde}"
+								pattern="HH:mm" minHour="8" maxHour="20" timeOnly="true" />
+
+						</h:panelGrid>
+
+						<p:spacer width="2px" />
+
+						<fieldset>
+							<p:tabView>
+								<p:ajax event="tabChange" process="panelListaActividades"
+									update="panelListaTareas" />
+								<p:tab title="#{msgs.lbl_actividad}">
+									<p:outputPanel id="panelListaActividades">
+										<h:panelGrid columns="1">
+											<p:commandButton value="#{msgs.btn_agregar_detalle}"
+												id="btnAgregar"
+												action="#{movimientoArticuloServicioBean.agregarActividad}"
+												update="panelListaActividades" process="@this" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{movimientoArticuloServicioBean.listaActividades}"
+												id="tablaActividad" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_actividad"
+												paginator="true" paginatorPosition="bottom"
+												style="width:100%"
+												selection="#{movimientoArticuloServicioBean.actividad}"
+												selectionMode="single"
+												binding="#{movimientoArticuloServicioBean.dtActividad}"
+												rowKey="#{_actividad.id}"
+												rows="#{movimientoArticuloServicioBean.numeroFilas}"
+												rowsPerPageTemplate="#{movimientoArticuloServicioBean.numeroFilasPorPagina}">
+
+												<p:column headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_codigo}">
+													<p:inputText styleClass="input-text"
+														id="txtCodigoActividad" value="#{_actividad.codigo}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtCodigoActividad" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre}">
+													<p:inputText styleClass="input-text"
+														id="txtNombreActividad" value="#{_actividad.nombre}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtNombreActividad" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_descripcion}">
+													<p:inputText styleClass="input-text"
+														id="txtDescripcionActividad"
+														value="#{_actividad.descripcion}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtDescripcionActividad" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_criticidad}">
+													<p:selectOneMenu value="#{_actividad.criticidad}"
+														id="cboCriticidad" required="true">
+														<f:selectItem itemValue=""
+															itemLabel="#{msgs.lbl_seleccione}" />
+														<f:selectItems
+															value="#{movimientoArticuloServicioBean.listaCriticidad}"
+															var="_criticidad" itemValue="#{_criticidad}"
+															itemLabel="#{_criticidad.nombre}">
+														</f:selectItems>
+														<f:validateBean />
+													</p:selectOneMenu>
+													<p:message for="cboCriticidad" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_lista_verificacion}">
+													<p:selectOneMenu value="#{_actividad.listaVerificacion}"
+														id="cboListaVerificacion">
+														<f:selectItem itemValue=""
+															itemLabel="#{msgs.lbl_seleccione}" />
+														<f:selectItems
+															value="#{movimientoArticuloServicioBean.listaListaVerificacion}"
+															var="_listaVerificacion"
+															itemValue="#{_listaVerificacion}"
+															itemLabel="#{_listaVerificacion.nombre}">
+														</f:selectItems>
+														<f:validateBean />
+													</p:selectOneMenu>
+													<p:message for="cboListaVerificacion" />
+												</p:column>
+												<p:column>
+													<p:commandButton id="btnEliminarActividad"
+														action="#{movimientoArticuloServicioBean.eliminarActividad}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update="#{p:component('panelListaActividades')}"
+														process="@this">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+								<p:tab title="#{msgs.lbl_tarea}">
+									<p:outputPanel id="panelListaTareas">
+										<h:panelGrid columns="1">
+
+											<p:commandButton value="#{msgs.btn_agregar_detalle}"
+												id="btnAgregarTarea"
+												action="#{movimientoArticuloServicioBean.agregarTarea}"
+												update="panelListaTareas" process="@this" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												value="#{movimientoArticuloServicioBean.listaTareas}"
+												id="tablaTarea" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_tarea"
+												paginator="true" paginatorPosition="bottom"
+												style="width:100%"
+												binding="#{movimientoArticuloServicioBean.dtTarea}"
+												rowKey="#{_tarea.id}"
+												rows="#{movimientoArticuloServicioBean.numeroFilas}"
+												rowsPerPageTemplate="#{movimientoArticuloServicioBean.numeroFilasPorPagina}">
+
+												<p:column headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_codigo}">
+													<p:inputText styleClass="input-text" id="txtCodigoTarea"
+														value="#{_tarea.codigo}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtCodigoTarea" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre}">
+													<p:inputText styleClass="input-text" id="txtNombreTarea"
+														value="#{_tarea.nombre}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtNombreTarea" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_descripcion}">
+													<p:inputText styleClass="input-text"
+														id="txtDescripcionTarea" value="#{_tarea.descripcion}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtDescripcionTarea" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_numero_personas}">
+													<p:inputText styleClass="input-text" id="txtNumeroPersonas"
+														value="#{_tarea.numeroPersonas}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtNumeroPersonas" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_duracion}">
+													<p:inputText styleClass="input-text" id="txtDuracion"
+														value="#{_tarea.duracion}">
+														<f:validateBean />
+													</p:inputText>
+													<p:message for="txtDuracion" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_tarifa_salarial}">
+													<p:selectOneMenu value="#{_tarea.tarifaSalarial}"
+														id="cboTarifaSalarial" required="true">
+														<f:selectItem itemValue=""
+															itemLabel="#{msgs.lbl_seleccione}" />
+														<f:selectItems
+															value="#{movimientoArticuloServicioBean.listaTarifaSalarial}"
+															var="_tarifaSalarial" itemValue="#{_tarifaSalarial}"
+															itemLabel="#{_tarifaSalarial.nombre}">
+														</f:selectItems>
+														<f:validateBean />
+													</p:selectOneMenu>
+													<p:message for="cboTarifaSalarial" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_activo}">
+													<center>
+														<p:selectBooleanCheckbox id="chkTareaActivo"
+															value="#{_tarea.activo}">
+															<f:validateBean />
+														</p:selectBooleanCheckbox>
+														<p:message for="chkTareaActivo" />
+													</center>
+												</p:column>
+												<p:column>
+													<p:commandButton id="btnEliminarTarea"
+														action="#{movimientoArticuloServicioBean.eliminarTarea}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update="#{p:component('panelListaTareas')}"
+														process="@this">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+							</p:tabView>
+						</fieldset>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{movimientoArticuloServicioBean.historicoArticulo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{movimientoArticuloServicioBean.historicoArticulo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{movimientoArticuloServicioBean.historicoArticulo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{movimientoArticuloServicioBean.historicoArticulo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

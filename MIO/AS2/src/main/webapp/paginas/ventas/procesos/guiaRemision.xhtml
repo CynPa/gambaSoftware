@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barraPagina.xhtml">
+					<ui:param name="bean" value="#{guiaRemisionBean}" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:dialog header="#{msgs.lbl_vehiculo}" widgetVar="dglVehiculoAgil" modal="true" height="200" width="800" showEffect="slide" hideEffect="slide"
+						closable="false">
+
+						<p:outputPanel id="panelDatosBasicosVehiculo">
+							<h:panelGrid columns="#{guiaRemisionBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+								rendered="#{guiaRemisionBean.vehiculo.rendered}">
+
+								<p:outputLabel for="txtPlacaNew" value="#{msgs.lbl_placa}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.placa}" id="txtPlacaNew" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="txtMarcaNew" value="#{msgs.lbl_marca}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.marca}" id="txtMarcaNew" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="txtModeloNew" value="#{msgs.lbl_modelo}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.modelo}" id="txtModeloNew" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="txtAnioNew" value="#{msgs.lbl_anio}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.anio}" id="txtAnioNew" required="true">
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_capacidad_volumen}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.capacidadVolumuen}" id="txtCapacidadVolumuenNew">
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_capacidad_cantidad}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.capacidadCantidad}" id="txtCapacidadCantidadNew">
+								</p:inputText>
+
+								<p:outputLabel for="txtPesoVehiculoVacioNew" value="#{msgs.lbl_peso_vehiculo_vacio}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.pesoVehiculoVacio}" id="txtPesoVehiculoVacioNew" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="txtToleranciaNew" value="#{msgs.lbl_tolerancia}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.vehiculo.porcentajeTolerancia}" id="txtToleranciaNew">
+								</p:inputText>
+
+								<p:outputLabel for="cboTipoVehiculoNew" value="#{msgs.lbl_titulo_tipo_vehiculo}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{guiaRemisionBean.vehiculo.tipoVehiculo}" id="cboTipoVehiculoNew" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{vehiculoBean.listaTipoVehiculoCombo}" var="_tipoVehiculo" itemLabel="#{_tipoVehiculo.nombre}"
+										itemValue="#{_tipoVehiculo}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboTransportistaNew" value="#{msgs.lbl_titulo_transportista}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{guiaRemisionBean.vehiculo.transportista}" id="cboTransportistaNew" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{vehiculoBean.listaTransportistaCombo}" var="_trasnportista" itemLabel="#{_trasnportista.nombre}"
+										itemValue="#{_trasnportista}" />
+								</p:selectOneMenu>
+
+							</h:panelGrid>
+						</p:outputPanel>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_guardar}" action="#{guiaRemisionBean.guardarVehiculo}" process="@this, panelDatosBasicosVehiculo"
+									update="cboVehiculo,txtConductor,panelValidacionIdentificacion,txtPlaca,cboTipoIdentificacion,txtEmailTransportista,txtEmailCliente" oncomplete="validacionesModal(xhr, status, args, dglVehiculoAgil)">
+									<f:setPropertyActionListener value="false" target="#{guiaRemisionBean.vehiculo.rendered}"></f:setPropertyActionListener>
+								</p:commandButton>
+								<p:commandButton value="#{msgs.btn_cancelar}" process="@this" oncomplete="dglVehiculoAgil.hide()" global="false">
+									<f:setPropertyActionListener value="false" target="#{guiaRemisionBean.vehiculo.rendered}"></f:setPropertyActionListener>
+								</p:commandButton>
+							</center>
+						</f:facet>
+					</p:dialog>
+
+					<p:panel rendered="#{guiaRemisionBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_guia_remision}">
+
+						<h:panelGrid id="panelDetalle" columns="#{guiaRemisionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.documento}" id="cboDocumento" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{guiaRemisionBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+								<p:ajax update="txtNumeroGuiaRemision txtEmailTransportista txtEmailCliente" event="change" process="@this" global="false"
+									listener="#{guiaRemisionBean.actualizarDocumento}" />
+
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:panelGroup>
+								<h:outputText value="#{guiaRemisionBean.mensaje}" style="color:#FF0000;" />
+								<p:inputText required="true" styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.numero}" id="txtNumeroGuiaRemision"
+									disabled="#{ guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico and guiaRemisionBean.guiaRemision.estado != 'RECHAZADO_SRI'}">
+									<f:validateBean />
+								</p:inputText>
+							</h:panelGroup>
+
+							<p:outputLabel for="calFechaGuiaRemision" value="#{msgs.lbl_fecha}:" />
+							<p:calendar required="true" pattern="#{guiaRemisionBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{guiaRemisionBean.guiaRemision.fecha}" id="calFechaGuiaRemision">
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaVigenciaGuiaRemision" value="#{msgs.lbl_fecha_vigencia}:" />
+							<p:calendar required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}" pattern="#{guiaRemisionBean.formatoFecha}"
+								showOn="button" navigator="true" value="#{guiaRemisionBean.guiaRemision.fechaVigencia}" id="calFechaVigenciaGuiaRemision">
+								<f:validateBean />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_hora_salida}:" />
+							<p:calendar id="horaSalida" value="#{guiaRemisionBean.guiaRemision.horaSalida}" pattern="HH:mm" timeOnly="true" title="Hora Salida"
+								required="true" />
+
+							<h:outputText value="#{msgs.lbl_hora_llegada}:" />
+							<p:calendar id="horaLlegada" value="#{guiaRemisionBean.guiaRemision.horaLlegada}" pattern="HH:mm" timeOnly="true" title="Hora Llegada"
+								required="true" />
+
+							<h:outputText value="#{msgs.lbl_nombre_ciudad_origen}:" />
+							<p:selectOneMenu required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}"
+								value="#{guiaRemisionBean.guiaRemision.ciudadOrigen}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{guiaRemisionBean.listaCiudadCombo}" var="_ciudadOrigen" itemLabel="#{_ciudadOrigen.nombre}"
+									itemValue="#{_ciudadOrigen}" />
+
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboCiudadDestino" value="#{msgs.lbl_nombre_ciudad_destino}:" />
+							<p:selectOneMenu required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}"
+								value="#{guiaRemisionBean.guiaRemision.ciudadDestino}" id="cboCiudadDestino">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{guiaRemisionBean.listaCiudadCombo}" var="_ciudadDestino" itemLabel="#{_ciudadDestino.nombre}"
+									itemValue="#{_ciudadDestino}" />
+
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:commandLink oncomplete="dglVehiculoAgil.show();" update="panelDatosBasicosVehiculo" process="@this"
+								actionListener="#{guiaRemisionBean.crearVehiculo()}">
+								<p:outputLabel for="cboVehiculo" value="#{msgs.lbl_titulo_vehiculo}:" />
+							</p:commandLink>
+							<p:selectOneMenu styleClass="input-text" id="cboVehiculo" value="#{guiaRemisionBean.guiaRemision.vehiculo}"
+								required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{guiaRemisionBean.listaVehiculoCombo}" var="_vehiculo" itemLabel="#{_vehiculo.nombreCompletoVehiculo}"
+									itemValue="#{_vehiculo}" />
+								<p:ajax listener="#{guiaRemisionBean.actualizarConductor}" process="@this" global="false"
+									update="txtConductor,panelValidacionIdentificacion,txtPlaca,cboTipoIdentificacion,txtEmailTransportista,txtEmailCliente" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtPlaca" value="#{msgs.lbl_placa}:" />
+							<p:inputText required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}" styleClass="input-text"
+								value="#{guiaRemisionBean.guiaRemision.placa}" id="txtPlaca">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtConductor" value="#{msgs.lbl_conductor}:" />
+							<p:inputText required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}" styleClass="input-text"
+								value="#{guiaRemisionBean.guiaRemision.conductor}" id="txtConductor">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboTipoIdentificacion" value="#{msgs.lbl_tipo_identificacion}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.tipoIdentificacionTransportista}" id="cboTipoIdentificacion"
+									required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{guiaRemisionBean.listaTipoIdentificacionCombo}" var="_tipoIdentificacion" itemLabel="#{_tipoIdentificacion.nombre}"
+										itemValue="#{_tipoIdentificacion}" />
+									<f:validateBean />
+									<p:ajax process="@this" update="panelValidacionIdentificacion" global="false" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<h:outputText for="txtIdentificacionNormal" value="#{msgs.lbl_identificacion}:" />
+							<p:outputPanel id="panelValidacionIdentificacion">
+								<p:inputText styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.licencia}" id="txtIdentificacionNormal"
+									required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}"
+									rendered="#{!guiaRemisionBean.guiaRemision.tipoIdentificacionTransportista.indicadorValidarIdentificacion}">
+									<f:validateBean />
+								</p:inputText>
+								<p:inputMask styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.licencia}" id="txtLicencia"
+									required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico}"
+									mask="#{empty guiaRemisionBean.guiaRemision.tipoIdentificacionTransportista ? '' : guiaRemisionBean.guiaRemision.tipoIdentificacionTransportista.mascara}"
+									rendered="#{guiaRemisionBean.guiaRemision.tipoIdentificacionTransportista.indicadorValidarIdentificacion}">
+									<f:validateBean />
+								</p:inputMask>
+							</p:outputPanel>
+
+							<h:outputText value="#{msgs.lbl_tarifa}:" />
+							<p:inputText styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.tarifa}" id="txtTarifa">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtEmailTransportista" value="#{msgs.lbl_email_transportista}:" />
+							<p:inputText styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.emailTransportista}" id="txtEmailTransportista"
+								required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico and (guiaRemisionBean.guiaRemision.emailCliente == null or guiaRemisionBean.guiaRemision.emailCliente.isEmpty() or guiaRemisionBean.guiaRemision.emailCliente.length() == 0)}">
+								<p:ajax process="@this" global="false" update="txtEmailCliente" event="change" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email_cliente}:" />
+							<p:inputText styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.emailCliente}" id="txtEmailCliente"
+								required="#{guiaRemisionBean.guiaRemision.documento.indicadorDocumentoElectronico and (guiaRemisionBean.guiaRemision.emailTransportista == null or guiaRemisionBean.guiaRemision.emailTransportista.isEmpty() or guiaRemisionBean.guiaRemision.emailTransportista.length() == 0)}">
+								<p:ajax process="@this" global="false" update="txtEmailTransportista" event="change" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{guiaRemisionBean.guiaRemision.descripcion}" id="txtDescripcionGuiaRemision" />
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado" />
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,232 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{dimensionContableBean}">
+					<as2:buttonEliminar bean="#{dimensionContableBean}">
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{dimensionContableBean.dimensionContable.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteDimensionContableBean}" bean="#{dimensionContableBean}"
+						target="#{reporteDimensionContableBean.dimensionContable}" value="#{dimensionContableBean.dimensionContable}" />
+
+					<as2:buttonExportaExcel bean="#{dimensionContableBean}" tabla=":form:tablaDimensionContable" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_dimension_contable} )" rendered="#{dimensionContableBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{empresaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboNivelDimensionContable" value="#{msgs.lbl_nivel}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{dimensionContableBean.dimensionContable.mascara}" id="cboNivelDimensionContable"
+								required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{dimensionContableBean.listaNivelDimensionContable}" />
+								<f:validateBean />
+								<p:ajax update="txtCodigo cboDimensionContablePadre calenFechaDesde calenFechaHasta chkIndicadorMovimiento" process="@this" event="change"
+									listener="#{dimensionContableBean.cargarDimensionPadre}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_dimension_padre}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" rendered="#{!(dimensionContableBean.dimensionContable.idDimensionContable>0)}"
+									value="#{dimensionContableBean.dimensionContable.dimensionPadre}" id="cboDimensionContablePadre">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{dimensionContableBean.listaDimensionContablePadre}" var="_dimensionPadre" itemLabel="#{_dimensionPadre.nombre}"
+										itemValue="#{_dimensionPadre}" />
+									<f:validateBean />
+									<p:ajax update="txtCodigo" event="change" process="@this" />
+								</p:selectOneMenu>
+								<p:outputPanel rendered="#{dimensionContableBean.dimensionContable.idDimensionContable>0}">
+									<h:outputText value="#{dimensionContableBean.dimensionContable.dimensionPadre.nombre}" />
+								</p:outputPanel>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_tipo_acceso}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{dimensionContableBean.dimensionContable.tipoAccesoContable}" id="cboTipoAcceso">
+								<f:selectItems value="#{dimensionContableBean.listaTipoAccesoContable}" />
+								<p:ajax process="@this" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputMask styleClass="input-text" value="#{dimensionContableBean.dimensionContable.codigo}" id="txtCodigo"
+								disabled="#{dimensionContableBean.dimensionContable.idDimensionContable>0}" mask="#{dimensionContableBean.mascara}" required="true">
+								<f:validateBean />
+							</p:inputMask>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{dimensionContableBean.dimensionContable.nombre}" id="txtNombre" required="true" />
+
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:" />
+							<p:selectBooleanCheckbox disabled="true" id="chkIndicadorMovimiento" value="#{dimensionContableBean.dimensionContable.indicadorMovimiento}">
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{dimensionContableBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{dimensionContableBean.dimensionContable.fechaDesde}" id="calenFechaDesde"
+								disabled="#{!dimensionContableBean.dimensionContable.indicadorMovimiento}">
+								<p:ajax process="@this" global="false" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{dimensionContableBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{dimensionContableBean.dimensionContable.fechaHasta}" id="calenFechaHasta"
+								disabled="#{!dimensionContableBean.dimensionContable.indicadorMovimiento}">
+								<p:ajax process="@this" global="false" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{dimensionContableBean.dimensionContable.activo}">
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{dimensionContableBean.dimensionContable.predeterminado}">
+								<f:validateBean />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{dimensionContableBean.dimensionContable.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<p:outputPanel id="panelCuentaContables" rendered="#{dimensionContableBean.agregaCC}">
+
+							<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_cuenta_contable}">
+
+								<p:commandButton value="#{msgs.btn_agregar_cuenta_contable}" process="@this" partialSubmit="true"
+									actionListener="#{dimensionContableBean.listaCuentaContableBean.listarCuentaContable}">
+									<p:ajax event="dialogReturn" listener="#{dimensionContableBean.seleccionarCuentaContable}" update=":form:panelListaCuentasContables" />
+								</p:commandButton>
+
+								<h:panelGrid columns="1" id="panelListaCuentasContables" style="width:100%">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{dimensionContableBean.listaCuentaContables}"
+										id="tablaCuentaContablePresupuestaria" rowIndexVar="secuencial" binding="#{dimensionContableBean.dtCuentaContable}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_cuentaContableDimensionContable" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rows="#{dimensionContableBean.numeroFilas}" rowKey="#{_cuentaContable.id}" lazy="true">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_codigo}">
+											<h:outputText styleClass="input-text" value="#{_cuentaContableDimensionContable.cuentaContable.codigo}" id="txtCodigo">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_cuenta_contable}">
+											<h:outputText id="txtNombreCuenta" value="#{_cuentaContableDimensionContable.cuentaContable.nombre}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton id="btnEliminarDetalle" action="#{dimensionContableBean.eliminarDetalle}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:panelListaCuentasContables" process="@this" />
+										</p:column>
+
+									</p:dataTable>
+								</h:panelGrid>
+
+							</p:panel>
+
+						</p:outputPanel>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_dimension_contable} )" rendered="#{!dimensionContableBean.editado}">
+
+						<h:outputText value="#{msgs.lbl_dimension}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{dimensionContableBean.dimension}" id="cboDimension">
+							<f:selectItems value="#{dimensionContableBean.listaDimension}" />
+							<p:ajax process="@this" update=":form:panelListado" />
+							<f:validateBean />
+						</p:selectOneMenu>
+
+						<p:spacer />
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDimensionContable" rowIndexVar="secuencialDimensionContable"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{dimensionContableBean.listaDimensionContable}" var="dimensionContable"
+							binding="#{dimensionContableBean.dtDimensionContable}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{dimensionContableBean.numeroFilasPorPagina}" rows="#{dimensionContableBean.numeroFilas}"
+							selection="#{dimensionContableBean.dimensionContable}" selectionMode="single" rowKey="#{dimensionContable.id}"
+							sortBy="#{dimensionContable.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialDimensionContable+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigoCuenta" sortBy="#{dimensionContable.codigo}" filterBy="#{dimensionContable.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{dimensionContable.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{dimensionContable.nombre}" filterBy="#{dimensionContable.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{dimensionContable.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{dimensionContable.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{dimensionContable.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTPredeterminado">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{dimensionContable.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{dimensionContable.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{dimensionContableBean.dimensionContable.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{dimensionContableBean.dimensionContable.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{dimensionContableBean.dimensionContable.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{dimensionContableBean.dimensionContable.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+			
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

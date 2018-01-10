@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_comisiones}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteComisionesBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<ui:include src="/template/listaProductoMultiple.xhtml">
+						<ui:param name="bean" value="#{reporteComisionesBean}" />
+						<ui:param name="objetoActualizar" value=":form:groupProducto" />
+						<ui:param name="listadoFiltrado" value="true" />
+						<ui:param name="mostrarCantidad" value="false" />
+					</ui:include>
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle" columns="#{reporteComisionesBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteComisionesBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteComisionesBean.fechaDesde}"
+								id="calFechaDesde" required="true">
+								<p:ajax event="dateSelect"></p:ajax>
+								<p:ajax event="change"></p:ajax>
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteComisionesBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteComisionesBean.fechaHasta}"
+								id="calFechaHasta" required="true">
+								<p:ajax event="dateSelect"></p:ajax>
+								<p:ajax event="change"></p:ajax>
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel value="#{msgs.lbl_tipo} #{msgs.lbl_reporte}:" for="cboTipoReporte" />
+							<p:selectOneMenu value="#{reporteComisionesBean.tipoReporte}" required="true" id="cboTipoReporte">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteComisionesBean.listaTipoReporte}" var="_tipoReporte">
+								</f:selectItems>
+								<p:ajax event="change" update=":form:panelFiltros" process="@this" partialSubmit="true" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboAgenteComercial" value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteComisionesBean.agenteComercial}" id="cboAgenteComercial">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteComisionesBean.listaAgenteComercial}" var="_agente" itemLabel="#{_agente.nombre1} #{_agente.nombre2}"
+									itemValue="#{_agente}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" event="change" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboCategoriaEmpresa" value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteComisionesBean.categoriaEmpresa}" id="cboCategoriaEmpresa">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteComisionesBean.listaCategoriaEmpresa}" var="_categoriaEmpresa" itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" update="autoEmpresa" listener="#{reporteComisionesBean.actualizarCategoriaEmpresa}" event="change" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="autoEmpresa" value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{reporteComisionesBean.empresa}"
+								completeMethod="#{reporteComisionesBean.autocompletarClientes}" var="_empresa" itemLabel="#{_empresa.nombreFiscal}" itemValue="#{_empresa}"
+								forceSelection="true" size="50" dropdown="true" minQueryLength="2" id="autoEmpresa">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_empresa.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_empresa.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_empresa.nombreComercial}</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<p:outputLabel for="cboCategoriaProducto" value="#{msgs.lbl_categoria_producto}:" />
+							<p:selectOneMenu styleClass="input-text-col" value="#{reporteComisionesBean.categoriaProducto}" id="cboCategoriaProducto">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteComisionesBean.listaCategoriaProducto}" var="_categoria" itemLabel="#{_categoria.nombre}"
+									itemValue="#{_categoria}" />
+								<p:ajax process="@this" global="false" event="change" update="cboSubcategoriaProducto groupProducto"
+									listener="#{reporteComisionesBean.actualizarCategoriaProducto}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboSubcategoriaProducto" value="#{msgs.lbl_producto_subcategoria_producto}:"
+								rendered="#{reporteComisionesBean.clasificacionPagoComisiones != 1}" />
+							<p:selectOneMenu styleClass="input-text-col" value="#{reporteComisionesBean.subcategoriaProducto}" id="cboSubcategoriaProducto"
+								rendered="#{reporteComisionesBean.clasificacionPagoComisiones != 1}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteComisionesBean.listaSubcategoriaProducto}" var="_subcategoria" itemLabel="#{_subcategoria.nombre}"
+									itemValue="#{_subcategoria}" />
+								<p:ajax process="@this" global="false" event="change" listener="#{reporteComisionesBean.actualizarSubcategoriaProducto()}"
+									update="groupProducto" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}:" rendered="#{reporteComisionesBean.clasificacionPagoComisiones == 3}" />
+							<h:panelGroup id="groupProducto" rendered="#{reporteComisionesBean.clasificacionPagoComisiones == 3}">
+								<p:commandButton value="..." onclick="dglModalProducto.show();" type="button"
+									disabled="#{not empty reporteComisionesBean.subcategoriaProducto or not empty reporteComisionesBean.categoriaProducto}" />
+								<h:outputText id="lblProducto" value="#{reporteComisionesBean.producto.codigo} #{reporteComisionesBean.producto.nombreComercial}" />
+							</h:panelGroup>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+					</p:fieldset>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

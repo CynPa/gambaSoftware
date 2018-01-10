@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{centroCostoBean}">
+					<as2:buttonEliminar bean="#{centroCostoBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{centroCostoBean.centroCosto.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{centroCostoBean.centroCosto.nombre}" />
+					</as2:buttonEliminar>
+							
+					<as2:buttonExportaExcel bean="#{centroCostoBean}" tabla=":form:tablaCentroCosto"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{centroCostoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_centro_costo_panel}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{empresaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_nivel}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{centroCostoBean.centroCosto.nivelCentroCosto}"
+								id="cboNivelCentroCosto">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{centroCostoBean.listaNivelCentroCosto}"
+									var="_nivel" itemLabel="#{_nivel.nombre}"
+									itemValue="#{_nivel}" />
+								<f:validateBean />
+								<p:ajax update="txtCodigo cboCentroCostoPadre" process="@this"
+									event="change" global="false"
+									listener="#{centroCostoBean.cargarCentroCostoPadre}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_nivel_padre}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{centroCostoBean.centroCosto.centroCostoPadre}"
+								id="cboCentroCostoPadre">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{centroCostoBean.listaCentroCostoPadre}"
+									var="_centroCostoPadre"
+									itemLabel="#{_centroCostoPadre.codigo}  #{_centroCostoPadre.nombre}"
+									itemValue="#{_centroCostoPadre}" />
+
+								<p:ajax update="txtCodigo" event="change" process="@this"
+									global="false" listener="#{centroCostoBean.obtenerMascara}" />
+
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputMask value="#{centroCostoBean.centroCosto.codigo}"
+								id="txtCodigo" mask="#{centroCostoBean.centroCosto.traMascara}" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{centroCostoBean.centroCosto.nombre}" id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{centroCostoBean.centroCosto.activo}" />
+
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:" />
+							<p:selectBooleanCheckbox
+								value="#{centroCostoBean.centroCosto.indicadorMovimiento}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{centroCostoBean.centroCosto.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{centroCostoBean.centroCosto.descripcion}"
+								id="txtDescripcion" />
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!centroCostoBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_centro_costo_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCentroCosto" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{centroCostoBean.listaCentroCosto}" var="_centroCosto"
+							binding="#{centroCostoBean.dtCentroCosto}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{centroCostoBean.numeroFilas}"
+							selection="#{centroCostoBean.centroCosto}" selectionMode="single"
+							rowKey="#{_centroCosto.id}" sortBy="#{_centroCosto.codigo}"
+							sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" filterBy="#{_centroCosto.codigo}"
+								sortBy="#{_centroCosto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_centroCosto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" filterBy="#{_centroCosto.nombre}"
+								sortBy="#{_centroCosto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_centroCosto.nombre}" />
+							</p:column>														
+
+							<p:column styleClass="tableCell columnaDTNombreCorto">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nivel}" />
+								</f:facet>
+								<h:outputText value="#{_centroCosto.traNombreNivelCentroCosto}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_centroCosto.activo}"
+								headerText="#{msgs.lbl_activo}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{_centroCosto.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado" 
+								headerText="#{msgs.lbl_predeterminado}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox value="#{_centroCosto.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_centroCosto.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{centroCostoBean.centroCosto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{centroCostoBean.centroCosto.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{centroCostoBean.centroCosto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{centroCostoBean.centroCosto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

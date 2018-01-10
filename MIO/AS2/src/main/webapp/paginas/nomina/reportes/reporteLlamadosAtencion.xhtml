@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_llamados_atencion}">
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{reporteLlamadosAtencionBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteLlamadosAtencionBean}"
+					entidadOrigen=""></tnt:panelImprimir>
+				
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera"
+							columns="#{reporteLlamadosAtencionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">							
+								
+							<h:outputText value="#{msgs.lbl_empleado}:" />							
+							<h:panelGroup >
+								<p:commandButton value="..." process="@this"
+									oncomplete="dglModalEmpleado.show();"
+									update=":form:panelListaEmpleado">
+								</p:commandButton>
+								<h:outputText id="txtEmpleado"
+									value="#{reporteLlamadosAtencionBean.empleado.apellidos} #{reporteLlamadosAtencionBean.empleado.nombres}" />
+							</h:panelGroup>
+							
+							<h:outputText value="#{msgs.lbl_motivo}:" />
+							<p:selectOneMenu id="cboMotivo" styleClass="input-text" value="#{reporteLlamadosAtencionBean.motivoLlamadoAtencion}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteLlamadosAtencionBean.listaMotivoLlamadoAtencion}"  var="_motivo" itemLabel="#{_motivo.nombre}" itemValue="#{_motivo}"/>
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteLlamadosAtencionBean.departamento.idDepartamento}"
+								id="cboDepartamento" required="false">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteLlamadosAtencionBean.listaDepartamento}"
+									var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento.idDepartamento}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>						
+							
+							<h:outputText value="#{msgs.lbl_desde}:" />
+							<p:calendar id="calFechaDesde" value="#{reporteLlamadosAtencionBean.fechaDesde}" showOn="button" navigator="true" required="reporteLlamadosAtencionBean.fechaHasta != null"
+								pattern="#{reporteLlamadosAtencionBean.formatoFecha}">
+								<!--<p:ajax process="@this" event="change" update="@this" global="false" />-->
+								<!--<p:ajax event="dateSelect" update=":form:calFechaHasta"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaHasta"></p:ajax>-->
+							</p:calendar>
+							
+							<p:spacer></p:spacer>
+							<p:spacer></p:spacer>
+							
+							<h:outputText value="#{msgs.lbl_hasta}:" />
+							<p:calendar id="calFechaHasta" value="#{reporteLlamadosAtencionBean.fechaHasta}" showOn="button" navigator="true" required="reporteLlamadosAtencionBean.fechaDesde != null"
+								pattern="#{reporteLlamadosAtencionBean.formatoFecha}">
+								<!--<p:ajax process="@this" event="change" update="@this" global="false" />-->
+								<!--<p:ajax event="dateSelect" update=":form:calFechaDesde"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaDesde"></p:ajax>-->
+							</p:calendar>							
+
+						</h:panelGrid>
+
+					</p:fieldset>
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+							process="@this :form:calFechaHasta :form:calFechaDesde :form:cboDepartamento :form:cboDepartamento :form:cboMotivo" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

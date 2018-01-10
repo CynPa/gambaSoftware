@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<ui:include src="/template/barraReportes.xhtml">
+				<ui:param name="bean" value="#{reporteMayorPartidaPresupuestariaBean}" />
+				<ui:param name="btnImprimir" value="false" />
+				<ui:param name="tabla" value="tablaAuxiliar" />
+				<ui:param name="columnasAExcluir" value="" />
+				<ui:param name="columnasAExcluirPdf" value="" />
+				<ui:param name="ocultarBtnExportarTabla" value="true" />
+				
+			</ui:include>
+
+
+			<p:panel header="#{msgs.lbl_mayor_partida_presupuestaria}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteMayorPartidaPresupuestariaBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+
+					<p:fieldset>
+						<h:panelGrid columns="4">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteMayorPartidaPresupuestariaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteMayorPartidaPresupuestariaBean.fechaDesde}" id="calFechaDesde" />
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteMayorPartidaPresupuestariaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteMayorPartidaPresupuestariaBean.fechaHasta}" id="calFechaHasta" />
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteMayorPartidaPresupuestariaBean.idSucursal}" id="cboSucursal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteMayorPartidaPresupuestariaBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal.idSucursal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_partida_presupuestaria}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteMayorPartidaPresupuestariaBean.partidaPresupuestaria}" id="cboPartidaPresupuestaria"
+								required="true" filter="true" filterMatchMode="contains">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteMayorPartidaPresupuestariaBean.listaPartidaPresupuestaria}" var="_partidaPresupuestaria" itemLabel="#{_partidaPresupuestaria.codigo} - #{_partidaPresupuestaria.nombre}" itemValue="#{_partidaPresupuestaria}"/>
+								<f:validateBean />
+								<p:ajax process="@this" event="change"
+									/>
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_indicador_NIIF}:" />
+							<p:selectBooleanCheckbox value="#{reporteMayorPartidaPresupuestariaBean.indicadorNIIF}" />
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<p:fieldset>
+						<p:outputPanel id="panelConsulta">
+							<h:panelGrid columns="1">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{reporteMayorPartidaPresupuestariaBean.listaDetalleAsiento}" id="tablaAuxiliar" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleAsiento" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{reporteMayorPartidaPresupuestariaBean.numeroFilasReporte}"
+									rowsPerPageTemplate="#{reporteMayorPartidaPresupuestariaBean.numeroFilasPorPagina}" lazy="true">
+
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_mayor_partida_presupuestaria}" />
+									</f:facet>
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTFecha">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha}" />
+										</f:facet>
+										<h:outputText value="#{_detalleAsiento.fecha}">
+											<f:convertDateTime pattern="#{reporteMayorPartidaPresupuestariaBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombreCorto">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_tipo_asiento}" />
+										</f:facet>
+										<h:outputText value="#{_detalleAsiento.tipoAsiento}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNumeroFactura">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_numero}" />
+										</f:facet>
+										<h:link rendered="#{not empty _detalleAsiento.tipoAsiento and not empty _detalleAsiento.numero}" target="_blank"
+											outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true" value="#{_detalleAsiento.numero}">
+											<f:param name="tipoAsiento" value="#{_detalleAsiento.tipoAsiento}" />
+											<f:param name="numeroAsiento" value="#{_detalleAsiento.numero}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_partida_presupuestaria}" />
+										</f:facet>
+										<h:outputText value="#{_detalleAsiento.codigoPartidaPresupuestaria} | #{_detalleAsiento.nombrePartidaPresupuestaria}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTCodigoCuenta">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_cuenta_contable}" />
+										</f:facet>
+										<h:outputText value="#{_detalleAsiento.codigoCuenta} | #{_detalleAsiento.nombreCuentaContable}" />
+									</p:column>
+
+									<p:column styleClass="tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_descripcion}" />
+										</f:facet>
+										<h:outputText value="#{_detalleAsiento.descripcion}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_asiento_debe}" />
+										</f:facet>
+										<h:outputText value="#{_detalleAsiento.debe}">
+											<f:convertNumber pattern="#{reporteMayorPartidaPresupuestariaBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_asiento_haber}" />
+										</f:facet>
+										<h:outputText value="#{_detalleAsiento.haber}">
+											<f:convertNumber pattern="#{reporteMayorPartidaPresupuestariaBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:columnGroup type="footer">
+										<p:row>
+											<p:column colspan="7" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+											<p:column footerText="#{reporteMayorPartidaPresupuestariaBean.debe}" style="text-align:right" />
+
+											<p:column footerText="#{reporteMayorPartidaPresupuestariaBean.haber}" style="text-align:right" />
+										</p:row>
+
+										<p:row>
+											<p:column colspan="8" footerText="#{msgs.lbl_saldo_final}:" style="text-align:right" />
+											<p:column>
+												<f:facet name="footer" colspan="10" style="text-align:right">
+													<h:outputText value="#{reporteMayorPartidaPresupuestariaBean.saldoFinal}">
+														<f:convertNumber pattern="#{reporteMayorPartidaPresupuestariaBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+
+									</p:columnGroup>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:fieldset>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

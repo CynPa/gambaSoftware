@@ -1,0 +1,127 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{actualizacionTransportistaBean}" />
+					<ui:param name="btnImprimir" value="false" />
+					<ui:param name="tabla" value="tablaInventarioProducto" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+					<ui:param name="ocultarBtnExportarTabla" value="true" />
+				</ui:include>
+				<p:outputPanel id="panelConsulta" />
+
+				<p:dialog header="#{msgs.lbl_panel_listado} (#{msgs.lbl_zona})" widgetVar="cerrarDialog" id="cerrarDialog" modal="true" height="525" width="450"
+					showEffect="slide" hideEffect="slide" closable="true" showCloseIcon="true" >
+
+					<p:outputPanel id="panelZona">
+						<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{actualizacionTransportistaBean.listaZona}"
+								binding="#{actualizacionTransportistaBean.dtZona}" id="zona" rowIndexVar="secuencialZona" emptyMessage="#{msgs.msg_no_hay_datos}" var="_zona"
+								paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_zona.idZona}" rows="#{actualizacionTransportistaBean.numeroFilas}"
+								rowsPerPageTemplate="#{actualizacionTransportistaBean.numeroFilasPorPagina}" rowSelectMode="add"
+								selection="#{actualizacionTransportistaBean.zonasSelecionadas}" filteredValue="#{hojaRutaTransportistaBean.listaDetalleFilter}">
+
+								<p:column selectionMode="multiple" style="width:16px;text-align:center" />
+
+								<p:column styleClass="columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencialZona+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigoCuenta tableCell" sortBy="#{_zona.codigo}" filterBy="#{_zona.codigo}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_zona.codigo}" />
+								</p:column>
+
+								<p:column styleClass="tableCell" sortBy="#{_zona.nombre}" filterBy="#{_zona.nombre}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_zona.nombre}" title="#{_zona.nombre}">
+										<f:attribute name="limit" value="40" />
+										<f:converter converterId="stringLimitConverter" />
+									</h:outputText>
+								</p:column>
+
+							</p:dataTable>
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" process="@this :form:panelZona" partialSubmit="true" id="btnZona"
+								update="@this :form:panelZonaSeleccionada :form:panelZona" oncomplete="PF('cerrarDialog').hide();">
+							</p:commandButton>
+						</center>
+					</f:facet>
+				</p:dialog>
+				<p:outputPanel id="panelFiltros">
+					<p:panel header="#{msgs.lbl_actualizar} #{msgs.lbl_transportista}">
+						<h:panelGrid id="panelDetalle" columns="#{actualizacionTransportistaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{actualizacionTransportistaBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{actualizacionTransportistaBean.fecha}" id="calFecha" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" partialSubmit="true" />
+							</p:calendar>
+
+							<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{actualizacionTransportistaBean.transportista}" id="cboTransportista" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="null" />
+								<f:selectItems value="#{actualizacionTransportistaBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+									itemValue="#{_transportista}" />
+								<p:ajax process="@this" global="false" partialSubmit="true" />
+								<f:validateBean />
+							</p:selectOneMenu>
+							
+							<h:outputText value="#{msgs.lbl_actualizar} #{msgs.lbl_cliente}:" />
+							<p:selectBooleanCheckbox value="#{actualizacionTransportistaBean.actualizarCliente}" />
+
+						</h:panelGrid>
+						<h:panelGrid id="panelZonas" columns="3"
+							columnClasses="columnaEtiqueta,columnaEtiqueta,columnaValor" style="width:30%">
+
+							<h:outputText value="#{msgs.lbl_zona}:" />
+							<p:commandButton value="..." process="@this :form:panelZona" update="@this :form:panelZona" partialSubmit="true"
+									actionListener="#{actualizacionTransportistaBean.cargarZona()}">
+								</p:commandButton>
+							<h:panelGroup>
+								<p:outputPanel id="panelZonaSeleccionada">
+									<h:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{actualizacionTransportistaBean.zonasSelecionadas}"
+										id="zonasSeleccionadas" rowIndexVar="secuencial" rowKey="#{_zonaSeleccionada.rowKey}" var="_zonaSeleccionada" style="width:100%" lazy="true"
+										rendered="#{not empty actualizacionTransportistaBean.zonasSelecionadas}">
+										<h:column styleClass="columnaDTFecha tableCell">
+											<h:outputText value="#{_zonaSeleccionada.codigo}" />
+										</h:column>
+										<h:column styleClass="columnaDTFecha tableCell">
+										</h:column>
+										<h:column styleClass="columnaDTFecha tableCell">
+											<h:outputText value="#{_zonaSeleccionada.nombre}" />
+										</h:column>
+									</h:dataTable>
+								</p:outputPanel>
+							</h:panelGroup>
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+</html>

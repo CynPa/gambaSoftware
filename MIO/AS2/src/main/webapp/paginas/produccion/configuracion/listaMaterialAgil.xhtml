@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" enctype="multipart/form-data" id="form">
+
+			<ui:include src="/template/listaProductoMultiple.xhtml">
+				<ui:param name="bean" value="#{listaMaterialAgilBean}" />
+				<ui:param name="objetoActualizar" value=":form:panelFiltros :form:panelListado" />
+			</ui:include>
+
+			<p:outputPanel id="panelContenedor">
+				<p:panel id="panelFiltros" header="#{msgs.lbl_asignar} ( #{msgs.lbl_proporcion} #{msgs.lbl_lista_material} )"
+					rendered="#{!listaMaterialAgilBean.editado}">
+					<h:panelGrid columns="#{listaMaterialAgilBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} #{msgs.lbl_titulo_productos}:" />
+						<p:selectOneMenu value="#{listaMaterialAgilBean.categoriaProducto}">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{listaMaterialAgilBean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+								itemValue="#{_categoriaProducto}" />
+							<p:ajax process="@this" listener="#{listaMaterialAgilBean.cargarListaSubcategoriaProducto}" update="cboSubcategoriaProducto" global="false"
+								partialSubmit="true" />
+						</p:selectOneMenu>
+
+
+						<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto}:" />
+						<p:selectOneMenu value="#{listaMaterialAgilBean.subcategoriaProducto}" id="cboSubcategoriaProducto">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{listaMaterialAgilBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+								itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+							<p:ajax process="@this" global="false" partialSubmit="true" />
+						</p:selectOneMenu>
+
+						<h:outputText value="#{msgs.lbl_marca_producto}:" />
+						<p:selectOneMenu value="#{listaMaterialAgilBean.marcaProducto}" id="cboMarcaProducto">
+							<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{listaMaterialAgilBean.listaMarcaProducto}" var="_marca" itemLabel="#{_marca.nombre}" itemValue="#{_marca}" />
+							<p:ajax process="@this" global="false" partialSubmit="true" />
+						</p:selectOneMenu>
+
+					</h:panelGrid>
+
+					<p:separator />
+
+					<h:panelGrid columns="#{listaMaterialAgilBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<h:outputText value="#{msgs.lbl_material}:" />
+						<p:commandLink value="#{not empty listaMaterialAgilBean.material ? listaMaterialAgilBean.material.nombre : msgs.lbl_seleccione}" process="@this"
+							oncomplete="dglModalProducto.show();">
+						</p:commandLink>
+
+						<h:outputText value="#{msgs.lbl_proporcion_material_principal_produccion}:" />
+						<p:inputText value="#{listaMaterialAgilBean.proporcionAsignar}">
+							<f:validateBean />
+							<p:ajax process="@this" global="false" partialSubmit="true" />
+						</p:inputText>
+
+						<p:spacer />
+
+						<h:panelGroup>
+							<p:commandButton id="btnBuscar" value="#{msgs.lbl_buscar}" title="#{msgs.lbl_buscar}" process="@this,:form:panelFiltros"
+								action="#{listaMaterialAgilBean.buscar}" update=":form:panelListado">
+							</p:commandButton>
+
+							<p:commandButton id="btnAsignarProporcion" value="#{msgs.lbl_asignar}" title="#{msgs.lbl_asignar}" process="@this,:form:panelListado"
+								action="#{listaMaterialAgilBean.asignarProporcion}" update=":form:panelListado" disabled="#{empty listaMaterialAgilBean.material}">
+							</p:commandButton>
+						</h:panelGroup>
+
+						<p:spacer />
+
+						<h:outputText value="#{msgs.lbl_nota_asignar_proporcion_producto_material}" />
+
+					</h:panelGrid>
+
+				</p:panel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_producto_lista_materiales}" rendered="#{!listaMaterialAgilBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaProductoMaterial" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{listaMaterialAgilBean.listaProductoMaterial}" var="_productoMaterial"
+							binding="#{listaMaterialAgilBean.dtProductoMaterial}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{listaMaterialAgilBean.numeroFilasPorPagina}" rows="#{listaMaterialAgilBean.numeroFilas}"
+							selection="#{listaMaterialAgilBean.listaProductoMaterialSeleccionados}" rowKey="#{_productoMaterial.id}" sortOrder="ASCENDING">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo} #{msgs.lbl_producto}">
+								<h:outputText value="#{_productoMaterial.producto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_producto}">
+								<h:outputText value="#{_productoMaterial.producto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_material}">
+								<h:outputText value="#{_productoMaterial.material.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad}">
+								<h:outputText value="#{_productoMaterial.material.unidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+								<h:outputText value="#{_productoMaterial.cantidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad tableCell color_gris" headerText="#{msgs.lbl_proporcion_material_principal_produccion}">
+								<h:outputText value="#{_productoMaterial.proporcionMaterialPrincipalHijo}" />
+							</p:column>
+
+							<p:column selectionMode="multiple" style="width:16px;text-align:center" />
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

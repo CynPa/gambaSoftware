@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+			<as2:buttonExportaExcel bean="#{actualizarClienteBean}" tabla=":form:tablaEmpresa" />
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_empresa_titulo_panel}">
+
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpresa" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{actualizarClienteBean.listaEmpresa}" var="empresa"
+							binding="#{actualizarClienteBean.dtEmpresa}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{actualizarClienteBean.numeroFilasPorPagina}" rows="#{actualizarClienteBean.numeroFilas}" selection="#{actualizarClienteBean.empresa}"
+							selectionMode="single" rowKey="#{empresa.id}" sortBy="#{empresa.codigo}" sortOrder="ASCENDING" lazy="true" editable="true" >
+
+							<p:ajax event="rowEdit" listener="#{actualizarClienteBean.onRowEdit}" update="@this" />
+       						<p:ajax event="rowEditCancel" listener="#{actualizarClienteBean.onRowCancel}" update="@this" />
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{empresa.codigo}" filterBy="#{empresa.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{empresa.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{empresa.tipoIdentificacion.nombre}"
+								filterBy="#{empresa.tipoIdentificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTIdentificacion tableCell" sortBy="#{empresa.identificacion}" filterBy="#{empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.identificacion}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.nombreComercial}" filterBy="#{empresa.nombreComercial}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_comercial}" />
+								</f:facet>
+								<h:outputText value="#{empresa.nombreComercial}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.nombreFiscal}" filterBy="#{empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}" />
+								</f:facet>
+								<h:outputText value="#{empresa.nombreFiscal}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{empresa.categoriaEmpresa.nombre}" filterBy="#{empresa.categoriaEmpresa.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}" />
+								</f:facet>
+								<h:outputText value="#{empresa.categoriaEmpresa.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_empresa}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoEmpresa.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombreCorto tableCell"  sortBy="#{empresa.cliente.tipoCliente}" filterBy="#{empresa.cliente.tipoCliente}" filterOptions="#{actualizarClienteBean.listaTipoClienteItem}"    >
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_cliente}" />
+								</f:facet>
+								<h:outputText value="#{empresa.cliente.tipoCliente}" />
+							</p:column>
+							
+							
+							
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{empresa.cliente.agenteComercial.nombre1}" filterBy="#{empresa.cliente.agenteComercial.nombre1}" filterMatchMode="contains"   >
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_agente_comercial}" />
+								</f:facet>
+								<h:outputText value="#{empresa.cliente.agenteComercial.nombre1} #{empresa.cliente.agenteComercial.nombre2}" />
+							</p:column>
+							
+							
+
+							<p:column styleClass="columnaDTActivo tableCell"
+								filterBy="#{empresa.cliente.indicadorClienteBloqueado}"
+								filterOptions="#{facturaProveedorBean.listaActivoItem}" headerText="#{msgs.lbl_cliente_bloqueado}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<p:selectBooleanCheckbox
+											value="#{empresa.cliente.indicadorClienteBloqueado}"
+											disabled="true" />
+									</f:facet>
+									<f:facet name="input">
+										<p:selectBooleanCheckbox
+											value="#{empresa.cliente.indicadorClienteBloqueado}" />
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell"
+								headerText="#{msgs.lbl_empresa_cliente_credito_maximo}" sortBy="#{empresa.cliente.creditoMaximo}" filterBy="#{empresa.cliente.creditoMaximo}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{empresa.cliente.creditoMaximo}">
+											<f:convertNumber pattern="#{actualizarClienteBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText value="#{empresa.cliente.creditoMaximo}">
+										</p:inputText>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_empresa_cliente_credito_utilizado}"
+								sortBy="#{empresa.cliente.creditoUtilizado}" filterBy="#{empresa.cliente.creditoUtilizado}">
+								<h:outputText value="#{empresa.cliente.creditoUtilizado}">
+									<f:convertNumber pattern="#{actualizarClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_empresa_cliente_cupo_disponible}"
+								sortBy="#{empresa.cliente.creditoMaximo-empresaBean.empresa.cliente.creditoUtilizado}"
+								filterBy="#{empresa.cliente.creditoMaximo-empresaBean.empresa.cliente.creditoUtilizado}">
+								<h:outputText value="#{empresa.cliente.creditoMaximo-empresa.cliente.creditoUtilizado}">
+									<f:convertNumber pattern="#{actualizarClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_porcentaje_maximo_morosidad}"
+								sortBy="#{empresa.categoriaEmpresa.porcentajeMaximoMorosidad}" filterBy="#{empresa.categoriaEmpresa.porcentajeMaximoMorosidad}">
+								<h:outputText value="#{empresa.categoriaEmpresa.porcentajeMaximoMorosidad}" />
+							</p:column>
+
+							<p:column
+								styleClass="columnaDTValor tableCell #{empresa.categoriaEmpresa.porcentajeMaximoMorosidad != null and empresa.categoriaEmpresa.porcentajeMaximoMorosidad lt empresa.cliente.porcentajeMorosidad ? 'fondo_rojo' : ''}"
+								headerText="#{msgs.lbl_porcentaje_morosidad}">
+								<h:outputText value="#{empresa.cliente.porcentajeMorosidad}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_numero_maximo_documentos_sin_garantia}"
+								sortBy="#{empresa.categoriaEmpresa.numeroMaximoDocumentosSinGarantia}"
+								filterBy="#{empresa.categoriaEmpresa.numeroMaximoDocumentosSinGarantia}">
+								<h:outputText value="#{empresa.categoriaEmpresa.numeroMaximoDocumentosSinGarantia}" />
+							</p:column>
+
+							<p:column
+								styleClass="columnaDTValor tableCell #{empresa.categoriaEmpresa.numeroMaximoDocumentosSinGarantia != null and empresa.categoriaEmpresa.numeroMaximoDocumentosSinGarantia lt empresa.cliente.cantidadFacturasPendientesSinGarantia ? 'fondo_rojo' : ''}"
+								headerText="#{msgs.lbl_numero_documentos_sin_garantia}" sortBy="#{empresa.cliente.cantidadFacturasPendientesSinGarantia}"
+								filterBy="#{empresa.cliente.cantidadFacturasPendientesSinGarantia}">
+								<h:outputText value="#{empresa.cliente.cantidadFacturasPendientesSinGarantia}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_verificar_documentacion}"
+								sortBy="#{empresa.categoriaEmpresa.verificarDocumentos}" filterBy="#{empresa.categoriaEmpresa.verificarDocumentos}"
+								filterOptions="#{actualizarClienteBean.listaActivoItem}">
+								<p:selectBooleanCheckbox value="#{empresa.categoriaEmpresa.verificarDocumentos}" disabled="true" />
+							</p:column>
+
+							<p:column
+								styleClass="columnaDTActivo tableCell #{empresa.categoriaEmpresa.verificarDocumentos == true and empresa.cliente.indicadorCumpleDocumentacion == false ? 'fondo_rojo' : ''} "
+								headerText="#{msgs.lbl_documentacion_completa}">
+								<p:selectBooleanCheckbox value="#{empresa.cliente.indicadorCumpleDocumentacion}" disabled="true" />
+							</p:column>
+
+							<p:column style="width:32px" exportable="false">
+								<p:rowEditor />
+							</p:column>
+							
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{actualizarClienteBea.empresa.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{actualizarClienteBea.empresa.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{actualizarClienteBea.empresa.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{actualizarClienteBea.empresa.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idCuentaContable" value="#{libroAuxiliarBean.idCuentaContable}" />
+	<f:viewParam name="anioDesde" value="#{libroAuxiliarBean.anioDesde}" />
+	<f:viewParam name="mesDesde" value="#{libroAuxiliarBean.mesDesde}" />
+	<f:viewParam name="anioHasta" value="#{libroAuxiliarBean.anioHasta}" />
+	<f:viewParam name="mesHasta" value="#{libroAuxiliarBean.mesHasta}" />
+	<f:viewParam name="idSucursal" value="#{libroAuxiliarBean.idSucursal}" />
+	<f:viewParam name="idCentroCosto" value="#{libroAuxiliarBean.idCentroCosto}" />
+	<f:viewParam name="dimension" value="#{libroAuxiliarBean.listaDimensionContableBean.numeroDimension}" />
+	<f:viewParam name="valorDimension" value="#{libroAuxiliarBean.valorDimension}" />
+
+	<f:event listener="#{libroAuxiliarBean.procesarDesdeBalances}" type="preRenderView" />
+
+</f:metadata>
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{libroAuxiliarBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value=":form:tablaAuxiliar" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+					<ui:param name="ocultarBtnExportarTabla" value="true" />
+				</ui:include>
+
+				<as2:panelImprimir entidadOrigen="#{libroAuxiliarBean.listaLibroAuxiliar}" entidadDestino="#{reporteLibroAuxiliarBean.listaCuentaContable}"
+					bean="#{reporteLibroAuxiliarBean}">
+				</as2:panelImprimir>
+
+
+				<p:panel header="#{msgs.lbl_titulo_libro_auxiliar}">
+
+					<p:fieldset>
+						<p:outputPanel id="panelFiltros">
+
+							<h:panelGrid columns="#{libroAuxiliarBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_anio_desde}:" />
+								<p:inputMask id="txtAnioDesde" mask="9999" value="#{libroAuxiliarBean.anioDesde}" />
+
+								<h:outputText value="#{msgs.lbl_mes_desde}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{libroAuxiliarBean.mesDesde}" id="cboMesDesde">
+									<f:selectItems value="#{libroAuxiliarBean.listaMes}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_anio_hasta}:" />
+								<p:inputMask id="txtAnioHasta" mask="9999" value="#{libroAuxiliarBean.anioHasta}" />
+
+								<h:outputText value="#{msgs.lbl_mes_hasta}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{libroAuxiliarBean.mesHasta}" id="cboMesHasta">
+									<f:selectItems value="#{libroAuxiliarBean.listaMes}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_cuenta_contable}:" />
+								<h:panelGroup>
+									<!-- <p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelCuentaContable">
+									</p:commandButton> -->
+
+									<p:commandButton value="..." actionListener="#{libroAuxiliarBean.listaCuentaContableBean.listarCuentaContable}" propartialSubmit="true">
+										<p:ajax event="dialogReturn" listener="#{libroAuxiliarBean.cargarCuentaContable}" update=":form:panelCuentaContable" />
+										<f:setPropertyActionListener target="#{libroAuxiliarBean.listaCuentaContableBean.indicadorSeleccionarTodo}" value="true" />
+									</p:commandButton>
+
+									<p:outputPanel id="panelCuentaContable">
+
+										<h:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{libroAuxiliarBean.listCuentaContableLibroAuxiliar}" id="tablaCuentas"
+											rowIndexVar="secuencial" rowKey="#{_cuentaContable.rowKey}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_cuentaContable"
+											style="width:100%" lazy="true">
+											<p:column styleClass="columnaDTFecha tableCell">
+												<h:outputText value="#{_cuentaContable.codigo}" />
+											</p:column>
+											<p:column styleClass="columnaDTFecha tableCell">
+												<h:outputText value="#{_cuentaContable.nombre}" />
+											</p:column>
+											<p:column>
+												<p:commandButton action="#{libroAuxiliarBean.eliminarCuenta(_cuentaContable)}" title="#{msgs.lbl_eliminar}"
+													update=":form:panelCuentaContable" process="@this" icon="ui-icon-closethick">
+												</p:commandButton>
+											</p:column>
+										</h:dataTable>
+
+									</p:outputPanel>
+
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu id="cboSucursal" value="#{libroAuxiliarBean.sucursal}">
+									<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+									<f:selectItems value="#{libroAuxiliarBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								</p:selectOneMenu>
+
+
+								<h:outputText value="#{msgs.lbl_dimension}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{libroAuxiliarBean.listaDimensionContableBean.numeroDimension}" id="cboDimension">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{libroAuxiliarBean.listaDimension}" />
+									<p:ajax process="@this" global="false" update=":form:panelFiltros">
+										<f:setPropertyActionListener target="#{libroAuxiliarBean.listaDimensionContableBean.numeroDimension}" value="" />
+									</p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_valor_dimension}:" />
+								<!--<p:commandButton id="btnDimension" icon="ui-icon-gear" process="@this" value="#{libroAuxiliarBean.valorDimension}" update="@this"
+									oncomplete="dimensionContableDialog.show();">
+								</p:commandButton>  -->
+
+								<p:commandButton id="btnDimension"
+									value="#{empty libroAuxiliarBean.dimension ? msgs.lbl_seleccione : libroAuxiliarBean.dimension.codigo} #{libroAuxiliarBean.dimension.nombre}"
+									process="@this" partialSubmit="true"
+									actionListener="#{libroAuxiliarBean.listaDimensionContableBean.listarDimensionContableListener(libroAuxiliarBean.listaDimensionContableBean.numeroDimension, true)}">
+									<p:ajax event="dialogReturn" listener="#{libroAuxiliarBean.cargarDimensionContableListener}" update=":form:btnDimension" />
+								</p:commandButton>
+
+								<h:outputText value="#{msgs.lbl_indicador_NIIF}:" />
+								<h:selectBooleanCheckbox value="#{libroAuxiliarBean.indicadorNIIF}" id="chkNIIF">
+								</h:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_mostrar}:" />
+								<p:selectBooleanCheckbox value="#{libroAuxiliarBean.previsualizar}" id="chkPrevisualizar">
+									<p:ajax process="@this" update="panelConsulta" global="false"/>
+								</p:selectBooleanCheckbox>
+							</h:panelGrid>
+
+						</p:outputPanel>
+					</p:fieldset>
+
+					<p:spacer height="4px" />
+
+
+					<p:outputPanel id="panelConsulta">
+						<h:panelGrid columns="1">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{libroAuxiliarBean.listaLibroAuxiliar}" id="tablaAuxiliar"
+								rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_cuentaContable" style="width:100%" lazy="true"
+								rendered="#{libroAuxiliarBean.previsualizar}">
+
+								<p:columnGroup type="header">
+									<p:row>
+										<p:column headerText="#{msgs.lbl_fecha}" />
+										<p:column headerText="#{msgs.lbl_tipo_asiento}" />
+										<p:column headerText="#{msgs.lbl_numero}" />
+										<p:column headerText="#{msgs.lbl_beneficiario}" />
+										<p:column headerText="#{msgs.lbl_documento_referencia}" />
+										<p:column headerText="#{msgs.lbl_usuario}" />
+										<p:column headerText="#{msgs.lbl_fecha_registro}" />
+										<p:column headerText="#{msgs.lbl_descripcion}" />
+										<p:column headerText="#{msgs.lbl_asiento_debe}" />
+										<p:column headerText="#{msgs.lbl_asiento_haber}" />
+										<p:column headerText="#{msgs.lbl_saldo}" />
+									</p:row>
+								</p:columnGroup>
+
+
+								<p:subTable value="#{_cuentaContable.listaDetalleAsiento}" var="_detalleAsiento">
+
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_cuenta_contable}: #{_cuentaContable.codigo} - #{_cuentaContable.nombre}" />
+									</f:facet>
+
+									<p:column styleClass="columnaDTFecha tableCell">
+										<h:outputText value="#{_detalleAsiento.fecha}">
+											<f:convertDateTime pattern="#{libroAuxiliarBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell">
+										<h:outputText value="#{_detalleAsiento.tipoAsiento}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo tableCell">
+										<h:link rendered="#{not empty _detalleAsiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+											includeViewParams="true" value="#{_detalleAsiento.numero}">
+											<f:param name="tipoAsiento" value="#{_detalleAsiento.tipoAsiento}" />
+											<f:param name="numeroAsiento" value="#{_detalleAsiento.numero}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell">
+										<h:outputText value="#{_detalleAsiento.beneficiario}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroDocumento tableCell">
+										<h:outputText value="#{_detalleAsiento.documentoReferencia}" />
+									</p:column>
+									<p:column styleClass="tableCell">
+										<h:outputText value="#{_detalleAsiento.usuarioCreacion}" />
+									</p:column>
+									<p:column styleClass="tableCell">
+										<h:outputText value="#{_detalleAsiento.fechaCreacion}">
+											<f:convertDateTime pattern="#{libroAuxiliarBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="tableCell">
+										<h:outputText value="#{_detalleAsiento.descripcion}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValorGrande tableCell">
+										<h:outputText value="#{_detalleAsiento.debe}" rendered="#{_detalleAsiento.debe>0}">
+											<f:convertNumber pattern="#{libroAuxiliarBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValorGrande tableCell">
+										<h:outputText value="#{_detalleAsiento.haber}" rendered="#{_detalleAsiento.haber>0}">
+											<f:convertNumber pattern="#{libroAuxiliarBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTValorGrande tableCell">
+										<h:outputText value="#{_detalleAsiento.saldo}">
+											<f:convertNumber pattern="#{libroAuxiliarBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:columnGroup type="footer">
+										<p:row>
+											<p:column colspan="8" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{_cuentaContable.traDebe}">
+														<f:convertNumber pattern="#{libroAuxiliarBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{_cuentaContable.traHaber}">
+														<f:convertNumber pattern="#{libroAuxiliarBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{_cuentaContable.traSaldoFinal}">
+														<f:convertNumber pattern="#{libroAuxiliarBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+
+										<!--  
+										<p:row>
+											<p:column colspan="6" footerText="#{msgs.lbl_saldo_final}:" style="text-align:right" />
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{_cuentaContable.traSaldoFinal}">
+														<f:convertNumber pattern="#{libroAuxiliarBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column footerText="" style="text-align:right" />
+										</p:row>
+										-->
+
+									</p:columnGroup>
+								</p:subTable>
+							</p:dataTable>
+						</h:panelGrid>
+					</p:outputPanel>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

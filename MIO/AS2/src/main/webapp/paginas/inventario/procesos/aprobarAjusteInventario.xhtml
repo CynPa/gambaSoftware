@@ -1,0 +1,384 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<!--  <ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{aprobarAjusteInventarioBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value="tablaAjustes" />
+					<ui:param name="btnEliminar" value="false" />
+				</ui:include>
+				-->
+				
+				<as2:toolBar bean="#{aprobarAjusteInventarioBean}">
+					<as2:buttonEliminar bean="#{aprobarAjusteInventarioBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.numero}" />
+	
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.fecha}">
+							<f:convertDateTime pattern="#{aprobarAjusteInventarioBean.formatoFecha}" />
+						</h:outputText>
+					</as2:buttonEliminar>
+					
+					<as2:buttonImprimir id="btnImprimirAprobarAjusteInventario" beanReporte="#{reporteAprobarAjusteInventarioBean}" bean="#{aprobarAjusteInventarioBean}" target="#{reporteAprobarAjusteInventarioBean.ajusteInventario}"
+						value="#{aprobarAjusteInventarioBean.ajusteInventario}" />
+
+					<as2:buttonExportaExcel bean="#{aprobarAjusteInventarioBean}" tabla=":form:tablaAprobarAjustesInventario"/>
+				</as2:toolBar>
+				
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{aprobarAjusteInventarioBean}" />
+					<ui:param name="listadoFiltrado" value="true" />
+					<ui:param name="mostrarCantidad" value="true" />
+				</ui:include>
+				
+				<!--  <as2:panelImprimir bean="#{reporteAprobarAjusteInventarioBean}"
+					entidadOrigen="#{aprobarAjusteInventarioBean.ajusteInventario}"
+					entidadDestino="#{reporteAprobarAjusteInventarioBean.ajusteInventario}" />
+					-->
+
+				
+				<!--  <as2:panelEliminar bean="#{aprobarAjusteInventarioBean}" action="eliminar" id="confirmacionEliminar">
+
+					<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+					<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.numero}" />
+
+					<h:outputText value="#{msgs.lbl_fecha}:" />
+					<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.fecha}">
+						<f:convertDateTime pattern="#{aprobarAjusteInventarioBean.formatoFecha}" />
+					</h:outputText>
+				</as2:panelEliminar>
+				-->
+				  
+				<p:confirmDialog message="#{msgs.confirmacion_aprobar_msg}?"
+					width="300" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="aprobar">
+					<p:outputPanel id="panelAprueba">
+					
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+							<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.numero}" />
+		
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.fecha}">
+								<f:convertDateTime pattern="#{aprobarAjusteInventarioBean.formatoFecha}" />
+							</h:outputText>
+						</h:panelGrid>
+					</p:outputPanel>						
+					<center>
+						<p:commandButton value="#{msgs.confirmacion_si}"
+							update=":form:panelListado" process="@this"
+							action="#{aprobarAjusteInventarioBean.aprobar}"
+							oncomplete="aprobar.hide()" />
+						<p:commandButton value="#{msgs.confirmacion_no}"
+							onclick="aprobar.hide()" />
+					</center>					
+				</p:confirmDialog>
+				<!--  
+				<p:confirmDialog message="#{msgs.confirmacion_anular_msg}?"
+					width="300" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="anular">
+					<p:outputPanel id="panelAnula">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+							<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.numero}" />
+		
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:outputText value="#{aprobarAjusteInventarioBean.ajusteInventario.fecha}">
+								<f:convertDateTime pattern="#{aprobarAjusteInventarioBean.formatoFecha}" />
+							</h:outputText>
+						</h:panelGrid>						
+					</p:outputPanel>
+					<center>
+						<p:commandButton value="#{msgs.confirmacion_si}"
+							update=":form:panelListado" process="@this"
+							action="#{aprobarAjusteInventarioBean.eliminar}"
+							oncomplete="anular.hide()" />
+						<p:commandButton value="#{msgs.confirmacion_no}"
+							onclick="anular.hide()" />
+					</center>
+				</p:confirmDialog>
+				-->
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_ajuste_inventario_panel}" rendered="#{aprobarAjusteInventarioBean.editado}">
+
+						<p:fieldset>
+							<h:panelGrid columns="#{aprobarAjusteInventarioBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}" />
+								<p:selectOneMenu styleClass="input-text" value="#{aprobarAjusteInventarioBean.ajusteInventario.documento.idDocumento}" id="cboDocumento"
+									required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{aprobarAjusteInventarioBean.listaDocumentosAjuste}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+									<p:ajax process="@this" update="txtNumero :form:panelDetalle" listener="#{aprobarAjusteInventarioBean.actualizarDocumento}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{aprobarAjusteInventarioBean.ajusteInventario.numero}"
+									mask="#{aprobarAjusteInventarioBean.ajusteInventario.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{aprobarAjusteInventarioBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{aprobarAjusteInventarioBean.ajusteInventario.fecha}" id="calFecha" />
+
+								<h:outputText value="#{msgs.lbl_motivo} #{msgs.lbl_ajuste} #{msgs.lbl_inventario}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{aprobarAjusteInventarioBean.ajusteInventario.motivoAjusteInventario}"
+									id="cboMotivoAjusteInventario" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{aprobarAjusteInventarioBean.listaMotivoAjusteInventario}" var="_motivo" itemValue="#{_motivo}"
+										itemLabel="#{_motivo.nombre}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{aprobarAjusteInventarioBean.ajusteInventario.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:panelGroup rendered="#{aprobarAjusteInventarioBean.mostrarSaldoInicial}">
+									<h:panelGrid columns="2">
+										<h:outputText value="#{msgs.lbl_saldo_inicial}:" />
+										<p:selectBooleanCheckbox
+											disabled="#{aprobarAjusteInventarioBean.ajusteInventario.idMovimientoInventario>0 and ajusteInventarioBean.ajusteInventario.indicadorSaldoInicial}"
+											value="#{aprobarAjusteInventarioBean.ajusteInventario.indicadorSaldoInicial}" />
+									</h:panelGrid>
+								</h:panelGroup>
+
+
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" icon="ui-icon-plus"
+										action="#{aprobarAjusteInventarioBean.agregarDetalle}" update=":form:panelDetalle" process="@this,:form:panelDetalle" />
+
+									<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+								</h:panelGroup>
+
+								<p:outputPanel id="panelDetalleAjuste">
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{aprobarAjusteInventarioBean.detalleAjusteMovimiento}" id="tablaDetalleAjusteInventario" rowIndexVar="secuencial"
+										binding="#{aprobarAjusteInventarioBean.dtDetalleAjuste}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleAjusteInventario" paginator="true"
+										paginatorPosition="bottom" style="width:100%" rowKey="#{_detalleAjusteInventario.id}" rows="#{aprobarAjusteInventarioBean.numeroFilas}">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTCodigoProducto" headerText="#{msgs.lbl_codigo_producto}">
+											<p:inputText styleClass="input-text" value="#{_detalleAjusteInventario.producto.codigo}" id="txtCodigoProducto">
+
+												<p:ajax listener="#{aprobarAjusteInventarioBean.actualizarProducto(_detalleAjusteInventario)}" process="@this" event="change"
+													update="txtCodigoProducto, txtNombreProducto, cboUnidadConversion,acLote,:form:panelDetalle" />
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre_producto}">
+											<h:outputText value="#{_detalleAjusteInventario.producto.nombre}" id="txtNombreProducto">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTUnidad" headerText="#{msgs.lbl_unidad_producto}">
+											<p:selectOneMenu styleClass="" value="#{_detalleAjusteInventario.unidadConversion}" id="cboUnidadConversion" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{_detalleAjusteInventario.producto.traListaUnidadConversion}" var="_unidadCoversion"
+													itemLabel="#{_unidadCoversion.nombre}" itemValue="#{_unidadCoversion}" />
+												<p:ajax process="@this" event="change" />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTBodega" headerText="#{msgs.lbl_bodega}">
+											<h:panelGroup>
+												<p:selectOneMenu styleClass="input-text" value="#{_detalleAjusteInventario.bodegaOrigen}" id="cboBodegaOrigen" required="true">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{aprobarAjusteInventarioBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+													<f:validateBean />
+													<p:ajax execute="cboBodegaOrigen" event="change" process="@this" render="cboBodegaOrigen" global="false" />
+												</p:selectOneMenu>
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text" value="#{_detalleAjusteInventario.descripcion}" id="txtDescripcion" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_cantidad}">
+											<p:inputText styleClass="input-text" value="#{_detalleAjusteInventario.cantidad}" id="txtCantidad" size="10" maxlength="10">
+												<f:validateBean />
+												<p:ajax process="@this" event="change" update=":form:panelDetalle" />
+											</p:inputText>
+											<p:message for="txtCantidad" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_lote}">
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" value="#{_detalleAjusteInventario.lote}"
+												completeMethod="#{aprobarAjusteInventarioBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+												forceSelection="true" dropdown="false" minQueryLength="2" required="#{_detalleAjusteInventario.producto.indicadorLote}"
+												rendered="#{_detalleAjusteInventario.producto.indicadorLote}">
+
+												<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+												<p:ajax event="itemSelect" process="@this" update=":form:panelDetalle" />
+											</p:autoComplete>
+										</p:column>
+										
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_costo}"
+											rendered="#{aprobarAjusteInventarioBean.ajusteInventario.documento.indicadorGeneraCosto}">
+											<p:inputText styleClass="input-text-col" value="#{_detalleAjusteInventario.costo}" id="txtCosto">
+												<f:validateBean />
+												<p:ajax process="@this" event="change" update=":form:panelDetalle" />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_total}"
+											rendered="#{aprobarAjusteInventarioBean.ajusteInventario.documento.indicadorGeneraCosto}">
+											<h:outputText value="#{_detalleAjusteInventario.costoLinea}" />
+											<p:message for="txtCosto" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton id="btnEliminarDetalle" action="#{aprobarAjusteInventarioBean.eliminarDetalle(_detalleAjusteInventario)}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+												update=":form:panelDetalle" process="@this" />
+										</p:column>
+
+										<p:columnGroup type="footer" id="panelTotal">
+											<p:row>
+												<p:column colspan="6" footerText="#{msgs.lbl_total}:" style="text-align:right"/>
+												<p:column footerText="#{aprobarAjusteInventarioBean.ajusteInventario.total}" style="text-align:right" id="txtTotal"/> 
+												<p:column rendered="#{aprobarAjusteInventarioBean.ajusteInventario.documento.indicadorGeneraCosto}"/>
+												<p:column rendered="#{aprobarAjusteInventarioBean.ajusteInventario.documento.indicadorGeneraCosto}"
+													footerText="#{aprobarAjusteInventarioBean.ajusteInventario.costoTotal}" style="text-align:right" id="txtCostoTotal" />
+												<p:column></p:column>
+											</p:row>
+										</p:columnGroup>
+
+									</p:dataTable>
+								</p:outputPanel>
+
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>						
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_aprobacion} #{msgs.lbl_ajuste_inventario_panel}" rendered="#{!aprobarAjusteInventarioBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAprobarAjustesInventario" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{aprobarAjusteInventarioBean.listaAjusteInventario}" var="_ajusteInventario" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{aprobarAjusteInventarioBean.dtListaAjuste}" rows="#{aprobarAjusteInventarioBean.numeroFilas}" rowsPerPageTemplate="#{aprobarAjusteInventarioBean.numeroFilasPorPagina}"
+							selection="#{aprobarAjusteInventarioBean.ajusteInventario}" selectionMode="single" rowKey="#{_ajusteInventario.id}" sortBy="#{_ajusteInventario.fecha}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_ajusteInventario.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.fecha}">
+									<f:convertDateTime pattern="#{aprobarAjusteInventarioBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_ajusteInventario.numero}" filterBy="#{_ajusteInventario.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_ajusteInventario.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_motivo}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.motivoAjusteInventario.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTEstado" sortBy="#{_ajusteInventario.estado}" filterBy="#{_ajusteInventario.estado}" filterOptions="#{aprobarAjusteInventarioBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteInventario.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_ajusteInventario.descripcion}" filterBy="#{_ajusteInventario.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_ajusteInventario.descripcion}" />
+							</p:column>
+							
+							<p:column exportable="false" styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_aprobar}" />
+								</f:facet>
+								<center>
+									<p:commandButton oncomplete="aprobar.show()"
+										icon="ui-icon-arrowthickstop-1-n" process="@this"
+										action="#{aprobarAjusteInventarioBean.ajusteInventarioSeleccionado}"
+										update=":form:panelAprueba" />
+								</center>
+							</p:column>
+							<!--  
+							<p:column exportable="false" styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anular}" />
+								</f:facet>
+								<center>
+									<p:commandButton oncomplete="anular.show()"
+										icon="ui-icon-arrowthickstop-1-s" process="@this"
+										action="#{aprobarAjusteInventarioBean.ajusteInventarioSeleccionado}" update=":form:panelAnula"/>
+								</center>
+							</p:column>
+							-->
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{aprobarAjusteInventarioBean.ajusteInventario.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{aprobarAjusteInventarioBean.ajusteInventario.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{aprobarAjusteInventarioBean.ajusteInventario.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{aprobarAjusteInventarioBean.ajusteInventario.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{custodioActivoFijoBean}">
+					<as2:buttonEliminar bean="#{custodioActivoFijoBean}" />
+					<as2:buttonExportaExcel bean="#{custodioActivoFijoBean}" tabla=":form:tablaCustodioActivoFijo" />
+					<as2:buttonImprimir bean="#{custodioActivoFijoBean}" beanReporte="#{reporteCustodioActivoBean}"
+						value="#{custodioActivoFijoBean.custodioActivoFijo}" target="#{reporteCustodioActivoBean.custodioActivoFijo}" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaActivoFijo.xhtml">
+					<ui:param name="bean" value="#{custodioActivoFijoBean}" />
+					<ui:param name="objetoActualizar" value="txtActivoFijo,panelDetalle" />
+				</ui:include>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{custodioActivoFijoBean}" />
+					<ui:param name="objetoActualizar" value="panelDetalle" />
+				</ui:include>
+
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_custodio_activo_fijo_panel}" rendered="#{custodioActivoFijoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{custodioActivoFijoBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_activo_fijo}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalActivoFijo.show();" update=":form:panelListaActivoFijo">
+									</p:commandButton>
+									<h:outputText id="txtActivoFijo" value="#{custodioActivoFijoBean.custodioActivoFijo.activoFijo.nombre}" />
+								</h:panelGroup>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+
+								<p:commandButton value="#{msgs.lbl_agregar_custodio}" id="btnAgregarDetalle" icon="ui-icon-plus"
+									action="#{custodioActivoFijoBean.agregarDetalle}" update=":form:panelDetalle" process="@this"
+									disabled="#{custodioActivoFijoBean.activoFijo.id==0}" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{custodioActivoFijoBean.listaDetalleListaCustodioActivoFijo}" id="tablaDetalleCustodioActivoFijo"
+									rowIndexVar="secuencial" binding="#{custodioActivoFijoBean.dtDetalleCustodioActivoFijo}" emptyMessage="#{msgs.msg_no_hay_datos}"
+									var="_detalleCustodioActivoFijo" paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalleCustodioActivoFijo.id}"
+									rows="#{custodioActivoFijoBean.numeroFilas}" rowsPerPageTemplate="#{custodioActivoFijoBean.numeroFilasPorPagina}">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_empleado}" />
+										</f:facet>
+										<h:panelGroup>
+											<h:outputText id="txtEmpleado" value="#{_detalleCustodioActivoFijo.empleado.empresa.nombreFiscal}" />
+
+											<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelListaEmpleado"
+												disabled="#{!_detalleCustodioActivoFijo.activo}">
+											</p:commandButton>
+										</h:panelGroup>
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_cliente}" />
+										</f:facet>
+
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente" disabled="#{!_detalleCustodioActivoFijo.activo}"
+											value="#{_detalleCustodioActivoFijo.empresa}" completeMethod="#{custodioActivoFijoBean.autocompletarClientes}" var="_cliente"
+											itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+											<p:column headerText="#{_cliente.nombreFiscal}">#{_cliente.nombreFiscal}</p:column>
+
+											<f:validateBean />
+											<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+											<p:ajax partialSubmit="true" event="itemSelect" process="@this" global="false" />
+										</p:autoComplete>
+
+									</p:column>
+
+									<p:column styleClass="tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_ubicacion_activo}" />
+										</f:facet>
+										<p:selectOneMenu styleClass="input-text" value="#{_detalleCustodioActivoFijo.ubicacionActivo.idUbicacionActivo}" id="cboUbicacionActivo"
+											required="true" disabled="#{!_detalleCustodioActivoFijo.activo}">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{custodioActivoFijoBean.listaUbicacionActivoCombo}" var="_ubicacionActivo"
+												itemLabel="#{_ubicacionActivo.sucursal.nombre} - #{_ubicacionActivo.departamento.nombre} - #{_ubicacionActivo.nombre}"
+												itemValue="#{_ubicacionActivo.idUbicacionActivo}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha_inicio}" />
+										</f:facet>
+										<p:calendar pattern="#{custodioActivoFijoBean.formatoFecha}" showOn="button" navigator="true"
+											value="#{_detalleCustodioActivoFijo.fechaInicio}" id="calFechaInicio" required="true" disabled="#{!_detalleCustodioActivoFijo.activo}">
+											<f:validateBean />
+										</p:calendar>
+									</p:column>
+
+									<p:column styleClass="columnaDTFecha tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha_fin}" styleClass="input-text" />
+										</f:facet>
+										<h:outputText value="#{_detalleCustodioActivoFijo.fechaFin}" id="txtFechaFin">
+											<f:convertDateTime pattern="#{custodioActivoFijoBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTActivo tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_activo}" styleClass="input-text" />
+										</f:facet>
+										<p:selectBooleanCheckbox value="#{_detalleCustodioActivoFijo.activo}" disabled="#{!_detalleCustodioActivoFijo.activo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_descripcion}" styleClass="input-text" />
+										</f:facet>
+										<p:inputText styleClass="input-text" value="#{_detalleCustodioActivoFijo.descripcion}" id="txtDescripcion"
+											disabled="#{!_detalleCustodioActivoFijo.activo}">
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:fieldset>
+
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_custodio_activo_fijo_panel}" rendered="#{!custodioActivoFijoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCustodioActivoFijo" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{custodioActivoFijoBean.listaCustodioActivoFijo}" var="_custodioActivoFijo" binding="#{custodioActivoFijoBean.dtCustodioActivoFijo}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{custodioActivoFijoBean.numeroFilas}"
+							rowsPerPageTemplate="#{custodioActivoFijoBean.numeroFilasPorPagina}" selection="#{custodioActivoFijoBean.custodioActivoFijo}"
+							selectionMode="single" rowKey="#{_custodioActivoFijo.id}" sortBy="#{_custodioActivoFijo.activoFijo.nombre}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.activoFijo.nombre}" filterBy="#{_custodioActivoFijo.activoFijo.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo_fijo}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.activoFijo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.empleado.empresa.nombreFiscal}" filterBy="#{_custodioActivoFijo.empleado.empresa.nombreFiscal}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.empleado.empresa.nombreComercial}" />
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.empresa.nombreFiscal}" filterBy="#{_custodioActivoFijo.empresa.nombreFiscal}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.empresa.nombreComercial}" />
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.ubicacionActivo.sucursal.nombre}" filterBy="#{_custodioActivoFijo.ubicacionActivo.sucursal.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.ubicacionActivo.sucursal.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.ubicacionActivo.departamento.nombre}"
+								filterBy="#{_custodioActivoFijo.ubicacionActivo.departamento.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_departamento}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.ubicacionActivo.departamento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.ubicacionActivo.nombre}" filterBy="#{_custodioActivoFijo.ubicacionActivo.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ubicacion_activo}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.ubicacionActivo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.fechaInicio}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_inicio}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.fechaInicio}">
+									<f:convertDateTime pattern="#{custodioActivoFijoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.fechaFin}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_fin}" />
+								</f:facet>
+								<h:outputText value="#{_custodioActivoFijo.fechaFin}">
+									<f:convertDateTime pattern="#{custodioActivoFijoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_custodioActivoFijo.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" styleClass="input-text" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_custodioActivoFijo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column filterBy="#{_custodioActivoFijo.descripcion}" sortBy="#{_custodioActivoFijo.descripcion}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<as2:inputTextNota value="#{_custodioActivoFijo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{custodioActivoFijoBean.custodioActivoFijo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{custodioActivoFijoBean.custodioActivoFijo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{custodioActivoFijoBean.custodioActivoFijo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{custodioActivoFijoBean.custodioActivoFijo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

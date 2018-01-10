@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:pt="http://xmlns.jcp.org/jsf/passthrough">
+
+<ui:composition template="../WEB-INF/template/principal.xhtml">
+	<ui:define name="content">
+		<h:form id="form">
+			<p:growl id="growl2" showDetail="true" />
+			<p:remoteCommand name="refreshSections" update="panelUsuario" />
+			<p:panel id="panelUsuario" widgetVar="panelUsuario">
+				<p:panel id="basic" style="margin-bottom:10px;font-size:small;">
+					<p:commandButton value="Nuevo" action="#{rolMb.irCrearRol}"
+						styleClass="ui-priority-primary" />
+					<p:commandButton value="Modificar" action="#{rolMb.modificarRol}"
+						styleClass="ui-priority-primary" />
+
+				</p:panel>
+
+				<p:dataTable id="tblRol" widgetVar="tblRol" var="rol"
+					value="#{rolMb.listaRoles}" paginator="true" rows="7"
+					style="margin-bottom:10px;font-size:small;" selection="#{rolMb.rolesSelected}"
+					rowKey="#{rol.idRol}" selectionMode="single"
+					>
+
+					<p:column headerText="Nombre">
+
+						<h:outputText value="#{rol.nombre}" />
+					</p:column>
+					<p:column headerText="Usuario">
+						<h:outputText value="#{rol.descripcion}" />
+					</p:column>
+					<p:column headerText="Accion">
+						<p:commandButton icon="ui-icon-trash" value="Eliminar"
+							action="#{rolMb.eliminarRol(rol)}"
+							ajax="true" update=":form:tblRol">
+						<p:confirm header="Confirmacion" message="Esta seguro de eliminar este registro?"  icon="ui-icon-alert" />	
+							</p:commandButton>
+					</p:column>
+
+
+				</p:dataTable>
+			</p:panel>
+			<!-- INSERT-->
+			<p:dialog id="dlgInsertarRol" header="Ingresar"
+				widgetVar="dlgInsertarRol" modal="true" width="#{opcionMb.ancho}"> 
+				<h:form id="formdlgInsertarRol">
+					<p:panel id="panel1">
+						<p:panelGrid columns="1" style="border:0;">
+							<p:panelGrid columns="2" style="border:0;">
+								<h:outputText value="Nombre" />
+								<p:inputText id="nombre" value="${rolMb.nombre}"></p:inputText>
+								<h:outputText value="Descripcion" />
+								<p:inputText id="usuario" value="${rolMb.descripcion}"></p:inputText>
+							</p:panelGrid>
+
+					
+								<p:commandButton value="Nuevo" type="button"
+							onclick="PF('dlg2').show();" styleClass="ui-priority-primary" />
+								
+							<p:dataTable id="tblOpciones" widgetVar="tblOpciones"
+								var="opcion" value="#{opcionMb.listaOpciones}" rows="7"
+								emptyMessage="Ningun dato cargado bajo el criterio"
+								style="margin-bottom:10px;font-size:small;" paginator="true"
+								selection="#{rolMb.opcionesSelected}"
+								rowKey="#{opcion.idOpcion}">
+								<p:column selectionMode="multiple"
+									style="width:5px;text-align:center" />
+								<p:column headerText="Nombre" filterBy="#{opcion.nombre}"
+									sortBy="#{opcion.nombre}" filterMatchMode="contains"
+									style="text-align:center">
+									<h:outputText value="#{opcion.nombre}" />
+								</p:column>
+								<p:column headerText="Ruta" filterBy="#{opcion.ruta}"
+									sortBy="#{opcion.ruta}" filterMatchMode="contains">
+									<h:outputText value="#{opcion.ruta}" />
+								</p:column>
+							</p:dataTable>
+							<p:commandButton value="Guardar" action="#{rolMb.insertarRol}"
+								process=":form:formdlgInsertarRol:panel1"
+								oncomplete="PF('dlgInsertarRol').hide();" update=":form:tblRol"
+								ajax="true">
+							</p:commandButton>
+
+						</p:panelGrid>
+					</p:panel>
+					
+					
+					<!-- Insert -->
+					<!-- INSERT ACTUALIZAR -->
+				<p:dialog id="dlg2" header="Ingresar" widgetVar="dlg2" modal="true">
+					<h:form id="dlg1">
+						<h:outputText value="Ingresar" />
+						<p:panel id="panel1">
+							<p:panelGrid columns="2" style="border:0;">
+								
+								
+							</p:panelGrid>
+							
+						</p:panel>
+					</h:form>
+				</p:dialog>
+				</h:form>
+			</p:dialog>
+			
+			<!-- Eliminar -->
+			<p:confirmDialog global="true" showEffect="fade" hideEffect="fade">
+				<p:commandButton value="Yes" 
+					styleClass="ui-confirmdialog-yes"   icon="ui-icon-check" />
+				<p:commandButton value="No" 
+					styleClass="ui-confirmdialog-no" icon="ui-icon-close"  />
+			</p:confirmDialog>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

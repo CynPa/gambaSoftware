@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<tnt:buttonExportaExcel bean="#{aprobarAnticipoProveedorBean}" tabla=":form:tablaAnticipoProveedor" />
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_aprobar_anticipo_proveedor_panel}" rendered="#{!aprobarAnticipoProveedorBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAnticipoProveedor" rowIndexVar="secuencialNivelCuenta" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{aprobarAnticipoProveedorBean.listaAnticipoProveedor}" var="_anticipo" binding="#{aprobarAnticipoProveedorBean.dtAnticipoProveedor}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{aprobarAnticipoProveedorBean.numeroFilas}"
+							selection="#{aprobarAnticipoProveedorBean.anticipoProveedor}" rowsPerPageTemplate="#{aprobarAnticipoProveedorBean.numeroFilasPorPagina}"
+							selectionMode="single" rowKey="#{_anticipo.id}" sortBy="#{_anticipo.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialNivelCuenta+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipo.documento.nombre}" filterBy="#{_anticipo.documento.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_anticipo.documento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipo.numero}" filterBy="#{_anticipo.numero}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_anticipo.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipo.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_anticipo.fecha}">
+									<f:convertDateTime pattern="#{anticipoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_anticipo.empresa.nombreFiscal}" filterBy="#{_anticipo.empresa.nombreFiscal}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_anticipo.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipo.valor}" styleClass="columnaDTValorGrande input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pago_valor}" />
+								</f:facet>
+								<h:outputText value="#{_anticipo.valor}">
+									<f:convertNumber pattern="#{aprobarAnticipoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_anticipo.estado.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.btn_aprobar}" exportable="false" styleClass="columnaDTAccion tableCell">
+								<center>
+									<p:commandButton icon="action" action="#{aprobarAnticipoProveedorBean.aprobarAnticipo}" process="@this" update=":form:panelListado"
+										disabled="#{_anticipo.estado != 'ELABORADO'}" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{aprobarAnticipoProveedorBean.anticipoProveedor.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{aprobarAnticipoProveedorBean.anticipoProveedor.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{aprobarAnticipoProveedorBean.anticipoProveedor.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{aprobarAnticipoProveedorBean.anticipoProveedor.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

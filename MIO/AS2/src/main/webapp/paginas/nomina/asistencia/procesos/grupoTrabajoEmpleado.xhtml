@@ -1,0 +1,174 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{grupoTrabajoEmpleadoBean}">
+					<as2:buttonEliminar bean="#{grupoTrabajoEmpleadoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.nombre}" />
+					</as2:buttonEliminar>
+					
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{grupoTrabajoEmpleadoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_grupo_trabajo_empleado})">
+
+						<ui:include src="/template/listaEmpleado.xhtml">
+							<ui:param name="bean" value="#{grupoTrabajoEmpleadoBean}" />
+							<ui:param name="objetoActualizar" value="panelEmpleados" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{grupoTrabajoEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.codigo}" id="txtCodigo" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.nombre}" id="txtNombre" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="chAct" value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.activo}" id="chAct" />
+
+								<p:outputLabel for="chPred" value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.predeterminado}" id="chPred" />
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.descripcion}" id="txtDescripcion">
+								</p:inputTextarea>
+
+							</h:panelGrid>
+
+
+							<p:outputPanel id="panelEmpleados">
+								<h:panelGroup>
+
+								</h:panelGroup>
+								<p:tabView dynamic="false" id="tabDetalleGrupoTrabajoEmpleado" cache="false">
+									<p:tab title="#{msgs.lbl_empleado}">
+
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.lbl_cargar}" process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelEmpleados">
+											</p:commandButton>
+										</h:panelGroup>
+
+										<h:panelGrid id="panelEmpleado" columns="#{grupoTrabajoEmpleadoBean.numeroColumnasPanelNuevo}"
+											columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEmpleado" rowIndexVar="secuencial"
+												emptyMessage="#{msgs.msg_no_hay_datos}" value="#{grupoTrabajoEmpleadoBean.listaEmpleados}" var="_empleado" paginator="true"
+												paginatorPosition="bottom" style="width:100%" rows="#{grupoTrabajoEmpleadoBean.numeroFilas}"
+												rowsPerPageTemplate="#{grupoTrabajoEmpleadoBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_empleado.idEmpleado}" lazy="true"
+												binding="#{grupoTrabajoEmpleadoBean.dtEmpleado}">
+
+												<p:column styleClass="columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigo tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_codigo}" />
+													</f:facet>
+													<h:outputText  styleClass="input-text" value="#{_empleado.empresa.codigo}"/>
+												</p:column>
+
+												<p:column styleClass="tableCell">
+													<f:facet name="header">
+														<h:outputText value="#{msgs.lbl_nombres} / #{msgs.lbl_apellidos}" />
+													</f:facet>
+													<h:outputText styleClass="input-text" value="#{_empleado.nombreCompleto}"/>
+												</p:column>
+
+
+												<p:column styleClass="tableCell columnaDTAccion">
+													<p:commandButton id="btnEliminarDetalle" action="#{grupoTrabajoEmpleadoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabDetalleGrupoTrabajoEmpleado:tablaEmpleado" process="@this :form:tabDetalleGrupoTrabajoEmpleado:tablaEmpleado" />
+												</p:column>
+
+											</p:dataTable>
+										</h:panelGrid>
+									</p:tab>
+								</p:tabView>
+							</p:outputPanel>
+
+
+
+
+
+
+
+
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!grupoTrabajoEmpleadoBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_grupo_trabajo_empleado})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGrupoTrabajo" rowIndexVar="secuencialGrupoTrabajo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{grupoTrabajoEmpleadoBean.listaGrupoTrabajo}" var="_grupoTrabajo"
+							binding="#{grupoTrabajoEmpleadoBean.dtGrupoTrabajo}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{grupoTrabajoEmpleadoBean.numeroFilas}" selection="#{grupoTrabajoEmpleadoBean.grupoTrabajo}"
+							rowsPerPageTemplate="#{grupoTrabajoEmpleadoBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_grupoTrabajo.id}"
+							sortBy="#{_grupoTrabajo.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialZona+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}" sortBy="#{_grupoTrabajo.codigo}" filterBy="#{_grupoTrabajo.codigo}">
+								<h:outputText value="#{_grupoTrabajo.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" headerText="#{msgs.lbl_nombre}" sortBy="#{_grupoTrabajo.nombre}" filterBy="#{_grupoTrabajo.nombre}">
+								<h:outputText value="#{_grupoTrabajo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_grupoTrabajo.activo}">
+								<p:selectBooleanCheckbox value="#{_grupoTrabajo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_grupoTrabajo.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_grupoTrabajo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{grupoTrabajoEmpleadoBean.grupoTrabajo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

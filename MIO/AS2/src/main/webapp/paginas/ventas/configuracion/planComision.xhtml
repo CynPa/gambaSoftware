@@ -1,0 +1,424 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{planComisionBean}">
+
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{planComisionBean.copiar}" update=":form:panelContenedor" disabled="#{planComisionBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonEliminar bean="#{planComisionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{planComisionBean.planComision.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{planComisionBean.planComision.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{planComisionBean}" tabla=":form:tablaPlanComision" />
+
+					<as2:buttonImprimir beanReporte="#{reportePlanComisionBean}" bean="#{planComisionBean}" target="#{reportePlanComisionBean.planComision}"
+						value="#{planComisionBean.planComision}" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_plan_comision})" rendered="#{planComisionBean.editado}">
+
+						<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarListaDetalleVersion" id="dlgCargarListaDetalleVersion" modal="true" height="150"
+							width="325" showEffect="clip" hideEffect="clip" resizable="false">
+							<p:outputPanel id="outputCargarListaDetalleVersion">
+								<p:fieldset>
+									<center>
+										<p:fileUpload fileUploadListener="#{planComisionBean.migrarListaDetalleComision}" mode="advanced" auto="true" sizeLimit="10000000"
+											allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this, outputCargarListaDetalleVersion"
+											oncomplete="PF('dlgCargarListaDetalleVersion').hide()" update=":form:panelDetalleComision" />
+									</center>
+								</p:fieldset>
+							</p:outputPanel>
+						</p:dialog>
+
+						<p:dialog header="#{msgs.lbl_version}" widgetVar="dglVersion" modal="true" height="200" width="900" showEffect="slide" hideEffect="slide"
+							closable="false">
+
+							<p:outputPanel id="panelVersion">
+								<h:panelGrid rendered="#{not empty planComisionBean.versionPlanComision and planComisionBean.indicadorVentanaVersion}"
+									columns="#{planComisionBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<p:outputLabel for="txtCodigoVersion" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{planComisionBean.versionPlanComision.codigo}" id="txtCodigoVersion" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="txtNombreVersion" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{planComisionBean.versionPlanComision.nombre}" id="txtNombreVersion" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel value="#{msgs.lbl_desde}:" />
+									<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+										<p:outputLabel for="cboMesInicial" value="#{msgs.lbl_mes}:" />
+										<p:selectOneMenu value="#{planComisionBean.versionPlanComision.mesInicial}" id="cboMesInicial" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{planComisionBean.listaMes}" var="_mes" itemLabel="#{_mes.nombre}" itemValue="#{_mes}" />
+											<p:ajax process="@this" global="false" event="change" />
+											<f:validateBean />
+										</p:selectOneMenu>
+										<p:outputLabel for="txtAnioInicial" value="#{msgs.lbl_anio}:" />
+										<p:inputText styleClass="input-text" value="#{planComisionBean.versionPlanComision.anioInicial}" id="txtAnioInicial" required="true">
+											<p:ajax process="@this" global="false" />
+											<f:validateBean />
+										</p:inputText>
+									</h:panelGrid>
+
+									<p:outputLabel value="#{msgs.lbl_hasta}:" />
+									<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+										<p:outputLabel for="cboMesFinal" value="#{msgs.lbl_mes}:" />
+										<p:selectOneMenu value="#{planComisionBean.versionPlanComision.mesFinal}" id="cboMesFinal" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{planComisionBean.listaMes}" var="_mes" itemLabel="#{_mes.nombre}" itemValue="#{_mes}" />
+											<p:ajax process="@this" global="false" event="change" />
+											<f:validateBean />
+										</p:selectOneMenu>
+										<p:outputLabel for="txtAnioFinal" value="#{msgs.lbl_anio}:" />
+										<p:inputText styleClass="input-text" value="#{planComisionBean.versionPlanComision.anioFinal}" id="txtAnioFinal" required="true">
+											<p:ajax process="@this" global="false" />
+											<f:validateBean />
+										</p:inputText>
+									</h:panelGrid>
+
+									<p:outputLabel for="cboTipoComision" value="#{msgs.lbl_tipo_comision}:" />
+									<p:selectOneMenu value="#{planComisionBean.versionPlanComision.tipoComisionEnum}" id="cboTipoComision" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{planComisionBean.listaTipoComisionEnum}" var="_tipoComision" itemLabel="#{_tipoComision.nombre}"
+											itemValue="#{_tipoComision}" />
+										<p:ajax process="@this" global="false" event="change" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<p:outputLabel for="ckActivoVersion" value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{planComisionBean.versionPlanComision.activo}" id="ckActivoVersion">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:selectBooleanCheckbox>
+
+									<p:outputLabel for="ckPredeterminadoVersion" value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{planComisionBean.versionPlanComision.predeterminado}" id="ckPredeterminadoVersion">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:selectBooleanCheckbox>
+
+									<p:outputLabel for="txtDescripcionVersion" value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{planComisionBean.versionPlanComision.descripcion}" id="txtDescripcionVersion">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputTextarea>
+								</h:panelGrid>
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_aceptar}" action="#{planComisionBean.guardarVersionPlanComision}" process="@this, panelVersion"
+										update=":form:panelCabecera :form:panelDetalleComision" oncomplete="validacionesModal(xhr, status, args, dglVersion )" />
+									<p:commandButton value="#{msgs.btn_cancelar}" action="#{planComisionBean.cancelarVersionPlanComision}" process="@this"
+										update=":form:panelCabecera :form:panelDetalleComision" oncomplete="validacionesModal(xhr, status, args, dglVersion )" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{planComisionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{planComisionBean.planComision.codigo}" id="txtCodigo" required="true">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{planComisionBean.planComision.nombre}" id="txtNombre" required="true">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{planComisionBean.planComision.activo}" id="ckActivo">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{planComisionBean.planComision.predeterminado}" id="ckPredeterminado">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{planComisionBean.planComision.descripcion}" id="txtDescripcion">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<p:outputLabel for="cboVersion" value="#{msgs.lbl_version}:" />
+								<h:panelGrid columns="3" columnClasses="columna80, columna10, columna10">
+									<p:selectOneMenu value="#{planComisionBean.versionPlanComision}" id="cboVersion" required="false">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{planComisionBean.planComision.listaVersionPlanComision}" var="_version" itemLabel="#{_version.nombre}"
+											itemValue="#{_version}" />
+										<p:ajax process="@this" global="false" event="change" update="btnEditarVersion :form:panelDetalleComision"
+											listener="#{planComisionBean.actualizarVersion}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<p:commandButton title="#{msgs.lbl_editar}" icon="ui-icon-pencil" process="@this" update=":form:panelVersion :form:panelDetalleComision"
+										partialSubmit="true" global="false" oncomplete="PF('dglVersion').show();" disabled="#{empty planComisionBean.versionPlanComision}"
+										id="btnEditarVersion">
+										<f:setPropertyActionListener value="true" target="#{planComisionBean.indicadorVentanaVersion}" />
+									</p:commandButton>
+									<p:commandButton title="#{msgs.lbl_agregar}" icon="ui-icon-plus" process="@this" update=":form:panelVersion :form:panelDetalleComision"
+										partialSubmit="true" global="false" actionListener="#{planComisionBean.agregarVersion}" oncomplete="PF('dglVersion').show();" />
+								</h:panelGrid>
+							</h:panelGrid>
+						</p:fieldset>
+						<p:outputPanel id="panelDetalleComision">
+							<ui:include src="/template/listaProductoMultiple.xhtml">
+								<ui:param name="bean" value="#{planComisionBean}" />
+								<ui:param name="objetoActualizar" value=":form:tvDetalleComision:panelDetalleProducto" />
+								<ui:param name="listadoFiltrado" value="true" />
+								<ui:param name="mostrarCantidad" value="false" />
+							</ui:include>
+							<p:tabView cache="true" id="tvDetalleComision">
+								<p:tab title="#{msgs.lbl_producto}s" id="tabDetalleProducto">
+									<h:panelGrid columns="1" width="100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{planComisionBean.agregarDetalleVersion}"
+												update="panelDetalleProducto" process="@this,panelDetalleProducto" icon="ui-icon-plus" />
+
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button"
+												rendered="#{planComisionBean.clasificacionPagoComisiones == 3}" />
+											<p:commandButton process="@this, :form:panelDetalleProducto" title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+												<p:fileDownload value="#{planComisionBean.descargarExcelDetalles()}" />
+											</p:commandButton>
+
+											<p:commandLink title="#{msgs.lbl_cargar}" process="@this" update=":form:outputCargarListaDetalleVersion"
+												onclick="PF('dlgCargarListaDetalleVersion').show()">
+												<h:graphicImage library="images" name="upload.png" style="height : 22px; width : 22px;" />
+											</p:commandLink>
+										</h:panelGroup>
+
+										<p:outputPanel id="panelDetalleProducto">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{planComisionBean.listaDetalleVersionPlanComision}"
+												id="tablaDetalleProducto" rowIndexVar="secuencial" binding="#{planComisionBean.dtDetalleVersionPlanComision}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detalle.rowKey}" rows="#{planComisionBean.numeroFilas}" columnClasses="rowIndex"
+												rowsPerPageTemplate="#{planComisionBean.numeroFilasPorPagina}"
+												filteredValue="#{planComisionBean.listaDetalleVersionPlanComisionFiltrados}">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_categoria_producto}"
+													rendered="#{planComisionBean.clasificacionPagoComisiones != 3}" filterBy="#{_detalle.categoriaProducto.nombre}"
+													filterMatchMode="contains" sortBy="#{_detalle.categoriaProducto.nombre}">
+													<p:selectOneMenu styleClass="input-text-col" value="#{_detalle.categoriaProducto}" id="cboCategoriaProducto" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{planComisionBean.listaCategoriaProducto}" var="_categoria" itemLabel="#{_categoriaProducto.nombre}"
+															itemValue="#{_categoriaProducto}" />
+														<p:ajax process="@this" global="false" event="change" update="cboSubcategoriaProducto"
+															listener="#{planComisionBean.actualizarCategoriaProducto(_detalle)}" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_producto_subcategoria_producto}"
+													rendered="#{planComisionBean.clasificacionPagoComisiones == 2}" filterBy="#{_detalle.subcategoriaProducto.nombre}"
+													filterMatchMode="contains" sortBy="#{_detalle.subcategoriaProducto.nombre}">
+													<p:selectOneMenu styleClass="input-text-col" value="#{_detalle.subcategoriaProducto}" id="cboSubcategoriaProducto" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{planComisionBean.obtenerListaSubcategoriaProducto(_detalle.categoriaProducto)}" var="_subcategoria"
+															itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+														<p:ajax process="@this" global="false" event="change" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_producto}"
+													rendered="#{planComisionBean.clasificacionPagoComisiones == 3}" filterBy="#{_detalle.producto.nombre}" filterMatchMode="contains"
+													sortBy="#{_detalle.producto.nombre}">
+													<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_detalle.producto}"
+														completeMethod="#{planComisionBean.autocompletarProducto}" var="_producto" itemLabel="#{_producto.nombre}" itemValue="#{_producto}"
+														forceSelection="true" dropdown="false" minQueryLength="2" id="autoProducto" required="true">
+
+														<p:column headerText="#{msgs.lbl_codigo}">#{_producto.codigo}</p:column>
+														<p:column headerText="#{msgs.lbl_nombre}">#{_producto.nombre}</p:column>
+
+														<p:ajax process="@this" event="itemSelect" global="false" />
+													</p:autoComplete>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_forma_pago}">
+													<p:selectOneMenu styleClass="input-text-col" value="#{_detalle.formaPagoComisionEnum}" id="cboFormaPago" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{planComisionBean.listaFormaPagoComisionEnum}" var="_formaPago" itemLabel="#{_formaPago.nombre}"
+															itemValue="#{_formaPago}" />
+														<p:ajax process="@this" global="false" event="change" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:columns styleClass="columnaDTValor" var="_rango" value="#{planComisionBean.listaRangoDiasComision}" headerText="#{_rango.nombre}">
+													<p:inputText styleClass="input-text-col" value="#{planComisionBean.obtenerValorDetalleVersionPlanComision(_detalle, _rango).valor}"
+														required="false">
+														<f:validateBean />
+														<p:ajax process="@this" global="false" />
+													</p:inputText>
+												</p:columns>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText styleClass="input-text-col" value="#{_detalle.descripcion}" id="txtDescripcion">
+														<p:ajax process="@this" global="false" event="change" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{planComisionBean.eliminarDetalleVersion}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tvDetalleComision:panelDetalleProducto" process="@this">
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+										</p:outputPanel>
+									</h:panelGrid>
+								</p:tab>
+								<p:tab title="#{msgs.lbl_cliente}s #{msgs.lbl_agente_comercial}" id="tabDetalleAgenteCliente"
+									rendered="#{planComisionBean.versionPlanComision.tipoComisionEnum == 'SUPERVISOR'}">
+									<h:panelGrid columns="1" width="100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalleSupervisor"
+												action="#{planComisionBean.agregarDetalleVersionSupervisor}" update="panelDetalleSupervisor" process="@this,panelDetalleSupervisor"
+												icon="ui-icon-plus" />
+										</h:panelGroup>
+
+										<p:outputPanel id="panelDetalleSupervisor">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{planComisionBean.listaDetalleVersionPlanComisionSupervisor}"
+												id="tablaDetalleSupervisor" rowIndexVar="secuencial" binding="#{planComisionBean.dtDetalleVersionPlanComisionSupervisor}"
+												emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowKey="#{_detalle.rowKey}" rows="#{planComisionBean.numeroFilas}" columnClasses="rowIndex"
+												rowsPerPageTemplate="#{planComisionBean.numeroFilasPorPagina}" lazy="true">
+
+												<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_agente_comercial}">
+													<p:selectOneMenu styleClass="input-text-col" value="#{_detalle.agenteComercial}" id="cboAgenteComercialSupervisor" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{planComisionBean.listaAgenteComercial}" var="_agente" itemLabel="#{_agente.nombre1} #{_agente.nombre2}"
+															itemValue="#{_agente}" />
+														<p:ajax process="@this" global="false" event="change" update="autoEmpresa"
+															listener="#{planComisionBean.actualizarAgenteComercial(_detalle)}" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_cliente}">
+													<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_detalle.empresa}"
+														completeMethod="#{planComisionBean.autocompletarClientes}" var="_empresa" itemLabel="#{_empresa.nombreFiscal}" itemValue="#{_empresa}"
+														forceSelection="true" dropdown="false" minQueryLength="2" id="autoEmpresa" required="true">
+
+														<p:column headerText="#{msgs.lbl_codigo}">#{_empresa.identificacion}</p:column>
+														<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_empresa.nombreFiscal}</p:column>
+														<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_empresa.nombreComercial}</p:column>
+
+														<p:ajax process="@this" event="itemSelect" global="false" />
+													</p:autoComplete>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+													<p:inputText styleClass="input-text-col" value="#{_detalle.descripcion}" id="txtDescripcionSupervisor">
+														<p:ajax process="@this" global="false" event="change" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalleSupervisor" action="#{planComisionBean.eliminarDetalleVersionSupervisor()}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tvDetalleComision:panelDetalleSupervisor" process="@this">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</p:outputPanel>
+									</h:panelGrid>
+								</p:tab>
+							</p:tabView>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_plan_comision})" rendered="#{!planComisionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlanComision" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{planComisionBean.listaPlanComision}" var="_planComision"
+							binding="#{planComisionBean.dtPlanComision}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{planComisionBean.numeroFilas}" rowsPerPageTemplate="#{planComisionBean.numeroFilasPorPagina}"
+							selection="#{planComisionBean.planComision}" selectionMode="single" rowKey="#{_planComision.rowKey}" sortBy="#{_planComision.codigo}"
+							sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_planComision.codigo}" filterBy="#{_planComision.codigo}"
+								headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_planComision.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_planComision.nombre}" filterBy="#{_planComision.nombre}"
+								headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_planComision.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{_planComision.activo}">
+								<p:selectBooleanCheckbox value="#{_planComision.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_predeterminado}" sortBy="#{_planComision.predeterminado}">
+								<p:selectBooleanCheckbox value="#{_planComision.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_planComision.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{planComisionBean.planComision.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{planComisionBean.planComision.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{planComisionBean.planComision.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{planComisionBean.planComision.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

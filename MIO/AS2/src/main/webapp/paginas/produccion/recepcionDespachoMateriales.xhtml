@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_recepcion_despacho_materiales})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRecepcionDespachoMateriales" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{recepcionDespachoMaterialesBean.listaLecturaBalanza}" var="_lecturaBalanza" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{recepcionDespachoMaterialesBean.dtLecturaBalanza}"
+							rows="#{recepcionDespachoMaterialesBean.numeroFilas}" selectionMode="single" rowKey="#{_lecturaBalanza.id}"
+							sortBy="#{_lecturaBalanza.fechaCreacion}" sortOrder="ASCENDING" lazy="false">
+
+							<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_lecturaBalanza.fechaCreacion}">
+								<h:outputText value="#{_lecturaBalanza.fechaCreacion}">
+									<f:convertDateTime pattern="#{recepcionDespachoMaterialesBean.formatoFecha} HH:mm" timeZone="America/Guayaquil" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}" sortBy="#{_lecturaBalanza.producto.codigo}"
+								filterBy="#{_lecturaBalanza.producto.codigo}" filterMatchMode="contains">
+								<h:outputText value="#{_lecturaBalanza.producto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}" filterBy="#{_lecturaBalanza.producto.nombre}"
+								filterMatchMode="contains" sortBy="#{_lecturaBalanza.producto.nombre}">
+								<h:outputText value="#{_lecturaBalanza.producto.nombre}" />
+							</p:column>
+							
+							<p:column sortBy="#{_lecturaBalanza.detalleOrdenSalidaMaterial.ordenSalidaMaterial.sucursal.nombre}" filterBy="#{_lecturaBalanza.detalleOrdenSalidaMaterial.ordenSalidaMaterial.sucursal.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_lecturaBalanza.detalleOrdenSalidaMaterial.ordenSalidaMaterial.sucursal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_unidad_manejo}">
+								<h:outputText value="#{_lecturaBalanza.unidadManejo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValorCorto tableCell" headerText="# #{msgs.lbl_unidad_manejo}">
+								<h:outputText value="#{_lecturaBalanza.numeroUnidadesManejo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_peso_neto}">
+								<h:outputText value="#{_lecturaBalanza.pesoNeto}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}"
+								filterBy="#{_lecturaBalanza.detalleOrdenSalidaMaterial.ordenSalidaMaterial.descripcion}" filterMatchMode="contains"
+								sortBy="#{_lecturaBalanza.detalleOrdenSalidaMaterial.ordenSalidaMaterial.descripcion}">
+								<h:outputText value="#{_lecturaBalanza.detalleOrdenSalidaMaterial.ordenSalidaMaterial.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<center>
+									<p:commandLink action="#{recepcionDespachoMaterialesBean.recepcionarDespachoMateriales(_lecturaBalanza)}" process="@this"
+										update=":form:panelListado" title="#{msgs.lbl_recibir}">
+										<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tipoTarjetaCreditoBean}">
+					<as2:buttonEliminar bean="#{tipoTarjetaCreditoBean}">
+
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.nombre}" />
+
+					</as2:buttonEliminar>
+					<as2:buttonExportaExcel bean="#{tipoTarjetaCreditoBean}" tabla=":form:tablaPlanes" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tipo_tarjeta_credito}" rendered="#{tipoTarjetaCreditoBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{tipoTarjetaCreditoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.nombre}" id="txtNombre" required="true" size="50"
+								maxlength="50">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.descripcion}" id="txtDescripcion" size="100"
+								maxlength="200">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.predeterminado}" />
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_tipo_tarjeta_credito}" rendered="#{!tipoTarjetaCreditoBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPlan" rowIndexVar="secuencialPlan" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tipoTarjetaCreditoBean.listaTipoTarjetaCredito}" var="_tipoTarjetaCredito" binding="#{tipoTarjetaCreditoBean.dataTablePlan}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{tipoTarjetaCreditoBean.numeroFilas}"
+							rowsPerPageTemplate="#{tipoTarjetaCreditoBean.numeroFilasPorPagina}" selection="#{tipoTarjetaCreditoBean.tipoTarjetaCredito}"
+							selectionMode="single" rowKey="#{_tipoTarjetaCredito.id}" sortBy="#{_tipoTarjetaCredito.nombre}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialPlan+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{tipoTarjetaCredito.codigo}" filterBy="#{tipoTarjetaCredito.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipoTarjetaCredito.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{tipoTarjetaCredito.nombre}" filterBy="#{tipoTarjetaCredito.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoTarjetaCredito.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{tipoTarjetaCredito.activo}">
+								<p:selectBooleanCheckbox value="#{_tipoTarjetaCredito.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_tipoTarjetaCredito.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tipoTarjetaCredito.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tipoTarjetaCreditoBean.tipoTarjetaCredito.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

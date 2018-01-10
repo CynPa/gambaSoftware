@@ -1,0 +1,72 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_cliente_provedor}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteEmpresasBean}" entidadOrigen="" />
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="#{reporteEmpresasBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEmpresasBean.idCategoriaEmpresa}" id="cboCategoriaEmpresa" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteEmpresasBean.listaCategoriaEmpresa}" var="_categoriaEmpresa" itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa.idCategoriaEmpresa}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empresa_tipo_empresa}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteEmpresasBean.tipoEmpresa}" id="cboTipoEmpresa" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteEmpresasBean.listaTipoEmpresa}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+
+							<h:outputText value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneRadio id="options" value="#{reporteEmpresasBean.clasificacion}" required="true">
+								<f:selectItems value="#{reporteEmpresasBean.listaClasificacion}"></f:selectItems>
+								<p:ajax process="@this" listener="#{reporteEmpresasBean.actualizarClasificacion()}" event="change" />
+							</p:selectOneRadio>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa" value="#{reporteEmpresasBean.empresa}"
+								completeMethod="#{reporteEmpresasBean.autocompletarEmpresa}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+								forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" />
+							</p:autoComplete>
+
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

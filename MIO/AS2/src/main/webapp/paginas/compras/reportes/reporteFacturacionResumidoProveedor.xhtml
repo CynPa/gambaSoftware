@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_facturacion_resumido_proveedor}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteFacturacionResumidoProveedorBean}" entidadOrigen=""></tnt:panelImprimir>
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteFacturacionResumidoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteFacturacionResumidoProveedorBean.fechaDesde}" id="calFechaDesde" required="true">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteFacturacionResumidoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteFacturacionResumidoProveedorBean.fechaHasta}" id="calFechaHasta" required="true">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_numero_desde}:" />
+							<p:inputText styleClass="input-text" id="txtNumeroDesde" value="#{reporteFacturacionResumidoProveedorBean.numeroFacturaDesde}" />
+
+							<h:outputText value="#{msgs.lbl_numero_hasta}:" />
+							<p:inputText styleClass="input-text" id="txtNumeroHasta" value="#{reporteFacturacionResumidoProveedorBean.numeroFacturaHasta}" />
+
+							<h:outputText value="#{msgs.lbl_documento_documentoBase}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteFacturacionResumidoProveedorBean.documentoBase}"
+								id="cboDocumentoBase">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+								<f:selectItems value="#{reporteFacturacionResumidoProveedorBean.listaDocumentoBase}" var="_documentoBase"
+									itemLabel="#{_documentoBase.nombre}" itemValue="#{_documentoBase}" />
+								<p:ajax process="@this" event="change" update=":form:cboDocumento" global="false"
+									listener="#{reporteFacturacionResumidoProveedorBean.cargarListaDocumentos}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteFacturacionResumidoProveedorBean.documento}" id="cboDocumento">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteFacturacionResumidoProveedorBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboProveedor"
+								value="#{reporteFacturacionResumidoProveedorBean.empresa}"
+								completeMethod="#{reporteFacturacionResumidoProveedorBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+								itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_sucursal}" />
+							<p:selectOneMenu value="#{reporteFacturacionResumidoProveedorBean.sucursal}" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" />
+								<f:selectItems value="#{reporteFacturacionResumidoProveedorBean.listaSucursal}" var="_sucursal"
+									itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" id="cboSucursal" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_resumen}:" />
+							<p:selectBooleanCheckbox value="#{reporteFacturacionResumidoProveedorBean.indicadorResumido}">
+								<p:ajax process="@this"
+									update=":form:auCategoriaProducto :form:lblCategoriaProducto :form:lblSubcategoriaProducto :form:auSubcategoriaProducto :form:lblProducto :form:auProducto" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputPanel id="lblCategoriaProducto">
+								<h:outputText value="#{msgs.lbl_producto_categoria_producto}:" rendered="#{!reporteFacturacionResumidoProveedorBean.indicadorResumido}" />
+							</p:outputPanel>
+							<p:outputPanel id="auCategoriaProducto">
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCategoriaProducto"
+									value="#{reporteFacturacionResumidoProveedorBean.categoriaProducto}"
+									completeMethod="#{reporteFacturacionResumidoProveedorBean.autocompletarCategoriaProducto}" var="_categoriaProducto"
+									itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" forceSelection="true" dropdown="true" minQueryLength="2"
+									rendered="#{!reporteFacturacionResumidoProveedorBean.indicadorResumido}" event="itemSelect">
+
+									<p:column>#{_categoriaProducto.codigo}</p:column>
+									<p:column>#{_categoriaProducto.nombre}</p:column>
+									<p:ajax process="@this" global="false" event="itemSelect" listener="#{reporteFacturacionResumidoProveedorBean.actualizarCategoriaProducto}" />
+								</p:autoComplete>
+							</p:outputPanel>
+							<p:outputPanel id="lblSubcategoriaProducto">
+								<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}:" rendered="#{!reporteFacturacionResumidoProveedorBean.indicadorResumido}" />
+							</p:outputPanel>
+							<p:outputPanel id="auSubcategoriaProducto">
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+									value="#{reporteFacturacionResumidoProveedorBean.subcategoriaProducto}"
+									completeMethod="#{reporteFacturacionResumidoProveedorBean.autocompletarSubcategoriaProducto}" var="_subcategoriaProducto"
+									itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" forceSelection="true" dropdown="true" minQueryLength="2"
+									rendered="#{!reporteFacturacionResumidoProveedorBean.indicadorResumido}">
+
+									<p:column>#{_subcategoriaProducto.codigo}</p:column>
+									<p:column>#{_subcategoriaProducto.nombre}</p:column>
+
+								</p:autoComplete>
+							</p:outputPanel>
+							<h:outputText value="#{msgs.lbl_saldo_inicial}:" />
+							<p:selectBooleanCheckbox value="#{reporteFacturacionResumidoProveedorBean.saldoInicial}" />
+
+							<h:outputText value="#{msgs.lbl_credito_tributario}:" />
+							<p:selectOneRadio id="options" value="#{reporteFacturacionResumidoProveedorBean.enumtipocreditoTributario}" required="true">
+								<f:selectItems value="#{reporteFacturacionResumidoProveedorBean.listaTipoCreditoTributario}">
+								</f:selectItems>
+								<p:ajax process="@this" global="false" event="change"></p:ajax>
+							</p:selectOneRadio>
+	
+							<p:outputPanel id="lblProducto">
+							<h:outputText value="#{msgs.lbl_nombre_producto}:"  rendered="#{!reporteFacturacionResumidoProveedorBean.indicadorResumido}" />
+							</p:outputPanel>
+							<p:outputPanel id="auProducto">
+							<p:autoComplete value="#{reporteFacturacionResumidoProveedorBean.listaProductosSeleccionados}"
+								completeMethod="#{reporteFacturacionResumidoProveedorBean.autocompletarProducto}" multiple="true" minQueryLength="2" var="_producto"
+								itemLabel="#{_producto.nombre}" itemValue="#{_producto}" converter="productoConverter"
+								rendered="#{!reporteFacturacionResumidoProveedorBean.indicadorResumido}">
+								<h:outputText value="#{_producto.nombre}" />
+								<p:ajax process="@this" global="false"></p:ajax>
+							</p:autoComplete>
+							</p:outputPanel>
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this :form:cboProveedor" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

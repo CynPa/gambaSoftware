@@ -1,0 +1,122 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false" enctype="multipart/form-data">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_documentos_digitalizados}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaDocumentosDigitalizados" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{descargaDocumentosDigitalizadosBean.listaDetalleDocumentoDigitalizado}" var="_documento"
+							binding="#{descargaDocumentosDigitalizadosBean.dtDetalleDocumentoDigitalizado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{descargaDocumentosDigitalizadosBean.numeroFilasPorPagina}" rows="#{descargaDocumentosDigitalizadosBean.numeroFilas}"
+							selection="#{descargaDocumentosDigitalizadosBean.detalleDocumentoDigitalizadoEmpleado}" selectionMode="single" rowKey="#{_documento.id}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell"
+								sortBy="#{_documento.documentoDigitalizadoDepartamento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}"
+								filterBy="#{_documento.documentoDigitalizadoDepartamento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}"
+								filterOptions="#{descargaDocumentosDigitalizadosBean.listaCategoriaDocumento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_categoria}" />
+								</f:facet>
+								<h:outputText value="#{_documento.documentoDigitalizadoDepartamento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_documento.documentoDigitalizadoDepartamento.departamento.nombre}"
+								filterBy="#{_documento.documentoDigitalizadoDepartamento.departamento.nombre}"
+								filterOptions="#{descargaDocumentosDigitalizadosBean.listaDepartamento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_departamento}" />
+								</f:facet>
+								<h:outputText value="#{_documento.documentoDigitalizadoDepartamento.departamento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_documento.empleado.apellidos}" filterBy="#{_documento.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_apellidos}" />
+								</f:facet>
+								<h:outputText value="#{_documento.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_documento.empleado.nombres}" filterBy="#{_documento.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_documento.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_documento.empleado.empresa.identificacion}"
+								filterBy="#{_documento.empleado.empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_documento.empleado.empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_documento.documentoDigitalizadoDepartamento.documentoDigitalizado.nombre}"
+								filterBy="#{_documento.documentoDigitalizadoDepartamento.documentoDigitalizado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_digitalizado}" />
+								</f:facet>
+								<h:outputText value="#{_documento.documentoDigitalizadoDepartamento.documentoDigitalizado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_documento.fechaDesde}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_desde}" />
+								</f:facet>
+								<h:outputText value="#{_documento.fechaDesde}">
+									<f:convertDateTime pattern="#{descargaDocumentosDigitalizadosBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_documento.fechaHasta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_hasta}" />
+								</f:facet>
+								<h:outputText value="#{_documento.fechaHasta}">
+									<f:convertDateTime pattern="#{descargaDocumentosDigitalizadosBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_documento.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" id="columnFichero" headerText="#{msgs.lbl_fichero}">
+								<center>
+									<p:commandLink title="#{_documento.fichero}" ajax="false" process="@this" rendered="#{_documento.fichero != null}"
+										actionListener="#{descargaDocumentosDigitalizadosBean.asignarFile(_documento)}">
+										<p:fileDownload value="#{descargaDocumentosDigitalizadosBean.file}" />
+										<h:graphicImage library="images" name="bajar.png" style="height : 22px; width : 22px;" />
+									</p:commandLink>
+								</center>
+							</p:column>
+
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,369 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{componenteCostoBean}">
+
+					<as2:buttonEliminar bean="#{componenteCostoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{componenteCostoBean.componenteCosto.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{componenteCostoBean.componenteCosto.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{componenteCostoBean}" tabla=":form:tablaComponenteCosto" />
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{componenteCostoBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_componente_costo_panel}">
+
+						<h:panelGrid id="panelDetalle" columns="#{componenteCostoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{componenteCostoBean.componenteCosto.codigo}" id="txtCodigo" required="true" />
+
+							<h:outputText value="#{msgs.lbl_tipo_componente_costo}:" />
+							<p:selectOneMenu value="#{componenteCostoBean.componenteCosto.tipoComponenteCostoEnum}" id="cboTipoComponenteCosto">
+								<f:selectItems value="#{componenteCostoBean.listaTipoComponenteCosto}" var="_tipoComponenteCosto" itemLabel="#{_tipoComponenteCosto.nombre}"
+									itemValue="#{_tipoComponenteCosto}" />
+								<p:ajax process="@this" global="false" listener="#{componenteCostoBean.actualizarTipoComponente}"
+									update=":form:panelHorasHombre :form:panelHorasMaquina" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{componenteCostoBean.componenteCosto.nombre}" id="txtNombre" required="true" />
+
+							<h:outputText value="#{msgs.lbl_base_prorrateo}:" />
+							<h:panelGrid columns="4" id="panelHorasHombre" columnClasses="columnaValor,columnaEtiqueta,columnaValor,columnaEtiqueta">
+								<h:outputText value="#{msgs.lbl_horas_hombres}:" />
+								<p:selectBooleanCheckbox value="#{componenteCostoBean.componenteCosto.indicadorProrratearHorasHombre}">
+									<p:ajax process="@this" global="false" event="change" update=":form:panelHorasHombre :form:panelCoficienteProduccion"
+										listener="#{componenteCostoBean.actualizarIndicadorHorasHombre}" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_horas_hombre_x_costo}:" />
+								<p:selectBooleanCheckbox value="#{componenteCostoBean.componenteCosto.indicadorProrratearHorasHombreXValor}">
+									<p:ajax process="@this" global="false" event="change" update=":form:panelHorasHombre :form:panelCoficienteProduccion"
+										listener="#{componenteCostoBean.actualizarIndicadorHorasHombreXValor}" />
+								</p:selectBooleanCheckbox>
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{componenteCostoBean.componenteCosto.activo}" />
+
+							<p:spacer />
+							<h:panelGrid columns="4" id="panelHorasMaquina" columnClasses="columnaValor,columnaEtiqueta,columnaValor,columnaEtiqueta">
+								<h:outputText value="#{msgs.lbl_horas_maquina}:" />
+								<p:selectBooleanCheckbox value="#{componenteCostoBean.componenteCosto.indicadorProrratearHorasMaquina}">
+									<p:ajax process="@this" global="false" event="change" update=":form:panelHorasMaquina :form:panelCoficienteProduccion"
+										listener="#{componenteCostoBean.actualizarIndicadorHorasMaquina}" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_horas_maquina_x_costo}:" />
+								<p:selectBooleanCheckbox value="#{componenteCostoBean.componenteCosto.indicadorProrratearHorasMaquinaXValor}">
+									<p:ajax process="@this" global="false" event="change" update=":form:panelHorasMaquina :form:panelCoficienteProduccion"
+										listener="#{componenteCostoBean.actualizarIndicadorHorasMaquinaXValor}" />
+								</p:selectBooleanCheckbox>
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{componenteCostoBean.componenteCosto.predeterminado}" />
+
+							<p:spacer />
+							<h:panelGrid columns="4" id="panelCoficienteProduccion" columnClasses="columnaValor,columnaEtiqueta,columnaValor,columnaEtiqueta">
+								<h:outputText value="#{msgs.lbl_coficiente_produccion}:" />
+								<p:selectBooleanCheckbox value="#{componenteCostoBean.componenteCosto.indicadorCoeficienteProduccion}">
+									<p:ajax process="@this" global="false" event="change" update=":form:panelHorasMaquina :form:panelHorasHombre"
+										listener="#{componenteCostoBean.actualizarIndicadorCoeficienteProduccion}" />
+								</p:selectBooleanCheckbox>
+								<p:spacer />
+								<p:spacer />
+							</h:panelGrid>
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{componenteCostoBean.componenteCosto.descripcion}" id="txtDescripcion" />
+						</h:panelGrid>
+
+						<p:tabView cache="true" dynamic="true" id="tvDetalleComponente">
+							<p:tab title="#{msgs.lbl_detalle}">
+								<p:outputPanel id="panelDetalles">
+									<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarDetalle" action="#{componenteCostoBean.agregarDetalle}"
+										update=":form:tvDetalleComponente:panelDetalles" process="@this" icon="ui-icon-plus" partialSubmit="true" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalles" rowIndexVar="secuencia"
+										emptyMessage="#{msgs.msg_no_hay_datos}" binding="#{componenteCostoBean.dtDetalleComponenteCosto}"
+										value="#{componenteCostoBean.listaDetalleComponenteCosto}" var="_detalle" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowsPerPageTemplate="#{componenteCostoBean.numeroFilasPorPagina}" rows="#{componenteCostoBean.numeroFilas}" rowKey="#{_detalle.rowKey}"
+										columnClasses="rowIndex" lazy="true">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencia+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton value="..." process="@this" partialSubmit="true"
+												actionListener="#{componenteCostoBean.listaCuentaContableBean.listarCuentaContable}">
+												<p:ajax event="dialogReturn" partialSubmit="true" listener="#{componenteCostoBean.seleccionarCuentaContable}"
+													update=":form:tvDetalleComponente:panelDetalles :form:tvDetalleComponente:panelDetallesDistribucion" />
+												<f:setPropertyActionListener target="#{componenteCostoBean.detalleComponenteCosto}" value="#{_detalle}" />
+												<f:setPropertyActionListener target="#{componenteCostoBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+											</p:commandButton>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTCodigoCuenta" headerText="#{msgs.lbl_codigo}">
+											<p:inputText styleClass="input-text" value="#{_detalle.cuentaContable.codigo}" id="txtCodigoCuenta" required="true">
+												<p:ajax listener="#{componenteCostoBean.buscarCuentaContable}" process="@this" update="txtCodigoCuenta txtNombreCuenta" event="change"
+													partialSubmit="true" global="false" />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cuenta_contable}">
+											<h:outputText id="txtNombreCuenta" value="#{_detalle.cuentaContable.nombre}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_valor_calculo}">
+											<p:selectOneMenu value="#{_detalle.valorCalculo}" id="cboValoresCalculo" required="true">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{componenteCostoBean.listaValoresCalculo}" var="_valorCalculo" itemLabel="#{_valorCalculo.nombre}"
+													itemValue="#{_valorCalculo}" />
+												<f:validateBean />
+												<p:ajax event="change" partialSubmit="true" process="@this" update="@this" />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton value="..." process="@this" partialSubmit="true"
+												actionListener="#{componenteCostoBean.listaCuentaContableBean.listarCuentaContable}">
+												<p:ajax event="dialogReturn" partialSubmit="true" listener="#{componenteCostoBean.seleccionarCuentaContableCierre}"
+													update="txtCodigoCuentaCierre txtNombreCuentaCierre" />
+												<f:setPropertyActionListener target="#{componenteCostoBean.detalleComponenteCosto}" value="#{_detalle}" />
+												<f:setPropertyActionListener target="#{componenteCostoBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+											</p:commandButton>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTCodigoCuenta" headerText="#{msgs.lbl_codigo}">
+											<p:inputText styleClass="input-text" value="#{_detalle.cuentaContableCierre.codigo}" id="txtCodigoCuentaCierre" required="false">
+												<p:ajax listener="#{componenteCostoBean.buscarCuentaContableCierre}" process="@this" update="txtCodigoCuentaCierre txtNombreCuentaCierre"
+													event="change" partialSubmit="true" global="false" />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_cuenta_contable_cierre}">
+											<h:outputText id="txtNombreCuentaCierre" value="#{_detalle.cuentaContableCierre.nombre}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton partialSubmit="true" id="btnEliminarDetalle" action="#{componenteCostoBean.eliminarDetalle}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalleComponente:panelDetalles :form:tvDetalleComponente:panelDetallesDistribucion"
+												process="@this" />
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+
+							</p:tab>
+							<p:tab title="#{msgs.lbl_distribucion}">
+								<p:outputPanel id="panelDetallesDistribucion">
+									<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarDetalleDistribucion" action="#{componenteCostoBean.agregarDetalleDistribucion}"
+										update=":form:tvDetalleComponente:panelDetallesDistribucion" process="@this" icon="ui-icon-plus" partialSubmit="true" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleDistribucion" rowIndexVar="secuencia"
+										emptyMessage="#{msgs.msg_no_hay_datos}" binding="#{componenteCostoBean.dtDetalleComponenteCostoDistribucion}"
+										value="#{componenteCostoBean.listaDetalleComponenteCostoDistribucion}" var="_detalle" paginator="true" paginatorPosition="bottom"
+										style="width:100%" rowsPerPageTemplate="#{componenteCostoBean.numeroFilasPorPagina}" rows="#{componenteCostoBean.numeroFilas}"
+										rowKey="#{_detalle.rowKey}" columnClasses="rowIndex">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencia+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre"
+											rendered="#{not empty componenteCostoBean.nombreDimension1 and componenteCostoBean.indicadorValidarDimension1}"
+											headerText="#{componenteCostoBean.nombreDimension1}">
+											<h:panelGroup rendered="#{componenteCostoBean.indicadorValidarDimension1}">
+												<p:commandButton value="..." process="@this" partialSubmit="true"
+													actionListener="#{componenteCostoBean.listaDimensionContableBean.listarDimensionContableListener('1')}">
+													<p:ajax event="dialogReturn" listener="#{componenteCostoBean.seleccionarDimensionContableListener}"
+														update=":form:tvDetalleComponente:panelDetallesDistribucion" />
+
+													<f:setPropertyActionListener value="#{_detalle}" target="#{componenteCostoBean.detalleComponenteCostoDistribucion}" />
+
+												</p:commandButton>
+
+												<h:outputText value="#{_detalle.dimensionContable1.nombre}" />
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre"
+											rendered="#{not empty componenteCostoBean.nombreDimension2 and componenteCostoBean.indicadorValidarDimension2}"
+											headerText="#{componenteCostoBean.nombreDimension2}">
+											<h:panelGroup rendered="#{componenteCostoBean.indicadorValidarDimension2}">
+												<p:commandButton value="..." process="@this" partialSubmit="true"
+													actionListener="#{componenteCostoBean.listaDimensionContableBean.listarDimensionContableListener('2')}">
+													<p:ajax event="dialogReturn" listener="#{componenteCostoBean.seleccionarDimensionContableListener}"
+														update=":form:tvDetalleComponente:panelDetallesDistribucion" />
+
+													<f:setPropertyActionListener value="#{_detalle}" target="#{componenteCostoBean.detalleComponenteCostoDistribucion}" />
+
+												</p:commandButton>
+
+												<h:outputText value="#{_detalle.dimensionContable2.nombre}" />
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre"
+											rendered="#{not empty componenteCostoBean.nombreDimension3 and componenteCostoBean.indicadorValidarDimension3}"
+											headerText="#{componenteCostoBean.nombreDimension3}">
+											<h:panelGroup rendered="#{componenteCostoBean.indicadorValidarDimension3}">
+												<p:commandButton value="..." process="@this" partialSubmit="true"
+													actionListener="#{componenteCostoBean.listaDimensionContableBean.listarDimensionContableListener('3')}">
+													<p:ajax event="dialogReturn" listener="#{componenteCostoBean.seleccionarDimensionContableListener}"
+														update=":form:tvDetalleComponente:panelDetallesDistribucion" />
+
+													<f:setPropertyActionListener value="#{_detalle}" target="#{componenteCostoBean.detalleComponenteCostoDistribucion}" />
+
+												</p:commandButton>
+
+												<h:outputText value="#{_detalle.dimensionContable3.nombre}" />
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre"
+											rendered="#{not empty componenteCostoBean.nombreDimension4 and componenteCostoBean.indicadorValidarDimension4}"
+											headerText="#{componenteCostoBean.nombreDimension4}">
+											<h:panelGroup rendered="#{componenteCostoBean.indicadorValidarDimension4}">
+												<p:commandButton value="..." process="@this" partialSubmit="true"
+													actionListener="#{componenteCostoBean.listaDimensionContableBean.listarDimensionContableListener('4')}">
+													<p:ajax event="dialogReturn" listener="#{componenteCostoBean.seleccionarDimensionContableListener}"
+														update=":form:tvDetalleComponente:panelDetallesDistribucion" />
+
+													<f:setPropertyActionListener value="#{_detalle}" target="#{componenteCostoBean.detalleComponenteCostoDistribucion}" />
+
+												</p:commandButton>
+
+												<h:outputText value="#{_detalle.dimensionContable4.nombre}" />
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre"
+											rendered="#{not empty componenteCostoBean.nombreDimension5 and componenteCostoBean.indicadorValidarDimension5}"
+											headerText="#{componenteCostoBean.nombreDimension5}">
+											<h:panelGroup rendered="#{componenteCostoBean.indicadorValidarDimension5}">
+												<p:commandButton value="..." process="@this" partialSubmit="true"
+													actionListener="#{componenteCostoBean.listaDimensionContableBean.listarDimensionContableListener('5')}">
+													<p:ajax event="dialogReturn" listener="#{componenteCostoBean.seleccionarDimensionContableListener}"
+														update=":form:tvDetalleComponente:panelDetallesDistribucion" />
+
+													<f:setPropertyActionListener value="#{_detalle}" target="#{componenteCostoBean.detalleComponenteCostoDistribucion}" />
+
+												</p:commandButton>
+
+												<h:outputText value="#{_detalle.dimensionContable5.nombre}" />
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_ruta_fabricacion}">
+											<p:selectOneMenu styleClass="input-text-col" required="true" value="#{_detalle.rutaFabricacion}">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{componenteCostoBean.listaRutaFabricacion}" var="_ruta" itemLabel="#{_ruta.nombre}" itemValue="#{_ruta}" />
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton partialSubmit="true" id="btnEliminarDetalleDistribucion" action="#{componenteCostoBean.eliminarDetalleDistribucion}"
+												icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tvDetalleComponente:panelDetallesDistribucion" process="@this" />
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!componenteCostoBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_componente_costo_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaComponenteCosto" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{componenteCostoBean.listaComponenteCosto}" var="_componenteCosto"
+							binding="#{componenteCostoBean.dtComponenteCosto}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{componenteCostoBean.numeroFilas}" rowsPerPageTemplate="#{componenteCostoBean.numeroFilasPorPagina}"
+							selection="#{componenteCostoBean.componenteCosto}" selectionMode="single" rowKey="#{_componenteCosto.id}" sortBy="#{_componenteCosto.codigo}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{_componenteCosto.codigo}" sortBy="#{_componenteCosto.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_componenteCosto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{_componenteCosto.nombre}" sortBy="#{_componenteCosto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_componenteCosto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_componenteCosto.tipoComponenteCostoEnum.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_componente_costo}" />
+								</f:facet>
+								<h:outputText value="#{_componenteCosto.tipoComponenteCostoEnum.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_componenteCosto.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_componenteCosto.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_componenteCosto.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_componenteCosto.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_componenteCosto.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{componenteCostoBean.componenteCosto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{componenteCostoBean.componenteCosto.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{componenteCostoBean.componenteCosto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{componenteCostoBean.componenteCosto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

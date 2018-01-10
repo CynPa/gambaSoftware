@@ -1,0 +1,264 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{cargaEmpleadoBean}">
+					<as2:buttonExportaExcel bean="#{cargaEmpleadoBean}" tabla=":form:tablaCargaEmpleado" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{cargaEmpleadoBean}" />
+					<ui:param name="objetoActualizar" value="@form" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_carga_carga_empleado} )" rendered="#{cargaEmpleadoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{cargaEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." process="@this" oncomplete="dglModalEmpleado.show();" update=":form:panelListaEmpleado">
+									</p:commandButton>
+									<h:outputText id="txtEmpleado" value="#{cargaEmpleadoBean.empleado.apellidos} #{cargaEmpleadoBean.empleado.nombres}" />
+								</h:panelGroup>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:fieldset>
+							<h:panelGroup>
+								<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{cargaEmpleadoBean.agregarDetalle}"
+									update=":form:panelDetalle   " process="@this :form:panelDetalle" icon="ui-icon-plus" />
+
+							</h:panelGroup>
+							<h:panelGrid id="panelDetalle" columns="#{cargaEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{cargaEmpleadoBean.listaCargasEmpleado}" id="tablaCargasEmpleado"
+									rowIndexVar="secuencial" binding="#{cargaEmpleadoBean.dtCargaEmpleado}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_cargaEmpleado"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_cargaEmpleado.id}" rows="#{cargaEmpleadoBean.numeroFilas}"
+									lazy="true">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+										<p:inputText styleClass="input-text-col" value="#{_cargaEmpleado.nombre}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_identificacion}">
+										<h:panelGroup>
+											<p:inputText styleClass="input-text-col" id="txtIdentificacion" value="#{_cargaEmpleado.identificacion}">
+												<f:validateBean />
+											</p:inputText>
+											<p:message for="txtIdentificacion" />
+										</h:panelGroup>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTFechaInput" headerText="#{msgs.lbl_fecha_nacimiento}">
+										<p:calendar pattern="#{cargaEmpleadoBean.formatoFecha}" showOn="button" navigator="true" value="#{_cargaEmpleado.fechaNacimiento}"
+											id="calFecha" size="10">
+											<p:ajax update="txtEdad" event="change" process="@this" />
+											<p:ajax update="txtEdad" event="dateSelect" process="@this" />
+										</p:calendar>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_edad}">
+										<h:outputText value="#{_cargaEmpleado.edad}" id="txtEdad" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_genero}">
+										<p:selectOneMenu styleClass="input-text" value="#{_cargaEmpleado.genero}" id="cboGenero" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{cargaEmpleadoBean.listaGenero}" />
+											<p:ajax process="@this" global="false"/>
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_parentezco}">
+										<p:selectOneMenu styleClass="input-text" value="#{_cargaEmpleado.parentezco}" id="cboParentezco" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{cargaEmpleadoBean.listaParentezco}" />
+											<p:ajax process="@this" global="false"/>
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_tipo_discapacidad}">
+
+										<p:selectOneMenu value="#{_cargaEmpleado.tipoDiscapacidad}" id="cboTipoDiscapacidad">
+
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{cargaEmpleadoBean.listaTipoDiscapacidad}" var="_tipoDiscapacidad" itemValue="#{_tipoDiscapacidad}"
+												itemLabel="#{_tipoDiscapacidad.codigo} #{_tipoDiscapacidad.nombre}">
+											</f:selectItems>
+
+											<p:ajax event="change" process="@this" update="txtPorcentajeDiscapacidad" />
+
+											<f:validateBean for="cboTipoDiscapacidad" />
+
+										</p:selectOneMenu>
+
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTValor" headerText="% #{msgs.lbl_discapacidad}">
+										<p:inputText styleClass="input-text-col" id="txtPorcentajeDiscapacidad" value="#{_cargaEmpleado.porcentajeDiscapacidad}"
+											disabled="#{empty _cargaEmpleado.tipoDiscapacidad}">
+											<p:ajax process="@this" global="false" />
+											<f:validateBean />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_activo}">
+										<h:selectBooleanCheckbox value="#{_cargaEmpleado.activo}" />
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion">
+										<p:commandButton id="btnEliminarDetalle" action="#{cargaEmpleadoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelDetalle " process="@this">
+										</p:commandButton>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_carga_carga_empleado} )" rendered="#{!cargaEmpleadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCargaEmpleado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cargaEmpleadoBean.listaCargaEmpleado}" var="_cargaEmpleado"
+							binding="#{cargaEmpleadoBean.dtEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{cargaEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{cargaEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{cargaEmpleadoBean.cargaEmpleado}" selectionMode="single" rowKey="#{_cargaEmpleado.id}"
+							sortBy="#{_cargaEmpleado.empleado.empresa.codigo}" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo" sortBy="#{_cargaEmpleado.empleado.empresa.codigo}"
+								filterBy="#{_cargaEmpleado.empleado.empresa.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.empleado.empresa.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_cargaEmpleado.empleado.apellidos}" filterBy="#{_cargaEmpleado.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_apellios}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_cargaEmpleado.empleado.nombres}" filterBy="#{_cargaEmpleado.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" filterBy="#{_cargaEmpleado.empleado.activo}"
+								filterOptions="#{cargaEmpleadoBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true" value="#{_cargaEmpleado.empleado.activo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_cargaEmpleado.nombre}" filterBy="#{_cargaEmpleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_carga_empleado}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_cargaEmpleado.identificacion}" filterBy="#{_cargaEmpleado.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_cargaEmpleado.fechaNacimiento}" filterBy="#{_cargaEmpleado.fechaNacimiento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_nacimiento}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.fechaNacimiento}">
+									<f:convertDateTime pattern="#{cargaEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_edad}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.edad}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_cargaEmpleado.genero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_genero}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.genero.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_cargaEmpleado.parentezco}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_parentezco}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.parentezco.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_cargaEmpleado.tipoDiscapacidad.nombre}"
+								filterBy="#{_cargaEmpleado.tipoDiscapacidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_discapacidad}" />
+								</f:facet>
+								<h:outputText value="#{_cargaEmpleado.tipoDiscapacidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTActivo" sortBy="#{_cargaEmpleado.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{_cargaEmpleado.activo}" disabled="true" />
+							</p:column>
+
+
+							<p:column exportable="false" styleClass="tableCell columnaDTAccion">
+								<p:commandButton icon="ui-icon-circle-check" title="#{msgs.lbl_activar}" process=":form:panelListado"
+									action="#{cargaEmpleadoBean.activarCargaEmpleado}" update=":form:panelListado" rendered="#{!_cargaEmpleado.activo}" />
+
+								<p:commandButton icon="ui-icon-circle-close" title="#{msgs.lbl_inactivar}" process=":form:panelListado" rendered="#{_cargaEmpleado.activo}"
+									action="#{cargaEmpleadoBean.desactivarCargaEmpleado}" update=":form:panelListado" />
+							</p:column>
+						</p:dataTable>
+
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{cargaEmpleadoBean.cargaEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{cargaEmpleadoBean.cargaEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{cargaEmpleadoBean.cargaEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{cargaEmpleadoBean.cargaEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

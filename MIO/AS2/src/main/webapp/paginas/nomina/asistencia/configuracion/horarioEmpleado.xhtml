@@ -1,0 +1,289 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{horarioEmpleadoBean}">
+
+					<as2:buttonEliminar bean="#{horarioEmpleadoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.nombre}" />
+
+					</as2:buttonEliminar>
+					
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{horarioEmpleadoBean.copiar}" update=":form:panelContenedor" rendered="#{!horarioEmpleadoBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonExportaExcel bean="#{horarioEmpleadoBean}" tabla=":form:tablaHorarioEmpleados" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{horarioEmpleadoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_horario_empleado})">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{horarioEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{horarioEmpleadoBean.horarioEmpleado.codigo}" id="txtCodigo" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{horarioEmpleadoBean.horarioEmpleado.nombre}" id="txtNombre" required="true">
+								</p:inputText>
+
+								<p:outputLabel for="chAct" value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.activo}" id="chAct" />
+
+								<p:outputLabel for="chPred" value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.predeterminado}" id="chPred" />
+
+								<p:outputLabel for="chRotatico" value="#{msgs.lbl_rotativo}:" />
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorRotativo}" id="chRotatico">
+									<p:ajax process="@this" update=":form:panelDetalles" />
+								</p:selectBooleanCheckbox>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{horarioEmpleadoBean.horarioEmpleado.descripcion}" id="txtDescripcion">
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer />
+						<p:outputPanel id="panelDetalles">
+							<h:panelGrid rendered="#{!horarioEmpleadoBean.horarioEmpleado.indicadorRotativo}" id="panelGridDetalles" columns="9"
+								columnClasses="columnaEtiqueta,columna25,columnaDTAccion,columnaDTAccion,columnaDTAccion,columnaDTNombreCorto,columnaDTNombreCorto,columnaDTNombreCorto,columnaDTNombreCorto">
+
+								<p:spacer />
+								<h:outputText value="#{msgs.lbl_turno}" style="text-align: center;" />
+								<h:outputText value="#{msgs.lbl_dia_descanso}" style="text-align: center;" />
+								<h:outputText value="#{msgs.lbl_complementario}" style="text-align: center;" />
+								<h:outputText value="#{msgs.lbl_dia_opcional}" style="text-align: center;" />
+								<h:outputText value="#{msgs.lbl_hora_entrada}" style="text-align: center;" />
+								<h:outputText value="#{msgs.lbl_hora_receso_salida}" style="text-align: center;" />
+								<h:outputText value="#{msgs.lbl_hora_receso_entrada}" style="text-align: center;" />
+								<h:outputText value="#{msgs.lbl_hora_salida}" style="text-align: center;" />
+
+								<p:outputLabel for="cboTurnoLunes" value="#{msgs.lbl_lunes}:" />
+								<p:selectOneMenu value="#{horarioEmpleadoBean.horarioEmpleado.turno1}" id="cboTurnoLunes">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{horarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+									<p:ajax process="@this" event="change" update=":form:panelDetalles" />
+								</p:selectOneMenu>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaDescanso1}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorHorarioComplementario1}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaOpcional1}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno1.horaEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno1.horaRecesoSalida}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno1.horaRecesoEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno1.horaSalida}" style="text-align: center;" />
+
+								<p:outputLabel for="cboTurnoMartes" value="#{msgs.lbl_martes}:" />
+								<p:selectOneMenu value="#{horarioEmpleadoBean.horarioEmpleado.turno2}" id="cboTurnoMartes">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{horarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+									<p:ajax process="@this" event="change" update=":form:panelDetalles" />
+								</p:selectOneMenu>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaDescanso2}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorHorarioComplementario2}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaOpcional2}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno2.horaEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno2.horaRecesoSalida}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno2.horaRecesoEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno2.horaSalida}" style="text-align: center;" />
+
+								<p:outputLabel for="cboTurnoMiercoles" value="#{msgs.lbl_miercoles}:" />
+								<p:selectOneMenu value="#{horarioEmpleadoBean.horarioEmpleado.turno3}" id="cboTurnoMiercoles">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{horarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+									<p:ajax process="@this" event="change" update=":form:panelDetalles" />
+								</p:selectOneMenu>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaDescanso3}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorHorarioComplementario3}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaOpcional3}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno3.horaEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno3.horaRecesoSalida}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno3.horaRecesoEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno3.horaSalida}" style="text-align: center;" />
+
+								<p:outputLabel for="cboTurnoJueves" value="#{msgs.lbl_jueves}:" />
+								<p:selectOneMenu value="#{horarioEmpleadoBean.horarioEmpleado.turno4}" id="cboTurnoJueves">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{horarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+									<p:ajax process="@this" event="change" update=":form:panelDetalles" />
+								</p:selectOneMenu>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaDescanso4}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorHorarioComplementario4}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaOpcional4}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno4.horaEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno4.horaRecesoSalida}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno4.horaRecesoEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno4.horaSalida}" style="text-align: center;" />
+
+								<p:outputLabel for="cboTurnoViernes" value="#{msgs.lbl_viernes}:" />
+								<p:selectOneMenu value="#{horarioEmpleadoBean.horarioEmpleado.turno5}" id="cboTurnoViernes">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{horarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+									<p:ajax process="@this" event="change" update=":form:panelDetalles" />
+								</p:selectOneMenu>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaDescanso5}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorHorarioComplementario5}" style="text-align: left;">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaOpcional5}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno5.horaEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno5.horaRecesoSalida}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno5.horaRecesoEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno5.horaSalida}" style="text-align: center;" />
+
+								<p:outputLabel for="cboTurnoSabado" value="#{msgs.lbl_sabado}:" />
+								<p:selectOneMenu value="#{horarioEmpleadoBean.horarioEmpleado.turno6}" id="cboTurnoSabado">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{horarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+									<p:ajax process="@this" event="change" update=":form:panelDetalles" />
+								</p:selectOneMenu>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaDescanso6}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorHorarioComplementario6}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaOpcional6}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno6.horaEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno6.horaRecesoSalida}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno6.horaRecesoEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno6.horaSalida}" style="text-align: center;" />
+
+								<p:outputLabel for="cboTurnoDomingo" value="#{msgs.lbl_domingo}:" />
+								<p:selectOneMenu value="#{horarioEmpleadoBean.horarioEmpleado.turno0}" id="cboTurnoDomingo">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{horarioEmpleadoBean.listaTurno}" var="_turno" itemLabel="#{_turno.codigo} - #{_turno.nombre}" itemValue="#{_turno}" />
+									<p:ajax process="@this" event="change" update=":form:panelDetalles" />
+								</p:selectOneMenu>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaDescanso0}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorHorarioComplementario0}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<p:selectBooleanCheckbox value="#{horarioEmpleadoBean.horarioEmpleado.indicadorDiaOpcional0}">
+									<p:ajax global="false" partialSubmit="true" update="@none" process="@this" />
+								</p:selectBooleanCheckbox>
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno0.horaEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno0.horaRecesoSalida}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno0.horaRecesoEntrada}" style="text-align: center;" />
+								<h:outputText value="#{horarioEmpleadoBean.horarioEmpleado.turno0.horaSalida}" style="text-align: center;" />
+
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!horarioEmpleadoBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_horario_empleado})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaHorarioEmpleados" rowIndexVar="secuencialHorarioEmpleado"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{horarioEmpleadoBean.listaHorarioEmpleado}" var="horarioEmpleado"
+							binding="#{horarioEmpleadoBean.dtHorarioEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{horarioEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{horarioEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{horarioEmpleadoBean.horarioEmpleado}" selectionMode="single" rowKey="#{horarioEmpleado.id}" sortBy="#{horarioEmpleado.codigo}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialHorarioEmpleado+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{horarioEmpleado.codigo}" filterBy="#{horarioEmpleado.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{horarioEmpleado.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{horarioEmpleado.nombre}" filterBy="#{horarioEmpleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{horarioEmpleado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{horarioEmpleado.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{horarioEmpleado.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{horarioEmpleado.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_rotativo}">
+								<p:selectBooleanCheckbox value="#{horarioEmpleado.indicadorRotativo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{horarioEmpleado.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{horarioEmpleado.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{horarioEmpleadoBean.horarioEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{horarioEmpleadoBean.horarioEmpleado.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{horarioEmpleadoBean.horarioEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{horarioEmpleadoBean.horarioEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

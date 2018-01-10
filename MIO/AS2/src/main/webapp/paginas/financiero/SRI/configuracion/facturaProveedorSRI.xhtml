@@ -1,0 +1,474 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui">
+
+<f:metadata>
+	<f:viewParam name="indicadorFactura" value="#{facturaProveedorSRIBean.indicadorFactura}" />
+	<f:event listener="#{facturaProveedorSRIBean.cargarInformacion}" type="preRenderView" />
+</f:metadata>
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+						<p:commandButton value="#{msgs.btn_guardar}" id="btnGuardar" action="#{facturaProveedorSRIBean.guardar}" update=":form:panelContenedor"
+							process="@this :form:panelNuevo" icon="ui-icon-disk">
+						</p:commandButton>
+
+						<p:commandButton value="#{msgs.btn_cancelar}" id="btnCancelar" action="#{facturaProveedorSRIBean.cancelar}" update="@this" process="@this"
+							icon="ui-icon-arrowreturnthick-1-w" />
+
+					</p:toolbarGroup>
+				</p:toolbar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_titulo_factura_sri})">
+
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.documento}" id="cboDocumento" required="true"
+								disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{facturaProveedorSRIBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+								<p:ajax
+									update="txtEmail calFechaEmisionRetencion txtAutorizacionRetencion txtNumeroFacturaRetencion txtPuntoRetencion txtEstablecimientoRetencion"
+									event="change" process="@this calFechaEmisionRetencion" global="false" listener="#{facturaProveedorSRIBean.actualizarDocumento}" />
+
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_tipo_identificacion}" />
+							<p:selectOneMenu styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoIdentificacion.idTipoIdentificacion}"
+								id="cboTipoIdentificacion" required="true"
+								disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO'}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tipoIdentificacionBean.listaTipoIdentificacionCombo}" var="_tipoIdentificacion"
+									itemLabel="#{_tipoIdentificacion.nombre}" itemValue="#{_tipoIdentificacion.idTipoIdentificacion}" />
+								<p:ajax update="cboTipoComprobante cboCreditoTributarioSRI" event="change" process="@this" global="false"
+									listener="#{facturaProveedorSRIBean.actualizarPorTipoIdentificacion}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+							<h:outputText value="#{msgs.lbl_sri_tipo_comprobante}" />
+							<p:selectOneMenu styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI}" id="cboTipoComprobante"
+								required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{facturaProveedorSRIBean.listaTipoComprobanteSRI}" var="_tipoComprobante" itemLabel="#{_tipoComprobante.nombre}"
+									itemValue="#{_tipoComprobante}" />
+								<p:ajax update="cboCreditoTributarioSRI panelTxtFPD panelCalFPD panelLblIAD panelTxtIAD panelLblAGU panelTxtAGU" event="change"
+									process="@this" global="false" listener="#{facturaProveedorSRIBean.cargarListaCreditoTributarioSRI}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_sri_credito_tributario}" />
+							<p:selectOneMenu styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.creditoTributarioSRI}"
+								id="cboCreditoTributarioSRI" required="true" converter="creditoTributarioSRIConverter">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{facturaProveedorSRIBean.listaCreditoTributarioSRI}" var="_creditoTributario"
+									itemLabel="#{_creditoTributario.codigo}  #{_creditoTributario.nombre}" itemValue="#{_creditoTributario}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_proveedor}" />
+							<p:inputText styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.nombreProveedor}" id="txtProveedorRetencion"
+								rendered="#{!facturaProveedorSRIBean.facturaProveedorSRI.generado}" />
+							<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.nombreProveedor}"
+								rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.generado}" />
+
+							<h:outputText value="#{msgs.lbl_numero_identificacion}" />
+							<h:panelGrid columns="3" columnClasses="columnaValor,columnaValor,columnaValor">
+								<h:panelGroup>
+									<p:inputText styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.identificacionProveedor}"
+										id="txtNumIdentificacionRetencion" rendered="#{!facturaProveedorSRIBean.facturaProveedorSRI.generado}">
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.identificacionProveedor}"
+										rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.generado}" />
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_sri_serie_secuencial}" />
+								<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.numeroFactura}" />
+
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_fecha_emision} *" />
+							<h:panelGrid columns="3" columnClasses="columnaValor,columnaValor,columnaValor">
+								<p:calendar pattern="#{facturaProveedorSRIBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{facturaProveedorSRIBean.facturaProveedorSRI.fechaEmision}" id="calFechaEmisionFactura" required="true"
+									disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO'}" />
+								<h:outputText value="#{msgs.lbl_fecha_registro}" rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.compraCajaChica == null}" />
+								<h:panelGroup rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.compraCajaChica == null}">
+									<p:calendar pattern="#{facturaProveedorSRIBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{facturaProveedorSRIBean.facturaProveedorSRI.fechaRegistro}" id="calFechaRegistro"
+										rendered="#{!facturaProveedorSRIBean.facturaProveedorSRI.generado}">
+
+										<p:ajax listener="#{facturaProveedorSRIBean.cargarConceptoRetencion}" process="@this" update=":form:panelDetalleFacturaProveedorSRI"
+											event="dateSelect" />
+									</p:calendar>
+
+									<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.fechaRegistro}"
+										rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.generado}">
+										<f:convertDateTime pattern="#{facturaProveedorSRIBean.formatoFecha}" />
+									</h:outputText>
+								</h:panelGroup>
+
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_factura_electronica}" />
+							<p:selectBooleanCheckbox value="#{facturaProveedorSRIBean.facturaProveedorSRI.indicadorFacturaElectronica}"
+								disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO'}">
+								<p:ajax event="change" process="@this" update=":form:txtAutorizacionFactura" global="false"></p:ajax>
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_numero_autorizacion} *" />
+							<p:inputText styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.autorizacion}" id="txtAutorizacionFactura"
+								required="true"
+								disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO'}">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_sri_retencoin_asumida}" />
+							<p:selectBooleanCheckbox value="#{facturaProveedorSRIBean.facturaProveedorSRI.indicadorRetencionAsumida}"
+								disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO'}" />
+
+							<h:outputText value="#{msgs.lbl_sri_base_cero}" />
+							<h:panelGrid columns="3" columnClasses="columnaValor,columnaValor,columnaValor">
+								<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.baseImponibleTarifaCero}" />
+
+								<h:outputText value="#{msgs.lbl_sri_base_no_objeto_iva}" />
+								<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.baseImponibleNoObjetoIva}" />
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_sri_monto_iva}" />
+							<h:panelGrid columns="3" columnClasses="columnaValor,columnaValor,columnaValor">
+								<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.montoIva}" />
+
+								<h:outputText value="#{msgs.lbl_sri_monto_ice}" />
+								<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.montoIce}" />
+							</h:panelGrid>
+
+							<h:outputText value="#{msgs.lbl_sri_base_diferente_cero}" />
+							<h:outputText value="#{facturaProveedorSRIBean.facturaProveedorSRI.baseImponibleDiferenteCero}" />
+
+							<h:outputText value="#{msgs.lbl_email}:" />
+							<p:inputText styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.email}" id="txtEmail"
+								required="#{facturaProveedorSRIBean.facturaProveedorSRI.documento.indicadorDocumentoElectronico}"
+								disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO'}">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputPanel id="panelTxtFPD">
+								<p:outputLabel for="calFechaPagoDividendo" value="#{msgs.lbl_fecha_pago_dividendo}:" id="txtFechaPagoDividendo"
+									rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo == 19}" />
+							</p:outputPanel>
+							<p:outputPanel id="panelCalFPD">
+								<p:calendar pattern="#{facturaProveedorSRIBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{facturaProveedorSRIBean.facturaProveedorSRI.fechaPagoDividendo}" id="calFechaPagoDividendo"
+									rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo == 19}"
+									required="#{facturaProveedorSRIBean.facturaProveedorSRI.indicadorDividendo}" />
+							</p:outputPanel>
+
+							<p:outputPanel id="panelLblIAD">
+								<p:outputLabel for="txtIrAsociadoDividendo" value="#{msgs.lbl_ir_asociado_dividendo}:" id="lblIrAsociadoDividendo"
+									rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo == 19}" />
+							</p:outputPanel>
+							<p:outputPanel id="panelTxtIAD">
+								<p:inputText styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.irAsociadoDividendo}" id="txtIrAsociadoDividendo"
+									rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo == 19}"
+									required="#{facturaProveedorSRIBean.facturaProveedorSRI.indicadorDividendo}">
+									<f:validateBean />
+								</p:inputText>
+							</p:outputPanel>
+
+							<p:outputPanel id="panelLblAGU">
+								<p:outputLabel for="txtAnioGeneracionUtilidades" value="#{msgs.lbl_anio_generaron_utilidades}:" id="lblAnioGeneracionUtilidades"
+									rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo == 19}" />
+							</p:outputPanel>
+							<p:outputPanel id="panelTxtAGU">
+								<p:inputText styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.anioGeneracionUtilidades}"
+									id="txtAnioGeneracionUtilidades" rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo == 19}"
+									required="#{facturaProveedorSRIBean.facturaProveedorSRI.indicadorDividendo}">
+									<f:validateBean />
+								</p:inputText>
+							</p:outputPanel>
+						</h:panelGrid>
+
+						<p:fieldset legend="#{msgs.lbl_sri_comprobante_retencion}" toggleable="true" toggleSpeed="500">
+
+							<h:outputText value="#{facturaProveedorSRIBean.mensaje}" style="color:#FF0000;" />
+							<h:panelGrid columns="9" id="panelConceptoRetencionDatos">
+
+								<h:outputText value="#{msgs.lbl_sri_serie_secuencial}" />
+								<p:inputMask mask="999" styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.establecimientoRetencion}" size="3"
+									maxlength="3" id="txtEstablecimientoRetencion"
+									disabled="#{(!facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.documento.indicadorDocumentoElectronico)
+										or (facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO')}" />
+
+								<p:inputMask mask="999" styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.puntoEmisionRetencion}" size="3"
+									maxlength="3" id="txtPuntoRetencion"
+									disabled="#{(!facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.documento.indicadorDocumentoElectronico)
+										or (facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO')}" />
+
+								<p:inputText styleClass="input-text" id="txtNumeroFacturaRetencion" value="#{facturaProveedorSRIBean.facturaProveedorSRI.numeroRetencion}"
+									min="0" max="999999999"
+									disabled="#{(facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO')}" />
+
+								<p:commandButton icon="ui-icon-refresh" action="#{facturaProveedorSRIBean.btnActualizarSecuencia}" process="@this"
+									update="txtAutorizacionRetencion txtNumeroFacturaRetencion txtPuntoRetencion txtEstablecimientoRetencion"
+									disabled="#{(!facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.documento.indicadorDocumentoElectronico)
+										or (facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos and facturaProveedorSRIBean.facturaProveedorSRI.estado == 'PROCESADO')}" />
+
+								<h:outputText value="#{msgs.lbl_numero_autorizacion}" />
+								<p:inputText styleClass="input-text" value="#{facturaProveedorSRIBean.facturaProveedorSRI.autorizacionRetencion}"
+									id="txtAutorizacionRetencion" size="10" disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.documento.indicadorDocumentoElectronico}" />
+
+								<h:outputText value="#{msgs.lbl_fecha_emision}" />
+								<p:calendar pattern="#{facturaProveedorSRIBean.formatoFecha}" showOn="button" navigator="true" required="true"
+									value="#{facturaProveedorSRIBean.facturaProveedorSRI.fechaEmisionRetencion}" id="calFechaEmisionRetencion"
+									disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos}">
+								</p:calendar>
+							</h:panelGrid>
+							<h:panelGrid columns="2" cellpadding="2" columnClasses="columnaMitad,columnaMitad">
+								<p:fieldset legend="#{msgs.lbl_sri_concepto_retencion_titulo}" toggleable="false">
+
+									<p:outputPanel id="panelDetalleFacturaProveedorSRI">
+
+										<p:commandButton value="#{msgs.lbl_agregar_detalle}" id="btnAgregarDetalleFacturaProveedorSRI"
+											action="#{facturaProveedorSRIBean.agregarDetalleFacturaSRI}" update=":form:panelDetalleFacturaProveedorSRI" process="@this"
+											icon="ui-icon-plus" disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos}" />
+
+										<p:commandButton value="#{msgs.lbl_agregar_detalle_332}" id="btnAgregarDetalleFacturaProveedorSRI332"
+											action="#{facturaProveedorSRIBean.agregarDetalleFacturaSRI332}" update=":form:panelDetalleFacturaProveedorSRI" process="@this"
+											icon="ui-icon-plus"/>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{facturaProveedorSRIBean.listaDetalleFacturaProveedorSRI}"
+											id="tablaDetalleFacturaProveedorSRI" rowIndexVar="secuencial" binding="#{facturaProveedorSRIBean.dtDetalleFacturaProveedorSRI}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleFacturaProveedorSRI" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_detalleFacturaProveedorSRI.id}" rows="#{facturaProveedorSRIBean.numeroFilas}"
+											rowsPerPageTemplate="#{facturaProveedorSRIBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<f:facet name="header">
+													<h:outputText value="Nº" />
+												</f:facet>
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombreCorto tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_concepto_retencion}" />
+												</f:facet>
+
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+													value="#{_detalleFacturaProveedorSRI.conceptoRetencionSRI}" completeMethod="#{facturaProveedorSRIBean.autocompletarConceptoRetencionSRI}"
+													var="_conceptoRetencion" itemLabel="#{_conceptoRetencion.codigo}" itemValue="#{_conceptoRetencion}" forceSelection="true"
+													dropdown="false" minQueryLength="2" id="autConceptoRetencionSRI"
+													disabled="#{facturaProveedorSRIBean.editaConceptoYBase}">
+
+													<p:column>
+														<h:outputText value="#{_conceptoRetencion.codigo}" />
+													</p:column>
+
+													<p:column>
+														<h:outputText value="#{_conceptoRetencion.nombre}" />
+													</p:column>
+
+													<p:ajax event="itemSelect" process="@this" listener="#{facturaProveedorSRIBean.actualizarConceptoRetencionSRI}"
+														update=":form:panelDetalleFacturaProveedorSRI" oncomplete="nextFocus('#{p:component('txtBaseImponibleDetalle')}')" />
+												</p:autoComplete>
+
+											</p:column>
+
+											<p:column styleClass="tableCell">
+												<h:outputText value="#{_detalleFacturaProveedorSRI.conceptoRetencionSRI.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" rendered="#{facturaProveedorSRIBean.mostrarBaseImponible}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_base_imponible}" />
+												</f:facet>
+												<p:inputText value="#{_detalleFacturaProveedorSRI.baseImponibleRetencion}" id="txtBaseImponibleDetalle"
+													disabled="#{facturaProveedorSRIBean.editaConceptoYBase}">
+
+													<p:ajax event="change" process="@this" listener="#{facturaProveedorSRIBean.actualizarValorRetencionListener}"
+														update=":form:panelDetalleFacturaProveedorSRI" oncomplete="nextFocus('#{p:component('txtBaseImponibleDetalle')}')" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" rendered="#{facturaProveedorSRIBean.mostrarBasesDetalle}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_base_cero}" />
+												</f:facet>
+												<p:inputText value="#{_detalleFacturaProveedorSRI.baseImponibleTarifaCero}" id="txtBaseImponibleTarifaCeroDetalle">
+
+													<p:ajax event="change" process="@this" listener="#{facturaProveedorSRIBean.actualizarValorRetencionListener}"
+														update=":form:panelDetalleFacturaProveedorSRI" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" rendered="#{facturaProveedorSRIBean.mostrarBasesDetalle}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_base_diferente_cero}" />
+												</f:facet>
+												<p:inputText value="#{_detalleFacturaProveedorSRI.baseImponibleDiferenteCero}" id="txtBaseImponibleDiferenteCeroDetalle">
+
+													<p:ajax event="change" process="@this" listener="#{facturaProveedorSRIBean.actualizarValorRetencionListener}"
+														update=":form:panelDetalleFacturaProveedorSRI" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell" rendered="#{facturaProveedorSRIBean.mostrarBasesDetalle}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_base_no_objeto_iva}" />
+												</f:facet>
+												<p:inputText value="#{_detalleFacturaProveedorSRI.baseImponibleNoObjetoIva}" id="txtBaseImponibleNoObjetoIvaDetalle">
+
+													<p:ajax event="change" process="@this" listener="#{facturaProveedorSRIBean.actualizarValorRetencionListener}"
+														update=":form:panelDetalleFacturaProveedorSRI" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTPorcentaje tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_porcentaje_retencion}" />
+												</f:facet>
+												<p:inputText styleClass="input-text" value="#{_detalleFacturaProveedorSRI.porcentajeRetencion}"
+													rendered="#{_detalleFacturaProveedorSRI.conceptoRetencionSRI.ingresaPorcentaje}" id="txtPorcentajeRetencionDetalle">
+
+													<p:ajax event="change" process="@this" listener="#{facturaProveedorSRIBean.actualizarValorRetencionListener}"
+														update=":form:panelDetalleFacturaProveedorSRI" />
+												</p:inputText>
+												<h:outputText styleClass="input-text" value="#{_detalleFacturaProveedorSRI.porcentajeRetencion}"
+													rendered="#{!_detalleFacturaProveedorSRI.conceptoRetencionSRI.ingresaPorcentaje}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_valor_retenido}" />
+												</f:facet>
+												<h:outputText value="#{_detalleFacturaProveedorSRI.valorRetencion}" id="txtValorRetencionDetalle"
+													rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo != 19}" />
+												<p:inputText styleClass="input-text" value="#{_detalleFacturaProveedorSRI.valorRetencion}" id="txtValorRetencionDetalle2"
+													rendered="#{facturaProveedorSRIBean.facturaProveedorSRI.tipoComprobanteSRI.codigo == 19}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalleFacturaProveedorSRI" action="#{facturaProveedorSRIBean.eliminarDetalleFacturaSRI}"
+													update=":form:panelDetalleFacturaProveedorSRI" process="@this" icon="ui-icon-trash"
+													disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos}" />
+											</p:column>
+										</p:dataTable>
+									</p:outputPanel>
+								</p:fieldset>
+
+								<p:fieldset legend="#{msgs.lbl_sri_concepto_retencion_iva_titulo}" toggleable="false">
+
+									<p:outputPanel id="panelDetalleIVAFacturaProveedorSRI">
+
+										<p:commandButton value="#{msgs.lbl_agregar_detalle}" id="btnAgregarDetalleIVAFacturaProveedorSRI"
+											action="#{facturaProveedorSRIBean.agregarDetalleIVAFacturaSRI}" update=":form:panelDetalleIVAFacturaProveedorSRI" process="@this"
+											icon="ui-icon-plus" disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos}" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{facturaProveedorSRIBean.listaDetalleIVAFacturaProveedorSRI}"
+											id="tablaDetalleIVAFacturaProveedorSRI" rowIndexVar="secuencial" binding="#{facturaProveedorSRIBean.dtDetalleIVAFacturaProveedorSRI}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleFacturaProveedorSRI" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_detalleFacturaProveedorSRI.id}" rows="#{facturaProveedorSRIBean.numeroFilas}"
+											rowsPerPageTemplate="#{facturaProveedorSRIBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<f:facet name="header">
+													<h:outputText value="Nº" />
+												</f:facet>
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTNombreCorto tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_concepto_retencion}" />
+												</f:facet>
+
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+													value="#{_detalleFacturaProveedorSRI.conceptoRetencionSRI}"
+													completeMethod="#{facturaProveedorSRIBean.autocompletarConceptoRetencionIVASRI}" var="_conceptoRetencion"
+													itemLabel="#{_conceptoRetencion.codigo}" itemValue="#{_conceptoRetencion}" forceSelection="true" dropdown="false" minQueryLength="1"
+													id="autConceptoRetencionIVASRI" disabled="#{facturaProveedorSRIBean.editaConceptoYBase}">
+
+													<p:column>
+														<h:outputText value="#{_conceptoRetencion.codigo}" />
+													</p:column>
+
+													<p:column>
+														<h:outputText value="#{_conceptoRetencion.nombre}" />
+													</p:column>
+
+													<p:ajax event="itemSelect" process="@this" listener="#{facturaProveedorSRIBean.actualizarConceptoRetencionIVASRI}"
+														update=":form:panelDetalleIVAFacturaProveedorSRI" oncomplete="nextFocus('#{p:component('txtBaseImponibleDetalleIVA')}')" />
+												</p:autoComplete>
+
+											</p:column>
+
+											<p:column styleClass="tableCell">
+												<h:outputText value="#{_detalleFacturaProveedorSRI.conceptoRetencionSRI.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" rendered="true">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_base_imponible}" />
+												</f:facet>
+												<p:inputText value="#{_detalleFacturaProveedorSRI.baseImponibleRetencion}" id="txtBaseImponibleDetalleIVA"
+													disabled="#{facturaProveedorSRIBean.editaConceptoYBase}">
+
+													<p:ajax event="change" process="@this" listener="#{facturaProveedorSRIBean.actualizarValorRetencionIVAListener}"
+														update=":form:panelDetalleIVAFacturaProveedorSRI" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTPorcentaje tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_porcentaje_retencion}" />
+												</f:facet>
+												<p:inputText styleClass="input-text" value="#{_detalleFacturaProveedorSRI.porcentajeRetencion}"
+													rendered="#{_detalleFacturaProveedorSRI.conceptoRetencionSRI.ingresaPorcentaje}" id="txtPorcentajeRetencionDetalleIVA">
+
+													<p:ajax event="change" process="@this" listener="#{facturaProveedorSRIBean.actualizarValorRetencionIVAListener}"
+														update=":form:panelDetalleIVAFacturaProveedorSRI" />
+												</p:inputText>
+
+												<h:outputText styleClass="input-text" value="#{_detalleFacturaProveedorSRI.porcentajeRetencion}"
+													rendered="#{!_detalleFacturaProveedorSRI.conceptoRetencionSRI.ingresaPorcentaje}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_valor_retenido}" />
+												</f:facet>
+												<h:outputText value="#{_detalleFacturaProveedorSRI.valorRetencion}" id="txtValorRetencionDetalleIVA" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalleIVAFacturaProveedorSRI" action="#{facturaProveedorSRIBean.eliminarDetalleIVAFacturaSRI}"
+													update=":form:panelDetalleIVAFacturaProveedorSRI" process="@this" icon="ui-icon-trash"
+													disabled="#{facturaProveedorSRIBean.facturaProveedorSRI.traCorregirDatos}" />
+											</p:column>
+										</p:dataTable>
+									</p:outputPanel>
+								</p:fieldset>
+
+							</h:panelGrid>
+
+
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+				<p:outputPanel id="panelListado" />
+				<p:outputPanel id="panelInfoAuditoria" />
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

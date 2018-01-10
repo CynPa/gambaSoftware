@@ -1,0 +1,1197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" enctype="multipart/form-data" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{empleadoBean}">
+
+					<as2:buttonImprimir id="btnImprimirEmpleado" beanReporte="#{reporteEmpleadoBean}" bean="#{empleadoBean}" target="#{reporteEmpleadoBean.empresa}"
+						value="#{empleadoBean.empresa}" />
+
+					<as2:buttonEliminar bean="#{empleadoBean}">
+						<h:outputText value="#{msgs.lbl_empleado}:" />
+						<h:outputText value="#{empleadoBean.empresa.identificacion} #{empleadoBean.empresa.empleado.apellidos} #{empleadoBean.empresa.empleado.nombres}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{empleadoBean}" tabla=":form:tablaEmpleado" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaCiudad.xhtml">
+					<ui:param name="bean" value="#{empleadoBean}" />
+					<ui:param name="objetoActualizar" value=":form:tvDetalleEmpleado:panelDirecciones" />
+				</ui:include>
+
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarArchivo" modal="true" height="100" width="325" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarFichero" autoUpdate="true">
+						<center>
+							<p:fileUpload fileUploadListener="#{empleadoBean.processUploadFichero}" mode="advanced" auto="true" sizeLimit="#{empleadoBean.sizeLimit}"
+								allowTypes="#{empleadoBean.allowTypes}" label="#{msgs.btn_examinar}" process="@this" oncomplete="dlgCargarArchivo.close()" />
+						</center>
+					</p:outputPanel>
+				</p:dialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_empleado} )" rendered="#{empleadoBean.editado}">
+
+						<p:outputPanel id="lblExisteEmpleado">
+							<h:outputText style="font-weight:bold;color:#FF0000"
+								value=" #{msgs.lbl_existe_empleado}"
+								rendered="#{empleadoBean.empleadoExiste}" />
+						</p:outputPanel>
+
+
+						<h:panelGrid id="panelDetalle" columns="#{empleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" id="txtCodigo" value="#{empleadoBean.empresa.codigo}" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_codigo_alterno}:" />
+							<p:inputText styleClass="input-text" id="txtCodigoAlterno" value="#{empleadoBean.empresa.codigoAlterno}">
+								<f:validateBean />
+							</p:inputText>
+							
+							<h:outputText value="#{msgs.lbl_codigo} #{msgs.lbl_sectorial}:" />
+							<p:inputText styleClass="input-text" id="txtCodigoSectorial" value="#{empleadoBean.empresa.empleado.codigoSectorial}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.sucursal}" id="cboSucursal" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{empleadoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTipoIdentificacion" value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.tipoIdentificacion}" id="cboTipoIdentificacion" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{empleadoBean.tipoIdentificacionBean.listaTipoIdentificacionCombo}" var="_tipoIdentificacion"
+									itemLabel="#{_tipoIdentificacion.nombre}" itemValue="#{_tipoIdentificacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" update=":form:panelValidacionIdentificacion"></p:ajax>
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtIdentificacionNormal" value="#{msgs.lbl_empresa_identificacion}:" />
+							<p:outputPanel id="panelValidacionIdentificacion">
+								<p:inputText value="#{empleadoBean.empresa.identificacion}" styleClass="input-text" id="txtIdentificacionNormal"
+									rendered="#{!empleadoBean.empresa.tipoIdentificacion.indicadorValidarIdentificacion}" required="true">
+									<p:ajax event="change" listener="#{empleadoBean.buscarEmpresaEvent}" process="@this"></p:ajax>
+									<f:validateBean />
+								</p:inputText>
+								<p:inputMask mask="#{empty empleadoBean.empresa.tipoIdentificacion ? '':empleadoBean.empresa.tipoIdentificacion.mascara}"
+									value="#{empleadoBean.empresa.identificacion}" styleClass="input-text" id="txtIdentificacion"
+									rendered="#{empleadoBean.empresa.tipoIdentificacion.indicadorValidarIdentificacion}">
+									<p:ajax event="change" listener="#{empleadoBean.buscarEmpresaEvent}" process="@this" />
+									<f:validateBean />
+								</p:inputMask>
+							</p:outputPanel>
+
+
+							<p:outputLabel for="txtNombreFiscal" value="#{msgs.lbl_empleado_nombres}:" />
+							<p:inputText styleClass="input-text" id="txtNombreFiscal" value="#{empleadoBean.empresa.empleado.nombres}" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombreComercial" value="#{msgs.lbl_empleado_apellios}:" />
+							<p:inputText styleClass="input-text" id="txtNombreComercial" value="#{empleadoBean.empresa.empleado.apellidos}" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboCategoriaEmpresa" value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.categoriaEmpresa.idCategoriaEmpresa}" id="cboCategoriaEmpresa"
+								required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{empleadoBean.listaCategoriaEmpresa}" var="_categoriaEmpresa" itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa.idCategoriaEmpresa}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtLugarNacimiento" value="#{msgs.lbl_lugar_nacimiento}:" />
+							<p:inputText styleClass="input-text" id="txtLugarNacimiento" value="#{empleadoBean.empresa.empleado.lugarNacimiento}" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email} 1:" />
+							<p:inputText styleClass="input-text" id="txtEmail1" value="#{empleadoBean.empresa.email1}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email} 2:" />
+							<p:inputText styleClass="input-text" id="txtEmail2" value="#{empleadoBean.empresa.email2}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_empresa_pagina_web}:" />
+							<p:inputText styleClass="input-text" id="txtPaginaWeb" value="#{empleadoBean.empresa.paginaWeb}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_nacimiento}:" />
+							<p:calendar pattern="#{empleadoBean.formatoFecha}" showOn="button" navigator="true" value="#{empleadoBean.empresa.empleado.fechaNacimiento}"
+								rendered="true" id="calFecha">
+							</p:calendar>
+
+							<p:outputLabel for="cboGentilicio" value="#{msgs.lbl_nacionalidad}:" />
+							<p:selectOneMenu value="#{empleadoBean.empresa.empleado.pais}" id="cboGentilicio" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{empleadoBean.listaGentilicioPais}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboCargoEmpleado" value="#{msgs.lbl_cargo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.cargoEmpleadoSelecionado}" id="cboCargoEmpleado" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{empleadoBean.listaCargoEmpleado}" var="_cargoEmpleado" itemLabel="#{_cargoEmpleado.nombre}"
+									itemValue="#{_cargoEmpleado.idCargoEmpleado}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboDepartamento" value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.departamentoSelecionado}" id="cboDepartamento" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{empleadoBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento.idDepartamento}" />
+							</p:selectOneMenu>
+							
+							<p:outputLabel for="cboCategoria" value="#{msgs.lbl_categoria_rubro}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.categoriaRubroSeleccionado}" id="cboCategoria">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{empleadoBean.listaCategoriaRubros}" var="_categoriaRubro" itemValue="#{_categoriaRubro.idCategoriaRubro}" itemLabel="#{_categoriaRubro.nombre}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_horario_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.horarioEmpleado}" id="cboHorarioEmpleado">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{empleadoBean.listaHorarioEmpleado}" var="_horario" itemLabel="#{_horario.nombre}" itemValue="#{_horario}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_tipo_contrato}:" />
+							<h:outputText value="#{empleadoBean.empresa.empleado.tipoContrato.nombre}" />
+
+							<h:outputText value="#{msgs.lbl_fecha_vencimiento_contrato}:" />
+							<h:outputText value="#{empleadoBean.empresa.empleado.fechaVencimientoContrato}" />
+
+							<p:outputLabel for="cboEstadoCivil" value="#{msgs.lbl_estado_civil}:" />							
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.estadoCivilSeleccionado}" id="cboEstadoCivil" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{empleadoBean.listaEstadoCivil}" var="_estadoCivil" itemLabel="#{_estadoCivil.nombre}"
+									itemValue="#{_estadoCivil.idEstadoCivil}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTitulo" value="#{msgs.lbl_titulo_empleado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.tituloSelecionado}" id="cboTitulo" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{empleadoBean.listaTitulo}" var="_titulo" itemLabel="#{_titulo.nombre}" itemValue="#{_titulo.idTitulo}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboGenero" value="#{msgs.lbl_genero}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.genero}" id="cboGenero" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{empleadoBean.listaGenero}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboTipoSangre" value="#{msgs.lbl_tipo_sangre}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.tipoSangre}" id="cboTipoSangre" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{empleadoBean.listaTipoSangre}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_calificacion}:" />
+							<p:inputText styleClass="input-text" id="txtCalificacion" value="#{empleadoBean.empresa.empleado.calificacion}">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboFormaPagoEmpleado" value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.formaPagoEmpleado}" id="cboFormaPagoEmpleado" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{empleadoBean.listaFormaPagoEmpleado}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero_cargas_activas}:" />
+							<h:outputText value="#{empleadoBean.empresa.empleado.numeroCargasActivas}" />
+
+							<h:outputText value="#{msgs.lbl_memos}:" />
+							<p:inputText styleClass="input-text" id="txtMemos" value="#{empleadoBean.empresa.empleado.memos}">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:spacer/>
+							<h:panelGrid columns="3" cellpadding="0" cellspacing="0">
+								<h:panelGroup>
+									<h:outputText value="#{msgs.lbl_pago_cash}:" />
+									<h:selectBooleanCheckbox value="#{empleadoBean.empresa.empleado.indicadorPagoCash}" />
+								</h:panelGroup>
+							</h:panelGrid>
+							
+							<h:outputText value="#{msgs.lbl_centro_costo}:" />
+							<p:outputPanel id="panelCentroCosto">
+								<as2:autoCompletarCentroCosto value="#{empleadoBean.empresa.empleado.centroCosto}" />
+							</p:outputPanel>
+														
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<h:selectBooleanCheckbox value="#{empleadoBean.empresa.empleado.activo}" disabled="true" />
+
+							<h:outputText value="#{msgs.lbl_observacion}:" />
+							<p:inputTextarea styleClass="input-text" id="txtNota" value="#{empleadoBean.empresa.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<p:tabView cache="true" dynamic="false" id="tvDetalleEmpleado">
+
+							<!-- INICIO TAB DIRECCIONES -->
+
+							<p:tab title="#{msgs.lbl_direccion} *" id="tabDireccion">
+								<p:outputPanel id="panelDirecciones">
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDirecciones" rowIndexVar="secuenciaDireccion"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{empleadoBean.direcciones}" var="direccion" binding="#{empleadoBean.dtDirecciones}"
+										paginator="false" paginatorPosition="bottom" style="width:100%" rows="#{empleadoBean.numeroFilas}"
+										rowsPerPageTemplate="#{empleadoBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{direccion.idDireccionEmpresa}">
+
+										<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+											<h:outputText value="#{secuenciaDireccion+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_ciudad}">
+											<!-- 											<p:commandButton icon="ui-icon-plusthick" onclick="ciudadDialog.show()" type="button" /> -->
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCiudad" value="#{direccion.ciudad}"
+												completeMethod="#{empleadoBean.autocompletarCiudad}" var="_ciudad" itemLabel="#{_ciudad.nombre}" itemValue="#{_ciudad}"
+												forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+
+												<p:column headerText="#{msgs.lbl_codigo}">#{_ciudad.codigo}</p:column>
+												<p:column headerText="#{msgs.lbl_nombre}">#{_ciudad.nombre}</p:column>
+
+												<p:ajax process="@this" event="itemSelect" global="false" update="cboParroquia"/>
+												<f:validateBean />
+											</p:autoComplete>
+										</p:column>
+
+<!-- 										<p:column styleClass="tableCell" headerText="#{msgs.lbl_ubicacion}"> -->
+<!-- 											<h:outputText value="#{direccion.ciudad.provincia.pais.nombre}/#{direccion.ciudad.provincia.nombre}/#{direccion.ciudad.nombre}" -->
+<!-- 												id="txtCiudadOrigen"> -->
+<!-- 											</h:outputText> -->
+<!-- 										</p:column> -->
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_parroquia}">
+											<p:selectOneMenu styleClass="input-text" value="#{direccion.parroquia}" id="cboParroquia">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{empleadoBean.listaParroquiasPorCiudad(direccion.ciudad)}" var="_parroquia" itemLabel="#{_parroquia.nombre}" itemValue="#{_parroquia}" />
+												<f:validateBean />
+												<p:ajax event="change" process="@this" global="false" />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empresa_direccion_direccion1}">
+											<p:inputText styleClass="input-text" id="txtDireccion1" value="#{direccion.ubicacion.direccion1}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empresa_direccion_direccion2}">
+											<p:inputText styleClass="input-text" id="txtDireccion2" value="#{direccion.ubicacion.direccion2}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empresa_direccion_direccion3}">
+											<p:inputText styleClass="input-text" id="txtDireccion3" value="#{direccion.ubicacion.direccion3}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empresa_direccion_direccion4}">
+											<p:inputText styleClass="input-text" id="txtDireccion4" value="#{direccion.ubicacion.direccion4}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_empresa_direccion_direccion5}">
+											<p:inputText styleClass="input-text" id="txtDireccion5" value="#{direccion.ubicacion.direccion5}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_telefono}">
+											<p:inputText styleClass="input-text" id="txtTelefono1" value="#{direccion.telefono1}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_telefono_alternativo}">
+											<p:inputText styleClass="input-text" id="txtTelefono2" value="#{direccion.telefono2}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+									</p:dataTable>
+
+								</p:outputPanel>
+							</p:tab>
+							<!-- FIN TAB DIRECCIONES -->
+
+							<!-- INICIO TAB CUENTA BANCARIA -->
+
+							<p:tab title="#{msgs.lbl_cuenta_bancaria}" id="tabCuentaBancaria">
+
+								<p:outputPanel id="panelCuentasBancarias">
+
+									<p:commandButton value="#{msgs.btn_agregar}" process="@this" update=":form:tvDetalleEmpleado:panelCuentasBancarias"
+										actionListener="#{empleadoBean.agregarCuentaBancariaEmpresa}" disabled="#{empleadoBean.sizeListaCuentaBancaria != 0}" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCuentaBancariaEmpresa" rowIndexVar="secuenciaCuentaBancariaEmpresa"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{empleadoBean.listaCuentaBancariaEmpresa}" var="cuentaBancariaEmpresa"
+										binding="#{empleadoBean.dtCuentaBancarioEmpresa}" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rows="#{empleadoBean.numeroFilas}" rowsPerPageTemplate="#{empleadoBean.numeroFilasPorPagina}" selectionMode="single"
+										rowKey="#{cuentaBancariaEmpresa.idCuentaBancariaEmpresa}">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuenciaDireccion+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_pais}">
+											<p:selectOneMenu styleClass="input-text" id="cboPais" value="#{cuentaBancariaEmpresa.cuentaBancaria.pais.idPais}" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{empleadoBean.listaPais}" var="_pais" itemLabel="#{_pais.nombre}" itemValue="#{_pais.idPais}" />
+												<p:ajax process="@this"></p:ajax>
+												<f:validateBean />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_tipo_cuenta_bancaria}">
+											<p:selectOneMenu styleClass="input-text" id="cboTipoCuentaBancaria"
+												value="#{cuentaBancariaEmpresa.cuentaBancaria.tipoCuentaBancaria.idTipoCuentaBancaria}" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{empleadoBean.listaTipoCuentaBancaria}" var="_tipoCuentaBancaria" itemLabel="#{_tipoCuentaBancaria.nombre}"
+													itemValue="#{_tipoCuentaBancaria.idTipoCuentaBancaria}" />
+												<p:ajax process="@this"></p:ajax>
+												<f:validateBean />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_banco}">
+											<p:selectOneMenu styleClass="input-text" id="cboBanco" value="#{cuentaBancariaEmpresa.cuentaBancaria.banco}" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{empleadoBean.listaBanco}" var="_banco" itemLabel="#{_banco.nombre}" itemValue="#{_banco}" />
+												<p:ajax process="@this :form:tvDetalleEmpleado:tablaCuentaBancariaEmpresa:cboTipo"
+													update=":form:tvDetalleEmpleado:tablaCuentaBancariaEmpresa:cboTipo" listener="#{empleadoBean.cargarTipoServicio}"></p:ajax>
+												<f:validateBean />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_numero_cuenta_bancaria}">
+											<p:inputText styleClass="input-text" value="#{cuentaBancariaEmpresa.cuentaBancaria.numero}" id="txtNumeroCuenta">
+												<p:ajax process="@this"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="Tipo Servicio">
+											<p:selectOneMenu styleClass="input-text" value="#{cuentaBancariaEmpresa.cuentaBancaria.tipoServicioCuentaBancaria}" id="cboTipo" >
+												<f:selectItems value="#{empleadoBean.listaTipoServicioCuentaBancaria}" />
+												<p:ajax process="@this"></p:ajax>
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}">
+											<p:selectBooleanCheckbox value="#{cuentaBancariaEmpresa.cuentaBancaria.activo}">
+												<p:ajax process="@this"></p:ajax>
+											</p:selectBooleanCheckbox>
+										</p:column>
+
+										<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+											<p:selectBooleanCheckbox value="#{cuentaBancariaEmpresa.cuentaBancaria.predeterminado}" />
+										</p:column>
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarCuentaBancariaEmpresa" action="#{empleadoBean.eliminarCuentaBancariaEmpresa}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalleEmpleado:panelCuentasBancarias" process="@this" />
+										</p:column>
+									</p:dataTable>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+							<!-- FIN TAB CUENTA BANCARIA -->
+
+							<!-- INICIO TAB FORMACION ACADEMICA -->
+
+							<p:tab title="#{msgs.lbl_formacion_academica}">
+
+								<p:outputPanel id="panelFormacionAcademica">
+
+									<p:commandButton value="#{msgs.btn_agregar}" process="@this" update=":form:tvDetalleEmpleado:panelFormacionAcademica"
+										actionListener="#{empleadoBean.agregarFormacionAcademica}" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{empleadoBean.listaFormacionAcademica}" id="tablaFormacionAcademica"
+										rowIndexVar="secuencial" binding="#{empleadoBean.dtFormacionAcademica}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_formacionAcademica"
+										paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{empleadoBean.numeroFilas}"
+										rowsPerPageTemplate="#{empleadoBean.numeroFilasPorPagina}" rowKey="#{_formacionAcademica.id}">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" value="#{msgs.lbl_nivel}" headerText="#{msgs.lbl_nivel}">
+											<p:selectOneMenu styleClass="input-text" value="#{_formacionAcademica.nivelInstruccion.idNivelInstruccion}" id="cboNivelInstruccion">
+												<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{empleadoBean.listaNivelInstruccion}" var="_nivelInstruccion" itemLabel="#{_nivelInstruccion.nombre}"
+													itemValue="#{_nivelInstruccion.idNivelInstruccion}" />
+												<f:validateBean />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell" value="#{msgs.lbl_institucion_educativa}" headerText="#{msgs.lbl_institucion_educativa}">
+											<p:selectOneMenu value="#{_formacionAcademica.institucionEducativa.idInstitucionEducativa}" id="cboInstitucion1">
+												<f:selectItem styleClass="input-text" itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+												<f:selectItems value="#{empleadoBean.listaInstitucionEducativa}" var="_institucionEducativa" itemLabel="#{_institucionEducativa.nombre}"
+													itemValue="#{_institucionEducativa.idInstitucionEducativa}" />
+												<f:validateBean />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="tableCell" value="#{msgs.lbl_desde}" headerText="#{msgs.lbl_desde}">
+											<h:panelGroup>
+												<p:selectOneMenu styleClass="input-text" value="#{_formacionAcademica.mesDesde}" id="cboMesDesde">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{empleadoBean.listaMes}" />
+												</p:selectOneMenu>
+
+												<p:spacer />
+
+												<p:selectOneMenu styleClass="input-text" value="#{_formacionAcademica.anioDesde}" id="cboAnioDesde">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{empleadoBean.listaAnio}" />
+												</p:selectOneMenu>
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="tableCell" value="#{msgs.lbl_hasta}" headerText="#{msgs.lbl_hasta}">
+											<h:panelGroup>
+												<p:selectOneMenu styleClass="input-text" value="#{_formacionAcademica.mesHasta}" id="cboMesHasta">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{empleadoBean.listaMes}" />
+												</p:selectOneMenu>
+
+												<p:spacer />
+
+												<p:selectOneMenu styleClass="input-text" value="#{_formacionAcademica.anioHasta}" id="cboAnioHasta">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{empleadoBean.listaAnio}" />
+												</p:selectOneMenu>
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarFormacionAcademica" action="#{empleadoBean.eliminarFormacionAcademica}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalleEmpleado:panelFormacionAcademica" process="@this" />
+										</p:column>
+									</p:dataTable>
+
+								</p:outputPanel>
+							</p:tab>
+
+							<!-- FIN TAB FORMACION ACADEMICA -->
+
+							<!-- INICIO TAB FOTO EMPLEADO -->
+							<p:tab title="#{msgs.lbl_foto} " id="tabFotoEmpleado">
+
+								<p:outputPanel id="panelFoto" autoUpdate="true">
+									<h:panelGrid columns="1" styleClass="textoCentro">
+										<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+											<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="fotoEmpleado"></f:setPropertyActionListener>
+											<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+										</p:commandLink>
+										<p:graphicImage cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagen}" width="300" id="imgProducto" />
+									</h:panelGrid>
+								</p:outputPanel>
+
+							</p:tab>
+							<!-- FIN TAB FOTO EMPLEADO -->
+
+							<!-- INICIO TAB DATOS SRI -->
+							<p:tab title="#{msgs.lbl_SRI} *" id="tabSRIEmpleado">
+
+								<p:outputPanel id="panelSRIEmpleado">
+
+									<h:panelGrid columns="4" id="panelDetalleSRIEmpleado" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+										<h:outputText value="#{msgs.lbl_residencia_trabajador}" />
+										<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.residenciaTrabajador}" id="cboResidencia" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{empleadoBean.listaResidenciaEmpleado}" />
+											<p:ajax event="change" process="@this" update=":form:tvDetalleEmpleado:panelSRIEmpleado" global="false" />
+											<f:validateBean />
+										</p:selectOneMenu>
+
+										<h:outputText value="#{msgs.lbl_pais_residencia_trabajador}" rendered="#{empleadoBean.empresa.empleado.residenciaTrabajador == '02'}" />
+										<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.paisResidenciaTrabajador}" id="cboPaisResidencia"
+											required="#{empleadoBean.empresa.empleado.residenciaTrabajador == '02'}"
+											rendered="#{empleadoBean.empresa.empleado.residenciaTrabajador == '02'}">
+											<f:selectItems value="#{empleadoBean.listaPaisesRDEP}" />
+											<p:ajax event="change" process="@this" global="false" />
+											<f:validateBean />
+										</p:selectOneMenu>
+
+										<h:outputText value="#{msgs.lbl_convenio_doble_imposicion}" rendered="#{empleadoBean.empresa.empleado.residenciaTrabajador == '02'}" />
+										<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.convenioDobleImposicion}" id="cboConvenioDobleImposicion"
+											required="#{empleadoBean.empresa.empleado.residenciaTrabajador == '02'}"
+											rendered="#{empleadoBean.empresa.empleado.residenciaTrabajador == '02'}">
+											<f:selectItems value="#{empleadoBean.listaConvenioDobleImposicion}" />
+<!-- 											<p:ajax event="change" process="@this" global="false" /> -->
+											<f:validateBean />
+										</p:selectOneMenu>
+
+										<h:outputText value="#{msgs.lbl_condicion_respecto_discapacidades}" />
+										<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad}"
+											id="cboCondicionDiscapacidad" required="true">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{empleadoBean.listaCondicionRespectoDiscapacidad}" />
+											<p:ajax event="change" process="@this" update=":form:tvDetalleEmpleado:panelSRIEmpleado" global="false" />
+										</p:selectOneMenu>
+
+										<h:outputText value="#{msgs.lbl_tipo_discapacidad}:" rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '02'}" />
+										<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.tipoDiscapacidadSelecionadad}" id="cboTipoDiscapacidad"
+											required="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '02'}"
+											rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '02'}">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{empleadoBean.listaTipoDiscapacidad}" var="_tipoDiscapacidad" itemLabel="#{_tipoDiscapacidad.nombre}"
+												itemValue="#{_tipoDiscapacidad.idTipoDiscapacidad}" />
+<!-- 											<p:ajax event="change" process="@this" global="false" /> -->
+											<f:validateBean />
+										</p:selectOneMenu>
+
+										<h:outputText id="txtDiscapacidad" value="#{msgs.lbl_porcentaje}  #{msgs.lbl_discapacidad}"
+											rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '02'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}" />
+										<h:panelGroup id="panelTxtDiscapacidadGroup"
+											rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '02'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}">
+											<p:inputText styleClass="input-text" id="txtPorcentajeDiscapacidad"
+												rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '02'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}"
+												required="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '02'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03'
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}"
+												value="#{empleadoBean.empresa.empleado.porcentajeDiscapacidad}">
+												<f:validateDoubleRange maximum="100" minimum="0"  />
+											</p:inputText>
+										</h:panelGroup>
+
+
+										<h:outputText value="#{msgs.lbl_tipo_identificacion_sustituye_representa}"
+											rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03' 
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}" />
+										<p:selectOneMenu styleClass="input-text" value="#{empleadoBean.empresa.empleado.tipoIdentificacionSustitutoPariente}"
+											id="cboTipoIdentificacionDiscapacidad"
+											rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03' 
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}"
+											required="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03' 
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{empleadoBean.listaTipoIdentificacionSRI}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+
+										<h:outputText value="#{msgs.lbl_numero_identificacion_sustituye_representa}"
+											rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03' 
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}" />
+										<p:inputText styleClass="input-text" id="txtIdentificacionDiscapacidad"
+											value="#{empleadoBean.empresa.empleado.identificacionSustitutoPariente}"
+											rendered="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03' 
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}"
+											required="#{empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '03' 
+												or empleadoBean.empresa.empleado.condicionRespectoDiscapacidad == '04'}">
+											<f:validateBean />
+										</p:inputText>
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+							</p:tab>
+							<!-- FIN TAB DATOS SRI -->
+
+							<!-- INICIO TAB CONTACTOS -->
+							<p:tab title="#{msgs.lbl_contacto}s" id="tabContactos">
+
+								<p:outputPanel id="panelContactos">
+
+									<p:commandButton value="#{msgs.btn_agregar}" process="@this" update=":form:tvDetalleEmpleado:panelContactos"
+										actionListener="#{empleadoBean.agregarContactoListener}" />
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaContactos" rowIndexVar="secuencia"
+										emptyMessage="#{msgs.msg_no_hay_datos}" value="#{empleadoBean.listaContacto}" var="_contacto" paginator="true" paginatorPosition="bottom"
+										style="width:100%" rows="#{empleadoBean.numeroFilas}" rowsPerPageTemplate="#{empleadoBean.numeroFilasPorPagina}" selectionMode="single"
+										rowKey="#{_contacto.rowKey}">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencia+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_tipo_contacto}">
+											<p:selectOneMenu styleClass="input-text" value="#{_contacto.tipoContacto}" id="cboTipoContacto" required="true">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+												<f:selectItems value="#{empleadoBean.listaTipoContacto}" var="_tipoContacto" itemLabel="#{_tipoContacto.nombre}"
+													itemValue="#{_tipoContacto}" />
+												<p:ajax process="@this" global="false" />
+												<f:validateBean />
+											</p:selectOneMenu>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombre}">
+											<p:inputText styleClass="input-text" value="#{_contacto.nombre}">
+												<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_telefono}1">
+											<p:inputText styleClass="input-text" value="#{_contacto.telefono1}" size="10">
+												<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_extension}1">
+											<p:inputText styleClass="input-text" value="#{_contacto.extension1}" size="5">
+												<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_telefono}2">
+											<p:inputText styleClass="input-text" value="#{_contacto.telefono2}" size="10">
+												<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_extension}2">
+											<p:inputText styleClass="input-text" value="#{_contacto.extension2}" size="5">
+												<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_email}1">
+											<p:inputText styleClass="input-text" value="#{_contacto.email1}">
+												<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_email}2">
+											<p:inputText styleClass="input-text" value="#{_contacto.email2}" size="20">
+												<p:ajax process="@this" partialSubmit="true" global="false"></p:ajax>
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarContacto" action="#{empleadoBean.eliminarContacto(_contacto)}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalleEmpleado:panelContactos" process="@this">
+											</p:commandButton>
+										</p:column>
+
+									</p:dataTable>
+
+								</p:outputPanel>
+							</p:tab>
+							<!-- FIN TAB CONTACTOS -->
+
+							<!-- Documentos Digitalizados -->
+							<p:tab title="#{msgs.lbl_documentos_digitalizados}" id="tabDocumentosDigitalizados">
+								<p:outputPanel id="panelDocumentosDigitalizados">
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{empleadoBean.listaDetalleDocumentoDigitalizadoEmpleado}"
+										id="tablaAuxiliar" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleDocumento" paginator="false"
+										style="width:100%" >
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencia+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" id="columnCategoria" headerText="#{msgs.lbl_categoria}">
+											<h:outputText rendered="#{_detalleDocumento.primero}"
+												value="#{_detalleDocumento.documentoDigitalizadoDepartamento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_documento}">
+											<h:outputText value="#{_detalleDocumento.documentoDigitalizadoDepartamento.documentoDigitalizado.nombre}">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_desde}">
+											<p:calendar size="10" id="calDocFechaDesde" value="#{_detalleDocumento.fechaDesde}" showOn="button" navigator="true"
+												required="#{_detalleDocumento.fichero != null}" pattern="#{empleadoBean.formatoFecha}"
+												rendered="#{_detalleDocumento.documentoDigitalizadoDepartamento.documentoDigitalizado.caduca}">
+												<p:ajax process="@this" event="change" update="@this" global="false" />
+											</p:calendar>
+										</p:column>
+
+										<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_hasta}">
+											<p:calendar size="10" id="calDocFechaHasta" value="#{_detalleDocumento.fechaHasta}" showOn="button" navigator="true"
+												required="#{_detalleDocumento.fichero != null}" pattern="#{empleadoBean.formatoFecha}"
+												rendered="#{_detalleDocumento.documentoDigitalizadoDepartamento.documentoDigitalizado.caduca}">
+												<p:ajax process="@this" event="change" update="@this" global="false" />
+											</p:calendar>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text100" value="#{_detalleDocumento.descripcion}">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion" id="columnFichero" headerText="#{msgs.lbl_fichero}">
+											<h:panelGroup id="panelFichero">
+												<center>
+													<p:commandLink process=":form:tvDetalleEmpleado:panelDocumentosDigitalizados" oncomplete="dlgCargarArchivo.show()">
+														<f:setPropertyActionListener target="#{empleadoBean.selectedDetalleDocumento}" value="#{_detalleDocumento}"></f:setPropertyActionListener>
+														<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="documentoDigitalizado"></f:setPropertyActionListener>
+														<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+													</p:commandLink>
+
+													<p:commandLink title="#{_detalleDocumento.fichero}" ajax="false" process="@this" rendered="#{_detalleDocumento.fichero != null}"
+														actionListener="#{empleadoBean.asignarFile(_detalleDocumento)}">
+														<p:fileDownload value="#{empleadoBean.file}" />
+														<h:graphicImage library="images" name="bajar.png" styleClass="subirImagen" />
+													</p:commandLink>
+												</center>
+											</h:panelGroup>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_requerido}">
+											<center>
+												<p:selectBooleanCheckbox value="#{_detalleDocumento.documentoDigitalizadoDepartamento.requerido}" disabled="true" />
+											</center>
+										</p:column>
+
+									</p:dataTable>
+
+								</p:outputPanel>
+							</p:tab>
+
+
+							<!-- Llamados de atención -->
+							<p:tab title="#{msgs.lbl_llamados_atencion}" id="tabLlamadosAtencion">
+								<p:outputPanel id="panelLlamadosAtencion" autoUpdate="true">
+
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{empleadoBean.listaLlamadosAtencion}" id="tablaLlamadosAtencion"
+										rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_llamadoAtencion" paginator="false" style="width:100%">
+
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo}">
+										<p:outputLabel value="#{_llamadoAtencion.motivoLlamadoAtencion.nombre}">
+										</p:outputLabel>
+										</p:column>
+
+										<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha}">
+											<p:outputLabel value="#{_llamadoAtencion.fechaDesde}" pattern="#{empleadoBean.formatoFecha}" />
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:outputLabel styleClass="input-text100" value="#{_llamadoAtencion.descripcion}" />
+										</p:column>
+
+									</p:dataTable>
+
+								</p:outputPanel>
+							</p:tab>
+							
+							<!-- Dotacion -->
+							<p:tab title="#{msgs.lbl_dotacion}" id="tabDotacion">
+								<p:outputPanel id="panelDotacion" autoUpdate="false" >
+
+									<p:commandButton value="#{msgs.btn_agregar}" process=":form:tvDetalleEmpleado:panelDotacion" update=":form:tvDetalleEmpleado:panelDotacion"
+										actionListener="#{empleadoBean.agregarDotacion}"  />
+									
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{empleadoBean.listaDotacion}" id="tablaDotacion"
+										rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_dotacion" paginator="false" style="width:100%" >
+
+										<p:columnGroup type="header">
+											<p:row>
+												<p:column rowspan="5" headerText="Nº" />
+												<p:column rowspan="5" headerText="#{msgs.lbl_producto}" />
+											</p:row>
+											<p:row>
+												<p:column colspan="2" headerText="#{msgs.lbl_fecha}" />
+												<p:column rowspan="5" headerText="#{msgs.lbl_cantidad}"  />
+												<p:column rowspan="5" headerText="#{msgs.lbl_descripcion}" />
+												<p:column rowspan="5"  />
+											</p:row>
+											<p:row>
+												<p:column headerText="#{msgs.lbl_entrega}" />
+												<p:column headerText="#{msgs.lbl_reposicion}" />							
+											</p:row>
+										</p:columnGroup>
+										
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="tableCell">
+											<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}"
+												id="acProducto" styleClass="input-text"
+												value="#{_dotacion.producto}"
+												completeMethod="#{empleadoBean.autocompletarProductos}"
+												var="_producto" itemLabel="#{_producto.codigo} #{_producto.nombre}"
+												itemValue="#{_producto}" forceSelection="true"
+												dropdown="true" minQueryLength="2">
+
+												<p:column headerText="Codigo">#{_producto.codigo}</p:column>
+												<p:column headerText="Nombre">#{_producto.nombreComercial}</p:column>
+												<p:ajax process="@this" global="false" partialSubmit="true"/>
+											</p:autoComplete>
+										</p:column>
+
+										<p:column styleClass="columnaDTFechaInput tableCell" >
+											<p:calendar size="10" id="caldotacionFechaEntrega" value="#{_dotacion.fechaEntrega}" showOn="button" navigator="true" required="true"
+												pattern="#{empleadoBean.formatoFecha}">
+													<p:ajax process="@this" global="false" partialSubmit="true"/>
+											</p:calendar>
+										</p:column>
+										
+										<p:column styleClass="columnaDTFechaInput tableCell">
+											<p:calendar size="10" id="caldotacionFechaReposicion" value="#{_dotacion.fechaReposicion}" showOn="button" navigator="true" required="true"
+												pattern="#{empleadoBean.formatoFecha}">
+													<p:ajax process="@this" global="false" partialSubmit="true"/>
+											</p:calendar>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:inputText value="#{_dotacion.cantidadDotada}"
+												required="true">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:inputText  value="#{_dotacion.descripcion}">
+												<p:ajax process="@this" update="@this" global="false" />
+											</p:inputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarDotacion" action="#{empleadoBean.eliminarDotacion(_dotacion)}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:tvDetalleEmpleado:panelDotacion" process=":form:tvDetalleEmpleado:panelDotacion">
+											</p:commandButton>
+										</p:column>
+
+									</p:dataTable>
+
+								</p:outputPanel>
+							</p:tab>
+
+							<!-- TAB HUELLAS DIGITALES -->
+							<p:tab title="#{msgs.lbl_huellas_digitales} " id="tabHuellasDigitales">
+
+								<p:panelGrid id="panel_huellas" columns="2" columnClasses="columnaMitad, columnaMitad">
+									<p:outputLabel value="#{msgs.lbl_huellas_digitales_izquierda}" />
+									<p:outputLabel value="#{msgs.lbl_huellas_digitales_derecha}" />
+
+									<h:panelGrid columns="5">
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro" >
+												<p:outputLabel value="1" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="1"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella1}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella1}" width="100" id="imgHuella1" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella1}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="2" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="2"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella2}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella2}" width="100" id="imgHuella2" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella2}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="3" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="3"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella3}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella3}" width="100" id="imgHuella3" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella3}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="4" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="4"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella4}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella4}" width="100" id="imgHuella4" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella4}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="5" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="5"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella5}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella5}" width="100" id="imgHuella5" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella5}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+									</h:panelGrid>
+
+									<h:panelGrid columns="5">
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="6" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="6"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella6}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella6}" width="100" id="imgHuella6" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella6}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="7" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="7"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella7}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella7}" width="100" id="imgHuella7" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella7}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="8" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="8"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella8}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella8}" width="100" id="imgHuella8" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella8}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="9" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="9"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella9}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella9}" width="100" id="imgHuella9" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella9}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+										<p:outputPanel autoUpdate="true">
+											<h:panelGrid columns="1" styleClass="textoCentro">
+												<p:outputLabel value="10" />
+												<p:commandLink process="@this" oncomplete="dlgCargarArchivo.show()">
+													<f:setPropertyActionListener target="#{empleadoBean.tipoFileUpload}" value="huellaDigital"></f:setPropertyActionListener>
+													<f:setPropertyActionListener target="#{empleadoBean.numeroHuella}" value="10"></f:setPropertyActionListener>
+													<h:graphicImage library="images" name="subir.png" styleClass="subirImagen" />
+												</p:commandLink>
+												<p:graphicImage rendered="#{!empty empleadoBean.empresa.empleado.imagenHuella10}" cache="false" value="/images/dynamic/?file=#{empleadoBean.empresa.empleado.imagenHuella10}" width="100" id="imgHuella10" />
+												<p:graphicImage rendered="#{empty empleadoBean.empresa.empleado.imagenHuella10}" library="images" name="imagen_sin_definir.jpg" width="100" />
+											</h:panelGrid>
+										</p:outputPanel>
+
+									</h:panelGrid>
+								</p:panelGrid>
+
+
+
+							</p:tab>
+							<!-- FIN TAB HUELLAS DIGITALES-->
+
+
+						</p:tabView>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_empleado} )" rendered="#{!empleadoBean.editado}">
+
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaEmpleado" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{empleadoBean.listaEmpresa}" var="empresa" binding="#{empleadoBean.dtEmpresa}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rowsPerPageTemplate="#{empleadoBean.numeroFilasPorPagina}" rows="#{empleadoBean.numeroFilas}"
+							selection="#{empleadoBean.empresa}" selectionMode="single" rowKey="#{empresa.id}" sortBy="#{empresa.codigo}" sortOrder="ASCENDING">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{empresa.codigo}" filterBy="#{empresa.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{empresa.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.tipoIdentificacion.nombre}" filterBy="#{empresa.tipoIdentificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{empresa.identificacion}" filterBy="#{empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.empleado.pais.gentilicio}" filterBy="#{empresa.empleado.pais.gentilicio}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nacionalidad}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.pais.gentilicio}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{empresa.empleado.apellidos}" filterBy="#{empresa.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_apellios}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{empresa.empleado.nombres}" filterBy="#{empresa.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_nombres}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.empleado.cargoEmpleado.nombre}"
+								filterBy="#{empresa.empleado.cargoEmpleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cargo}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.cargoEmpleado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.empleado.departamento.nombre}"
+								filterBy="#{empresa.empleado.departamento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_departamento_empleado}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.departamento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.empleado.tipoContrato.nombre}"
+								filterBy="#{empresa.empleado.tipoContrato.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_contrato}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.tipoContrato.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.empleado.tipoDiscapacidad.nombre}"
+								filterBy="#{empresa.empleado.tipoDiscapacidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tipo_discapacidad}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.tipoDiscapacidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{empresa.empleado.numeroCargasActivas}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_cargas_activas}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.numeroCargasActivas}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.categoriaEmpresa.nombre}" filterBy="#{empresa.categoriaEmpresa.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}" />
+								</f:facet>
+								<h:outputText value="#{empresa.categoriaEmpresa.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" filterBy="#{empresa.empleado.activo}" filterOptions="#{empleadoBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true" value="#{empresa.empleado.activo}" />
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{empleadoBean.empresa.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{empleadoBean.empresa.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{empleadoBean.empresa.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{empleadoBean.empresa.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

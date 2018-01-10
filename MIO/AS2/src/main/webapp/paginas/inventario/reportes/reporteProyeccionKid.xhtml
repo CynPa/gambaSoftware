@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_pago_titulo}">
+			
+				<tnt:panelImprimir entidadDestino=""
+					bean="#{reporteProyeccionKidBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{reporteProyeccionKidBean}" />
+					<ui:param name="objetoActualizar"
+						value=":form:lblProducto" />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+				</ui:include>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid id="panelDetalle"
+							columns="#{reporteProyeccionKidBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteProyeccionKidBean.formatoFecha}"
+								showOn="button" navigator="true"
+								value="#{reporteProyeccionKidBean.fechaDesde}"
+								id="calFechaDesde" required="true" />
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteProyeccionKidBean.formatoFecha}"
+								showOn="button" navigator="true"
+								value="#{reporteProyeccionKidBean.fechaHasta}"
+								id="calFechaHasta" required="true" />
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}" />
+							<h:panelGroup>
+								<p:commandButton value="..." onclick="dglModalProducto.show();"
+									type="button" />
+								<h:outputText id="lblProducto"
+									value="#{reporteProyeccionKidBean.producto.codigo} #{reporteProyeccionKidBean.producto.nombreComercial}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_bodega}" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteProyeccionKidBean.bodega}" id="cboTipoBodega">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="0" />
+								<f:selectItems value="#{reporteProyeccionKidBean.listaBodega}"
+									var="_bodega" itemLabel="#{_bodega.nombre}"
+									itemValue="#{_bodega}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+
+						<p:separator />
+
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+								process="@this" oncomplete="confirmacionImprimir.show()"
+								icon="print">
+							</p:commandButton>
+						</h:panelGrid>
+
+					</p:fieldset>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

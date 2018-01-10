@@ -1,0 +1,2143 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="headAdicionales">
+		<script
+			src="http://maps.google.com/maps/api/js?key=AIzaSyDIpak9qmfhguL0PSc1nnSnI3YSw9ql6bw"
+			type="text/javascript" />
+	</ui:define>
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{empresaBean}">
+					<p:commandButton disabled="#{empresaBean.editado}"
+						value="#{msgs.btn_consultar}" title="#{msgs.btn_consultar}"
+						icon="ui-icon-gear" process="@this :form:panelListado"
+						action="#{empresaBean.editar(true)}"
+						update=":form:panelContenedor" partialSubmit="true" id="READ" />
+
+					<as2:buttonEliminar bean="#{empresaBean}" />
+					<as2:buttonExportaExcel bean="#{empresaBean}"
+						tabla=":form:tablaEmpresa" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaCiudad.xhtml">
+					<ui:param name="bean" value="#{empresaBean}" />
+					<ui:param name="objetoActualizar"
+						value=":form:tabView:panelDirecciones" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{empresaBean.editado}">
+						<f:facet name="header">
+							<h:outputText
+								value="#{msgs.lbl_panel_edicion} #{msgs.lbl_empresa_titulo_panel}" />
+							<p:outputPanel id="lblExisteEmpleado">
+								<h:outputText style="font-weight:bold;color:#FF0000"
+									value=" #{msgs.lbl_existe_empresa}"
+									rendered="#{empresaBean.empresaExiste}" />
+							</p:outputPanel>
+						</f:facet>
+						<p:fieldset>
+
+							<h:panelGrid id="panelDetalle"
+								columns="#{empresaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" rendered="#{empresaBean.manejaCodigoEmpresa}" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtCodigo" rendered="#{empresaBean.manejaCodigoEmpresa}"
+									value="#{empresaBean.empresa.codigo}" required="#{empresaBean.manejaCodigoEmpresa}">
+									<f:validateBean />
+									<p:ajax event="change"
+										listener="#{empresaBean.buscarEmpresaCodigoEvent}"
+										process="@this" global="false" />
+								</p:inputText>
+
+								<p:outputLabel for="txtCodigoAlterno"
+									value="#{msgs.lbl_codigo_alterno}:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtCodigoAlterno"
+									value="#{empresaBean.empresa.codigoAlterno}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<p:outputLabel for="cboTipoIdentificacion"
+									value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+								<p:selectOneMenu disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text"
+									value="#{empresaBean.empresa.tipoIdentificacion}"
+									id="cboTipoIdentificacion" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems
+										value="#{empresaBean.tipoIdentificacionBean.listaTipoIdentificacionCombo}"
+										var="_tipoIdentificacion"
+										itemLabel="#{_tipoIdentificacion.nombre}"
+										itemValue="#{_tipoIdentificacion}" />
+									<f:validateBean />
+									<p:ajax process="@this"
+										update=":form:panelValidacionIdentificacion" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtIdentificacionNormal"
+									value="#{msgs.lbl_identificacion}:" />
+								<p:outputPanel id="panelValidacionIdentificacion">
+									<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+										value="#{empresaBean.empresa.identificacion}"
+										styleClass="input-text" id="txtIdentificacionNormal"
+										rendered="#{!empresaBean.empresa.tipoIdentificacion.indicadorValidarIdentificacion}"
+										required="true">
+										<p:ajax event="change"
+											listener="#{empresaBean.buscarEmpresaEvent}" process="@this" />
+										<f:validateBean />
+									</p:inputText>
+									<p:inputMask disabled="#{empresaBean.empresa.soloLectura}"
+										mask="#{empty empresaBean.empresa.tipoIdentificacion ? '' : empresaBean.empresa.tipoIdentificacion.mascara}"
+										value="#{empresaBean.empresa.identificacion}"
+										styleClass="input-text" id="txtIdentificacion"
+										rendered="#{empresaBean.empresa.tipoIdentificacion.indicadorValidarIdentificacion}">
+										<p:ajax event="change"
+											listener="#{empresaBean.buscarEmpresaEvent}" process="@this" />
+										<f:validateBean />
+									</p:inputMask>
+								</p:outputPanel>
+
+								<p:outputLabel for="txtNombreFiscal"
+									value="#{msgs.lbl_empresa_nombre_fiscal}:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtNombreFiscal"
+									value="#{empresaBean.empresa.nombreFiscal}" required="true">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombreComercial"
+									value="#{msgs.lbl_empresa_nombre_comercial}:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtNombreComercial"
+									value="#{empresaBean.empresa.nombreComercial}" required="true">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<p:outputLabel for="cboCategoriaEmpresa"
+									value="#{msgs.lbl_empresa_categoria_empresa}:" />
+								<p:selectOneMenu disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text"
+									value="#{empresaBean.empresa.categoriaEmpresa}"
+									id="cboCategoriaEmpresa" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{empresaBean.listaCategoriaEmpresa}"
+										var="_categoriaEmpresa"
+										itemLabel="#{_categoriaEmpresa.nombre}"
+										itemValue="#{_categoriaEmpresa}" />
+									<f:validateBean />
+									<p:ajax process="@this" global="false"
+										update=":form:tabView:txtCreditoMaximo,:form:tabView:panelCreditoDisponible :form:panelDetalleEmpresa"
+										listener="#{empresaBean.actualizarCreditoMaxCliente}"
+										event="change" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboTipoEmpresa"
+									value="#{msgs.lbl_empresa_tipo_empresa}:" />
+								<p:selectOneMenu disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text"
+									value="#{empresaBean.empresa.tipoEmpresa}" id="cboTipoEmpresa"
+									required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{empresaBean.listaTipoEmpresa}" />
+									<f:validateBean />
+									<p:ajax process="@this" event="change"
+										update=":form:panelNuevo" global="false"
+										listener="#{empresaBean.limpiarCamposTipoEmpresa}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboGenero" value="#{msgs.lbl_genero}:"
+									rendered="#{empresaBean.empresa.tipoEmpresa.nombre == 'Natural'}" />
+								<p:selectOneMenu disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" value="#{empresaBean.empresa.genero}"
+									id="cboGenero" required="true"
+									rendered="#{empresaBean.empresa.tipoEmpresa.nombre == 'Natural'}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{empresaBean.listaGenero}" />
+									<p:ajax process="@this" event="valueChange" global="false" />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboEstadoCivil"
+									value="#{msgs.lbl_estado_civil}:"
+									rendered="#{empresaBean.empresa.tipoEmpresa.nombre == 'Natural'}" />
+								<p:selectOneMenu disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text"
+									value="#{empresaBean.empresa.estadoCivil}" id="cboEstadoCivil"
+									required="true"
+									rendered="#{empresaBean.empresa.tipoEmpresa.nombre == 'Natural'}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{empresaBean.listaEstadoCivil}"
+										var="_estadoCivil" itemLabel="#{_estadoCivil.nombre}"
+										itemValue="#{_estadoCivil}" />
+									<p:ajax process="@this" event="change" global="false" />
+									<p:ajax process="@this" event="valueChange" global="false" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboOrigenIngresos"
+									value="#{msgs.lbl_origen_ingresos}:"
+									rendered="#{empresaBean.empresa.tipoEmpresa.nombre == 'Natural'}" />
+								<p:selectOneMenu disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text"
+									value="#{empresaBean.empresa.origenIngresos}"
+									id="cboOrigenIngresos" required="#{empresaBean.empresa.indicadorCliente}"
+									rendered="#{empresaBean.empresa.tipoEmpresa.nombre == 'Natural'}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{empresaBean.listaOrigenIngresos}"
+										var="_origenIngresos" itemLabel="#{_origenIngresos.nombre}"
+										itemValue="#{_origenIngresos}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_email} 1:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtEmail1"
+									value="#{empresaBean.empresa.email1}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_email} 2:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtEmail2"
+									value="#{empresaBean.empresa.email2}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_email} 3:" />
+								<p:inputText styleClass="input-text" id="txtEmail3"
+									value="#{empresaBean.empresa.email3}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_empresa_pagina_web}:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtPaginaWeb"
+									value="#{empresaBean.empresa.paginaWeb}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_cuenta_facebook}:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtCuentaFacebook"
+									value="#{empresaBean.empresa.cuentaFacebook}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_cuenta_twitter}:" />
+								<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtCuentaTwitter"
+									value="#{empresaBean.empresa.cuentaTwitter}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<h:selectBooleanCheckbox
+									disabled="#{empresaBean.empresa.soloLectura}"
+									value="#{empresaBean.empresa.activo}">
+									<p:ajax process="@this" global="false" />
+								</h:selectBooleanCheckbox>
+
+
+								<h:outputText value="#{msgs.lbl_observacion}:" />
+								<p:inputTextarea disabled="#{empresaBean.empresa.soloLectura}"
+									styleClass="input-text" id="txtNota"
+									value="#{empresaBean.empresa.descripcion}">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_empresa_indicador_cliente}:" />
+								<p:selectBooleanCheckbox
+									value="#{empresaBean.empresa.indicadorCliente}"
+									disabled="#{(not empty empresaBean.empresa.cliente) or empresaBean.empresa.soloLectura}">
+									<p:ajax process="@this" listener="#{empresaBean.crearCliente}"
+										event="change"
+										update="@this :form:panelDetalleEmpresa :form:tabView:tabAtributos" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_empresa_indicador_proveedor}:" />
+								<p:selectBooleanCheckbox
+									value="#{empresaBean.empresa.indicadorProveedor}"
+									disabled="#{(not empty empresaBean.empresa.proveedor) or empresaBean.empresa.soloLectura}">
+									<p:ajax process="@this"
+										listener="#{empresaBean.crearProveedor}"
+										update="@this :form:panelDetalleEmpresa :form:tabView:tabAtributos" />
+								</p:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_indicador_entidad_publica}:" />
+								<p:selectBooleanCheckbox
+									disabled="#{empresaBean.empresa.soloLectura}"
+									value="#{empresaBean.empresa.indicadorEntidadPublica}">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectBooleanCheckbox>
+							</h:panelGrid>
+						</p:fieldset>
+
+
+						<p:outputPanel id="panelDetalleEmpresa">
+
+							<p:tabView id="tabView">
+
+								<p:ajax event="tabChange"
+									process=":form:tabView:panelCliente,:form:tabView:panelProveedor,:form:tabView:panelDirecciones,:form:tabView:panelAutorizacionSRI,:form:tabView:panelCuentaBancariaEmpresa,:form:tabView:panelFormaPagoSRI"
+									update=":form:tabView:panelCliente,:form:tabView:panelProveedor,:form:tabView:panelDirecciones,:form:tabView:panelAutorizacionSRI,:form:tabView:panelCuentaBancariaEmpresa,:form:tabView:panelFormaPagoSRI,:form:tabView:ubicacion" />
+
+								<!-- INICIO TAB CLIENTE -->
+
+								<p:tab title="#{msgs.lbl_cliente}" id="tabCliente"
+									rendered="#{empresaBean.empresa.indicadorCliente}">
+
+									<p:outputPanel id="panelCliente">
+
+										<p:fieldset>
+											<h:panelGrid columns="4"
+												columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+												rendered="#{empresaBean.empresa.indicadorCliente}">
+
+												<h:outputText value="#{msgs.lbl_tipo_cliente}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.cliente.tipoCliente}"
+													id="cboTipoCliente" required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaTipoCliente}"
+														var="_tipoCliente" itemValue="#{_tipoCliente}"
+														itemLabel="#{_tipoCliente.nombre}" />
+													<p:ajax process="@this" event="change"
+														update=":form:panelDetalleEmpresa"></p:ajax>
+													<f:validateBean />
+												</p:selectOneMenu>
+
+
+												<h:outputText value="#{msgs.lbl_zona}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.zona}" id="cboZona"
+													required="false">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaZona}" var="_zona"
+														itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+													<p:ajax process="@this" update=":form:tabView:cboSector" />
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.agenteComercialSeleccionado}"
+													id="cboAgenteComercial" required="false">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaAgentesComerciales}"
+														var="_agenteComercial"
+														itemLabel="#{_agenteComercial.nombre1} #{_agenteComercial.nombre2}"
+														itemValue="#{_agenteComercial.id}" />
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_sector}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.sector}"
+													id="cboSector" required="false">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaSectores}"
+														var="_sector"
+														itemLabel="#{_sector.nombre} #{_sector.codigo}"
+														itemValue="#{_sector}" />
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_recaudador}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.recaudadorSeleccionado}"
+													id="cboRecaudador" required="false">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaRecaudador}"
+														var="_recaudador" itemLabel="#{_recaudador.nombre}"
+														itemValue="#{_recaudador.idRecaudador}" />
+													<p:ajax process="@this" />
+												</p:selectOneMenu>
+
+												<p:outputLabel for="cboFormaPagoCliente"
+													value="#{msgs.lbl_forma_cobro}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboFormaPagoCliente"
+													value="#{empresaBean.empresa.cliente.formaPago}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaFormaPagoCliente}"
+														var="_formaPagoCliente"
+														itemLabel="#{_formaPagoCliente.nombre}"
+														itemValue="#{_formaPagoCliente}" />
+													<f:validateBean />
+												</p:selectOneMenu>
+
+
+												<p:outputLabel for="cboCondicionPagoCliente"
+													value="#{msgs.lbl_condicion_cobro}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboCondicionPagoCliente"
+													value="#{empresaBean.empresa.cliente.condicionPago}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaCondicionPagoCliente}"
+														var="_condicionPagoCliente"
+														itemLabel="#{_condicionPagoCliente.nombre}"
+														itemValue="#{_condicionPagoCliente}" />
+													<f:validateBean />
+
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_numero_cuotas}:" />
+												<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="txtNumeroCuotasCliente"
+													value="#{empresaBean.empresa.cliente.numeroCuotas}">
+													<f:validateBean />
+												</p:inputText>
+
+												<p:outputLabel for="cboMetodoFacturacion"
+													value="#{msgs.lbl_metodo_facturacion}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.cliente.metodoFacturacion}"
+													id="cboMetodoFacturacion" required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaMetodoFacturacion}" />
+													<f:validateBean />
+												</p:selectOneMenu>
+
+												<p:outputLabel for="cboListaPreciosCliente"
+													value="#{msgs.lbl_lista_precios}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboListaPreciosCliente"
+													value="#{empresaBean.empresa.cliente.listaPrecios}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaPrecios}"
+														var="_listaPrecios" itemLabel="#{_listaPrecios.nombre}"
+														itemValue="#{_listaPrecios}" />
+													<f:validateBean for="cboListaPreciosCliente" />
+												</p:selectOneMenu>
+
+												<p:outputLabel for="cboListaDescuentosCliente"
+													value="#{msgs.lbl_lista_descuentos}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboListaDescuentosCliente"
+													value="#{empresaBean.empresa.cliente.listaDescuentos}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaListaDescuentos}"
+														var="_listaDescuentos"
+														itemLabel="#{_listaDescuentos.nombre}"
+														itemValue="#{_listaDescuentos}" />
+													<f:validateBean for="cboListaDescuentosCliente" />
+												</p:selectOneMenu>
+
+												<h:outputText
+													value="#{msgs.lbl_empresa_cliente_credito_maximo}:" />
+												<h:outputText id="txtCreditoMaximo"
+													value="#{empresaBean.empresa.cliente.creditoMaximo}" />
+
+												<h:outputText
+													value="#{msgs.lbl_empresa_cliente_credito_utilizado}:" />
+												<h:outputText id="txtCreditoUtilizado"
+													value="#{empresaBean.empresa.cliente.creditoUtilizado}" />
+
+												<h:outputText
+													value="#{msgs.lbl_empresa_cliente_cupo_disponible}:" />
+												<p:outputPanel id="panelCreditoDisponible">
+													<h:outputText
+														value="#{empresaBean.empresa.cliente.creditoMaximo-empresaBean.empresa.cliente.creditoUtilizado}" />
+												</p:outputPanel>
+
+												<h:outputText value="#{msgs.lbl_excento_impuestos}:" />
+												<h:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.excentoImpuestos}" />
+
+
+												<p:outputPanel rendered="#{empresaBean.recargosEnFactura}">
+													<h:outputText value="#{msgs.lbl_iva_presuntivo}:" />
+												</p:outputPanel>
+												<h:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													rendered="#{empresaBean.recargosEnFactura}"
+													value="#{empresaBean.empresa.cliente.indicadorIvaPresuntivo}">
+												</h:selectBooleanCheckbox>
+
+												<p:outputPanel rendered="#{empresaBean.recargosEnFactura}">
+													<h:outputText value="#{msgs.lbl_3x1000}:" />
+												</p:outputPanel>
+												<h:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													rendered="#{empresaBean.recargosEnFactura}"
+													value="#{empresaBean.empresa.cliente.indicador3X1000}">
+												</h:selectBooleanCheckbox>
+
+												<h:outputText value="#{msgs.lbl_contacto}:" />
+												<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.cliente.contacto}" />
+
+												<h:outputText value="#{msgs.lbl_ordenante}:" />
+												<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.cliente.ordenante}" />
+
+												<h:outputText value="#{msgs.lbl_titulo_transportista}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.cliente.transportista}"
+													id="cboTransportista"
+													required="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_TEXTILES_PADILLA'}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaTransportistaCombo}"
+														var="_trasnportista" itemLabel="#{_trasnportista.nombre}"
+														itemValue="#{_trasnportista}" />
+													<f:validateBean />
+												</p:selectOneMenu>
+
+												<p:spacer />
+												<h:panelGrid border="0" columns="6" cellspacing="0"
+													cellpadding="5" style="width: 95% !important;">
+
+													<p:selectBooleanCheckbox
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{empresaBean.empresa.cliente.indicadorEnvio}" />
+													<h:outputText value="#{msgs.lbl_inidcador_envio_factura}" />
+
+													<h:outputText value="#{msgs.lbl_campo_envio_factura} 1:" />
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{empresaBean.empresa.cliente.referencia}">
+														<p:ajax process="@this" global="false" />
+													</p:inputText>
+													<h:outputText value="#{msgs.lbl_campo_envio_factura} 2:" />
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{empresaBean.empresa.cliente.referencia2}">
+														<p:ajax process="@this" global="false" />
+													</p:inputText>
+
+												</h:panelGrid>
+
+												<h:outputText value="#{msgs.lbl_indicador_emite_retencion}:" />
+												<p:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.indicadorEmiteRetencion}" />
+
+												<h:outputText value="#{msgs.lbl_version_factura}:" />
+
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.cliente.version}"
+													id="cboVersion">
+													<f:selectItem itemLabel="Version 1.1.0 (6 Decimales)"
+														itemValue="1.1.0" />
+													<f:selectItem itemLabel="Version 1.0.0 (2 Decimales)"
+														itemValue="1.0.0" />
+													<f:validateBean />
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_pedido_preautorizado}:" />
+												<p:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.indicadorPedidoPreautorizado}" />
+
+												<h:outputText value="#{msgs.lbl_editar_precio}:" />
+												<p:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.indicadorEditarPrecio}" />
+
+
+												<h:outputText value="#{msgs.lbl_horarios_visita}:" />
+												<p:outputPanel>
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{empresaBean.empresa.cliente.horariosVisitas}" />
+													<h:outputText value="Ej: 08:00-10:00;11:30-13:50" />
+												</p:outputPanel>
+
+
+												<h:outputText value="#{msgs.lbl_horarios_despacho}:" />
+												<p:outputPanel>
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{empresaBean.empresa.cliente.horariosDespachos}" />
+													<h:outputText value="Ej: 08:00-10:00;11:30-13:50" />
+												</p:outputPanel>
+
+
+
+
+											</h:panelGrid>
+										</p:fieldset>
+									</p:outputPanel>
+
+								</p:tab>
+
+								<!-- FIN TAB CLIENTE -->
+
+								<!-- TAB LOGISTICA -->
+
+								<p:tab title="#{msgs.lbl_logistica}" id="tabLogistica"
+									rendered="#{empresaBean.empresa.indicadorCliente}">
+
+									<p:outputPanel id="panelLogistica">
+
+										<p:fieldset>
+											<h:panelGrid columns="4"
+												columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+												rendered="#{empresaBean.empresa.indicadorCliente}">
+
+												<h:outputText value="#{msgs.lbl_facturar_al_despachar}:" />
+												<p:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.indicadorFacturarAlDespachar}" />
+
+												<h:outputText value="#{msgs.lbl_tipo_orden_despacho}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.cliente.tipoOrdenDespacho}"
+													id="cboTipoOrdenDespacho" required="false">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaTipoOrdenDespacho}"
+														var="_tipoOrdenDespacho"
+														itemLabel="#{_tipoOrdenDespacho.nombre}"
+														itemValue="#{_tipoOrdenDespacho}" />
+													<f:validateBean />
+												</p:selectOneMenu>
+												
+												<h:outputText value="#{msgs.lbl_sugerir_pedido}:" rendered="#{empresaBean.empresa.cliente.tipoCliente != 'SUBCLIENTE'}"/>
+												<p:selectBooleanCheckbox rendered="#{empresaBean.empresa.cliente.tipoCliente != 'SUBCLIENTE'}"
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.cliente.indicadorCargarPedidoSugerido}" >
+													<p:ajax process="@this"  global="false"></p:ajax>
+													<f:validateBean />
+												</p:selectBooleanCheckbox>
+													
+												<h:outputLabel for="txtPorcentajeCrecimientoVentas" value="#{msgs.lbl_porcentaje_crecimiento_ventas}:" rendered="#{empresaBean.empresa.cliente.tipoCliente != 'SUBCLIENTE'}"/>
+												<p:inputText id="txtPorcentajeCrecimientoVentas" disabled="#{empresaBean.empresa.soloLectura}" rendered="#{empresaBean.empresa.cliente.tipoCliente != 'SUBCLIENTE'}"
+														styleClass="input-text" value="#{empresaBean.empresa.cliente.porcentajeCrecimientoVentas}" >
+													<p:ajax process="@this"  global="false"></p:ajax>
+													<f:validateBean />
+												</p:inputText>
+
+											</h:panelGrid>
+										</p:fieldset>
+									</p:outputPanel>
+
+								</p:tab>
+
+								<!-- FIN TAB LOGISTICA -->
+
+
+								<!-- INICIO TAB PROVEEDOR -->
+
+								<p:tab title="#{msgs.lbl_proveedor}" id="tabProveedor"
+									rendered="#{empresaBean.empresa.indicadorProveedor}">
+
+									<p:outputPanel id="panelProveedor">
+										<p:fieldset>
+											<h:panelGrid columns="4"
+												columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor"
+												rendered="#{empresaBean.empresa.indicadorProveedor}">
+
+												<h:outputText value="#{msgs.lbl_tipo_proveedor}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.proveedor.tipoProveedor}"
+													id="cboTipoProveedor" required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaTipoCliente}"
+														var="_tipoProveedor" itemValue="#{_tipoProveedor}"
+														itemLabel="#{_tipoProveedor.nombre}" />
+													<f:validateBean />
+												</p:selectOneMenu>
+
+												<p:outputLabel for="cboFormaPagoProveedor"
+													value="#{msgs.lbl_forma_pago}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboFormaPagoProveedor"
+													value="#{empresaBean.empresa.proveedor.formaPago}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaFormaPagoProveedor}"
+														var="_formaPagoProveedor"
+														itemLabel="#{_formaPagoProveedor.nombre}"
+														itemValue="#{_formaPagoProveedor}" />
+													<f:validateBean />
+
+												</p:selectOneMenu>
+
+												<p:outputLabel for="cboCondicionPagoProveedor"
+													value="#{msgs.lbl_condicion_pago}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboCondicionPagoProveedor"
+													value="#{empresaBean.empresa.proveedor.condicionPago}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaCondicionPagoProveedor}"
+														var="_condicionPagoProveedor"
+														itemLabel="#{_condicionPagoProveedor.nombre}"
+														itemValue="#{_condicionPagoProveedor}" />
+													<f:validateBean />
+
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_categoria_retencion}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboCategoriaRetencion"
+													value="#{empresaBean.empresa.proveedor.categoriaRetencion}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems
+														value="#{empresaBean.listaCategoriaRetencion}"
+														var="_categoriaRetencion"
+														itemLabel="#{_categoriaRetencion.nombre}"
+														itemValue="#{_categoriaRetencion}" />
+													<f:validateBean />
+
+												</p:selectOneMenu>
+
+												<p:outputLabel for="txtNumeroCuotasProveedor"
+													value="#{msgs.lbl_numero_cuotas}:" />
+												<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="txtNumeroCuotasProveedor"
+													value="#{empresaBean.empresa.proveedor.numeroCuotas}"
+													required="true">
+													<f:validateBean />
+												</p:inputText>
+
+												<h:outputText value="#{msgs.lbl_lista_precios}:" />
+												<p:selectOneMenu
+													disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text" id="cboListaPreciosProveedor"
+													value="#{empresaBean.empresa.proveedor.listaPrecios}"
+													required="false">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+														itemValue="" />
+													<f:selectItems value="#{empresaBean.listaPreciosProveedor}"
+														var="_listaPrecios" itemLabel="#{_listaPrecios.nombre}"
+														itemValue="#{_listaPrecios}" />
+													<f:validateBean for="cboListaPreciosProveedor" />
+												</p:selectOneMenu>
+
+												<h:outputText value="#{msgs.lbl_pago_cash}:" />
+												<h:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.proveedor.indicadorPagoCash}" />
+
+												<h:outputText value="#{msgs.lbl_beneficiario}:" />
+												<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.proveedor.beneficiario}" />
+
+												<h:outputText value="#{msgs.lbl_contacto}:" />
+												<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.proveedor.contacto}" />
+
+												<h:outputText value="Parte Relacionada" />
+												<h:selectBooleanCheckbox
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.proveedor.indicadorParteRelacionada}" />
+												<font>Aplica solo cuando el Tipo Identificacion es
+													Pasaporte</font>
+
+												<p:spacer />
+
+												<h:outputText value="#{msgs.lbl_valor_maximo_documento}:" />
+												<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+													styleClass="input-text"
+													value="#{empresaBean.empresa.proveedor.valorMaximoDocumento}">
+													<f:validateBean />
+												</p:inputText>
+
+												<h:outputText
+													value="#{msgs.lbl_porcentaje_adicional_recepcion}:" />
+												<p:spinner min="0" max="100"
+													disabled="#{empresaBean.empresa.soloLectura}"
+													value="#{empresaBean.empresa.proveedor.porcentajeAdicionalRecepcion}">
+													<f:validateBean />
+												</p:spinner>
+
+											</h:panelGrid>
+
+										</p:fieldset>
+									</p:outputPanel>
+								</p:tab>
+
+								<!-- FIN TAB PROVEEDOR -->
+
+								<!-- INICIO TAB CUENTAS BANCARIAS -->
+
+								<p:tab title="#{msgs.lbl_cuentas_bancarias}"
+									id="tabCuentasBancarias">
+
+									<p:outputPanel id="panelCuentaBancariaEmpresa">
+
+										<p:fieldset>
+											<p:commandButton
+												disabled="#{empresaBean.empresa.soloLectura}"
+												value="#{msgs.btn_agregar}"
+												process="@this,:form:tabView:panelCuentaBancariaEmpresa"
+												update=":form:tabView:panelCuentaBancariaEmpresa"
+												actionListener="#{empresaBean.agregarCuentaBancariaEmpresa}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												id="tablaCuentaBancariaEmpresa"
+												rowIndexVar="secuenciaCuentaBancariaEmpresa"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												value="#{empresaBean.cuentaBancariaEmpresa}"
+												var="cuentaBancariaEmpresa"
+												binding="#{empresaBean.dtCuentaBancarioEmpresa}"
+												paginator="true" paginatorPosition="bottom"
+												style="width:100%" rows="#{empresaBean.numeroFilas}"
+												selectionMode="single"
+												rowKey="#{cuentaBancariaEmpresa.idCuentaBancariaEmpresa}"
+												lazy="true">
+
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="Nº">
+													<h:outputText value="#{secuenciaCuentaBancariaEmpresa+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_pais}">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="cboPais"
+														value="#{cuentaBancariaEmpresa.cuentaBancaria.pais.idPais}"
+														required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+															itemValue="" />
+														<f:selectItems value="#{empresaBean.listaPais}"
+															var="_pais" itemLabel="#{_pais.nombre}"
+															itemValue="#{_pais.idPais}" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_tipo_cuenta_bancaria}">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="cboTipoCuentaBancaria"
+														value="#{cuentaBancariaEmpresa.cuentaBancaria.tipoCuentaBancaria.idTipoCuentaBancaria}"
+														required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+															itemValue="" />
+														<f:selectItems
+															value="#{empresaBean.listaTipoCuentaBancaria}"
+															var="_tipoCuentaBancaria"
+															itemLabel="#{_tipoCuentaBancaria.nombre}"
+															itemValue="#{_tipoCuentaBancaria.idTipoCuentaBancaria}" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_banco}">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="cboBanco"
+														value="#{cuentaBancariaEmpresa.cuentaBancaria.banco}"
+														required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+															itemValue="" />
+														<f:selectItems value="#{empresaBean.listaBanco}"
+															var="_banco" itemLabel="#{_banco.nombre}"
+															itemValue="#{_banco}" />
+														<p:ajax
+															process="@this :form:tabView:tablaCuentaBancariaEmpresa:cboTipo"
+															update=":form:tabView:tablaCuentaBancariaEmpresa:cboTipo"
+															listener="#{empresaBean.cargarTipoServicio}"></p:ajax>
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_numero_cuenta_bancaria}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text100"
+														value="#{cuentaBancariaEmpresa.cuentaBancaria.numero}"
+														id="txtNumeroCuenta" required="true">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="Tipo Servicio">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{cuentaBancariaEmpresa.cuentaBancaria.tipoServicioCuentaBancariaProveedor}"
+														id="cboTipo">
+														<f:selectItems
+															value="#{empresaBean.listaTipoServicioCuentaBancaria}" />
+														<p:ajax process="@this"></p:ajax>
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell"
+													headerText="#{msgs.lbl_activo}">
+													<p:selectBooleanCheckbox
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{cuentaBancariaEmpresa.cuentaBancaria.activo}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTPredeterminado tableCell"
+													headerText="#{msgs.lbl_predeterminado}">
+													<p:selectBooleanCheckbox
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{cuentaBancariaEmpresa.cuentaBancaria.predeterminado}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTPredeterminado tableCell">
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														id="btnEliminarCuentaBancariaEmpresa"
+														action="#{empresaBean.eliminarCuentaBancariaEmpresa}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelCuentaBancariaEmpresa"
+														process="@this" />
+												</p:column>
+											</p:dataTable>
+
+										</p:fieldset>
+
+									</p:outputPanel>
+
+								</p:tab>
+
+								<!-- FIN TAB CUENTAS BANCARIAS -->
+
+
+								<!-- INICIO TAB DIRECCIONES -->
+
+								<p:tab title="#{msgs.lbl_direcciones}" id="tabDirecciones">
+
+									<p:outputPanel id="panelDirecciones">
+
+										<p:fieldset>
+											<p:commandButton
+												disabled="#{empresaBean.empresa.soloLectura}"
+												value="#{msgs.btn_agregar}"
+												process="@this,:form:tabView:panelDirecciones"
+												update=":form:tabView:panelDirecciones"
+												actionListener="#{empresaBean.agregarDireccion}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												id="tablaDirecciones" rowIndexVar="secuenciaDireccion"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												value="#{empresaBean.direcciones}" var="direccion"
+												binding="#{empresaBean.dtDirecciones}" paginator="true"
+												paginatorPosition="bottom" style="width:100%"
+												rows="#{empresaBean.numeroFilas}" selectionMode="single"
+												rowKey="#{direccion.idDireccionEmpresa}" lazy="true">
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="Nº">
+													<h:outputText value="#{secuenciaDireccion+1}" />
+												</p:column>
+
+												<p:column>
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{msgs.lbl_ciudad}" icon="ui-icon-plusthick"
+														process="@this" oncomplete="ciudadDialog.show();"
+														update=":form:tabView:panelDirecciones"
+														action="#{empresaBean.actualizarCiudad}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_ubicacion}">
+													<h:outputText
+														value="#{direccion.ciudad.provincia.pais.nombre} - #{direccion.ciudad.provincia.nombre} - #{direccion.ciudad.nombre}"
+														id="txtCiudadOrigen">
+													</h:outputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_parroquia}">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{direccion.parroquia}"
+														id="cboParroquia">
+														<f:selectItem itemValue=""
+															itemLabel="#{msgs.lbl_seleccione}" />
+														<f:selectItems value="#{direccion.ciudad.listaParroquia}"
+															var="_parroquia" itemLabel="#{_parroquia.nombre}"
+															itemValue="#{_parroquia}" />
+														<f:validateBean />
+														<p:ajax event="change" process="@this" global="false" />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_empresa_direccion_direccion1}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtDireccion1"
+														value="#{direccion.ubicacion.direccion1}">
+														<p:ajax event="change" process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_empresa_direccion_direccion2}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtDireccion2"
+														value="#{direccion.ubicacion.direccion2}">
+														<p:ajax event="change" process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_empresa_direccion_direccion3}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtDireccion3"
+														value="#{direccion.ubicacion.direccion3}">
+														<p:ajax event="change" process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_empresa_direccion_direccion5}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtDireccion5"
+														value="#{direccion.ubicacion.direccion5}">
+														<p:ajax event="change" process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="#{msgs.lbl_telefono}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtTelefono1"
+														value="#{direccion.telefono1}">
+														<p:ajax event="change" process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="#{msgs.lbl_telefono_alternativo}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtTelefono2"
+														value="#{direccion.telefono2}">
+														<p:ajax event="change" process="@this" global="false" />
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="#{msgs.lbl_exportacion_paraiso_fiscal}">
+													<h:selectBooleanCheckbox
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{direccion.indicadorParaisoFiscal}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="#{msgs.lbl_empresa_direccion_envio}">
+													<h:selectBooleanCheckbox
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{direccion.indicadorDireccionEnvio}">
+														<p:ajax event="change" process="@this" global="false" />
+													</h:selectBooleanCheckbox>
+
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="#{msgs.lbl_empresa_direccion_principal}">
+													<h:selectBooleanCheckbox
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{direccion.indicadorDireccionPrincipal}">
+														<p:ajax event="change" process="@this" global="false" />
+													</h:selectBooleanCheckbox>
+												</p:column>
+
+												<p:column>
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														id="btnEliminarDireccion"
+														action="#{empresaBean.eliminarDireccion}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelDirecciones" process="@this" />
+												</p:column>
+
+											</p:dataTable>
+										</p:fieldset>
+									</p:outputPanel>
+								</p:tab>
+
+								<!-- FIN TAB DIRECCIONES -->
+
+
+								<!-- INICIO TAB SRI -->
+
+								<p:tab title="#{msgs.lbl_SRI}" id="tabSRI">
+
+									<p:outputPanel id="panelAutorizacionSRI">
+										<p:fieldset>
+											<p:commandButton
+												disabled="#{empresaBean.empresa.soloLectura}"
+												value="#{msgs.btn_agregar}"
+												process="@this,:form:tabView:panelAutorizacionSRI"
+												update=":form:tabView:panelAutorizacionSRI"
+												actionListener="#{empresaBean.agregarAutorizacionSRI}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												id="tablaAutorizacionSRI" rowIndexVar="secuenciaSRI"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												value="#{empresaBean.listaAutorizacionProveedorSRI}"
+												var="_autorizacionSRI"
+												binding="#{empresaBean.dtAutorizacionProveedorSRI}"
+												paginator="true" paginatorPosition="bottom"
+												style="width:100%" rows="#{empresaBean.numeroFilas}"
+												rowKey="#{_autorizacionSRI.idAutorizacionEmpresaSRI}"
+												lazy="true">
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="Nº">
+													<h:outputText value="#{secuenciaSRI+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTPredeterminado tableCell"
+													headerText="#{msgs.lbl_factura_electronica}">
+													<center>
+														<p:selectBooleanCheckbox
+															disabled="#{empresaBean.empresa.soloLectura}"
+															value="#{_autorizacionSRI.indicadorFacturaElectronica}">
+															<p:ajax event="change" process="@this"
+																update=":form:tabView:panelAutorizacionSRI"
+																global="false"></p:ajax>
+														</p:selectBooleanCheckbox>
+													</center>
+												</p:column>
+
+												<p:column styleClass="columnaDTPredeterminado tableCell"
+													headerText="#{msgs.lbl_documento_SRI_establecimiento}">
+													<p:inputMask disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{_autorizacionSRI.establecimiento}" mask="999"
+														required="true">
+														<f:validateBean />
+													</p:inputMask>
+												</p:column>
+
+												<p:column styleClass="columnaDTPredeterminado tableCell"
+													headerText="#{msgs.lbl_documento_SRI_punto_emision}">
+													<p:inputMask disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{_autorizacionSRI.puntoEmision}" mask="999"
+														required="true">
+														<f:validateBean />
+													</p:inputMask>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_documento_SRI_autorizacion}">
+													<p:inputMask disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{_autorizacionSRI.autorizacion}"
+														id="txtAutorizacion"
+														rendered="#{!_autorizacionSRI.indicadorFacturaElectronica}"
+														mask="#{_autorizacionSRI.patronAutorizacion}"
+														styleClass="input-text100" required="true">
+														<f:validateBean />
+													</p:inputMask>
+												</p:column>
+
+												<p:column styleClass="columnaDTFechaInput tableCell"
+													headerText="#{msgs.lbl_documento_SRI_emision}">
+													<p:calendar disabled="#{empresaBean.empresa.soloLectura}"
+														pattern="#{empresaBean.formatoFecha}" showOn="button"
+														navigator="true" value="#{_autorizacionSRI.fechaDesde}"
+														id="calFechaDesde" size="10"
+														rendered="#{!_autorizacionSRI.indicadorFacturaElectronica}"
+														required="true">
+														<f:validateBean />
+													</p:calendar>
+												</p:column>
+
+												<p:column styleClass="columnaDTFechaInput tableCell"
+													headerText="#{msgs.lbl_documento_SRI_caducidad}">
+													<p:calendar disabled="#{empresaBean.empresa.soloLectura}"
+														pattern="#{empresaBean.formatoFecha}" showOn="button"
+														navigator="true" value="#{_autorizacionSRI.fechaHasta}"
+														id="calFechaHasta" size="10"
+														rendered="#{!_autorizacionSRI.indicadorFacturaElectronica}"
+														required="true">
+														<f:validateBean />
+													</p:calendar>
+												</p:column>
+
+												<p:column styleClass="columnaDTActivo tableCell"
+													headerText="#{msgs.lbl_activo}">
+													<p:selectBooleanCheckbox
+														disabled="#{empresaBean.empresa.soloLectura}"
+														value="#{_autorizacionSRI.activo}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTPredeterminado tableCell">
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														id="btnEliminarAutorizaci"
+														action="#{empresaBean.eliminarAutorizacionSRI}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelAutorizacionSRI"
+														process="@this" />
+												</p:column>
+											</p:dataTable>
+										</p:fieldset>
+									</p:outputPanel>
+								</p:tab>
+
+								<!-- FIN TAB SRI -->
+
+								<!-- INICIO TAB RECARGO  -->
+
+								<p:tab title="#{msgs.lbl_recargo_lista_recios_cliente}"
+									id="tabRecargoListaPreciosCliente"
+									rendered="#{empresaBean.empresa.indicadorCliente and empresaBean.recargosEnFactura}">
+
+									<!--
+									<ui:include src="/template/listaCuentaContable.html">
+										<ui:param name="bean" value="#{empresaBean}" />
+										<ui:param name="objetoActualizar" value=":form:TabView:panelRecargoListaPreciosCliente" />
+									</ui:include> 
+									 -->
+
+
+									<p:outputPanel id="panelRecargoListaPreciosCliente">
+										<h:panelGrid style="width:100%;">
+
+											<p:commandButton
+												disabled="#{empresaBean.empresa.soloLectura}"
+												value="#{msgs.lbl_agregar}" process="@this"
+												update=":form:tabView:panelRecargoListaPreciosCliente"
+												action="#{empresaBean.agregarRecargoListener}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												id="tablaRecargoListaPreciosCliente" rowIndexVar="secuencia"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												value="#{empresaBean.listaRecargoListaPreciosCliente}"
+												var="_recargo" paginator="true" paginatorPosition="bottom"
+												style="width:100%" rows="#{empresaBean.numeroFilas}"
+												rowKey="#{_recargo.hashCode()}" lazy="true">
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="Nº">
+													<h:outputText value="#{secuencia+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_recargo_lista_recios_cliente}">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="cboRecargoListaPreciosCliente"
+														value="#{_recargo.listaPrecios}" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+															itemValue="" />
+														<f:selectItems value="#{empresaBean.listaPreciosRecargos}"
+															var="_recargoListaPrecios"
+															itemLabel="#{_recargoListaPrecios.nombre}"
+															itemValue="#{_recargoListaPrecios}" />
+														<f:validateBean for="cboRecargoListaPreciosCliente" />
+
+														<p:ajax process="@this" global="false" />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_cuenta_contable}">
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}" value="..."
+														actionListener="#{empresaBean.listarCuentaContable}"
+														process="@this">
+														<p:ajax event="dialogReturn"
+															listener="#{empresaBean.cargarCuentaContable}"
+															update=":form:tabView:tablaRecargoListaPreciosCliente" />
+
+														<f:setPropertyActionListener
+															target="#{empresaBean.recargoListaPreciosClienteSeleccionado}"
+															value="#{_recargo}" />
+													</p:commandButton>
+
+													<h:outputText
+														value="#{_recargo.cuentaContable.codigo} #{_recargo.cuentaContable.nombre}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														id="btnEliminarRecargo" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelRecargoListaPreciosCliente"
+														process="@this">
+														<f:setPropertyActionListener
+															target="#{_recargo.eliminado}" value="true" />
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+								<!-- FIN TAB RECARGO  -->
+
+								<!-- INICIO TAB SUBEMPRESA  -->
+
+								<p:tab title="#{msgs.lbl_subempresa}s" id="tabSubempresa"
+									rendered="#{empresaBean.activaTabSubEmpresa}">
+
+									<p:outputPanel id="panelSubempresa">
+										<h:panelGrid style="width:100%;">
+
+											<p:commandButton
+												disabled="#{empresaBean.empresa.soloLectura}"
+												value="#{msgs.lbl_agregar}"
+												process="@this,:form:tabView:panelSubempresa"
+												update=":form:tabView:panelSubempresa"
+												action="#{empresaBean.agregarSubempresa}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												id="tablaSubempresa" rowIndexVar="secuencia"
+												binding="#{empresaBean.dtSubempresa}"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												value="#{empresaBean.listaSubempresa}" var="_subempresa"
+												paginator="true" paginatorPosition="bottom"
+												style="width:100%" rows="#{empresaBean.numeroFilas}"
+												rowKey="#{_subempresa.idSubempresa}"
+												rowsPerPageTemplate="#{empresaBean.numeroFilasPorPagina}"
+												sortOrder="ASCENDING">
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="Nº">
+													<h:outputText value="#{secuencia+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTCodigo tableCell"
+													headerText="#{msgs.lbl_codigo}"
+													filterBy="#{_subempresa.codigo}" filterMatchMode="contains">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtCodigoSubcliente"
+														value="#{_subempresa.codigo}" required="true">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_subcliente}"
+													filterBy="#{_subempresa.empresa}"
+													filterMatchMode="contains">
+													<p:autoComplete
+														queryDelay="#{sesionControler.retrasoFiltro}"
+														styleClass="input-text" id="autoEmpresa"
+														value="#{_subempresa.empresa}"
+														completeMethod="#{empresaBean.autocompletarSubempresa}"
+														var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+														itemValue="#{_cliente}" forceSelection="true"
+														dropdown="true" minQueryLength="2"
+														disabled="#{(not empty facturaClienteBean.facturaCliente.despachoCliente) or empresaBean.empresa.soloLectura}"
+														required="true">
+														<p:column>#{_cliente.identificacion}</p:column>
+														<p:column>#{_cliente.nombreFiscal}</p:column>
+														<p:column>#{_cliente.nombreComercial}</p:column>
+													</p:autoComplete>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_cliente_final}"
+													filterBy="#{_subempresa.empresaFinal}"
+													filterMatchMode="contains">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="txtClienteFinal"
+														value="#{_subempresa.empresaFinal}" required="true">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_activo}" styleClass="columnaDTActivo tableCell">
+													<p:selectBooleanCheckbox id="sbcActivoSubempresa" value="#{_subempresa.activo}">
+													</p:selectBooleanCheckbox>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														id="btnEliminarSubempresa"
+														action="#{empresaBean.eliminarSubempresa}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelSubempresa" process="@this">
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+								<!-- FIN TAB RECARGO  -->
+
+								<p:tab title="#{msgs.lbl_forma_pago} SRI" id="tabFormaPagoSRI">
+
+									<p:outputPanel id="panelFormaPagoSRI">
+
+										<h:panelGrid style="width:100%;">
+
+											<p:commandButton
+												disabled="#{empresaBean.empresa.soloLectura}"
+												value="#{msgs.lbl_agregar}"
+												process="@this,:form:tabView:panelFormaPagoSRI"
+												update=":form:tabView:panelFormaPagoSRI"
+												action="#{empresaBean.agregarFormaPagoSRI}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												id="tablaFormaPagoSRI" rowIndexVar="secuencia"
+												binding="#{empresaBean.dtFormaPagoSRI}"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												value="#{empresaBean.listaFormaPagoSRIProveedor}"
+												var="_formaPagoSRI" paginator="true"
+												paginatorPosition="bottom" style="width:100%"
+												rows="#{empresaBean.numeroFilas}"
+												rowKey="#{_formaPagoSRI.codigo}" lazy="true">
+
+												<p:column styleClass="columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencia+1}" />
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_forma_pago} SRI">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" id="cboFormaPagoSRI"
+														value="#{_formaPagoSRI.codigo}" required="false">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+															itemValue="" />
+														<f:selectItems value="#{empresaBean.listaFormaPagoSRI}"
+															var="_fp" itemLabel="#{_fp.nombre}"
+															itemValue="#{_fp.codigo}" />
+														<f:validateBean for="cboFormaPagoSRI" />
+														<p:ajax process="@this" global="false" />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														id="btnEliminarFormaPagoSRI"
+														action="#{empresaBean.eliminarFormaPagoSRI}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelFormaPagoSRI" process="@this">
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+
+										</h:panelGrid>
+									</p:outputPanel>
+								</p:tab>
+
+
+								<p:tab title="#{msgs.lbl_contacto}s" id="tabContactos">
+
+									<p:outputPanel id="panelContactos">
+
+										<p:fieldset>
+											<p:commandButton
+												disabled="#{empresaBean.empresa.soloLectura}"
+												value="#{msgs.btn_agregar}"
+												process="@this,:form:tabView:panelContactos"
+												update=":form:tabView:panelContactos"
+												actionListener="#{empresaBean.agregarContactoListener}" />
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+												id="tablaContactos" rowIndexVar="secuencia"
+												emptyMessage="#{msgs.msg_no_hay_datos}"
+												value="#{empresaBean.listaContacto}" var="_contacto"
+												paginator="true" paginatorPosition="bottom"
+												style="width:100%" rows="#{empresaBean.numeroFilas}"
+												selectionMode="single" rowKey="#{_contacto.rowKey}"
+												lazy="true">
+
+												<p:column styleClass="columnaDTAccion tableCell"
+													headerText="Nº">
+													<h:outputText value="#{secuencia+1}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_tipo_contacto}">
+													<p:selectOneMenu
+														disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.tipoContacto}"
+														id="cboTipoContacto" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+															itemValue="" />
+														<f:selectItems value="#{empresaBean.listaTipoContacto}"
+															var="_tipoContacto" itemLabel="#{_tipoContacto.nombre}"
+															itemValue="#{_tipoContacto}" />
+
+														<p:ajax process="@this" global="false"
+															update="lblNotificar" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:column>
+												<!-- TODO: Cambiar textos -->
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_notificar}">
+													<p:outputLabel id="lblNotificar"
+														value="#{_contacto.tipoContacto.abreviaturas}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_cargo}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.cargo}"
+														size="10" required="true">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombre tableCell"
+													headerText="#{msgs.lbl_nombre}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.nombre}"
+														required="true">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="#{msgs.lbl_telefono}1">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.telefono1}"
+														size="10">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="#{msgs.lbl_extension}1">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.extension1}"
+														size="5">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="#{msgs.lbl_telefono}2">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.telefono2}"
+														size="10">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="#{msgs.lbl_extension}2">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.extension2}"
+														size="5">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_email}1">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.email1}"
+														required="true">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_email}2">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text" value="#{_contacto.email2}"
+														size="20" >
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_mensajeria_instantanea}1">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{_contacto.mensajeriaInstantanea1}">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_mensajeria_instantanea}2">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{_contacto.mensajeriaInstantanea2}" size="20">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="columnaDTNombreCorto tableCell"
+													headerText="#{msgs.lbl_telefono_respuesta}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{_contacto.telefonoRespuesta}" size="10">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell"
+													headerText="#{msgs.lbl_email_respuesta}">
+													<p:inputText disabled="#{empresaBean.empresa.soloLectura}"
+														styleClass="input-text"
+														value="#{_contacto.emailRespuesta}">
+														<f:validateBean />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell">
+													<p:commandButton
+														disabled="#{empresaBean.empresa.soloLectura}"
+														id="btnEliminarContacto"
+														action="#{empresaBean.eliminarContacto(_contacto)}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+														update=":form:tabView:panelContactos" process="@this">
+													</p:commandButton>
+												</p:column>
+
+											</p:dataTable>
+
+										</p:fieldset>
+									</p:outputPanel>
+								</p:tab>
+
+								<!-- Documentos Digitalizados -->
+								<p:tab title="#{msgs.lbl_documentos_digitalizados}"
+									id="tabDocumentosDigitalizados"
+									rendered="#{empresaBean.listaDetalleDocumentoDigitalizado.size()>0 and (not empty empresaBean.empresa.cliente and empresaBean.empresa.cliente.tipoCliente!= 'SUBCLIENTE') or empresaBean.empresa.indicadorProveedor}">
+									<p:outputPanel id="panelDocumentosDigitalizados">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+											value="#{empresaBean.listaDetalleDocumentoDigitalizado}"
+											id="tablaAuxiliar" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_detalleDocumento" paginator="false" style="width:100%"
+											binding="#{empresaBean.dtDetalleDocumentoDigitalizadoEmpresa}"
+											selection="#{empresaBean.detalleDocumentoDigitalizado}"
+											SelectionMode="single" rowKey="#{_detalleDocumento.rowKey}">
+
+											<p:column styleClass="columnaDTAccion tableCell"
+												headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre"
+												id="columnCategoria" headerText="#{msgs.lbl_categoria}">
+												<h:outputText
+													value="#{_detalleDocumento.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre"
+												headerText="#{msgs.lbl_documento}">
+												<h:outputText
+													value="#{_detalleDocumento.documentoDigitalizado.nombre}">
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell"
+												rendered="#{empresaBean.empresa.indicadorProveedor and empresaBean.empresa.indicadorCliente}"
+												headerText="#{msgs.lbl_empresa_indicador_proveedor}">
+
+												<p:selectBooleanCheckbox
+													value="#{_detalleDocumento.documentoDigitalizado.indicadorProveedor}"
+													disabled="true" />
+
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell"
+												rendered="#{empresaBean.empresa.indicadorProveedor and empresaBean.empresa.indicadorCliente}"
+												headerText="#{msgs.lbl_empresa_indicador_cliente}">
+												<p:selectBooleanCheckbox
+													value="#{_detalleDocumento.documentoDigitalizado.indicadorCliente}"
+													disabled="true" />
+											</p:column>
+
+											<p:column styleClass="columnaDTFechaInput tableCell"
+												headerText="#{msgs.lbl_desde}">
+												<p:calendar size="10" id="calDocFechaDesde"
+													value="#{_detalleDocumento.fechaDesde}" showOn="button"
+													navigator="true"
+													required="#{_detalleDocumento.fichero != null}"
+													pattern="#{empleadoBean.formatoFecha}"
+													rendered="#{_detalleDocumento.documentoDigitalizado.caduca}">
+													<p:ajax process="@this" global="false" partialSubmit="true"
+														event="dateSelect" />
+													<p:ajax process="@this" global="false" partialSubmit="true"
+														event="change" />
+												</p:calendar>
+											</p:column>
+
+											<p:column styleClass="columnaDTFechaInput tableCell"
+												headerText="#{msgs.lbl_hasta}">
+												<p:calendar size="10" id="calDocFechaHasta"
+													value="#{_detalleDocumento.fechaHasta}" showOn="button"
+													navigator="true"
+													required="#{_detalleDocumento.fichero != null}"
+													pattern="#{empleadoBean.formatoFecha}"
+													rendered="#{_detalleDocumento.documentoDigitalizado.caduca}">
+													<p:ajax process="@this" global="false" partialSubmit="true"
+														event="dateSelect" />
+													<p:ajax process="@this" global="false" partialSubmit="true"
+														event="change" />
+												</p:calendar>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell"
+												headerText="#{msgs.lbl_requerido}">
+												<center>
+													<p:selectBooleanCheckbox
+														value="#{_detalleDocumento.documentoDigitalizadoCategoriaEmpresa.requerido}"
+														disabled="true" />
+												</center>
+											</p:column>
+
+											<p:column styleClass="tableCell"
+												headerText="#{msgs.lbl_descripcion}">
+												<p:inputText styleClass="input-text100"
+													value="#{_detalleDocumento.descripcion}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad"
+												headerText="#{msgs.lbl_fichero}">
+												<h:panelGroup id="panelFichero">
+													<center>
+														<as2:fileManager
+															target="#{empresaBean.detalleDocumentoDigitalizado}"
+															value="#{_detalleDocumento}" bean="#{empresaBean}"
+															formatos="/(\.|\/)(pdf|png|jpe?g)$/"
+															actualiza=":form:tabView:panelDocumentosDigitalizados"
+															visible="#{_detalleDocumento.fichero!=null and !_detalleDocumento.eliminado}" />
+													</center>
+												</h:panelGroup>
+											</p:column>
+
+										</p:dataTable>
+
+									</p:outputPanel>
+								</p:tab>
+
+								<!-- ATRIBUTOS -->
+								<p:tab title="#{msgs.lbl_atributo}s" id="tabAtributos">
+									<p:panel>
+										<h:panelGrid
+											columns="#{empresaBean.cantidadConjuntoAtributo*2}"
+											columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+											<h:outputText
+												value="#{msgs.lbl_producto_conjunto_atributo} (Cliente):"
+												rendered="#{empresaBean.empresa.indicadorCliente}" />
+											<p:selectOneMenu styleClass="input-text"
+												value="#{empresaBean.empresa.conjuntoAtributoCliente}"
+												id="cboConjuntoAtributoCliente" required="false"
+												rendered="#{empresaBean.empresa.indicadorCliente}">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+													itemValue="" />
+												<f:selectItems
+													value="#{empresaBean.listaConjuntoAtributoCliente}"
+													var="_conjuntoAtributo"
+													itemLabel="#{_conjuntoAtributo.nombre}"
+													itemValue="#{_conjuntoAtributo}" />
+												<p:ajax process="@this" update="panelAtributosCliente"
+													listener="#{empresaBean.actualizarAtributosCliente}"
+													global="false" />
+											</p:selectOneMenu>
+
+											<h:outputText
+												value="#{msgs.lbl_producto_conjunto_atributo} (Proveedor):"
+												rendered="#{empresaBean.empresa.indicadorProveedor}" />
+											<p:selectOneMenu styleClass="input-text"
+												value="#{empresaBean.empresa.conjuntoAtributoProveedor}"
+												id="cboConjuntoAtributoProveedor" required="false"
+												rendered="#{empresaBean.empresa.indicadorProveedor}">
+												<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+													itemValue="" />
+												<f:selectItems
+													value="#{empresaBean.listaConjuntoAtributoProveedor}"
+													var="_conjuntoAtributo"
+													itemLabel="#{_conjuntoAtributo.nombre}"
+													itemValue="#{_conjuntoAtributo}" />
+												<p:ajax process="@this" update="panelAtributosProveedor"
+													listener="#{empresaBean.actualizarAtributosProveedor}"
+													global="false" />
+											</p:selectOneMenu>
+										</h:panelGrid>
+									</p:panel>
+
+									<h:panelGrid columns="#{empresaBean.cantidadConjuntoAtributo}"
+										columnClasses="columnaMitad,columnaMitad">
+										<p:outputPanel id="panelAtributosCliente">
+											<p:fieldset legend="#{msgs.lbl_atributos_cliente}"
+												rendered="#{empresaBean.empresa.conjuntoAtributoCliente != null}">
+												<table>
+													<ui:repeat
+														value="#{empresaBean.listaEmpresaAtributoTipoValorCliente}"
+														var="_empresaAtributo">
+														<tr>
+															<td><h:outputText
+																	value="#{_empresaAtributo.atributo.nombre}:" /></td>
+															<td><p:inputText styleClass="input-text"
+																	value="#{_empresaAtributo.valor}"
+																	required="#{_empresaAtributo.atributo.indicadorRequerido}"
+																	requiredMessage="#{msgs.lbl_requerido}">
+																	<p:ajax process="@this" global="false" />
+																	<f:validateBean />
+																</p:inputText></td>
+														</tr>
+													</ui:repeat>
+
+													<ui:repeat
+														value="#{empresaBean.listaEmpresaAtributoTipoListaCliente}"
+														var="_empresaAtributo">
+														<tr>
+															<td><h:outputText
+																	value="#{_empresaAtributo.atributo.nombre}:" /></td>
+															<td><p:selectOneMenu
+																	value="#{_empresaAtributo.valorAtributo}"
+																	required="#{_empresaAtributo.atributo.indicadorRequerido}"
+																	requiredMessage="#{msgs.lbl_requerido}">
+
+																	<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+																		itemValue="" />
+																	<f:selectItems
+																		value="#{_empresaAtributo.atributo.listaValorAtributo}"
+																		var="_atributo" itemValue="#{_atributo}"
+																		itemLabel="#{_atributo.codigo} - #{_atributo.nombre}" />
+																	<p:ajax process="@this" global="false" />
+																	<f:validateBean />
+																</p:selectOneMenu></td>
+														</tr>
+													</ui:repeat>
+												</table>
+											</p:fieldset>
+										</p:outputPanel>
+
+										<p:outputPanel id="panelAtributosProveedor">
+											<p:fieldset legend="#{msgs.lbl_atributos_proveedor}"
+												rendered="#{empresaBean.empresa.conjuntoAtributoProveedor != null}">
+												<table>
+													<ui:repeat
+														value="#{empresaBean.listaEmpresaAtributoTipoValorProveedor}"
+														var="_empresaAtributo">
+														<tr>
+															<td><h:outputText
+																	value="#{_empresaAtributo.atributo.nombre}:" /></td>
+															<td><p:inputText styleClass="input-text"
+																	value="#{_empresaAtributo.valor}"
+																	required="#{_empresaAtributo.atributo.indicadorRequerido}"
+																	requiredMessage="#{msgs.lbl_requerido}">
+																	<p:ajax process="@this" global="false" />
+																	<f:validateBean />
+																</p:inputText></td>
+														</tr>
+													</ui:repeat>
+
+													<ui:repeat
+														value="#{empresaBean.listaEmpresaAtributoTipoListaProveedor}"
+														var="_empresaAtributo">
+														<tr>
+															<td><h:outputText
+																	value="#{_empresaAtributo.atributo.nombre}:" /></td>
+															<td><p:selectOneMenu
+																	value="#{_empresaAtributo.valorAtributo}"
+																	required="#{_empresaAtributo.atributo.indicadorRequerido}"
+																	requiredMessage="#{msgs.lbl_requerido}">
+
+																	<f:selectItem itemLabel="#{msgs.lbl_seleccione}"
+																		itemValue="" />
+																	<f:selectItems
+																		value="#{_empresaAtributo.atributo.listaValorAtributo}"
+																		var="_atributo" itemValue="#{_atributo}"
+																		itemLabel="#{_atributo.codigo} - #{_atributo.nombre}" />
+																	<p:ajax process="@this" global="false" />
+																	<f:validateBean />
+																</p:selectOneMenu></td>
+														</tr>
+													</ui:repeat>
+												</table>
+											</p:fieldset>
+										</p:outputPanel>
+									</h:panelGrid>
+								</p:tab>
+								<p:tab title="#{msgs.lbl_ubicacion}" id="tabUbicacion">
+									<p:outputPanel id="ubicacion">
+
+										<p:gmap id="gmap" center="#{empresaBean.centerGeoMap}"
+											zoom="#{empresaBean.zoomMap}" type="ROADMAP"
+											style="width:100%;height:400px"
+											model="#{empresaBean.geoModel}" widgetVar="gmap">
+											<p:ajax event="pointSelect"
+												listener="#{empresaBean.agregarMarker}" update="@this" />
+										</p:gmap>
+
+									</p:outputPanel>
+								</p:tab>
+
+							</p:tabView>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:outputPanel id="ubicacionEmpresa">
+						<p:dialog id="dlgUbicacionEmpresa" widgetVar="dlgUbicacionEmpresa"
+							width="auto" height="auto" modal="true">
+							<p:gmap id="gmap" center="#{empresaBean.centerGeoMap}"
+								zoom="#{empresaBean.zoomMap}" type="ROADMAP"
+								style="width:400px;height:400px" model="#{empresaBean.geoModel}"
+								widgetVar="gmap">
+							</p:gmap>
+						</p:dialog>
+					</p:outputPanel>
+					<p:panel
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_empresa_titulo_panel}"
+						rendered="#{!empresaBean.editado}">
+
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+							id="tablaEmpresa" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{empresaBean.listaEmpresa}" var="empresa"
+							binding="#{empresaBean.dtEmpresa}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{empresaBean.numeroFilasPorPagina}"
+							rows="#{empresaBean.numeroFilas}"
+							selection="#{empresaBean.empresa}" selectionMode="single"
+							rowKey="#{empresa.id}" sortBy="#{empresa.codigo}"
+							sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell"
+								sortBy="#{empresa.codigo}" filterBy="#{empresa.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{empresa.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell"
+								sortBy="#{empresa.tipoIdentificacion.nombre}"
+								filterBy="#{empresa.tipoIdentificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTIdentificacion tableCell"
+								sortBy="#{empresa.identificacion}"
+								filterBy="#{empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell"
+								sortBy="#{empresa.nombreComercial}"
+								filterBy="#{empresa.nombreComercial}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_comercial}" />
+								</f:facet>
+								<h:outputText value="#{empresa.nombreComercial}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell"
+								sortBy="#{empresa.nombreFiscal}"
+								filterBy="#{empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}" />
+								</f:facet>
+								<h:outputText value="#{empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell"
+								sortBy="#{empresa.categoriaEmpresa.nombre}"
+								filterBy="#{empresa.categoriaEmpresa.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}" />
+								</f:facet>
+								<h:outputText value="#{empresa.categoriaEmpresa.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_empresa}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoEmpresa.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell"
+								sortBy="#{empresa.codigoAlterno}"
+								filterBy="#{empresa.codigoAlterno}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_alterno}" />
+								</f:facet>
+								<h:outputText value="#{empresa.codigoAlterno}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell"
+								filterBy="#{empresa.indicadorCliente}"
+								filterOptions="#{facturaProveedorBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_indicador_cliente}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true"
+									value="#{empresa.indicadorCliente}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell"
+								filterBy="#{empresa.indicadorProveedor}"
+								filterOptions="#{facturaProveedorBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_indicador_proveedor}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true"
+									value="#{empresa.indicadorProveedor}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell"
+								filterBy="#{empresa.indicadorEntidadPublica}"
+								filterOptions="#{facturaProveedorBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_entidad_publica}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true"
+									value="#{empresa.indicadorEntidadPublica}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell"
+								filterBy="#{empresa.cliente.indicadorEmiteRetencion}"
+								filterOptions="#{facturaProveedorBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_emite_retencion}" />
+								</f:facet>
+								<h:selectBooleanCheckbox disabled="true"
+									value="#{empresa.cliente.indicadorEmiteRetencion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{empresa.descripcion}"
+								filterBy="#{empresa.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell"
+								exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ubicacion}" />
+								</f:facet>
+								<p:commandButton id="btnubicacion" process="@this"
+									icon="ui-icon-pin-s" update=":form:ubicacionEmpresa"
+									title="#{msgs.lbl_ubicacion}"
+									oncomplete="dlgUbicacionEmpresa.show()"
+									actionListener="#{empresaBean.actualizarMapa(empresa)}">
+								</p:commandButton>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion"
+						value="#{empresaBean.empresa.fechaCreacion}" />
+					<ui:param name="usuarioCreacion"
+						value="#{empresaBean.empresa.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion"
+						value="#{empresaBean.empresa.fechaModificacion}" />
+					<ui:param name="usuarioModificacion"
+						value="#{empresaBean.empresa.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>
+

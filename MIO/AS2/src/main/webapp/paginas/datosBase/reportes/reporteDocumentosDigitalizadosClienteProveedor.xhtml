@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_documentos_digitalizados}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteDocumentosDigitalizadosClienteProveedorBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+
+						<h:panelGrid id="panelCabecera" columns="#{reporteDocumentosDigitalizadosClienteProveedorBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboCategoriaEmpresa" value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteDocumentosDigitalizadosClienteProveedorBean.categoriaEmpresaSeleccionada}"
+								id="cboCategoriaEmpresa" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteDocumentosDigitalizadosClienteProveedorBean.listaCategoriaEmpresa}" var="_categoriaEmpresa"
+									itemLabel="#{_categoriaEmpresa.nombre}" itemValue="#{_categoriaEmpresa}" />
+								<p:ajax process="@this" global="false" listener="#{reporteDocumentosDigitalizadosClienteProveedorBean.actualizarCategoriaEmpresa}"
+									update="autoEmpresa cboDocumento" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="options" value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneRadio id="options" value="#{reporteDocumentosDigitalizadosClienteProveedorBean.clasificacion}" required="true">
+								<f:selectItems value="#{reporteDocumentosDigitalizadosClienteProveedorBean.listaClasificacion}"></f:selectItems>
+								<p:ajax process="@this" listener="#{reporteDocumentosDigitalizadosClienteProveedorBean.actualizarClasificacion()}" event="change"
+									global="false" update="tituloEmpresa autoEmpresa cboDocumento" />
+							</p:selectOneRadio>
+
+							<p:outputLabel for="autoEmpresa" id="tituloEmpresa"
+								value="#{reporteDocumentosDigitalizadosClienteProveedorBean.indicadorCliente ? msgs.lbl_cliente : msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+								value="#{reporteDocumentosDigitalizadosClienteProveedorBean.empresaSeleccionada}"
+								completeMethod="#{reporteDocumentosDigitalizadosClienteProveedorBean.autocompletarEmpresa}" var="_empresa"
+								itemLabel="#{_empresa.nombreFiscal}" itemValue="#{_empresa}" forceSelection="false" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_empresa.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_empresa.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_empresa.nombreComercial}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" update="cboDocumento"
+									listener="#{reporteDocumentosDigitalizadosClienteProveedorBean.actualizarEmpresa}" />
+							</p:autoComplete>
+
+
+							<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento_digitalizado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteDocumentosDigitalizadosClienteProveedorBean.documentoDigitalizadoSeleccionado}"
+								id="cboDocumento" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteDocumentosDigitalizadosClienteProveedorBean.listaDocumentoDigitalizado}" var="_documento"
+									itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_cargados}:" />
+							<p:selectBooleanCheckbox id="chbNoCargado" value="#{reporteDocumentosDigitalizadosClienteProveedorBean.cargados}" disabled="false">
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputLabel value="#{msgs.lbl_no_cargados}:" />
+							<p:selectBooleanCheckbox id="chbCargado" value="#{reporteDocumentosDigitalizadosClienteProveedorBean.noCargados}" disabled="false">
+								<p:ajax process="@this" event="change" global="false" update="calFechaVencer" />
+							</p:selectBooleanCheckbox>
+
+							<p:outputLabel for="calFechaVencer" value="#{msgs.lbl_vencen_antes_de}:" />
+							<p:calendar id="calFechaVencer" value="#{reporteDocumentosDigitalizadosClienteProveedorBean.fechaVencer}" showOn="button" navigator="true"
+								required="false" pattern="#{reporteDocumentosDigitalizadosClienteProveedorBean.formatoFecha}">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" update="chbCargado" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" update="chbCargado" />
+								<f:validateBean />
+							</p:calendar>
+
+						</h:panelGrid>
+
+					</p:fieldset>
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process=":form:panelFiltros" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

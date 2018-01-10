@@ -1,0 +1,263 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{pagoComisionBean}">
+
+					<as2:buttonEliminar bean="#{pagoComisionBean}">
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{pagoComisionBean.pagoComision.numero}" />
+
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{pagoComisionBean.pagoComision.fecha}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{pagoComisionBean}" tabla=":form:tablaPagoComision" />
+
+					<as2:buttonImprimir beanReporte="#{reportePagoComisionBean}" bean="#{pagoComisionBean}" target="#{reportePagoComisionBean.pagoComision}"
+						value="#{pagoComisionBean.pagoComision}" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_pago_comision})" rendered="#{pagoComisionBean.editado}">
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{pagoComisionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pagoComisionBean.pagoComision.documento}" id="cboDocumento" required="true"
+									disabled="#{pagoComisionBean.pagoComision.idPagoComision != 0}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pagoComisionBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+
+									<p:ajax update="txtNumero" event="change" process="@this" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumero" value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{pagoComisionBean.pagoComision.numero}" id="txtNumero"
+									mask="#{empty pagoComisionBean.pagoComision.documento ? '' : pagoComisionBean.pagoComision.documento.secuencia.patron}"
+									disabled="#{pagoComisionBean.pagoComision.idPagoComision != 0}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:inputMask>
+
+								<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{pagoComisionBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoComisionBean.pagoComision.fecha}"
+									id="calFecha" required="true" disabled="#{pagoComisionBean.pagoComision.idPagoComision != 0}">
+									<p:ajax process="@this" event="dateSelect" global="false" />
+									<p:ajax process="@this" event="change" global="false" />
+									<f:validateBean />
+								</p:calendar>
+
+								<p:spacer />
+								<p:spacer />
+
+								<p:outputLabel value="#{msgs.lbl_desde}:" />
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<p:outputLabel for="cboMesInicial" value="#{msgs.lbl_mes}:" />
+									<p:selectOneMenu value="#{pagoComisionBean.pagoComision.mesInicial}" id="cboMesInicial" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{pagoComisionBean.listaMes}" var="_mes" itemLabel="#{_mes.nombre}" itemValue="#{_mes}" />
+										<p:ajax process="@this" global="false" event="change" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<p:outputLabel for="txtAnioInicial" value="#{msgs.lbl_anio}:" />
+									<p:inputText styleClass="input-text" value="#{pagoComisionBean.pagoComision.anioInicial}" id="txtAnioInicial" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGrid>
+
+								<p:outputLabel value="#{msgs.lbl_hasta}:" />
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<p:outputLabel for="cboMesFinal" value="#{msgs.lbl_mes}:" />
+									<p:selectOneMenu value="#{pagoComisionBean.pagoComision.mesFinal}" id="cboMesFinal" required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{pagoComisionBean.listaMes}" var="_mes" itemLabel="#{_mes.nombre}" itemValue="#{_mes}" />
+										<p:ajax process="@this" global="false" event="change" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<p:outputLabel for="txtAnioFinal" value="#{msgs.lbl_anio}:" />
+									<p:inputText styleClass="input-text" value="#{pagoComisionBean.pagoComision.anioFinal}" id="txtAnioFinal" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGrid>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{pagoComisionBean.pagoComision.descripcion}" id="txtDescripcion">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+						<p:outputPanel id="panelDetalleComision">
+							<h:panelGrid columns="1" width="100%">
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.btn_procesar}" id="btnProcesar" action="#{pagoComisionBean.generarComisiones}" update="panelDetalleComision"
+										process="@this" icon="ui-icon-plus" />
+								</h:panelGroup>
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pagoComisionBean.listaDetallePagoComision}" id="tablaDetalle"
+									rowIndexVar="secuencial" binding="#{pagoComisionBean.dtDetallePagoComision}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalle"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalle.rowKey}" rows="#{pagoComisionBean.numeroFilas}"
+									columnClasses="rowIndex" rowsPerPageTemplate="#{pagoComisionBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombres tableCell" headerText="#{msgs.lbl_nombres} #{msgs.lbl_agente_comercial}"
+										sortBy="#{_detalle.agenteComercial.nombre1}" filterBy="#{_detalle.agenteComercial.nombre1}" filterMatchMode="contains">
+										<h:outputText value="#{_detalle.agenteComercial.nombre1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombres tableCell" headerText="#{msgs.lbl_apellidos} #{msgs.lbl_agente_comercial}"
+										sortBy="#{_detalle.agenteComercial.nombre2}" filterBy="#{_detalle.agenteComercial.nombre2}" filterMatchMode="contains">
+										<h:outputText value="#{_detalle.agenteComercial.nombre2}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_factura}" sortBy="#{_detalle.facturaCliente.numero}"
+										filterBy="#{_detalle.facturaCliente.numero}" filterMatchMode="contains">
+										<h:link rendered="#{not empty _detalle.facturaCliente}" target="_blank" outcome="/paginas/ventas/procesos/facturaCliente"
+											value="#{_detalle.facturaCliente.numero}" includeViewParams="true">
+											<f:param name="idFacturaCliente" value="#{_detalle.facturaCliente.id}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_cobro}" sortBy="#{_detalle.detalleCobro.cobro.numero}"
+										filterBy="#{_detalle.detalleCobro.cobro.numero}" filterMatchMode="contains">
+										<h:link rendered="#{not empty _detalle.detalleCobro.cobro}" target="_blank" outcome="/paginas/financiero/cobros/procesos/cobro"
+											value="#{_detalle.detalleCobro.cobro.numero}" includeViewParams="true">
+											<f:param name="idCobro" value="#{_detalle.detalleCobro.cobro.id}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_categoria_producto}"
+										rendered="#{pagoComisionBean.clasificacionPagoComisiones != 3}" sortBy="#{_detalle.categoriaProducto.nombre}"
+										filterBy="#{_detalle.categoriaProducto.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_detalle.categoriaProducto.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_producto_subcategoria_producto}"
+										rendered="#{pagoComisionBean.clasificacionPagoComisiones == 2}" sortBy="#{_detalle.subcategoriaProducto.nombre}"
+										filterBy="#{_detalle.subcategoriaProducto.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_detalle.subcategoriaProducto.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_producto}"
+										rendered="#{pagoComisionBean.clasificacionPagoComisiones == 3}" sortBy="#{_detalle.producto.nombre}" filterBy="#{_detalle.producto.nombre}"
+										filterMatchMode="contains">
+										<h:outputText value="#{_detalle.producto.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_rango_dias_comision}" sortBy="#{_detalle.rangoDiasComision.nombre}"
+										filterBy="#{_detalle.rangoDiasComision.nombre}" filterMatchMode="contains">
+										<h:outputText value="#{_detalle.rangoDiasComision.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_base_comision}" sortBy="#{_detalle.baseComision}">
+										<h:outputText value="#{_detalle.baseComision}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_forma_pago}" sortBy="#{_detalle.formaPagoComisionEnum}">
+										<h:outputText value="#{_detalle.formaPagoComisionEnum.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_tarifa}" sortBy="#{_detalle.porcentajeComision}">
+										<h:outputText value="#{_detalle.porcentajeComision}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_comision}" sortBy="#{_detalle.valorComision}">
+										<h:outputText value="#{_detalle.valorComision}" />
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_pago_comision})" rendered="#{!pagoComisionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagoComision" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pagoComisionBean.listaPagoComision}" var="_pagoComision"
+							binding="#{pagoComisionBean.dtPagoComision}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{pagoComisionBean.numeroFilas}" rowsPerPageTemplate="#{pagoComisionBean.numeroFilasPorPagina}"
+							selection="#{pagoComisionBean.pagoComision}" selectionMode="single" rowKey="#{_pagoComision.rowKey}" sortBy="#{_pagoComision.fecha}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_pagoComision.numero}" filterBy="#{_pagoComision.numero}"
+								headerText="#{msgs.lbl_numero}">
+								<h:outputText value="#{_pagoComision.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_pagoComision.documento.nombre}" filterBy="#{_pagoComision.documento.nombre}"
+								headerText="#{msgs.lbl_documento}">
+								<h:outputText value="#{_pagoComision.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_pagoComision.fecha}">
+								<h:outputText value="#{_pagoComision.fecha}">
+									<f:convertDateTime pattern="#{pagoComisionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_pagoComision.mesInicial}" headerText="#{msgs.lbl_mes_inicial}">
+								<h:outputText value="#{_pagoComision.mesInicial.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_pagoComision.anioInicial}" filterBy="#{_pagoComision.anioInicial}"
+								headerText="#{msgs.lbl_anio_inicial}">
+								<h:outputText value="#{_pagoComision.anioInicial}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_pagoComision.mesFinal}" headerText="#{msgs.lbl_mes_final}">
+								<h:outputText value="#{_pagoComision.mesFinal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_pagoComision.anioFinal}" filterBy="#{_pagoComision.anioFinal}"
+								headerText="#{msgs.lbl_anio_final}">
+								<h:outputText value="#{_pagoComision.anioFinal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_pagoComision.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{pagoComisionBean.pagoComision.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{pagoComisionBean.pagoComision.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{pagoComisionBean.pagoComision.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{pagoComisionBean.pagoComision.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

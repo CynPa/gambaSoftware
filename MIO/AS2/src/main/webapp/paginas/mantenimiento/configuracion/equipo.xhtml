@@ -1,0 +1,832 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{equipoBean}">
+
+					<as2:buttonEliminar bean="#{equipoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{equipoBean.equipo.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{equipoBean.equipo.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{equipoBean}" tabla=":form:tablaEquipo" />
+				</as2:toolBar>
+
+				<!-- DIALOGO MOSTRAR INFORMACION DEL EQUIPO -->
+				<p:outputPanel id="panelDialogo">
+
+					<p:dialog header="Información #{msgs.lbl_equipo}" widgetVar="infoEquipo" id="infoEquipo" showEffect="fade" hideEffect="fade" dismissable="false"
+						showCloseIcon="true" modal="true" height="500" width="750" rendered="#{equipoBean.visible}">
+						<p:ajax event="close" update="form" listener="#{equipoBean.quitarDialogoDetalle}"></p:ajax>
+
+						<h:panelGrid id="panelDetalleInfo" columns="#{equipoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<p:outputLabel for="txtCodigoEquipo" value="#{msgs.lbl_codigo}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.codigo}" id="txtCodigoEquipo" />
+
+							<p:outputLabel for="txtNombreInfo" value="#{msgs.lbl_nombre}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.nombre}" id="txtNombreInfo" />
+
+							<p:outputLabel for="txtSerieInfo" value="#{msgs.lbl_numero_serie}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.numeroSerie}" id="txtSerieInfo" />
+
+							<p:outputLabel for="txtParteInfo" value="#{msgs.lbl_numero_parte}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.numeroParte}" id="txtParteInfo" />
+
+							<p:outputLabel for="txtBarrasInfo" value="#{msgs.lbl_codigo_barras}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.codigoBarras}" id="txtBarrasInfo" />
+
+							<p:outputLabel for="txtModeloInfo" value="#{msgs.lbl_modelo}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.modelo}" id="txtModeloInfo" />
+
+							<p:outputLabel for="txtPrioridadInfo" value="#{msgs.lbl_prioridad}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.prioridad}" id="txtPrioridadInfo" />
+
+							<p:outputLabel for="txtSubcategoriaEquipoInfo" value="#{msgs.lbl_subcategoria_equipo}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.subcategoriaEquipo.nombre}" id="txtSubcategoriaEquipoInfo" />
+
+							<p:outputLabel for="txtUbicacion" value="#{msgs.lbl_ubicacion}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.ubicacion.nombre}" id="txtUbicacion" />
+
+							<p:outputLabel for="txtcentroCosto" value="#{msgs.lbl_centro_costo}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.centroCosto.nombre}" id="txtcentroCosto" />
+
+							<p:outputLabel for="txtEquipoPadre" value="#{msgs.lbl_equipo_padre}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.equipoPadre.nombre}" id="txtEquipoPadre" />
+
+							<p:outputLabel for="txtFacturaProveedor" value="#{msgs.lbl_factura_proveedor}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.numeroFactura}" id="txtFacturaProveedor" />
+
+							<p:outputLabel for="txtFechaCompra" value="#{msgs.lbl_fecha_compra}:" />
+							<p:outputLabel styleClass="input-text" value="#{equipoBean.equipo.fechaCompra}" id="txtFechaCompra" />
+
+							<h:outputText for="txtDescripcionInfo" value="#{msgs.lbl_descripcion}:" />
+							<h:outputText styleClass="input-text" value="#{equipoBean.equipo.descripcion}" id="txtDescripcionInfo" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{equipoBean.equipo.activo}" disabled="true" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{equipoBean.equipo.predeterminado}" disabled="true" />
+
+							<h:outputText for="txtActivoFijo" value="#{msgs.lbl_activo_fijo}:" />
+							<h:outputText styleClass="input-text" value="#{equipoBean.equipo.activoFijo.nombre}" id="txtActivoFijo" />
+
+						</h:panelGrid>
+
+						<p:tabView id="tabViewInfo">
+
+							<p:tab title="#{msgs.lbl_documento}s" id="tabDocumentosInfo">
+								<p:outputPanel id="panelDocumentosInfo">
+									<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.equipo.listaDocumentoEquipo}" id="tablaDocumentoEquipo"
+											rowIndexVar="secuencial" binding="#{equipoBean.dtDocumentoInfoEquipo}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_docEquipoInfo"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_docEquipoInfo.id}" rows="#{equipoBean.numeroFilas}"
+											rowsPerPageTemplate="#{equipoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<p:outputLabel value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<p:outputLabel styleClass="input-text" value="#{_docEquipoInfo.nombre}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_descripcion}">
+												<p:outputLabel styleClass="input-text" value="#{_docEquipoInfo.descripcion}" />
+											</p:column>
+											<p:column styleClass="columnaDTCantidad" headerText="#{msgs.lbl_archivo}">
+												<h:panelGroup id="panelArchivo">
+													<center>
+														<as2:downloadFile target="#{equipoBean.documentoEquipo}" value="#{_docEquipoInfo}" bean="#{equipoBean}" visible="true" />
+													</center>
+												</h:panelGroup>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_imagen}es" id="tabImagenesInfo">
+								<p:outputPanel id="panelImagenesInfo">
+									<h:panelGrid columns="1" style="width:100%" cellpadding="0" cellspacing="0">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.equipo.listaImagenEquipo}" id="tablaImagenEquipo"
+											rowIndexVar="secuencial" binding="#{equipoBean.dtImagenInfoEquipo}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_imgEquipoInfo"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_imgEquipoInfo.id}" rows="#{equipoBean.numeroFilas}"
+											rowsPerPageTemplate="#{equipoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<p:outputLabel styleClass="input-text" value="#{_imgEquipoInfo.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_descripcion}">
+												<p:outputLabel styleClass="input-text" value="#{_imgEquipoInfo.descripcion}" />
+											</p:column>
+											<p:column styleClass="columnaDTCantidad" headerText="#{msgs.lbl_archivo}">
+												<h:panelGroup id="panelArchivo">
+													<center>
+														<as2:downloadFile target="#{equipoBean.imagenEquipo}" value="#{_imgEquipoInfo}" bean="#{equipoBean}" visible="true" />
+													</center>
+												</h:panelGroup>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_componente_equipo}s" id="tabComponentesInfo">
+								<p:outputPanel id="panelDetalleComponenteEquipoInfo">
+									<h:panelGrid columns="1" style="width:100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.equipo.listaComponenteEquipo}"
+											id="tablaDetalleComponenteEquipoInfo" rowIndexVar="secuencial" binding="#{equipoBean.dtDetalleComponenteEquipoInfo}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleComponenteInfo" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{equipoBean.numeroFilas}" rowKey="#{_detalleComponenteInfo.id}">
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<p:outputLabel styleClass="input-text" value="#{_detalleComponenteInfo.componenteEquipo.nombre}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_descripcion}">
+												<p:outputLabel styleClass="input-text" value="#{_detalleComponenteInfo.componenteEquipo.descripcion}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_vida_util}" styleClass="columnaDTCodigo tableCell">
+												<p:outputLabel styleClass="input-text" value="#{_detalleComponenteInfo.tiempoVida}" />
+											</p:column>
+											<p:column styleClass="columnaDTCodigo tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_periodo}" />
+												</f:facet>
+												<p:outputLabel styleClass="input-text" value="#{_detalleComponenteInfo.periodoVidaUtil.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_porcentaje}" />
+												</f:facet>
+												<p:outputLabel styleClass="input-text" value="#{_detalleComponenteInfo.porcentajeAlarma}" />
+											</p:column>
+
+
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_plan_mantenimiento}" id="tabPlanMantenimientoInfo">
+								<p:outputPanel id="panelDetallePlanMantenimientoInfo">
+									<h:panelGrid columns="1" style="width:100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaDetallePlanMantenimiento}"
+											id="tablaDetallePlanMantenimientoInfo" rowIndexVar="secuencial" binding="#{equipoBean.dtDetallePlanMantenimientoInfo}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePlan" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{equipoBean.numeroFilas}" rowKey="#{_detallePlan.rowKey}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<p:outputLabel styleClass="output-text" value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+												<p:outputLabel styleClass="output-text" value="#{_detallePlan.planMantenimiento.codigo}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre}" styleClass="columnaDTNombre tableCell">
+												<p:outputLabel styleClass="output-text" value="#{_detallePlan.planMantenimiento.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+												<p:outputLabel value="#{_detallePlan.planMantenimiento.descripcion}" />
+											</p:column>
+
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_actividad}" id="tabActividadInfo">
+								<p:outputPanel id="panelDetalleActividadInfo">
+									<h:panelGrid columns="1" style="width:100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaLecturaMantenimiento}" id="tablaDetalleActividadInfo"
+											rowIndexVar="secuencial" binding="#{equipoBean.dtDetalleActividadInfo}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_lecturaInfo"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{equipoBean.numeroFilas}" rowKey="#{_lecturaInfo.rowKey}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre}" styleClass="columnaDTNombre tableCell">
+												<h:outputText value="#{_lecturaInfo.actividadMantenimiento.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_orden_trabajo_mantenimiento}" styleClass="columnaDTNombre tableCell">
+												<h:outputText value="#{_lecturaInfo.detalleOrdenTrabajoMantenimiento.ordenTrabajoMantenimiento.numero}" />
+											</p:column>
+											<p:column styleClass="columnaDTValor tableCell0" headerText="#{msgs.lbl_archivo}">
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+													value="#{_lecturaInfo.detalleOrdenTrabajoMantenimiento.listaImagenOrdenTrabajoMantenimiento}" id="tablaImgInfo" rowIndexVar="secuencial"
+													rowKey="#{_tablaImgInfo.rowKey}" style="width:100%" var="_tablaImgInfo" emptyMessage="#{msgs.msg_no_hay_datos}"
+													rendered="#{_lecturaInfo.detalleOrdenTrabajoMantenimiento.listaImagenOrdenTrabajoMantenimiento.size()>0}">
+													<p:column styleClass="tableCell0">
+														<center>
+															<as2:downloadFile target="#{equipoBean.imagenOTM}" value="#{_tablaImgInfo}" bean="#{equipoBean}" visible="true" />
+														</center>
+													</p:column>
+												</p:dataTable>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+
+						</p:tabView>
+					</p:dialog>
+				</p:outputPanel>
+				<!-- FIN DIALOGO MOSTRAR INFORMACION DEL EQUIPO -->
+				<p:outputPanel id="panelNuevo">
+					<p:dialog header=" #{msgs.lbl_plan_mantenimiento}" widgetVar="asignarPlanDialog" id="asignarPlanDialog" showEffect="fade" hideEffect="fade"
+						dismissable="false" showCloseIcon="true" modal="true" height="400" width="700">
+						<p:outputPanel id="panelAsignarPlanMantenimiento">
+							<h:panelGrid columns="1" style="width:100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaPlanMantenimientoNoAsignado}"
+									id="tablaPlanMantenimientoNoAsignado" rowIndexVar="secuencial" binding="#{equipoBean.dtDetallePlanMantenimientoNoAsignado}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePlan" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{equipoBean.numeroFilas}" rowKey="#{_detallePlan.rowKey}">
+
+									<p:column headerText="Nº" styleClass="columnaDTAccion">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+										<h:outputText value="#{_detallePlan.codigo}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_nombre}" styleClass="columnaDTNombre tableCell">
+										<h:outputText value="#{_detallePlan.nombre}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_categoria}" styleClass="columnaDTNombre tableCell" filterBy="#{_detallePlan.categoriaEquipo.nombre}">
+										<h:outputText value="#{_detallePlan.categoriaEquipo.nombre}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_subcategoria}" styleClass="columnaDTNombre tableCell" filterBy="#{_detallePlan.subcategoriaEquipo.nombre}">
+										<h:outputText value="#{_detallePlan.subcategoriaEquipo.nombre}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+										<h:outputText value="#{_detallePlan.descripcion}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion">
+										<p:commandButton id="btnAgregarPlanMantenimiento" action="#{equipoBean.agregarDetallePlanMantenimiento}" icon="ui-icon-plus"
+											title="#{msgs.lbl_agregar}" update=":form:tabView:panelDetallePlanMantenimiento :form:panelAsignarPlanMantenimiento" process="@this">
+										</p:commandButton>
+									</p:column>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+
+					</p:dialog>
+					<p:panel rendered="#{equipoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_equipo})">
+						<h:panelGrid id="panelDetalle" columns="#{equipoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{equipoBean.equipo.codigo}" id="txtCodigo" required="true"
+								disabled="#{equipoBean.equipo.codigo!=null}">
+							</p:inputText>
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{equipoBean.equipo.nombre}" id="txtNombre" required="true"
+								disabled="#{equipoBean.equipo.nombre!=null}">
+							</p:inputText>
+							<p:outputLabel for="txtSerie" value="#{msgs.lbl_numero_serie}:" />
+							<p:inputText styleClass="input-text" value="#{equipoBean.equipo.numeroSerie}" id="txtSerie" disabled="#{equipoBean.equipo.numeroSerie!=null}">
+							</p:inputText>
+							<p:outputLabel for="txtParte" value="#{msgs.lbl_numero_parte}:" />
+							<p:inputText styleClass="input-text" value="#{equipoBean.equipo.numeroParte}" id="txtParte" disabled="#{equipoBean.equipo.numeroParte!=null}">
+							</p:inputText>
+							<p:outputLabel for="txtBarras" value="#{msgs.lbl_codigo_barras}:" />
+							<p:inputText styleClass="input-text" value="#{equipoBean.equipo.codigoBarras}" id="txtBarras"
+								disabled="#{equipoBean.equipo.codigoBarras!=null}">
+							</p:inputText>
+							<p:outputLabel for="txtModelo" value="#{msgs.lbl_modelo}:" />
+							<p:inputText styleClass="input-text" value="#{equipoBean.equipo.modelo}" id="txtModelo">
+							</p:inputText>
+							<p:outputLabel for="cboPrioridad" value="#{msgs.lbl_prioridad}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{equipoBean.equipo.prioridad}" id="cboPrioridad" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{equipoBean.listaPrioridad}" />
+							</p:selectOneMenu>
+							<p:outputLabel for="autoSubcategoriaEquipo" value="#{msgs.lbl_subcategoria_equipo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoSubcategoriaEquipo"
+								value="#{equipoBean.equipo.subcategoriaEquipo}" completeMethod="#{equipoBean.autocompletarSubcategoriaEquipo}" var="_subcategoria"
+								itemLabel="#{_subcategoria.nombre}" itemValue="#{_subcategoria}" forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_subcategoria.codigo}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value=" #{_subcategoria.nombre}" />
+								</p:column>
+							</p:autoComplete>
+							<p:outputLabel for="autoUbicacion" value="#{msgs.lbl_ubicacion}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoUbicacion" value="#{equipoBean.equipo.ubicacion}"
+								completeMethod="#{equipoBean.autocompletarUbicacion}" var="_ubicacion" itemLabel="#{_ubicacion.nombre}" itemValue="#{_ubicacion}"
+								forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_ubicacion.nombre}" />
+								</p:column>
+							</p:autoComplete>
+							<p:outputLabel value="#{msgs.lbl_centro_costo}:" />
+							<p:outputPanel id="panelCentroCosto" disabled="#{equipoBean.equipo.centroCosto!=null}">
+								<as2:autoCompletarCentroCosto value="#{equipoBean.equipo.centroCosto}" />
+							</p:outputPanel>
+							<p:outputLabel for="autoEquipoPadre" value="#{msgs.lbl_equipo_padre}:" />
+							<h:panelGroup id="panelEquipoPadre">
+								<h:panelGrid columns="2">
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEquipoPadre"
+										value="#{equipoBean.equipo.equipoPadre}" completeMethod="#{equipoBean.autocompletarEquipoPadre}" var="_ep" itemLabel="#{_ep.nombre}"
+										itemValue="#{_ep}" forceSelection="true" dropdown="true" minQueryLength="2">
+										<p:column>
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_codigo}" />
+											</f:facet>
+											<h:outputText value="#{_ep.codigo}" />
+										</p:column>
+										<p:column>
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_nombre}" />
+											</f:facet>
+											<h:outputText value="#{_ep.nombre}" />
+										</p:column>
+										<p:ajax process="@this" global="false" partialSubmit="true" event="itemSelect" update=":form:panelEquipoPadre" />
+									</p:autoComplete>
+									<p:commandButton action="#{equipoBean.eliminarEquipoPadre}" title="#{msgs.lbl_eliminar}" update=":form:panelEquipoPadre" process="@this"
+										icon="ui-icon-closethick" rendered="#{equipoBean.equipo.equipoPadre != null}">
+									</p:commandButton>
+								</h:panelGrid>
+							</h:panelGroup>
+							
+							<p:outputLabel for="autoActivoFijo" value="#{msgs.lbl_activo_fijo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoActivoFijo"
+								value="#{equipoBean.equipo.activoFijo}" completeMethod="#{equipoBean.autoCompletarActivoFijo}" var="_activoFijo"
+								itemLabel="#{_activoFijo.nombre}" itemValue="#{_activoFijo}" forceSelection="false" dropdown="true" minQueryLength="2">
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value="#{_activoFijo.codigo}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value="#{_activoFijo.nombre}" />
+								</p:column>
+								<p:ajax listener="#{equipoBean.listenerEquipo}" process="@this" event="itemSelect" global="false"
+									update=":form:panelNuevo,autoFacturaProveedor" />
+							</p:autoComplete>
+
+							<p:outputLabel value="#{msgs.lbl_factura_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoFacturaProveedor"
+								value="#{equipoBean.equipo.facturaProveedor}" completeMethod="#{equipoBean.autocompletarFactura}" var="_factura"
+								itemLabel="#{equipoBean.equipo.numeroFactura}" itemValue="#{_factura}" forceSelection="true" dropdown="true" minQueryLength="2">
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_numero}" />
+									</f:facet>
+									<h:outputText value="#{_factura.numero}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="Numero Factura" />
+									</f:facet>
+									<h:outputText
+										value="#{_factura.facturaProveedorSRI.establecimiento}-#{_factura.facturaProveedorSRI.puntoEmision}-#{_factura.facturaProveedorSRI.numero}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_fecha}" />
+									</f:facet>
+									<h:outputText value="#{_factura.fecha}">
+										<f:convertDateTime pattern="#{equipoBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_proveedor}" />
+									</f:facet>
+									<h:outputText value=" #{_factura.empresa.nombreFiscal}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_referencia}" />
+									</f:facet>
+									<h:outputText value="#{_factura.referencia3}"></h:outputText>
+								</p:column>
+								<p:ajax listener="#{equipoBean.listenerCalendario}" process="@this" event="itemSelect" global="false"
+									update="calFechaCompra,autoFacturaProveedor" />
+								<p:ajax listener="#{equipoBean.listenerCalendario}" process="@this" event="change" global="false" update="autoFacturaProveedor" />
+							</p:autoComplete>
+							
+							<h:outputText value="#{msgs.lbl_fecha_compra}: " />
+							<p:calendar disabled="#{not empty equipoBean.equipo.fechaCompra}" pattern="#{equipoBean.formatoFecha}" showOn="button" navigator="true"
+								id="calFechaCompra" required="true" value="#{equipoBean.equipo.fechaCompra}">
+							</p:calendar>
+							
+							<h:outputText value="#{msgs.lbl_fecha_ultimo_mantenimiento}: " />
+							<p:calendar disabled="#{not empty equipoBean.equipo.fechaUltimoMantenimiento}" pattern="#{equipoBean.formatoFecha}" showOn="button" navigator="true"
+								id="calFechaUltimoMantenimiento" required="true" value="#{equipoBean.equipo.fechaUltimoMantenimiento}">
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{equipoBean.equipo.descripcion}" id="txtDescripcion">
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{equipoBean.equipo.activo}" />
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{equipoBean.equipo.predeterminado}" />
+
+						</h:panelGrid>
+						<p:tabView id="tabView">
+							<p:tab title="#{msgs.lbl_documento}s" id="tabDocumentos">
+								<p:outputPanel id="panelDocumentos">
+									<h:panelGrid columns="1" style="width:100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDocumento" process="@this" icon="ui-icon-plus"
+												actionListener="#{equipoBean.agregarDocumento}" update="panelDocumentos" />
+										</h:panelGroup>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaDocumentoEquipo}" id="tablaDocumentoEquipo"
+											rowIndexVar="secuencial" binding="#{equipoBean.dtDocumentoEquipo}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_docEquipo"
+											paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_docEquipo.id}" rows="#{equipoBean.numeroFilas}"
+											rowsPerPageTemplate="#{equipoBean.numeroFilasPorPagina}">
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<p:inputText styleClass="input-text" value="#{_docEquipo.nombre}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" partialSubmit="true" />
+												</p:inputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_descripcion}">
+												<p:inputText styleClass="input-text" value="#{_docEquipo.descripcion}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" partialSubmit="true" />
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="columnaDTCantidad" headerText="#{msgs.lbl_archivo}">
+												<h:panelGroup id="panelArchivo">
+													<center>
+														<as2:fileManager target="#{equipoBean.documentoEquipo}" value="#{_docEquipo}" bean="#{equipoBean}"
+															formatos="/(\.|\/)(pdf|xls?x|ppt?x|doc?x|rtf|txt)$/" actualiza=":form:tabView:panelDocumentos"
+															visible="#{_docEquipo.archivo != null and !_docEquipo.eliminado}" sizeLimit="50000000" />
+													</center>
+												</h:panelGroup>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDocumento" action="#{equipoBean.eliminarDocumento}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tabView:panelDocumentos" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_imagen}es" id="tabImagenes">
+								<p:outputPanel id="panelImagenes">
+									<h:panelGrid columns="1" style="width:100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarImagen" process="@this" icon="ui-icon-plus"
+												actionListener="#{equipoBean.agregarImagen}" update="panelImagenes" />
+										</h:panelGroup>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaImagenEquipo}" id="tablaImagenEquipo"
+											rowIndexVar="secuencial" binding="#{equipoBean.dtImagenEquipo}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_imgEquipo" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rowKey="#{_imgEquipo.id}" rows="#{equipoBean.numeroFilas}"
+											rowsPerPageTemplate="#{equipoBean.numeroFilasPorPagina}">
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+											<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre}">
+												<p:inputText styleClass="input-text" value="#{_imgEquipo.nombre}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" partialSubmit="true" />
+												</p:inputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_descripcion}">
+												<p:inputText styleClass="input-text" value="#{_imgEquipo.descripcion}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" partialSubmit="true" />
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="columnaDTCantidad" headerText="#{msgs.lbl_archivo}">
+												<h:panelGroup id="panelArchivo">
+													<center>
+														<as2:fileManager target="#{equipoBean.imagenEquipo}" value="#{_imgEquipo}" bean="#{equipoBean}" formatos="/(\.|\/)(png|jpe?g)$/"
+															actualiza=":form:tabView:panelImagenes" visible="#{_imgEquipo.archivo != null and !_imgEquipo.eliminado}" />
+													</center>
+												</h:panelGroup>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarImagen" action="#{equipoBean.eliminarImagen}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tabView:panelImagenes" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_componente_equipo}s" id="tabComponentes">
+								<p:outputPanel id="panelDetalleComponenteEquipo">
+									<h:panelGrid columns="1" style="width:100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnDetalleComponenteEquipo" action="#{equipoBean.agregarDetalleComponenteEquipo}"
+												update=":form:tabView:panelDetalleComponenteEquipo" process="@this,tablaDetalleComponenteEquipo" icon="ui-icon-plus" />
+										</h:panelGroup>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaDetalleComponenteEquipo}"
+											id="tablaDetalleComponenteEquipo" rowIndexVar="secuencial" binding="#{equipoBean.dtDetalleComponenteEquipo}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleComponente" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{equipoBean.numeroFilas}" rowKey="#{_detalleComponente.id}">
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_componente_equipo}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoComponente"
+													value="#{_detalleComponente.componenteEquipo}" completeMethod="#{equipoBean.autocompletarComponente}" var="_componente"
+													itemLabel="#{_componente.nombre}" itemValue="#{_componente}" forceSelection="true" dropdown="true" minQueryLength="2" required="true">
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_codigo}" />
+														</f:facet>
+														<h:outputText value=" #{_componente.codigo}" />
+													</p:column>
+													<p:column>
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre}" />
+														</f:facet>
+														<h:outputText value=" #{_componente.nombre}" />
+													</p:column>
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_vida_util}" />
+												</f:facet>
+												<p:inputText value="#{_detalleComponente.tiempoVida}" id="txtVidaUtil">
+													<p:ajax process="@this" update="cboPeridoVidaUtil" event="change" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_periodo}" />
+												</f:facet>
+												<p:selectOneMenu styleClass="input-text" value="#{_detalleComponente.periodoVidaUtil}" id="cboPeridoVidaUtil"
+													required="#{_detalleComponente.tiempoVida>0}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{equipoBean.listaPeriodoVidaUtil}" />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_porcentaje}" />
+												</f:facet>
+												<p:inputText styleClass="input-text" value="#{_detalleComponente.porcentajeAlarma}" id="txtPorcentajeAlarma">
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo">
+												<p:commandButton id="btnEliminarDetalle" action="#{equipoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tabView:panelDetalleComponenteEquipo" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_plan_mantenimiento}" id="tabPlanMantenimiento">
+								<p:outputPanel id="panelDetallePlanMantenimiento">
+									<h:panelGrid columns="1" style="width:100%">
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" process="@this" oncomplete="PF('asignarPlanDialog').show()"
+											update=":form:panelAsignarPlanMantenimiento" icon="ui-icon-plus" />
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaDetallePlanMantenimiento}"
+											id="tablaDetallePlanMantenimiento" rowIndexVar="secuencial" binding="#{equipoBean.dtDetallePlanMantenimiento}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePlan" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{equipoBean.numeroFilas}" rowKey="#{_detallePlan.rowKey}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+												<h:outputText value="#{_detallePlan.planMantenimiento.codigo}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre}" styleClass="columnaDTNombre tableCell">
+												<h:outputText value="#{_detallePlan.planMantenimiento.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+												<h:outputText value="#{_detallePlan.planMantenimiento.descripcion}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo">
+												<p:commandButton id="btnEliminarPlanMantenimiento" action="#{equipoBean.eliminarDetallePlanMantenimiento}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tabView:panelDetallePlanMantenimiento" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_actividad}" id="tabActividad">
+								<p:outputPanel id="panelDetalleActividad">
+									<h:panelGrid columns="1" style="width:100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{equipoBean.listaLecturaMantenimiento}" id="tablaDetalleActividad"
+											rowIndexVar="secuencial" binding="#{equipoBean.dtDetalleActividad}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_lectura" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rows="#{equipoBean.numeroFilas}" rowKey="#{_lectura.rowKey}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre}" styleClass="columnaDTNombre tableCell">
+												<h:outputText value="#{_lectura.actividadMantenimiento.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_orden_trabajo_mantenimiento}" styleClass="columnaDTNombre tableCell">
+												<h:outputText value="#{_lectura.detalleOrdenTrabajoMantenimiento.ordenTrabajoMantenimiento.numero}" />
+											</p:column>
+											<p:column styleClass="columnaDTCantidad tablecell0" headerText="#{msgs.lbl_archivo}">
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+													value="#{_lectura.detalleOrdenTrabajoMantenimiento.listaImagenOrdenTrabajoMantenimiento}" id="tablaImg" rowIndexVar="secuencial"
+													rowKey="#{_tablaImg.rowKey}" var="_tablaImg" style="width:100%"
+													rendered="#{_lectura.detalleOrdenTrabajoMantenimiento.listaImagenOrdenTrabajoMantenimiento.size()>0}">
+													<p:column styleClass="tablecell0">
+														<center>
+															<as2:downloadFile target="#{equipoBean.imagenOTM}" value="#{_tablaImg}" bean="#{equipoBean}" visible="true" />
+														</center>
+													</p:column>
+												</p:dataTable>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+						</p:tabView>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!equipoBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_equipo})">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaEquipo" rowIndexVar="secuencialEquipo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{equipoBean.listaEquipo}" var="equipo" binding="#{equipoBean.dtEquipo}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{equipoBean.numeroFilas}" rowsPerPageTemplate="#{equipoBean.numeroFilasPorPagina}"
+							selection="#{equipoBean.equipo}" selectionMode="single" rowKey="#{equipo.rowKey}" sortBy="#{equipo.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialEquipo+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{equipo.codigo}" filterBy="#{equipo.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{equipo.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.nombre}" filterBy="#{equipo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{equipo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha" sortBy="#{equipo.fechaCompra}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_compra}" />
+								</f:facet>
+								<h:outputText value="#{equipo.fechaCompra}" >
+									<f:convertDateTime pattern="#{equipoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{equipo.numeroSerie}" filterBy="#{equipo.numeroSerie}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_serie}" />
+								</f:facet>
+								<h:outputText value="#{equipo.numeroSerie}" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.numeroParte}" filterBy="#{equipo.numeroParte}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_parte}" />
+								</f:facet>
+								<h:outputText value="#{equipo.numeroParte}" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.modelo}" filterBy="#{equipo.modelo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_modelo}" />
+								</f:facet>
+								<h:outputText value="#{equipo.modelo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{equipo.prioridad}" filterBy="#{equipo.prioridad}" filterOptions="#{equipoBean.listaPrioridad}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_prioridad}" />
+								</f:facet>
+								<h:outputText value="#{equipo.prioridad}" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.subcategoriaEquipo.nombre}" filterBy="#{equipo.subcategoriaEquipo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subcategoria}" />
+								</f:facet>
+								<h:outputText value="#{equipo.subcategoriaEquipo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.ubicacion.nombre}" filterBy="#{equipo.ubicacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ubicacion}" />
+								</f:facet>
+								<h:outputText value="#{equipo.ubicacion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.centroCosto.nombre}" filterBy="#{equipo.centroCosto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_centro_costo}" />
+								</f:facet>
+								<h:outputText value="#{equipo.centroCosto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{equipo.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{equipo.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{equipo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{equipo.numeroFactura}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pago_numero_factura}" />
+								</f:facet>
+								<h:outputText value="#{equipo.numeroFactura}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor" headerText="#{msgs.lbl_planes_mantenimiento}">
+								<h:outputText value="#{equipo.cantidadPlanMantenimiento}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo">
+								<p:commandButton id="btnInfoEqui" oncomplete="infoEquipo.show()" icon="ui-icon-search" title="Ver Información" update=":form:panelDialogo"
+									process="@this" action="#{equipoBean.verDialogoDetalle}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{equipoBean.equipo.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{equipoBean.equipo.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{equipoBean.equipo.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{equipoBean.equipo.usuarioModificacion}" />
+				</ui:include>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

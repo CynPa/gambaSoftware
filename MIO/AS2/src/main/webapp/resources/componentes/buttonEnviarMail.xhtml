@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:composite="http://java.sun.com/jsf/composite" xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:p="http://primefaces.org/ui">
+
+<!-- INTERFACE -->
+	<composite:interface displayName="Enviar">
+	<composite:attribute required="true" name="bean" />
+
+	<composite:attribute required="false" name="id" default="dialogoEnviarMail" />
+	<composite:attribute required="false" name="visibleNuevo"/>
+	<composite:attribute required="false" name="target" />
+	<composite:attribute required="false" name="value" />
+	<composite:attribute required="false" name="icon" />
+	<composite:attribute required="false" name="etiquetaEnviarMail" />
+
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation>
+
+	<p:commandButton rendered="#{empty cc.attrs.visibleNuevo ? !cc.attrs.bean.editado: true}"
+		title="#{empty cc.attrs.etiquetaEnviarMail ? msgs.btn_enviar_mail : cc.attrs.etiquetaEnviarMail}" icon="#{empty cc.attrs.icon ? 'mail' : cc.attrs.icon}"
+		oncomplete="#{cc.attrs.id}.show()" process="@this :form:panelContenedor">
+	</p:commandButton>
+
+	<p:confirmDialog id="#{cc.attrs.id}" header="#{cc.attrs.titulo}" widgetVar="#{cc.attrs.id}" height="80" width="300" appendTo="@(body)"
+		message="#{msgs.confirmacion_enviar_mail}">
+
+		<p:outputPanel id="panelEnviarMail" autoUpdate="true">
+			<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+				<h:outputText value="#{msgs.lbl_mails}:" />
+				<p:inputText styleClass="input-text" value="#{cc.attrs.bean.mails}" id="txtMails">
+					<f:validateBean />
+				</p:inputText>
+			</h:panelGrid>
+		</p:outputPanel>
+
+		<center>
+			<p:commandButton value="#{empty cc.attrs.titulo ? msgs.lbl_enviar_mail : cc.attrs.titulo}" action="#{cc.attrs.bean.enviarMail}"
+				process="@this txtMails :form:panelContenedor" update="@this :form:panelContenedor" partialSubmit="true" onclick="#{cc.attrs.id}.hide()">
+			</p:commandButton>
+
+			<p:commandButton process="@this" value="#{msgs.btn_cancelar}" partialSubmit="true" onclick="#{cc.attrs.id}.hide()" />
+		</center>
+	</p:confirmDialog>
+
+</composite:implementation>
+</html>

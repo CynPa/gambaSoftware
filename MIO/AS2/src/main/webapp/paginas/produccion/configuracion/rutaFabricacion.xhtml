@@ -1,0 +1,324 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+<!-- 
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{rutaFabricacionBean}" />
+					<ui:param name="tabla" value="tablaRutaFabricacion" />
+					<ui:param name="columnasAExcluir" value="4" />
+					<ui:param name="columnasAExcluirPdf" value="4" />
+				</ui:include>
+ -->
+ 
+ 				<as2:toolBar bean="#{rutaFabricacionBean}">
+					<as2:buttonEliminar bean="#{rutaFabricacionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{rutaFabricacionBean.rutaFabricacion.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{rutaFabricacionBean.rutaFabricacion.nombre}" />
+					</as2:buttonEliminar>
+				
+				<as2:buttonExportaExcel bean="#{rutaFabricacionBean}" tabla=":form:tablaRutaFabricacion" />
+
+					<p:commandButton id="btnCopiar" icon="duplicate"
+						title="#{msgs.lbl_copiar}" process="@this,:form:panelListado" action="#{rutaFabricacionBean.copiar}" update=":form:panelContenedor"
+						rendered="#{!rutaFabricacionBean.editado}">
+					</p:commandButton>
+
+				</as2:toolBar>
+ 				
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{rutaFabricacionBean}" />
+					<ui:param name="objetoActualizar" value=":form:tabView:panelProductoRutaFabricacion" />
+					<ui:param name="mostrarCantidad}" value="false" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{rutaFabricacionBean.editado}" header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_ruta_fabricacion} )">
+
+						<h:panelGrid id="panelOperacion" columns="#{rutaFabricacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{rutaFabricacionBean.rutaFabricacion.codigo}" id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{rutaFabricacionBean.rutaFabricacion.nombre}" id="txtNombre" />
+							
+							<h:outputText for="cboTipoCiclo" value="#{msgs.lbl_tipo_ciclo}:"  />
+							<p:selectOneMenu styleClass="input-text" id="cboTipoCiclo"  value="#{rutaFabricacionBean.rutaFabricacion.tipoCicloProduccionEnum}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{rutaFabricacionBean.listaTipoCicloEnum}" var="_tipoCiclo" itemLabel="#{_tipoCiclo.nombre}" itemValue="#{_tipoCiclo}" />
+								<p:ajax process="@this" global="false" update="leyendTipoCliclo"/>
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_informacion}:" />
+							<h:panelGroup id="leyendTipoCliclo">
+								<h:outputText rendered="#{rutaFabricacionBean.rutaFabricacion.tipoCicloProduccionEnum==''}" value="" />
+								<h:outputText rendered="#{rutaFabricacionBean.rutaFabricacion.tipoCicloProduccionEnum=='CICLO_CORTO'}"
+									value="#{msgs.lbl_horas_por_batch}" />
+								<h:outputText rendered="#{rutaFabricacionBean.rutaFabricacion.tipoCicloProduccionEnum=='CICLO_LARGO'}"
+									value="#{msgs.lbl_horas_no_batch}" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{rutaFabricacionBean.rutaFabricacion.descripcion}" id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{rutaFabricacionBean.rutaFabricacion.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{rutaFabricacionBean.rutaFabricacion.predeterminado}" />
+
+						</h:panelGrid>
+
+						<p:tabView id="tabView">
+
+							<p:tab title="#{msgs.lbl_operacion}">
+
+								<h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarOperacion" action="#{rutaFabricacionBean.agregarOperacion}"
+										update=":form:tabView:panelOperacionProduccion" process="@this,:form:tabView:panelOperacionProduccion" icon="ui-icon-plus"
+										oncomplete="nextFocus(':form:tabView:txtOrden')" />
+
+									<p:spacer height="4px" />
+
+									<p:outputPanel id="panelOperacionProduccion">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{rutaFabricacionBean.listaOperacionProduccion}" id="tablaOperacionProduccion" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_operacionProduccion" paginator="true"
+											binding="#{rutaFabricacionBean.dtOperacionRutaFabricacion}" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_operacionProduccion.id}" rows="#{rutaFabricacionBean.numeroFilas}" columnClasses="rowIndex"
+											selection="#{rutaFabricacionBean.operacionProduccion}" lazy="true">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_operacionProduccion.orden}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_orden}" />
+												</f:facet>
+												<p:inputText id="txtOrden" size="6" value="#{_operacionProduccion.orden}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_tarea}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" required="true" value="#{_operacionProduccion.tareaProduccion}"
+													completeMethod="#{rutaFabricacionBean.autocompletarTareaProduccion}" var="_tareaProduccion" itemLabel="#{_tareaProduccion.nombre}"
+													itemValue="#{_tareaProduccion}" forceSelection="true" dropdown="false" minQueryLength="2">
+
+													<p:column>#{_tareaProduccion.codigo}</p:column>
+													<p:column>#{_tareaProduccion.nombre}</p:column>
+
+													<p:ajax process="@this" event="itemSelect" update=":form:tabView:panelOperacionProduccion"
+														listener="#{rutaFabricacionBean.cargarTareaProduccion}" oncomplete="nextFocus(':form:tabView:cboMaquina')" />
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_maquina}">
+												<p:selectOneMenu value="#{_operacionProduccion.maquina}" id="cboMaquina">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{rutaFabricacionBean.listaMaquina}" var="_maquina" itemValue="#{_maquina}" itemLabel="#{_maquina.nombre}">
+													</f:selectItems>
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_centro_trabajo}">
+												<p:selectOneMenu value="#{_operacionProduccion.centroTrabajo}" id="cboCentroTrabajo">
+													<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+													<f:selectItems value="#{rutaFabricacionBean.listaCentroTrabajo}" var="_centroTrabajo" itemValue="#{_centroTrabajo}"
+														itemLabel="#{_centroTrabajo.nombre}">
+													</f:selectItems>
+													<f:validateBean />
+												</p:selectOneMenu>
+											</p:column>
+											
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_fijo}">
+												<p:selectBooleanCheckbox value="#{_operacionProduccion.indicadorFijo}" />
+											</p:column>
+											
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_automatico}">
+												<p:selectBooleanCheckbox value="#{_operacionProduccion.indicadorAutomatico}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha_desde}">
+												<p:calendar value="#{_operacionProduccion.fechaDesde}" pattern="#{rutaFabricacionBean.formatoFecha}" showOn="button" navigator="true"
+													size="10" id="calFechaDesde">
+													<f:validateBean />
+												</p:calendar>
+											</p:column>
+
+											<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha_hasta}">
+												<p:calendar value="#{_operacionProduccion.fechaHasta}" pattern="#{rutaFabricacionBean.formatoFecha}" showOn="button" navigator="true"
+													size="10" id="calFechaHasta">
+													<f:validateBean />
+												</p:calendar>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_numero_persona}" />
+												</f:facet>
+												<p:inputText id="txtNumeroPersonas" size="6" value="#{_operacionProduccion.numeroPersonas}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_numero_maquina}" />
+												</f:facet>
+												<p:inputText id="txtNumeroMaquinas" size="6" value="#{_operacionProduccion.numeroMaquinas}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<p:inputText styleClass="input-text" value="#{_operacionProduccion.descripcion}" id="txtDescripcionOperacionProduccion" size="20">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+											
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_punto_recuento}">
+												<p:selectBooleanCheckbox value="#{_operacionProduccion.indicadorPuntoRecuento}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarOperacionProduccion" action="#{rutaFabricacionBean.eliminarOperacion(_operacionProduccion)}"
+													icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tabView:panelOperacionProduccion" process="@this" />
+											</p:column>								
+											
+										</p:dataTable>
+									</p:outputPanel>
+								</h:panelGrid>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_producto}">
+
+								<h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+
+									<p:commandButton process="@this" value="#{msgs.btn_agregar_detalle}" onclick="dglModalProducto.show();" icon="ui-icon-plus"
+										title="#{msgs.btn_agregar_detalle}">
+									</p:commandButton>
+									<p:spacer height="4px" />
+
+									<p:outputPanel id="panelProductoRutaFabricacion">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{rutaFabricacionBean.listaProductoRutaFabricacion}" id="tablaProductoRutaFabricacion" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_productoRutaFabricacion" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_productoRutaFabricacion.id}" rows="#{rutaFabricacionBean.numeroFilas}" rowsPerPageTemplate="#{rutaFabricacionBean.numeroFilasPorPagina}"
+										    columnClasses="rowIndex" lazy="true">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+												<h:outputText value="#{_productoRutaFabricacion.producto.codigo}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre}">
+												<h:outputText value="#{_productoRutaFabricacion.producto.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_producto}">
+												<h:outputText value="#{_productoRutaFabricacion.producto.unidad.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad_produccion}">
+												<h:outputText value="#{_productoRutaFabricacion.producto.cantidadProduccion}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarProductoRutaFabricacion" action="#{rutaFabricacionBean.eliminarProducto(_productoRutaFabricacion)}"
+													icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tabView:panelProductoRutaFabricacion" process="@this">
+												</p:commandButton>
+											</p:column>
+										</p:dataTable>
+									</p:outputPanel>
+								</h:panelGrid>
+							</p:tab>
+						</p:tabView>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!rutaFabricacionBean.editado}" header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_ruta_fabricacion} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaRutaFabricacion" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{rutaFabricacionBean.listaRutaFabricacion}" var="_rutaFabricacion" binding="#{rutaFabricacionBean.dtRutaFabricacion}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{rutaFabricacionBean.numeroFilas}" rowsPerPageTemplate="#{rutaFabricacionBean.numeroFilasPorPagina}"
+							selection="#{rutaFabricacionBean.rutaFabricacion}" selectionMode="single" rowKey="#{_rutaFabricacion.id}" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_rutaFabricacion.codigo}" sortBy="#{_rutaFabricacion.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_rutaFabricacion.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_rutaFabricacion.nombre}" sortBy="#{_rutaFabricacion.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_rutaFabricacion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_rutaFabricacion.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_rutaFabricacion.activo}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="tableCell columnaDTPredeterminado" sortBy="#{_rutaFabricacion.predeterminado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_rutaFabricacion.predeterminado}"
+									disabled="true" />
+							</p:column>							
+
+							<p:column sortBy="#{_rutaFabricacion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_rutaFabricacion.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{rutaFabricacionBean.rutaFabricacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{rutaFabricacionBean.rutaFabricacion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{rutaFabricacionBean.rutaFabricacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{rutaFabricacionBean.rutaFabricacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

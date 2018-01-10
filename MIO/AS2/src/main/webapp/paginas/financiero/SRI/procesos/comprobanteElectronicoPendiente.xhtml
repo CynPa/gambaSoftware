@@ -1,0 +1,173 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+			<p:poll interval="30" update=":form:panelListado" />
+			<p:outputPanel id="panelContenedor">
+				<!-- Inicio Generar Factura Electronica Dialog -->
+				<p:outputPanel id="panelGenerarFacturaElectronicaMasiva">
+					<p:dialog header="#{msgs.lbl_procesar}" widgetVar="generarFacturaElectronicaDialog" id="generarFacturaElectronicaDialog" height="150" width="550"
+						showEffect="slide" hideEffect="slide" rendered="#{comprobanteElectronicoPendienteBean.renderDialog}">
+
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{comprobanteElectronicoPendienteBean.documentoBase}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{comprobanteElectronicoPendienteBean.listaDocumentosBase}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento}" />
+								<p:ajax process="@this" update="@this" />
+								<f:validateBean />
+							</p:selectOneMenu>
+							<p:spacer />
+							<p:spacer />
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{comprobanteElectronicoPendienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{comprobanteElectronicoPendienteBean.fechaDesde}" id="calFechaDesde" required="true">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+							</p:calendar>
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{comprobanteElectronicoPendienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{comprobanteElectronicoPendienteBean.fechaHasta}" id="calFechaHasta" required="true">
+								<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+								<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+							</p:calendar>
+						</h:panelGrid>
+						<h:panelGrid columns="1" style="text-align:center;">
+							<p:commandButton value="#{msgs.lbl_generar}"
+								actionListener="#{comprobanteElectronicoPendienteBean.procesarcomprobanteElectronicoPendienteSRIMasivo}"
+								process="@this :form:panelGenerarFacturaElectronicaMasiva" update="panelListado" icon="ui-icon-plus"
+								oncomplete="validacionesModal(xhr, status, args, generarFacturaElectronicaDialog)" />
+						</h:panelGrid>
+					</p:dialog>
+				</p:outputPanel>
+				<!-- Fin Generar Factura Electronica Dialog -->
+				<as2:toolBar bean="#{comprobanteElectronicoPendienteBean}">
+
+					<as2:buttonExportaExcel bean="#{comprobanteElectronicoPendienteBean}" tabla=":form:tablaComprobanteElectronicoPendiente" />
+
+					<p:commandButton icon="ui-icon-gear" process="@this" update=":form:panelGenerarFacturaElectronicaMasiva"
+						oncomplete="generarFacturaElectronicaDialog.show()" value="#{msgs.lbl_procesar}">
+						<f:setPropertyActionListener target="#{comprobanteElectronicoPendienteBean.renderDialog}" value="true"></f:setPropertyActionListener>
+					</p:commandButton>
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_comprobante_electronico_pendiente}"
+						rendered="#{!comprobanteElectronicoPendienteBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaComprobanteElectronicoPendiente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{comprobanteElectronicoPendienteBean.listaComprobanteElectronicoPendienteSRI}"
+							var="_comprobante" paginator="true" binding="#{comprobanteElectronicoPendienteBean.dataTableComprobanteElectronicoPendienteSRI}"
+							rows="#{comprobanteElectronicoPendienteBean.numeroFilas}" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{comprobanteElectronicoPendienteBean.numeroFilasPorPagina}"
+							selection="#{comprobanteElectronicoPendienteBean.comprobanteElectronicoPendienteSRI}" selectionMode="single" rowKey="#{_comprobante.id}"
+							sortBy="#{_comprobante.fechaCreacion}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_documentoBase}" />
+								</f:facet>
+
+								<h:outputText value="#{_comprobante.documentoBase}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell" sortBy="#{_comprobante.numero}" filterBy="#{_comprobante.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_comprobante.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_emision}" />
+								</f:facet>
+								<h:outputText value="#{_comprobante.fechaEmision}">
+									<f:convertDateTime pattern="#{comprobanteElectronicoPendienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_no_enviado}" sortBy="#{_comprobante.indicadorNoEnviado}">
+								<p:selectBooleanCheckbox value="#{_comprobante.indicadorNoEnviado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_espera_respuesta}" sortBy="#{_comprobante.indicadorComprobarAutorizacion}">
+								<p:selectBooleanCheckbox value="#{_comprobante.indicadorComprobarAutorizacion}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_rechazado}" sortBy="#{_comprobante.indicadorRechazado}">
+								<p:selectBooleanCheckbox value="#{_comprobante.indicadorRechazado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado } SRI" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_comprobante.mensajeSRI}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_comprobante.cantidadIntentos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cantidad_intentos}" />
+								</f:facet>
+								<h:outputText value="#{_comprobante.cantidadIntentos}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_clave_acceso}" />
+								</f:facet>
+
+								<h:outputText value="#{_comprobante.claveAcceso}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_procesar}">
+								<p:commandButton icon="ui-icon-gear" actionListener="#{comprobanteElectronicoPendienteBean.procesar(_comprobante)}" process="@this"
+									update=":form:panelListado" partialSubmit="true">
+								</p:commandButton>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{comprobanteElectronicoPendienteBean.comprobanteElectronicoPendienteSRI.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{comprobanteElectronicoPendienteBean.comprobanteElectronicoPendienteSRI.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{comprobanteElectronicoPendienteBean.comprobanteElectronicoPendienteSRI.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{comprobanteElectronicoPendienteBean.comprobanteElectronicoPendienteSRI.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

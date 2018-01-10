@@ -1,0 +1,854 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idPedidoProveedor" value="#{pedidoProveedorBean.idPedidoProveedor}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{pedidoProveedorBean}">
+
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this,:form:panelListado"
+						action="#{pedidoProveedorBean.copiar}" update=":form" disabled="#{pedidoProveedorBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonEliminar bean="#{pedidoProveedorBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.fecha}">
+							<f:convertDateTime pattern="#{pedidoProveedorBean.formatoFecha}" />
+						</h:outputText>
+
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.numero}" />
+
+						<h:outputText value="#{msgs.lbl_proveedor}:" />
+						<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.empresa.nombreComercial}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir id="btnImprimirPedidoProveedor" beanReporte="#{reportePedidoProveedorBean}" bean="#{pedidoProveedorBean}"
+						target="#{reportePedidoProveedorBean.pedidoProveedor}" value="#{pedidoProveedorBean.pedidoProveedor}" />
+
+					<as2:buttonExportaExcel bean="#{pedidoProveedorBean}" tabla=":form:tablaPedidoProveedor" />
+
+					<p:commandButton id="btnSolicitarCambioPrecio" title="#{msgs.lbl_solicitar_cambio_precio}" value="#{msgs.lbl_solicitar_cambio_precio}"
+						process="@this,:form:panelListado" action="#{pedidoProveedorBean.solicitarCambioPrecio}" update=":form:panelContenedor"
+						rendered="#{!pedidoProveedorBean.indicadorParametroEditarPrecioPedido and !pedidoProveedorBean.editado}">
+					</p:commandButton>
+					<as2:buttonTotalizar bean="#{pedidoProveedorBean}" update=":form:tvDetallePedido:panelDetallePedido"></as2:buttonTotalizar>
+					<as2:buttonEnviarMail id="btnEnviarMail" bean="#{pedidoProveedorBean}" />
+				</as2:toolBar>
+
+				<!-- <as2:panelImprimir bean="#{reportePedidoProveedorBean}" entidadOrigen="#{pedidoProveedorBean.pedidoProveedor}"
+					entidadDestino="#{reportePedidoProveedorBean.pedidoProveedor}" /> -->
+
+				<!-- INICIO DIALOG SUBIR ARCHIVO -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarDetallePedidoProveedor" modal="true" height="150" width="325" showEffect="clip"
+					hideEffect="clip" resizable="false">
+					<p:outputPanel id="outputCargarExcel">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{pedidoProveedorBean.cargarDetallePedidoProveedorExcel}" mode="advanced"
+									update=":form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetalle" auto="true" sizeLimit="10000000"
+									allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this" oncomplete="dlgCargarDetallePedidoProveedor.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN DIALOG SUBIR ARCHIVO -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_pedido_proveedor}" rendered="#{pedidoProveedorBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{pedidoProveedorBean}" />
+							<ui:param name="objetoActualizar" value=":form:tvDetallePedido:panelDetallePedido" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{pedidoProveedorBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.sucursal}" id="cboSucursal" required="true"
+									disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoProveedorBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.documento.idDocumento}" id="cboDocumento"
+									required="true" disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoProveedorBean.listaDocumentoProveedor}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+									<p:ajax update="txtNumero" event="change" listener="#{pedidoProveedorBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.numero}" id="txtNumero"
+									mask="#{pedidoProveedorBean.pedidoProveedor.documento.secuencia.patron}"
+									disabled="#{!pedidoProveedorBean.secuenciaEditable or pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{pedidoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{pedidoProveedorBean.pedidoProveedor.fecha}" id="calFecha" required="true" disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect"
+										update="calFechaEntrega :form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetallePedido"
+										listener="#{pedidoProveedorBean.actualizarImpuestosListener}" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change"
+										update="calFechaEntrega :form:tvDetallePedido:panelDetallePedido :form:tvDetallePedido:panelImpuestoDetallePedido"
+										listener="#{pedidoProveedorBean.actualizarImpuestosListener}" />
+								</p:calendar>
+
+								<p:outputLabel for="calFechaEntrega" value="#{msgs.lbl_fecha_entrega}:" />
+								<p:calendar pattern="#{pedidoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{pedidoProveedorBean.pedidoProveedor.fechaEntrega}" id="calFechaEntrega" required="true"
+									mindate="#{pedidoProveedorBean.pedidoProveedor.fecha}" disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								</p:calendar>
+
+								<p:outputLabel for="txtProveedor" value="#{msgs.lbl_proveedor}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.empresa}"
+									completeMethod="#{pedidoProveedorBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+									itemValue="#{_proveedor}" forceSelection="true" size="50" dropdown="true" minQueryLength="2" id="txtProveedor" required="true"
+									disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+									<p:ajax listener="#{pedidoProveedorBean.actualizarProveedor}" process="@this" event="itemSelect"
+										update="cboDireccionProveedor cboFormaPago txtNumeroCuotas txtEmail txTemailRespuesta txtTelefonoRespuesta" />
+								</p:autoComplete>
+
+								<p:outputLabel for="cboDireccionProveedor" value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.direccionEmpresa}" id="cboDireccionProveedor"
+									required="true" disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoProveedorBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboFormaPago" value="#{msgs.lbl_condicion_pago}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.condicionPago}" id="cboFormaPago" required="true"
+									disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoProveedorBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+										itemValue="#{_condicionPago}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumeroCuotas" value="#{msgs.lbl_factura_cliente_cuotas}:" />
+								<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.numeroCuotas}" id="txtNumeroCuotas" required="true"
+									disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_bodega}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.bodega}" id="cboBodega"
+									disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoProveedorBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_responsable}:" rendered="#{pedidoProveedorBean.indicadorOrdenCompraConPersonaResponsable and not empty pedidoProveedorBean.listaPersonaResponsable}" />
+								<p:selectOneMenu styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.personaResponsable}" id="cboPersonaResponsable"
+									rendered="#{pedidoProveedorBean.indicadorOrdenCompraConPersonaResponsable and not empty pedidoProveedorBean.listaPersonaResponsable}"
+									required="#{pedidoProveedorBean.indicadorOrdenCompraConPersonaResponsable and not empty pedidoProveedorBean.listaPersonaResponsable}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{pedidoProveedorBean.listaPersonaResponsable}" var="_personaResponsable"
+										itemLabel="#{_personaResponsable.nombres} #{_personaResponsable.apellidos}" itemValue="#{_personaResponsable}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+
+								<h:outputText value="#{msgs.lbl_quotation_number}:" rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}" />
+								<h:panelGroup rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+									<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.numeroPedidoProveedor}" id="txtNumeroPedidoProveedor"
+										disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_incoterm}:" rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}" />
+								<h:panelGroup rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+									<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.referencia1}" id="txtReferencia1"
+										disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_payment_terms}:" rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}" />
+								<h:panelGroup rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+									<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.referencia2}" id="txtReferencia2"
+										disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_project}:" rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}" />
+								<h:panelGroup rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+									<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.referencia3}" id="txtReferencia3"
+										disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_export_agent}:" rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}" />
+								<h:panelGroup rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+									<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.referencia4}" id="txtReferencia4"
+										disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGroup>
+
+
+								<h:outputText value="#{msgs.lbl_delivery_address}:" rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}" />
+								<h:panelGroup rendered="#{pedidoProveedorBean.tipoOrganizacion=='TIPO_ORGANIZACION_ADRIALPETRO'}">
+									<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.direccionEntrega}" id="txtDireccionEntrega"
+										disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGroup>
+
+								<p:outputLabel for="autoProyecto" rendered="#{sesionControler.manejaProyectos}" value="#{msgs.lbl_proyecto}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoProyecto"
+									value="#{pedidoProveedorBean.pedidoProveedor.proyecto}" completeMethod="#{sesionControler.autocompletarProyectosActivos}" var="_proyecto"
+									itemLabel="#{_proyecto.nombre}" itemValue="#{_proyecto}" forceSelection="true" dropdown="true" minQueryLength="2"
+									rendered="#{sesionControler.manejaProyectos}" required="true" disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+									<p:column headerText="#{msgs.lbl_codigo}">#{_proyecto.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre}">#{_proyecto.nombre}</p:column>
+
+									<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.descripcion}" id="txtDescripcion" maxlength="500">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_referencia}:" />
+								<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.referencia}" id="txtReferencia" maxlength="200"
+									disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtEmail" value="#{msgs.lbl_email}:" />
+								<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.email}" id="txtEmail">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtTelefonoRespuesta" value="#{msgs.lbl_telefono_respuesta}:" />
+								<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.telefonoRespuesta}" size="10" id="txtTelefonoRespuesta">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txTemailRespuesta" value="#{msgs.lbl_email_respuesta}:" />
+								<p:inputText styleClass="input-text" value="#{pedidoProveedorBean.pedidoProveedor.emailRespuesta}" id="txTemailRespuesta">
+									<f:validateBean />
+								</p:inputText>
+
+
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:tabView cache="true" dynamic="true" id="tvDetallePedido">
+
+							<p:tab title="#{msgs.lbl_detalle_pedido}" id="tabDetallePedido">
+
+								<p:outputPanel id="panelDetallePedido">
+
+									<h:panelGrid columns="1" style="width:100%" border="0">
+
+										<h:panelGroup>
+
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{pedidoProveedorBean.agregarDetalle}"
+												update=":form:tvDetallePedido:panelDetallePedido" process="@this :form:tvDetallePedido:panelDetallePedido :form:calFecha"
+												icon="ui-icon-plus" disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}" />
+
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button"
+												disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}" />
+
+											<p:commandButton id="btnCargarExcel" value="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update=":form:outputCargarExcel"
+												onclick="dlgCargarDetallePedidoProveedor.show()" process="@this" disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}" />
+
+											<as2:buttonDescagarPlantilla bean="#{pedidoProveedorBean}" />
+										</h:panelGroup>
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pedidoProveedorBean.detallePedidoProveedor}"
+											id="tablaDetallePedidoProveedor" rowIndexVar="secuencial" binding="#{pedidoProveedorBean.dtDetallePedidoProveedor}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePedidoProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_detallePedidoProveedor.id}" rows="#{pedidoProveedorBean.numeroFilas}"
+											rowsPerPageTemplate="#{pedidoProveedorBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+												<p:inputText styleClass="input-text100" value="#{_detallePedidoProveedor.producto.codigo}" id="txtCodigoProducto" size="10"
+													disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+													<p:ajax listener="#{pedidoProveedorBean.actualizarProducto}" process="@this" event="change"
+														update="txtNombreProducto,txtUnidadCompraProducto,chkIndicadorImpuestos txtDescripcion"
+														oncomplete="nextFocus('#{p:component('txtCantidad')}')" global="false" />
+
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_detallePedidoProveedor.producto.nombre}" id="txtNombreProducto" />
+											</p:column>
+
+											<p:column styleClass="columnaDTUnidad tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_unidad_compra}" />
+												</f:facet>
+
+												<h:outputText value="#{_detallePedidoProveedor.unidadCompra.nombre}" id="txtUnidadCompraProducto" />
+											</p:column>
+
+											<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_producto_indicador_impuestos}">
+												<p:selectBooleanCheckbox id="chkIndicadorImpuestos" value="#{_detallePedidoProveedor.indicadorImpuestos}"
+													disabled="#{empty _detallePedidoProveedor.producto.categoriaImpuesto or pedidoProveedorBean.indicadorCambiarPrecio}">
+
+													<p:ajax listener="#{pedidoProveedorBean.actualizarImpuesto}" process="@this" update=":form:tvDetallePedido:panelDetallePedido"
+														global="false" />
+												</p:selectBooleanCheckbox>
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+												<p:inputText styleClass="input-text" value="#{_detallePedidoProveedor.cantidad}" id="txtCantidad" size="10"
+													disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" />
+													<p:ajax disabled="#{pedidoProveedorBean.indicadorTotalizar}" listener="#{pedidoProveedorBean.totalizar}" process="@this,txtDescripcion"
+														event="change" oncomplete="nextFocus('#{p:component('txtPrecio')}')" update=":form:tvDetallePedido:panelDetallePedido" global="false" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+												<p:inputText styleClass="input-text" value="#{_detallePedidoProveedor.descripcion}" id="txtDescripcion">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" rendered="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_precio_unitario} #{msgs.lbl_anterior}" />
+												</f:facet>
+												<h:outputText value="#{_detallePedidoProveedor.precioAnterior}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_precio_unitario} #{msgs.lbl_nuevo}"
+												rendered="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+												<p:inputText styleClass="input-text" value="#{_detallePedidoProveedor.precioNuevo}" id="txtPrecioNuevo" size="10"
+													disabled="#{!pedidoProveedorBean.indicadorCambiarPrecio}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_precio_unitario}" />
+												</f:facet>
+
+												<p:inputText styleClass="input-text"
+													disabled="#{pedidoProveedorBean.indicadorIngresoPrecioTotal or pedidoProveedorBean.indicadorCambiarPrecio}"
+													value="#{_detallePedidoProveedor.precio}" id="txtPrecio" size="10">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" />
+													<p:ajax disabled="#{pedidoProveedorBean.indicadorTotalizar}" listener="#{pedidoProveedorBean.totalizar}" process="@this,txtDescripcion"
+														event="change" oncomplete="nextFocus('#{p:component('txtPorcentajeDescuento')}')"
+														update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle" global="false" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTPorcentaje tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_porcentaje_descuento}" />
+												</f:facet>
+
+												<p:inputText value="#{_detallePedidoProveedor.porcentajeDescuento}" id="txtPorcentajeDescuento" size="5">
+													<p:ajax listener="#{pedidoProveedorBean.actualizarPorcentajeDescuento}" process="@this,txtCantidad,txtDescripcion,txtPrecio"
+														update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle"
+														oncomplete="nextFocus('#{p:component('txtCodigoProducto')}')" event="change" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTPorcentaje tableCell" headerText="#{msgs.lbl_descuento_linea}">
+												<h:outputText value="#{_detallePedidoProveedor.descuentoLinea}" id="lblDescuentoLinea">
+													<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" rendered="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_precio_linea} #{msgs.lbl_anterior}" />
+												</f:facet>
+												<h:outputText value="#{_detallePedidoProveedor.precioLineaAnterior}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTPorcentaje tableCell" headerText="#{msgs.lbl_precio_linea}">
+												<p:inputText styleClass="input-text" disabled="#{!facturaProveedorBean.indicadorIngresoPrecioTotal}"
+													value="#{_detallePedidoProveedor.precioLinea}" id="lblPrecioLinea" size="10">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false" />
+													<p:ajax disabled="#{pedidoProveedorBean.indicadorTotalizar}" listener="#{pedidoProveedorBean.totalizar}" process="@this,txtDescripcion"
+														event="change" update=":form:tvDetallePedido:panelDetallePedido" global="false" />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="tableCell" rendered="#{not empty pedidoProveedorBean.nombreDimension1}">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{pedidoProveedorBean.nombreDimension1}" />
+												</f:facet>
+
+												<h:panelGroup id="panelDimension1">
+
+													<p:commandButton value="..." process="@this" partialSubmit="true"
+														actionListener="#{pedidoProveedorBean.listaDimensionContableBean.listarDimensionContableListener('1',false,true)}"
+														disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+														<p:ajax event="dialogReturn" listener="#{pedidoProveedorBean.seleccionarDimensionContableListener}"
+															update=":form:tvDetallePedido:tablaDetallePedidoProveedor:panelDimension1" />
+
+														<f:setPropertyActionListener value="#{_detallePedidoProveedor}" target="#{pedidoProveedorBean.detallePedidoProveedorSeleccionado}" />
+
+													</p:commandButton>
+													<h:outputText value="#{_detallePedidoProveedor.dimensionContable1.nombre}" />
+												</h:panelGroup>
+											</p:column>
+
+											<p:column rendered="#{not empty pedidoProveedorBean.nombreDimension2}" styleClass="tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{pedidoProveedorBean.nombreDimension2}" />
+												</f:facet>
+												<h:panelGroup id="panelDimension2">
+
+													<p:commandButton value="..." process="@this" partialSubmit="true"
+														actionListener="#{pedidoProveedorBean.listaDimensionContableBean.listarDimensionContableListener('2',false,true)}"
+														disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+														<p:ajax event="dialogReturn" listener="#{pedidoProveedorBean.seleccionarDimensionContableListener}"
+															update=":form:tvDetallePedido:tablaDetallePedidoProveedor:panelDimension2" />
+
+														<f:setPropertyActionListener value="#{_detallePedidoProveedor}" target="#{pedidoProveedorBean.detallePedidoProveedorSeleccionado}" />
+
+													</p:commandButton>
+
+													<h:outputText value="#{_detallePedidoProveedor.dimensionContable2.nombre}" />
+												</h:panelGroup>
+											</p:column>
+
+											<p:column rendered="#{not empty pedidoProveedorBean.nombreDimension3}" styleClass="tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{pedidoProveedorBean.nombreDimension3}" />
+												</f:facet>
+												<h:panelGroup id="panelDimension3">
+
+													<p:commandButton value="..." process="@this" partialSubmit="true"
+														actionListener="#{pedidoProveedorBean.listaDimensionContableBean.listarDimensionContableListener('3',false,true)}"
+														disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+														<p:ajax event="dialogReturn" listener="#{pedidoProveedorBean.seleccionarDimensionContableListener}"
+															update=":form:tvDetallePedido:tablaDetallePedidoProveedor:panelDimension3" />
+
+														<f:setPropertyActionListener value="#{_detallePedidoProveedor}" target="#{pedidoProveedorBean.detallePedidoProveedorSeleccionado}" />
+
+													</p:commandButton>
+
+													<h:outputText value="#{_detallePedidoProveedor.dimensionContable3.nombre}" />
+												</h:panelGroup>
+											</p:column>
+
+											<p:column rendered="#{not empty pedidoProveedorBean.nombreDimension4}" styleClass="tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{pedidoProveedorBean.nombreDimension4}" />
+												</f:facet>
+												<h:panelGroup id="panelDimension4">
+
+													<p:commandButton value="..." process="@this" partialSubmit="true"
+														actionListener="#{pedidoProveedorBean.listaDimensionContableBean.listarDimensionContableListener('4',false,true)}"
+														disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+														<p:ajax event="dialogReturn" listener="#{pedidoProveedorBean.seleccionarDimensionContableListener}"
+															update=":form:tvDetallePedido:tablaDetallePedidoProveedor:panelDimension4" />
+
+														<f:setPropertyActionListener value="#{_detallePedidoProveedor}" target="#{pedidoProveedorBean.detallePedidoProveedorSeleccionado}" />
+
+													</p:commandButton>
+
+													<h:outputText value="#{_detallePedidoProveedor.dimensionContable4.nombre}" />
+												</h:panelGroup>
+											</p:column>
+
+											<p:column rendered="#{not empty pedidoProveedorBean.nombreDimension5}" styleClass="tableCell">
+												<f:facet name="header">
+													<h:outputText style="white-space:normal !important;" value="#{pedidoProveedorBean.nombreDimension5}" />
+												</f:facet>
+												<h:panelGroup id="panelDimension5">
+
+													<p:commandButton value="..." process="@this" partialSubmit="true"
+														actionListener="#{pedidoProveedorBean.listaDimensionContableBean.listarDimensionContableListener('5',false,true)}"
+														disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+
+														<p:ajax event="dialogReturn" listener="#{pedidoProveedorBean.seleccionarDimensionContableListener}"
+															update=":form:tvDetallePedido:tablaDetallePedidoProveedor:panelDimension5" />
+
+														<f:setPropertyActionListener value="#{_detallePedidoProveedor}" target="#{pedidoProveedorBean.detallePedidoProveedorSeleccionado}" />
+
+													</p:commandButton>
+
+													<h:outputText value="#{_detallePedidoProveedor.dimensionContable5.nombre}" />
+												</h:panelGroup>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" action="#{pedidoProveedorBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tvDetallePedido:panelDetallePedido,:form:tvDetallePedido:panelImpuestoDetalle" process="@this"
+													disabled="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+												</p:commandButton>
+											</p:column>
+
+
+											<p:columnGroup type="footer" id="panelTotal">
+												<p:row>
+													<p:column colspan="10" footerText="#{msgs.lbl_subtotal}:" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotal">
+															<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.total}">
+																<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="10" footerText="#{msgs.lbl_descuento}:	" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtDescuentoPedido">
+															<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.descuento}">
+																<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="10" footerText="#{msgs.lbl_producto_indicador_impuestos}:	" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtImpuesto">
+															<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.impuesto}">
+																<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="10" footerText="#{msgs.lbl_total}:	" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtSubtotal">
+															<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.totalPedido}">
+																<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row rendered="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+													<p:column colspan="10" footerText="#{msgs.lbl_total} #{msgs.lbl_anterior}:	" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotalAnterior">
+															<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.totalPedidoAnterior}">
+																<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row rendered="#{pedidoProveedorBean.indicadorCambiarPrecio}">
+													<p:column colspan="10" footerText="#{msgs.lbl_diferencia}:	" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{pedidoProveedorBean.pedidoProveedor.totalPedido - pedidoProveedorBean.pedidoProveedor.totalPedidoAnterior}">
+																<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+												</p:row>
+
+											</p:columnGroup>
+
+										</p:dataTable>
+
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_detalle_impuesto}" id="tabImpuestoDetallePedido">
+
+								<p:outputPanel id="panelImpuestoDetallePedido" autoUpdate="true">
+
+									<h:panelGrid columns="1" id="panelImpuestoDetalle" style="width:100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pedidoProveedorBean.listaImpuestoProductoPedidoProveedor}"
+											id="tablaImpuestoDetallePedidoProveedor" rows="#{pedidoProveedorBean.numeroFilas}"
+											rowsPerPageTemplate="#{pedidoProveedorBean.numeroFilasPorPagina}" rowIndexVar="secuencial"
+											binding="#{pedidoProveedorBean.dtImpuestoDetallePedidoProveedor}" emptyMessage="#{msgs.msg_no_hay_datos}"
+											var="_impuestoDetallePedidoProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rowKey="#{_impuestoDetallePedidoProveedor.id}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_producto_nombre_comercial}">
+												<h:outputText value="#{_impuestoDetallePedidoProveedor.detallePedidoProveedor.producto.nombreComercial}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_nombre_impuesto}">
+												<h:outputText value="#{_impuestoDetallePedidoProveedor.impuesto.nombre}" id="txtNombreProductoImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_porcentaje_impuesto}">
+												<h:outputText value="#{_impuestoDetallePedidoProveedor.porcentajeImpuesto}" id="txtPorcentajeProductoImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_base_imponible}">
+												<h:outputText value="#{_impuestoDetallePedidoProveedor.detallePedidoProveedor.baseImponible}" id="txtBaseImpuesto">
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor_impuesto}">
+												<h:outputText value="#{_impuestoDetallePedidoProveedor.impuestoProducto}" id="txtImpuestoProducto" style="text-align:right">
+												</h:outputText>
+											</p:column>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+
+								</p:outputPanel>
+
+							</p:tab>
+
+						</p:tabView>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_pedido_proveedor}" rendered="#{!pedidoProveedorBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPedidoProveedor" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pedidoProveedorBean.listaPedidoProveedor}" var="_pedidoProveedor" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{pedidoProveedorBean.dtPedidoProveedor}" rows="#{pedidoProveedorBean.numeroFilas}"
+							rowsPerPageTemplate="#{pedidoProveedorBean.numeroFilasPorPagina}" selection="#{pedidoProveedorBean.pedidoProveedor}" selectionMode="single"
+							rowKey="#{_pedidoProveedor.id}" sortBy="#{_pedidoProveedor.idPedidoProveedor}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_pedidoProveedor.numero}" filterBy="#{_pedidoProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_pedidoProveedor.empresa.nombreFiscal}" filterBy="#{_pedidoProveedor.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_pedidoProveedor.fecha}">
+								<h:outputText value="#{_pedidoProveedor.fecha}">
+									<f:convertDateTime pattern="#{pedidoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_subtotal}" sortBy="#{_pedidoProveedor.total}">
+								<h:outputText value="#{_pedidoProveedor.total}">
+									<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_producto_indicador_impuestos}" sortBy="#{_pedidoProveedor.impuesto}">
+								<h:outputText value="#{_pedidoProveedor.impuesto}">
+									<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento}" sortBy="#{_pedidoProveedor.descuento}">
+								<h:outputText value="#{_pedidoProveedor.descuento}">
+									<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+								</h:outputText>
+
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_total}">
+								<h:outputText value="#{(_pedidoProveedor.total - _pedidoProveedor.descuento) + _pedidoProveedor.impuesto}">
+									<f:convertNumber pattern="#{pedidoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTBodega tableCell" headerText="#{msgs.lbl_bodega}" sortBy="#{_pedidoProveedor.bodega.nombre}"
+								filterBy="#{_pedidoProveedor.bodega.nombre}">
+								<h:outputText value="#{_pedidoProveedor.bodega.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_pedidoProveedor.estado}" filterBy="#{_pedidoProveedor.estado}"
+								filterOptions="#{pedidoProveedorBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_pedidoProveedor.indicadorSolicitudCambioPrecio}"
+								rendered="#{!pedidoProveedorBean.indicadorParametroEditarPrecioPedido}" headerText="#{msgs.lbl_indicador_cambio_precio}">
+								<p:selectBooleanCheckbox value="#{_pedidoProveedor.indicadorSolicitudCambioPrecio}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_pedidoProveedor.usuarioCambioEstado}"
+								filterBy="#{_pedidoProveedor.usuarioCambioEstado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_usuario} (#{msgs.lbl_aprobacion})" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.usuarioCambioEstado}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_cambio_estado}">
+								<h:outputText value="#{_pedidoProveedor.fechaCambioEstado}">
+									<f:convertDateTime pattern="#{pedidoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_pedidoProveedor.descripcionCambioEstado}" filterBy="#{_pedidoProveedor.descripcionCambioEstado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion} (#{msgs.lbl_aprobacion})" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.descripcionCambioEstado}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" rendered="#{sesionControler.manejaProyectos}" filterBy="#{_pedidoProveedor.proyecto.nombre}"
+								sortBy="#{_pedidoProveedor.proyecto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proyecto}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.proyecto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" filterBy="#{_pedidoProveedor.sucursal.nombre}" sortBy="#{_pedidoProveedor.sucursal.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.sucursal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_pedidoProveedor.descripcion}" filterBy="#{_pedidoProveedor.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_pedidoProveedor.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_pedidoProveedor.solicitudCompra.numero}"
+								filterBy="#{_pedidoProveedor.solicitudCompra.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_solicitud_compra}" />
+								</f:facet>
+								<h:link rendered="#{not empty _pedidoProveedor.solicitudCompra}" target="_blank" outcome="/paginas/compras/procesos/consolidarSolicitudCompra"
+									value="#{_pedidoProveedor.solicitudCompra.numero}" includeViewParams="true">
+									<f:param name="idSolicitudCompra" value="#{_pedidoProveedor.solicitudCompra.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_cerrar}" />
+								</f:facet>
+
+								<center>
+									<p:commandLink action="#{pedidoProveedorBean.cerrarPedidoProveedor}" process="@this" update=":form:panelListado"
+										disabled="#{(_pedidoProveedor.estado == 'ANULADO') or (_pedidoProveedor.estado == 'CERRADO')}" title="#{msgs.btn_cerrar}">
+
+										<f:setPropertyActionListener value="#{_pedidoProveedor}" target="#{pedidoProveedorBean.pedidoProveedor}" />
+
+										<h:graphicImage library="images" name="ejecutar.png" style="height : 16px; width : 16px;" />
+
+									</p:commandLink>
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{pedidoProveedorBean.pedidoProveedor}" value="#{_pedidoProveedor}" bean="#{pedidoProveedorBean}"
+									formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado" visible="#{_pedidoProveedor.pdf!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{pedidoProveedorBean.pedidoProveedor.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{pedidoProveedorBean.pedidoProveedor.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{pedidoProveedorBean.pedidoProveedor.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{pedidoProveedorBean.pedidoProveedor.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

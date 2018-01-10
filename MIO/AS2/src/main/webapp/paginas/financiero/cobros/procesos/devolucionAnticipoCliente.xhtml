@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{devolucionAnticipoClienteBean}" />
+
+				<p:outputPanel>
+					<p:panel header="#{msgs.lbl_anticipo_cliente_titulo}">
+						<h:panelGrid id="panelAnticipo" columns="#{devolucionAnticipoClienteBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:outputText id="txtNumeroAnticipo" value="#{devolucionAnticipoClienteBean.anticipoCliente.numero}" />
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<h:outputText id="txtEmpresa" value="#{devolucionAnticipoClienteBean.anticipoCliente.empresa.nombreComercial}" />
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:outputText id="txtFechaAnticipo" value="#{devolucionAnticipoClienteBean.anticipoCliente.fecha}">
+								<f:convertDateTime pattern="#{devolucionAnticipoClienteBean.formatoFecha}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<h:outputText id="txtValorAnticipo" value="#{devolucionAnticipoClienteBean.anticipoCliente.valor}">
+								<f:convertNumber pattern="#{devolucionAnticipoClienteBean.formatoDinero}" />
+							</h:outputText>
+
+							<h:outputText value="#{msgs.lbl_saldo}:" />
+							<h:outputText id="txtSaldoAnticipo" value="#{devolucionAnticipoClienteBean.anticipoCliente.saldo}">
+								<f:convertNumber pattern="#{devolucionAnticipoClienteBean.formatoDinero}" />
+							</h:outputText>
+
+						</h:panelGrid>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_devolucion_anticipo_cliente}">
+						<h:panelGrid id="panelDevolucionAnticipo" columns="#{devolucionAnticipoClienteBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true"
+								value="#{devolucionAnticipoClienteBean.anticipoCliente.documentoDevolucion}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{devolucionAnticipoClienteBean.listaDocumentoCombo}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento}" />
+
+								<p:ajax process="@this" />
+
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{devolucionAnticipoClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{devolucionAnticipoClienteBean.anticipoCliente.fechaDevolucion}" id="calFecha" required="true" />
+
+							<h:outputText value="#{msgs.lbl_pagar_de}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+								value="#{devolucionAnticipoClienteBean.anticipoCliente.cuentaBancariaOrganizacionDevolucion}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{devolucionAnticipoClienteBean.listaCuentaBancariaOrganizacionCombo}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+								<f:validateBean />
+
+								<p:ajax process="@this" update=":form:cboFormaPago :form:lblCuentaContableBanco :form:txtCuentaContableBanco"
+									listener="#{devolucionAnticipoClienteBean.actualizarCuentaBancariaOrganizacion}" />
+							</p:selectOneMenu>
+
+							<p:outputPanel id="lblCuentaContableBanco">
+								<h:outputText value="#{msgs.lbl_cuenta_contable}:"
+									rendered="#{devolucionAnticipoClienteBean.anticipoCliente.cuentaBancariaOrganizacionDevolucion.indicadorCruce}" />
+							</p:outputPanel>
+
+							<p:outputPanel id="txtCuentaContableBanco">
+								<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaCobro" required="true"
+									value="#{devolucionAnticipoClienteBean.anticipoCliente.cuentaContableDevolucionCruce}"
+									rendered="#{devolucionAnticipoClienteBean.anticipoCliente.cuentaBancariaOrganizacionDevolucion.indicadorCruce}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems
+										value="#{devolucionAnticipoClienteBean.anticipoCliente.cuentaBancariaOrganizacionDevolucion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+										var="_cuentaContableFormaCobro"
+										itemLabel="#{_cuentaContableFormaCobro.cuentaContable.codigo}   #{_cuentaContableFormaCobro.cuentaContable.nombre}"
+										itemValue="#{_cuentaContableFormaCobro.cuentaContable}" />
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+							</p:outputPanel>
+
+							<h:outputText value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true"
+								value="#{devolucionAnticipoClienteBean.anticipoCliente.formaPagoDevolucion}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{devolucionAnticipoClienteBean.anticipoCliente.cuentaBancariaOrganizacionDevolucion.listaFormaPago}"
+									var="_formaPagoCuenta" itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+								<p:ajax process="@this,:form:calFecha" update=":form:txtDocumentoReferencia" global="false"
+									listener="#{devolucionAnticipoClienteBean.actualizarFormaPago}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<p:inputText styleClass="input-text" value="#{devolucionAnticipoClienteBean.anticipoCliente.valorDevolucion}" id="txtValor" readonly="true"
+								disabled="true">
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_beneficiario}:" />
+							<p:inputText styleClass="input-text" value="#{devolucionAnticipoClienteBean.anticipoCliente.beneficiarioDevolucion}" id="txtBeneficiario">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_documento_referencia}:" />
+							<p:inputText styleClass="input-text" value="#{devolucionAnticipoClienteBean.anticipoCliente.documentoReferenciaDevolucion}"
+								id="txtDocumentoReferencia">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{devolucionAnticipoClienteBean.anticipoCliente.descripcionDevolucion}"
+								id="txtDescripcionMovimientoBancario">
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+
+				</p:outputPanel>
+				<p:outputPanel id="panelListado" />
+				<p:outputPanel id="panelAuditoriaInfo" />
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

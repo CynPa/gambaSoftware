@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporte_voucher}">
+
+
+
+				<p:outputPanel id="panelFiltros">
+					<tnt:panelImprimir entidadDestino="" bean="#{consultaVoucherBean}" entidadOrigen=""></tnt:panelImprimir>
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:selectOneRadio id="console" value="#{consultaVoucherBean.tipoReporte}">
+								<f:selectItems value="#{consultaVoucherBean.listaTipoReporte}" var="_tipoReporte" itemLabel="#{_tipoReporte.label}"
+									itemValue="#{_tipoReporte.value}" />
+								<p:ajax process="@this" update=":form:panelFiltros" event="change"></p:ajax>
+							</p:selectOneRadio>
+							<h:outputText value="#{msgs.lbl_estacion}:" />
+							<p:selectOneMenu id="cboEstacion" value="#{consultaVoucherBean.puntoVenta}">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+								<f:selectItems value="#{consultaVoucherBean.listaPuntoDeVenta}" var="_puntoDeVenta" itemValue="#{_puntoDeVenta}"
+									itemLabel="#{_puntoDeVenta.codigoAlterno}" />
+								<p:ajax process="@this" update=":form:panelVoucher" event="change"></p:ajax>
+							</p:selectOneMenu>
+
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{consultaVoucherBean.formatoFecha}" showOn="button" navigator="true" value="#{consultaVoucherBean.fechaDesde}"
+								id="calFechaDesde">
+								<p:ajax process="@this" update=":form:panelVoucher" event="dateSelect"></p:ajax>
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{consultaVoucherBean.formatoFecha}" showOn="button" navigator="true" value="#{consultaVoucherBean.fechaHasta}"
+								id="calFechaHasta">
+								<p:ajax process="@this" update=":form:panelVoucher" event="dateSelect"></p:ajax>
+							</p:calendar>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+					<p:separator />
+					<p:outputPanel id="panelVoucher">
+						<p:dataTable id="anexo" filterDelay="#{sesionControler.retrasoFiltro}" value="#{consultaVoucherBean.listaVoucher}" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" var="_voucher" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{consultaVoucherBean.numeroFilas}" rowsPerPageTemplate="#{consultaVoucherBean.numeroFilasPorPagina}" rowKey="#{_voucher.id}" lazy="true"
+							sortBy="#{_voucher.fechaVoucher}" sortOrder="DESCENDING">
+
+							<p:columnGroup type="header">
+								<p:row>
+									<p:column colspan="15" headerText="#{msgs.lbl_registro}" />
+									<p:column colspan="7" headerText="#{msgs.lbl_pago}" />
+								</p:row>
+								<p:row>
+									<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_secuencia}" filterBy="#{_voucher.secuencial}" />
+									<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_numero}" filterBy="#{_voucher.documentoReferencia}" />
+									<p:column styleClass="tableCell columnaDTFecha" headerText="#{msgs.lbl_fecha_registro}" sortBy="#{_voucher.cobro.fecha}" />
+									<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_estacion}" filterBy="#{_voucher.puntoVenta.codigoAlterno}" />
+									<p:column headerText="#{msgs.lbl_tarjeta_credito}" filterBy="#{_voucher.tarjetaCredito.nombre}" sortBy="#{_voucher.tarjetaCredito.nombre}" />
+									<p:column styleClass="tableCell columnaDTFecha" headerText="#{msgs.lbl_fecha_voucher}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_sri_base_diferente_cero}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_sri_base_cero}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_sri_monto_iva}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_interes}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_total}" filterBy="#{_voucher.valor}" />
+									<p:column headerText="#{msgs.lbl_numero_voucher}" filterBy="#{_voucher.cobro.numero}" />
+									<p:column headerText="#{msgs.lbl_lote}" filterBy="#{_voucher.lote}" />
+									<p:column headerText="#{msgs.lbl_plan_pago}" filterBy="#{_voucher.planTarjetaCredito.codigo}" />
+									<p:column headerText="#{msgs.lbl_descripcion}" filterBy="#{_voucher.descripcion}" />
+									<p:column headerText="#{msgs.lbl_numero}" filterBy="#{_voucher.cobroTarjeta.numero}" />
+									<p:column styleClass="tableCell columnaDTFecha" headerText="#{msgs.lbl_fecha}" filterBy="#{_voucher.cobroTarjeta.fecha}"
+										sortBy="#{_voucher.cobroTarjeta.fecha}">
+										<f:facet name="filter">
+											<p:calendar mode="inline" pattern="#{consultaVoucherBean.formatoFecha}" />
+										</f:facet>
+									</p:column>
+									<p:column headerText="#{msgs.lbl_banco_pagador}" filterBy="#{_voucher.banco.nombre}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_valor_pagado}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_iva}" />
+									<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_comision_mas_iva}" />
+									<p:column headerText="#{msgs.lbl_valor_acumulado_pago}" />
+								</p:row>
+							</p:columnGroup>
+							<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_secuencia}">
+								<h:outputText value="#{_voucher.secuencial}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.cobro.numero}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTFecha">
+								<h:outputText value="#{_voucher.cobro.fecha}">
+									<f:convertDateTime pattern="#{consultaVoucherBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.puntoVenta.codigoAlterno}" />
+							</p:column>
+							<p:column styleClass="tableCell">
+								<h:outputText value="#{_voucher.tarjetaCredito.nombre}" />
+							</p:column>
+							<!--  
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_emisor}" filterBy="#{_voucher.tarjetaCredito.tipoTarjetaCredito.nombre}"
+								sortBy="#{_voucher.tarjetaCredito.tipoTarjetaCredito.nombre}">
+								<h:outputText value="#{_voucher.tarjetaCredito.tipoTarjetaCredito.nombre}" />
+							</p:column>
+							-->
+							<p:column styleClass="tableCell columnaDTFecha">
+								<h:outputText value="#{_voucher.fechaVoucher}">
+									<f:convertDateTime pattern="#{consultaVoucherBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<h:outputText value="#{_voucher.baseImponibleDiferenteCero}">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="tableCell columnaDTValor">
+								<h:outputText value="#{_voucher.baseImponibleTarifaCero}">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="tableCell columnaDTValor">
+								<h:outputText value="#{_voucher.montoIva}">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="tableCell columnaDTValor" headerText="#{msgs.lbl_interes}">
+								<h:outputText value="#{_voucher.interes}">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="tableCell columnaDTValor">
+								<h:outputText value="#{_voucher.valor}">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.documentoReferencia}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.lote}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.planTarjetaCredito.codigo}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.descripcion}" />
+							</p:column>
+							<!-- 							recibocaja -->
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.cobroTarjeta.numero}" />
+							</p:column>
+							<!-- 							rcajafecha -->
+							<p:column styleClass="tableCell columnaDTFecha">
+								<h:outputText value="#{_voucher.cobroTarjeta.fecha}">
+									<f:convertDateTime pattern="#{consultaVoucherBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<!-- 							banco pagador -->
+							<p:column styleClass="tableCell columnaDTCodigo">
+								<h:outputText value="#{_voucher.banco.nombre}" />
+							</p:column>
+							<!--  
+							<p:column styleClass="tableCell columnaDTCodigo" headerText="#{msgs.lbl_banco}" filterBy="#{_voucher.tarjetaCredito.banco.nombre}"
+								sortBy="#{_voucher.tarjetaCredito.banco.nombre}">
+								<h:outputText value="#{_voucher.tarjetaCredito.banco.nombre}" />
+							</p:column>
+							-->
+							<p:column styleClass="tableCell columnaDTValor">
+								<h:outputText styleClass="input-text" value="#{_voucher.valorPagadoCalculado}" id="txtValorPagado">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell0 columnaDTValor">
+								<h:outputText value="#{_voucher.impuestoComision}" id="txtPorcentajeComision" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTValor">
+								<h:outputText value="#{_voucher.valorComision}" id="txtImpuestoComision">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<!-- 							rcaja valor -->
+							<p:column styleClass="tableCell columnaDTValor">
+								<h:outputText value="#{_voucher.cobroTarjeta.valor}">
+									<f:convertNumber pattern="#{consultaVoucherBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+
+
+						</p:dataTable>
+					</p:outputPanel>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

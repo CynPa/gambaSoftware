@@ -1,0 +1,210 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_facturacion_resumido}">
+				<ui:include src="/template/listaProducto.xhtml">
+					<ui:param name="bean" value="#{reporteImpuestoVentasBean}" />
+					<ui:param name="objetoActualizar" value="#{p:component('lblProducto')}" />
+					<ui:param name="renderedBotonLimpiar" value="true" />
+				</ui:include>
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteImpuestoVentasBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento_documentoBase}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.documentoBase}" id="cboDocumentoBase">
+								<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="" />
+
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaDocumentoBase}" var="_documentoBase" itemLabel="#{_documentoBase.nombre}"
+									itemValue="#{_documentoBase}" />
+								<p:ajax process="@this" event="change" update="@this" global="false" />
+							</p:selectOneMenu>
+							<p:spacer />
+							<p:spacer />
+							<!--
+							<p:outputPanel id="outputPanelTxtMotivo">
+								<h:outputText value="#{msgs.lbl_motivo}:" rendered="#{reporteImpuestoVentasBean.documentoBase=='NOTA_CREDITO_CLIENTE'}" />
+							</p:outputPanel>
+
+							<p:outputPanel id="outputPanelCboMotivo">
+								<h:panelGroup rendered="#{reporteImpuestoVentasBean.documentoBase=='NOTA_CREDITO_CLIENTE'}">
+									<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.motivoNotaCreditoCliente}" id="cboMotivo">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{reporteImpuestoVentasBean.listaMotivoNotaCreditoCliente}" var="_motivo" itemLabel="#{_motivo.nombre}"
+											itemValue="#{_motivo}" />
+									</p:selectOneMenu>
+								</h:panelGroup>
+							</p:outputPanel> -->
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteImpuestoVentasBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteImpuestoVentasBean.fechaDesde}" id="calFechaDesde" required="true">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaHasta"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaHasta"></p:ajax>-->
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteImpuestoVentasBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{reporteImpuestoVentasBean.fechaHasta}" id="calFechaHasta" required="true">
+								<!--<p:ajax event="dateSelect" update=":form:calFechaDesde"></p:ajax>
+								<p:ajax event="change" update=":form:calFechaDesde"></p:ajax>-->
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneRadio id="optionsTipoReporte" value="#{reporteImpuestoVentasBean.tipoReporte}" required="true">
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaTipoReporte}"></f:selectItems>
+								<p:ajax process="@this :form:chkResumen" update="@form" />
+							</p:selectOneRadio>
+
+							<p:outputLabel for="cboSucursal" value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<f:validateBean />
+								<p:ajax process="@this cboZona" global="false" update="@this cboZona" event="change" partialSubmit="true" listener="#{reporteImpuestoVentasBean.actualizarZona}"/>
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" rendered="#{reporteImpuestoVentasBean.tipoReporte=='CLIENTE'}" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente"
+								value="#{reporteImpuestoVentasBean.cliente}" completeMethod="#{reporteImpuestoVentasBean.autocompletarClientes}" var="_cliente"
+								itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="50"
+								rendered="#{reporteImpuestoVentasBean.tipoReporte=='CLIENTE'}">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+							</p:autoComplete>
+
+							<p:outputLabel for="cboCategoriaEmpresa" value="#{msgs.lbl_empresa_categoria_empresa}:"
+								rendered="#{reporteImpuestoVentasBean.tipoReporte=='CLIENTE'}" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.categoriaEmpresa}" id="cboCategoriaEmpresa"
+								rendered="#{reporteImpuestoVentasBean.tipoReporte=='CLIENTE'}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaCategoriaEmpresa}" var="_categoriaEmpresa" itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa}" />
+								<f:validateBean />
+								<p:ajax process="@this" global="false" update="@this" event="change" />
+							</p:selectOneMenu>
+
+
+							<h:outputText value="#{msgs.lbl_canal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.canal}" id="cboCanal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaCanalCombo}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.agenteComercial}" id="cboVendedor">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaVendedorCombo}" var="_vendedor" itemLabel="#{_vendedor.nombre2} #{_vendedor.nombre1}"
+									itemValue="#{_vendedor}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_zona}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.zona}" id="cboZona">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaZonaCombo}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+							</p:selectOneMenu>
+
+
+
+							<p:outputPanel id="panleLblCategoria">
+								<h:outputText value="#{msgs.lbl_subcategoria_producto_categoriaProducto} " rendered="#{reporteImpuestoVentasBean.tipoReporte == 'PRODUCTO'}" />
+							</p:outputPanel>
+							<p:outputPanel id="cboCategoriaProducto">
+								<p:selectOneMenu value="#{reporteImpuestoVentasBean.categoriaProducto}" rendered="#{reporteImpuestoVentasBean.tipoReporte == 'PRODUCTO'}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{reporteImpuestoVentasBean.listaCategoriaProductos}" var="_categoriaProducto" itemLabel="#{_categoriaProducto.nombre}"
+										itemValue="#{_categoriaProducto}" />
+									<p:ajax process="@this" listener="#{reporteImpuestoVentasBean.cargarListaSubcategoriaProducto}" update=":form:cboSubcategoriaProducto" />
+								</p:selectOneMenu>
+							</p:outputPanel>
+							<p:outputPanel id="panleLblSubcategoria">
+								<h:outputText value="#{msgs.lbl_titulo_subcategorias_producto} " rendered="#{reporteImpuestoVentasBean.tipoReporte == 'PRODUCTO'}" />
+							</p:outputPanel>
+							<p:outputPanel id="cboSubcategoriaProducto">
+								<p:selectOneMenu value="#{reporteImpuestoVentasBean.subcategoriaProducto}" rendered="#{reporteImpuestoVentasBean.tipoReporte == 'PRODUCTO'}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{reporteImpuestoVentasBean.listaSubcategoriaProductos}" var="_subcategoriaProducto"
+										itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+									<p:ajax process="@this" />
+								</p:selectOneMenu>
+							</p:outputPanel>
+
+							<h:outputText value="#{msgs.lbl_nombre_producto}:" rendered="#{reporteImpuestoVentasBean.tipoReporte == 'PRODUCTO'}" />
+							<h:panelGroup rendered="#{reporteImpuestoVentasBean.tipoReporte == 'PRODUCTO'}">
+								<p:commandButton value="..." onclick="dglModalProducto.show();" type="button" />
+								<h:outputText id="lblProducto" value="#{reporteImpuestoVentasBean.producto.codigo} #{reporteImpuestoVentasBean.producto.nombreComercial}" />
+							</h:panelGroup>
+							<!-- 
+							<h:outputText value="#{msgs.lbl_atributo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteImpuestoVentasBean.atributo}" id="cboAtributo">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteImpuestoVentasBean.listaAtributo}" var="_atributo" itemLabel="#{_atributo.nombre}"
+									itemValue="#{_atributo}" />
+								<p:ajax process="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_valor_atributo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoValorAtributo"
+								value="#{reporteImpuestoVentasBean.valorAtributoSeleccionado}"
+								completeMethod="#{reporteImpuestoVentasBean.autocompletarValorAtributo}" var="_valorAtributo" itemLabel="#{_valorAtributo.nombre}"
+								itemValue="#{_valorAtributo}" forceSelection="true" dropdown="true" minQueryLength="2" size="50">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_valorAtributo.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_valorAtributo.nombre}</p:column>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_proyecto}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoProyecto"
+								value="#{reporteImpuestoVentasBean.proyecto}" completeMethod="#{sesionControler.autocompletarProyectosActivos}" var="_proyecto"
+								itemLabel="#{_proyecto.nombre}" itemValue="#{_proyecto}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_proyecto.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_proyecto.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" />
+							</p:autoComplete>
+ -->
+							<h:outputText value="#{msgs.lbl_resumen}:" />
+							<p:selectBooleanCheckbox id="chkResumen" value="#{reporteImpuestoVentasBean.indicadorResumen}">
+								<p:ajax process="@this"
+									update="@this" />
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_indicador_anulados}:" />
+							<p:selectBooleanCheckbox value="#{reporteImpuestoVentasBean.anuladas}" />
+							<!-- 
+							<p:outputPanel id="txtAgrupar">
+								<h:outputText value="#{msgs.lbl_agrupado}:" />
+							</p:outputPanel>
+							<p:outputPanel id="chkAgrupar">
+								<p:selectBooleanCheckbox value="#{reporteImpuestoVentasBean.indicadorAgrupado}" />
+							</p:outputPanel> -->
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

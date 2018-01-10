@@ -1,0 +1,482 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="numeroAnticipo" value="#{anticipoClienteBean.numeroAnticipo}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="true" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{anticipoClienteBean}">
+					<as2:buttonEliminar bean="#{anticipoClienteBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{anticipoClienteBean.anticipoCliente.numero}" />
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<h:outputText value="#{anticipoClienteBean.anticipoCliente.empresa.nombreFiscal}" />
+
+						<h:outputText value="#{msgs.lbl_valor}:" />
+						<h:outputText value="#{anticipoClienteBean.anticipoCliente.valor}">
+							<f:convertNumber pattern="#{anticipoClienteBean.formatoDinero}" />
+						</h:outputText>
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteAnticipoClienteBean}" bean="#{anticipoClienteBean}" target="#{reporteAnticipoClienteBean.anticipoCliente}"
+						value="#{anticipoClienteBean.anticipoCliente}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{anticipoClienteBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{anticipoClienteBean.anticipoCliente.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>											
+					<as2:buttonExportaExcel bean="#{anticipoClienteBean}" tabla=":form:tablaAnticipoCliente" />
+				</as2:toolBar>
+
+				<p:confirmDialog message="#{msgs.lbl_anular}?" height="60" width="300" modal="true" showEffect="explode" hideEffect="explode" severity="alert"
+					widgetVar="confirmacionAnularLiquidacion">
+					<p:outputPanel id="panelAnularLiquidacion" autoUpdate="true">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+							<h:outputText value="#{anticipoClienteBean.liquidacionAnticipoCliente.numero}" />
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<h:outputText value="#{anticipoClienteBean.liquidacionAnticipoCliente.documento.nombre}" />
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<h:outputText value="#{anticipoClienteBean.liquidacionAnticipoCliente.valor}">
+								<f:convertNumber pattern="#{anticipoClienteBean.formatoDinero}" />
+							</h:outputText>
+						</h:panelGrid>
+
+						<h:panelGroup>
+							<center>
+								<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelAnticipoLiquidacionAnticipoCliente :form:panelListado" process="@this"
+									action="#{anticipoClienteBean.anularLiquidacionCliente}" oncomplete="confirmacionAnularLiquidacion.hide()" />
+								<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionAnularLiquidacion.hide()" />
+							</center>
+						</h:panelGroup>
+
+					</p:outputPanel>
+				</p:confirmDialog>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{anticipoClienteBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_anticipo_cliente_panel}">
+
+						<h:panelGrid id="panelDetalle" columns="#{anticipoClienteBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{anticipoClienteBean.anticipoCliente.documento}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{anticipoClienteBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+									<p:ajax process="@this" update="txtNumero" event="change" global="false" listener="#{anticipoClienteBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<p:message for="cboDocumento" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:panelGroup>
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{anticipoClienteBean.anticipoCliente.numero}"
+									mask="#{anticipoClienteBean.anticipoCliente.documento.secuencia.patron}"
+									disabled="#{!anticipoClienteBean.secuenciaEditable}">
+									<f:validateBean />
+								</p:inputMask>
+								<p:message for="txtNumero" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:panelGroup>
+								<p:calendar pattern="#{anticipoClienteBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{anticipoClienteBean.anticipoCliente.fecha}" id="calFecha" required="true">
+								</p:calendar>
+								<p:message for="calFecha" />
+							</h:panelGroup>
+
+							<p:outputLabel for="cboCliente" value="#{msgs.lbl_cliente}:" />
+							<h:panelGroup>
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{anticipoClienteBean.anticipoCliente.empresa}"
+									completeMethod="#{anticipoClienteBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+									forceSelection="true" dropdown="true" minQueryLength="2" size="50" disabled="#{cobroBean.cobro.id>0}" id="cboCliente" required="true">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax process="@this" event="itemSelect" />
+
+								</p:autoComplete>
+								<!--<p:message for="cboCliente" /> -->
+							</h:panelGroup>
+
+							<p:outputLabel for="cboCuentaBancariaOrganizacion" value="#{msgs.lbl_depositar_en}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+									value="#{anticipoClienteBean.anticipoCliente.cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{anticipoClienteBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+										itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" />
+									<f:validateBean />
+									<p:ajax process="@this" listener="#{anticipoClienteBean.actualizarCuentaBancaria}" update="cboFormaPago" />
+								</p:selectOneMenu>
+								<!--<p:message for="cboCuentaBancariaOrganizacion" />-->
+							</h:panelGroup>
+
+							<p:outputLabel for="cboFormaPago" value="#{msgs.lbl_forma_pago}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true"
+									value="#{anticipoClienteBean.anticipoCliente.formaPago}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{anticipoClienteBean.anticipoCliente.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+										itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<!--<p:message for="cboFormaPago" />-->
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_anticipo_cliente_valor}:" />
+							<h:panelGroup>
+								<p:inputText styleClass="input-text" id="txtValorAnticipoCliente" value="#{anticipoClienteBean.anticipoCliente.valor}">
+									<p:ajax process="@this" />
+									<f:validateBean />
+								</p:inputText>
+								<p:message for="txtValorAnticipoCliente" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_documento_referencia}" />
+							<h:panelGroup>
+								<p:inputText styleClass="input-text" id="txtReferenciaFormaCobro" value="#{anticipoClienteBean.anticipoCliente.documentoReferencia}">
+									<f:validateBean />
+								</p:inputText>
+								<p:message for="txtReferenciaFormaCobro" />
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<h:panelGroup>
+								<p:inputTextarea styleClass="input-text" id="txtDescripcion" value="#{anticipoClienteBean.anticipoCliente.descripcion}">
+									<f:validateBean />
+								</p:inputTextarea>
+								<p:message for="txtDescripcion" />
+							</h:panelGroup>
+
+							<h:panelGroup rendered="#{anticipoClienteBean.mostrarSaldoInicial}">
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_saldo_inicial}:" />
+									<p:selectBooleanCheckbox value="#{anticipoClienteBean.anticipoCliente.indicadorSaldoInicial}" />
+								</h:panelGrid>
+							</h:panelGroup>
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_anticipo_cliente_panel}" rendered="#{!anticipoClienteBean.editado}">
+
+						<!-- Inicio Dialog Liquidacion Anticipo Cliente  -->
+						<p:dialog
+							header="#{msgs.lbl_liquidacion_anticipo_cliente_titulo_panel_edicion}"
+							widgetVar="liquidacionAnticipoClienteDialog"
+							id="liquidacionAnticipoClienteDialog" modal="true" height="300"
+							width="950" showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelAnticipoLiquidacionAnticipoCliente">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+									id="tablaLiquidacionAnticipoCliente" rowIndexVar="secuencial"
+									binding="#{anticipoClienteBean.dtLiquidacionAnticipoCliente}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" paginator="true"
+									paginatorPosition="bottom" style="width:100%"
+									value="#{anticipoClienteBean.listaLiquidacionAnticipoCliente}"
+									var="_liquidacionAnticipoCliente"
+									rowKey="#{_liquidacionAnticipoCliente.id}"
+									rows="#{anticipoClienteBean.numeroFilas}"
+									sortBy="#{_liquidacionAnticipoCliente.numero}"
+									sortOrder="DESCENDING" lazy="true">
+
+									<p:column headerText="Nº"
+										styleClass="columnaDTAccion tableCell">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column sortBy="#{_liquidacionAnticipoCliente.numero}"
+										filterBy="#{_liquidacionAnticipoCliente.numero}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_numero}" />
+										</f:facet>
+										<h:outputText value="#{_liquidacionAnticipoCliente.numero}" />
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_documento}" />
+										</f:facet>
+										<h:outputText
+											value="#{_liquidacionAnticipoCliente.documento.nombre}" />
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha}" />
+										</f:facet>
+
+										<h:outputText value="#{_liquidacionAnticipoCliente.fecha}">
+											<f:convertDateTime
+												pattern="#{anticipoClienteBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_valor}" />
+										</f:facet>
+										<h:outputText value="#{_liquidacionAnticipoCliente.valor}">
+											<f:convertNumber
+												pattern="#{anticipoClienteBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_asiento}" />
+										</f:facet>
+										<h:link
+											rendered="#{not empty _liquidacionAnticipoCliente.asiento}"
+											target="_blank"
+											outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+											includeViewParams="true"
+											value="#{_liquidacionAnticipoCliente.asiento.numero}">
+											<f:param name="idAsiento"
+												value="#{_liquidacionAnticipoCliente.asiento.idAsiento}" />
+										</h:link>
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_estado}" />
+										</f:facet>
+										<h:outputText
+											value="#{_liquidacionAnticipoCliente.estado.nombre}" />
+									</p:column>
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_anular}" />
+										</f:facet>
+
+										<p:commandButton id="btnAnulaLiquidacion" process="@this"
+											icon="action"
+											actionListener="#{anticipoClienteBean.seleccionarLiquidacionCliente}"
+											oncomplete="confirmacionAnularLiquidacion.show()"
+											update=":form:panelAnularLiquidacion">
+										</p:commandButton>
+									</p:column>
+
+								</p:dataTable>
+
+							</p:outputPanel>
+						</p:dialog>
+						<!-- Fin Dialog Liquidacion Anticipo Cliente  -->
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAnticipoCliente" rowIndexVar="secuencialNivelCuenta"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{anticipoClienteBean.listaAnticipoCliente}" var="_anticipoCliente"
+							binding="#{anticipoClienteBean.dtAnticipoCliente}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{anticipoClienteBean.numeroFilas}" rowsPerPageTemplate="#{anticipoClienteBean.numeroFilasPorPagina}"
+							selection="#{anticipoClienteBean.anticipoCliente}" selectionMode="single" rowKey="#{_anticipoCliente.id}" sortBy="#{_anticipoCliente.numero}"
+							sortOrder="DESCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialNivelCuenta+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.numero}" filterBy="#{_anticipoCliente.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_anticipoCliente.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoCliente.fecha}">
+									<f:convertDateTime pattern="#{anticipoClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.empresa.nombreFiscal}" filterBy="#{_anticipoCliente.empresa.nombreFiscal}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.formaPago.nombre}" filterBy="#{_anticipoCliente.formaPago.nombre}"
+								styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_forma_pago}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoCliente.formaPago.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.valor}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anticipo_cliente_valor}" />
+
+								</f:facet>
+
+								<h:outputText value="#{_anticipoCliente.valor}">
+									<f:convertNumber pattern="#{anticipoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.saldo}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anticipo_cliente_saldo}" />
+								</f:facet>
+								<h:outputText value="#{_anticipoCliente.saldo}">
+									<f:convertNumber pattern="#{anticipoClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nota_credito_cliente_abreviatura}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoCliente.notaCreditoCliente.numero}" />
+							</p:column>
+
+							<p:column filterBy="#{_anticipoCliente.asiento.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _anticipoCliente.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_anticipoCliente.asiento.numero}">
+									<f:param name="idAsiento" value="#{_anticipoCliente.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column filterBy="#{_anticipoCliente.asientoDevolucion.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento_devolucion}" />
+								</f:facet>
+								<h:link rendered="#{not empty _anticipoCliente.asientoDevolucion}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_anticipoCliente.asientoDevolucion.numero}">
+									<f:param name="idAsiento" value="#{_anticipoCliente.asientoDevolucion.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.sucursal.nombre}" filterBy="#{_anticipoCliente.sucursal.nombre}" styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_anticipoCliente.sucursal.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.estado}" filterBy="#{_anticipoCliente.estado}" filterOptions="#{anticipoClienteBean.listaEstadoItem}"
+								styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_anticipoCliente.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoCliente.descripcion}" filterBy="#{_anticipoCliente.descripcion}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoCliente.descripcion}" />
+								<!--<as2:inputTextNota value="#{_anticipoCliente.descripcion}" />-->
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_liquidar}" />
+								</f:facet>
+
+								<p:commandButton id="btnLiquidar" process="@this" icon="action" action="#{anticipoClienteBean.liquidarAnticipoCliente}"
+									disabled="#{!(_anticipoCliente.saldo > 0)}">
+
+									<f:setPropertyActionListener value="#{_anticipoCliente}" target="#{anticipoClienteBean.anticipoCliente}" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_devolucion}" />
+								</f:facet>
+
+								<p:commandButton id="btnDevolucion" process="@this" icon="action" action="#{anticipoClienteBean.devolverAnticipoCliente}"
+									disabled="#{!(_anticipoCliente.saldo > 0)}">
+
+									<f:setPropertyActionListener value="#{_anticipoCliente}" target="#{anticipoClienteBean.anticipoCliente}" />
+								</p:commandButton>
+							</p:column>
+							
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anular} #{msgs.lbl_devolucion}" />
+								</f:facet>
+
+								<p:commandButton id="btnAnularDevolucion" process="@this" icon="action" action="#{anticipoClienteBean.anularDevolverAnticipoCliente}"
+									disabled="#{(_anticipoCliente.asientoDevolucion == null)}">
+
+									<f:setPropertyActionListener value="#{_anticipoCliente}" target="#{anticipoClienteBean.anticipoCliente}" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ver_liquidacion}" />
+								</f:facet>
+
+								<p:commandButton id="btnLiquidacion" process="@this" icon="action" oncomplete="liquidacionAnticipoClienteDialog.show()"
+									update=":form:panelAnticipoLiquidacionAnticipoCliente">
+
+									<f:setPropertyActionListener value="#{_anticipoCliente}" target="#{anticipoClienteBean.anticipoCliente}" />
+
+								</p:commandButton>
+							</p:column>
+
+							<p:column style="width:63px;" exportable="false">
+
+								<as2:fileManager target="#{anticipoClienteBean.anticipoCliente}" value="#{_anticipoCliente}" bean="#{anticipoClienteBean}"
+									formatos="/(\.|\/)(pdf|png|jpe?g)$/" actualiza=":form:panelListado" visible="#{_anticipoCliente.archivo!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{anticipoClienteBean.anticipoCliente.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{anticipoClienteBean.anticipoCliente.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{anticipoClienteBean.anticipoCliente.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{anticipoClienteBean.anticipoCliente.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

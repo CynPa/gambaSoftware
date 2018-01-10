@@ -1,0 +1,159 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{nivelInstruccionBean}">
+					<as2:buttonEliminar bean="#{nivelInstruccionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{nivelInstruccionBean.nivelInstruccion.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{nivelInstruccionBean.nivelInstruccion.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{nivelInstruccionBean}" tabla=":form:tablaNivelInstruccion"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_nivel} #{msgs.lbl_instruccion}"
+						rendered="#{nivelInstruccionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera"
+								columns="#{nivelInstruccionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText
+									value="#{nivelInstruccionBean.nivelInstruccion.codigo}"
+									styleClass="input-text" id="txtCodigo" maxlength="10" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText
+									value="#{nivelInstruccionBean.nivelInstruccion.nombre}"
+									styleClass="input-text" id="txtNombre" maxlength="50" required="true">
+									<f:validateBean />
+								</p:inputText>								
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox
+									value="#{nivelInstruccionBean.nivelInstruccion.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox
+									value="#{nivelInstruccionBean.nivelInstruccion.predeterminado}" />
+									
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text"
+									value="#{nivelInstruccionBean.nivelInstruccion.descripcion}"
+									id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_panel_nivel_instruccion}"
+						rendered="#{!nivelInstruccionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaNivelInstruccion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{nivelInstruccionBean.listaNivelInstruccion}"
+							var="_nivelInstruccion"
+							binding="#{nivelInstruccionBean.dtNivelInstruccion}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{nivelInstruccionBean.numeroFilas}"
+							rowsPerPageTemplate="#{nivelInstruccionBean.numeroFilasPorPagina}"
+							selection="#{nivelInstruccionBean.nivelInstruccion}"
+							selectionMode="single"
+							rowKey="#{_nivelInstruccion.idNivelInstruccion}"
+							sortBy="#{_nivelInstruccion.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_nivelInstruccion.codigo}"
+								filterBy="#{_nivelInstruccion.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_nivelInstruccion.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_nivelInstruccion.nombre}"
+								filterBy="#{_nivelInstruccion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_nivelInstruccion.nombre}" />
+							</p:column>						
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_nivelInstruccion.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_nivelInstruccion.activo}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTPredeterminado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_nivelInstruccion.predeterminado}"
+									disabled="true" />
+							</p:column>
+							
+							<p:column filterBy="#{_nivelInstruccion.descripcion}"
+								sortBy="#{_nivelInstruccion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_nivelInstruccion.descripcion}" />
+								<!--<as2:inputTextNota value="#{_nivelInstruccion.descripcion}" />-->
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{nivelInstruccionBean.nivelInstruccion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{nivelInstruccionBean.nivelInstruccion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{nivelInstruccionBean.nivelInstruccion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{nivelInstruccionBean.nivelInstruccion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

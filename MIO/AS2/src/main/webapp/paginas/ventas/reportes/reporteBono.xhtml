@@ -1,0 +1,119 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_bono}">
+
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteBonoBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteBonoBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteBonoBean.fechaDesde}" id="calFechaDesde"
+								required="true">
+								<p:ajax process="@this" event="dateSelect"></p:ajax>
+								<p:ajax process="@this" event="change"></p:ajax>
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteBonoBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteBonoBean.fechaHasta}" id="calFechaHasta"
+								required="true">
+								<p:ajax process="@this" event="dateSelect"></p:ajax>
+								<p:ajax process="@this" event="change"></p:ajax>
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboCliente" value="#{reporteBonoBean.empresa}"
+								completeMethod="#{reporteBonoBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+								forceSelection="true" dropdown="true" minQueryLength="2" size="51">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+								<p:ajax process="@this" global="false"></p:ajax>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_cliente} #{msgs.lbl_bono}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboClienteBono"
+								value="#{reporteBonoBean.empresaBono}" completeMethod="#{reporteBonoBean.autocompletarClientesBono}" var="_clienteBono"
+								itemLabel="#{_clienteBono.nombreFiscal}" itemValue="#{_clienteBono}" forceSelection="true" dropdown="true" minQueryLength="2" size="51">
+
+								<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_clienteBono.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_clienteBono.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_clienteBono.nombreComercial}</p:column>
+								<p:ajax process="@this" global="false"></p:ajax>
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteBonoBean.sucursal}" id="cboSucursal" >
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteBonoBean.listaSucursalCombo}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+								<p:ajax listener="#{reporteBonoBean.cargarPuntoVenta}" process="@this" event="change" update="cboPuntoVenta" />
+							</p:selectOneMenu>
+
+
+							<h:outputText value="#{msgs.lbl_punto_de_venta}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteBonoBean.puntoVenta}" id="cboPuntoVenta">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reporteBonoBean.listaPuntoVenta}" var="_puntoVenta" itemLabel="#{_puntoVenta.nombre}" itemValue="#{_puntoVenta}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_medico}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoMedico" value="#{reporteBonoBean.medico}"
+								completeMethod="#{reporteBonoBean.autocompletarMedico}" var="_medico" itemLabel="#{_medico.nombres} #{_medico.apellidos}"
+								itemValue="#{_medico}" forceSelection="true" dropdown="true" minQueryLength="2" size="51">
+								<p:column headerText="#{msgs.lbl_nombres}">#{_medico.nombres}</p:column>
+								<p:column headerText="#{msgs.lbl_apellidos}">#{_medico.apellidos}</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_tipo_bono}:" />
+							<p:autoComplete  queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoTipoBono"
+								value="#{reporteBonoBean.tipoBono}" completeMethod="#{reporteBonoBean.autocompletarTipoBono}" var="_tipoBono"
+								itemLabel="#{_tipoBono.codigo} #{_tipoBono.nombre}" itemValue="#{_tipoBono}" forceSelection="true" dropdown="true" minQueryLength="2"
+								size="51">
+								<p:column headerText="#{msgs.lbl_codigo}">#{_tipoBono.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_tipoBono.nombre}</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" partialSubmit="true" />
+							</p:autoComplete>
+							
+							<h:outputText value="#{msgs.lbl_usuario}:" />
+							<p:autoComplete  queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoUsuario"
+								value="#{reporteBonoBean.usuario}" completeMethod="#{reporteBonoBean.autocompletarUsuario}" var="_usuario"
+								itemLabel="#{_usuario.nombreUsuario}" itemValue="#{_usuario}" forceSelection="true" dropdown="true" minQueryLength="2"
+								size="51">
+								<p:column headerText="#{msgs.lbl_nombre}">#{_usuario.nombreUsuario}</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" partialSubmit="true" />
+							</p:autoComplete>
+							
+							<h:outputText value="Estado:" />
+							<p:selectOneMenu value="#{reporteBonoBean.tipoReporte}" required="true">
+								<f:selectItems value="#{reporteBonoBean.listaTipoReporte}" />
+								<p:ajax process="@this" global="true" partialSubmit="true" update="panelFiltros" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

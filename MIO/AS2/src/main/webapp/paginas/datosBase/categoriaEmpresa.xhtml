@@ -1,0 +1,341 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{categoriaEmpresaBean}">
+
+					<as2:buttonEliminar bean="#{categoriaEmpresaBean}">
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{categoriaEmpresaBean.categoriaEmpresa.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{categoriaEmpresaBean.categoriaEmpresa.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{categoriaEmpresaBean}" tabla=":form:tablaCategoriaEmpresa" />
+
+				</as2:toolBar>
+
+				<ui:include src="/template/listaCuentaContable.html">
+					<ui:param name="bean" value="#{categoriaEmpresaBean}" />
+					<ui:param name="objetoActualizar" value=":form:vistaTab:panelContabilidad" />
+				</ui:include>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_categoria_empresa_titulo_panel}" rendered="#{categoriaEmpresaBean.editado}">
+
+						<!-- INICIO DIALOG DE DOCUMENTOS DIGITALIZADOS NO ASIGNADOS -->
+						<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_documento_digitalizado}" widgetVar="listadoDocumentosDigitalizadosNoAsignados"
+							modal="true" height="360" width="560" showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelDocumentosDigitalizadosNoAsignados">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDocumentosDigitalizadosNoAsignados" rowIndexVar="secuencia"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{categoriaEmpresaBean.listaDocumentosDigitalizadosNoAsignados}"
+									var="_documentoDigitalizadoNoAsignado" paginator="true" paginatorPosition="bottom" style="width:100%" rows="10"
+									rowKey="#{_documentoDigitalizadoNoAsignado.idDocumentoDigitalizado}"
+									selection="#{categoriaEmpresaBean.listaDocumentosDigitalizadosSeleccionados}"
+									rowsPerPageTemplate="#{categoriaEmpresaBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" selectionMode="multiple" />
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_documentoDigitalizadoNoAsignado.codigo}"
+										filterBy="#{_documentoDigitalizadoNoAsignado.codigo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+										<h:outputText value="#{_documentoDigitalizadoNoAsignado.codigo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCategoria tableCell" sortBy="#{_documentoDigitalizadoNoAsignado.categoriaDocumentoDigitalizado.nombre}"
+										filterBy="#{_documentoDigitalizadoNoAsignado.categoriaDocumentoDigitalizado.nombre}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_categoria}" />
+										</f:facet>
+										<h:outputText value="#{_documentoDigitalizadoNoAsignado.categoriaDocumentoDigitalizado.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_documentoDigitalizadoNoAsignado.nombre}"
+										filterBy="#{_documentoDigitalizadoNoAsignado.nombre}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nombre}" />
+										</f:facet>
+										<h:outputText value="#{_documentoDigitalizadoNoAsignado.nombre}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_agregar}" action="#{categoriaEmpresaBean.agregarDocumentosDigitalizados}"
+										process="@this :form:panelDocumentosDigitalizadosNoAsignados"
+										update=":form:vistaTab:panelDocumentoDigitalizado :form:panelDocumentosDigitalizadosNoAsignados" />
+
+									<p:commandButton value="#{msgs.lbl_agregar_salir}" oncomplete="listadoDocumentosDigitalizadosNoAsignados.hide()"
+										action="#{categoriaEmpresaBean.agregarDocumentosDigitalizados}" process="@this, :form:panelDocumentosDigitalizadosNoAsignados"
+										update=":form:vistaTab:panelDocumentoDigitalizado,:form:vistaTab:tabDocumentoDigitalizado, :form:vistaTab" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- FIN DIALOG DE DOCUMENTOS DIGITALIZADOS NO ASIGNADOS -->
+
+						<h:panelGrid columns="1">
+
+							<p:fieldset>
+								<h:panelGrid id="panelDetalle" columns="#{categoriaEmpresaBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{categoriaEmpresaBean.categoriaEmpresa.codigo}" id="txtCodigo" required="true" />
+
+									<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{categoriaEmpresaBean.categoriaEmpresa.nombre}" id="txtNombre" required="true" />
+
+									<p:outputLabel value="#{msgs.lbl_empresa_cliente_credito_maximo}:" />
+									<p:inputText styleClass="input-text" value="#{categoriaEmpresaBean.categoriaEmpresa.creditoMaximo}" id="txtCreditoMax" />
+
+									<p:outputLabel for="txtporcentajeMaximoMorosidad" value="#{msgs.lbl_porcentaje_maximo_morosidad}:" />
+									<p:inputText styleClass="input-text" value="#{categoriaEmpresaBean.categoriaEmpresa.porcentajeMaximoMorosidad}"
+										id="txtporcentajeMaximoMorosidad" />
+
+									<p:outputLabel for="txtnumeroMaximoDocumentosSinGarantia" value="#{msgs.lbl_numero_maximo_documentos_sin_garantia}:" />
+									<p:inputText styleClass="input-text" value="#{categoriaEmpresaBean.categoriaEmpresa.numeroMaximoDocumentosSinGarantia}"
+										id="txtnumeroMaximoDocumentosSinGarantia" />
+
+									<h:outputText value="#{msgs.lbl_verificar_documentacion}:" />
+									<p:selectBooleanCheckbox value="#{categoriaEmpresaBean.categoriaEmpresa.verificarDocumentos}" />
+
+									<h:outputText value="#{msgs.lbl_activo}:" />
+									<p:selectBooleanCheckbox value="#{categoriaEmpresaBean.categoriaEmpresa.activo}" />
+
+									<h:outputText value="#{msgs.lbl_predeterminado}:" />
+									<p:selectBooleanCheckbox value="#{categoriaEmpresaBean.categoriaEmpresa.predeterminado}" />
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{categoriaEmpresaBean.categoriaEmpresa.descripcion}" id="txtDescripcion" />
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer width="2px" />
+
+							<p:fieldset>
+
+								<p:tabView id="vistaTab" cache="true" dynamic="true">
+									<p:tab title="#{msgs.lbl_contabilidad}" id="tabContabilidad">
+										<p:outputPanel id="panelContabilidad">
+											<h:panelGrid columns="3" columnClasses="columnaEtiqueta,columnaBoton,columnaValor">
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_cliente};" />
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableCliente}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableCliente}" />
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_proveedor}:" />
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableProveedor}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableProveedor}" />
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_anticipo_cliente}:" />
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableAnticipoCliente}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableAnticipoCliente}" />
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_anticipo_cliente_nota_credito}:" />
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableAnticipoClienteNotaCredito}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableAnticipoClienteNotaCredito}" />
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_anticipo_proveedor}:" />
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableAnticipoProveedor}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableAnticipoProveedor}" />
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_anticipo_proveedor_nota_credito}:" />
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableAnticipoProveedorNotaCredito}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableAnticipoProveedorNotaCredito}" />
+
+
+												<h:outputText value="#{msgs.lbl_cuenta_contable_sueldo_por_pagar}:" />
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableSueldoPorPagar}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableSueldoPorPagar}" />
+
+												<p:outputPanel rendered="#{categoriaEmpresaBean.recargosEnFactura}">
+													<h:outputText value="#{msgs.lbl_cuenta_contable_iva_presuntivo}:" />
+												</p:outputPanel>
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContableIvaPresuntivo}" rendered="#{categoriaEmpresaBean.recargosEnFactura}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable rendered="#{categoriaEmpresaBean.recargosEnFactura}"
+													cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContableIvaPresuntivo}" />
+
+
+												<p:outputPanel rendered="#{categoriaEmpresaBean.recargosEnFactura}">
+													<h:outputText value="#{msgs.lbl_cuenta_contable_3x1000}:" />
+												</p:outputPanel>
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContable3X1000}" rendered="#{categoriaEmpresaBean.recargosEnFactura}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContable3X1000}"
+													rendered="#{categoriaEmpresaBean.recargosEnFactura}" />
+
+
+												<p:outputPanel rendered="#{categoriaEmpresaBean.recargosEnFactura}">
+													<h:outputText value="#{msgs.lbl_cuenta_contable_2x1000}:" />
+												</p:outputPanel>
+												<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+													action="#{categoriaEmpresaBean.actualizarCuentaContable2X1000}" rendered="#{categoriaEmpresaBean.recargosEnFactura}">
+												</p:commandButton>
+												<as2:outputTextCuentaContable cuentaContable="#{categoriaEmpresaBean.categoriaEmpresa.cuentaContable2X1000}"
+													rendered="#{categoriaEmpresaBean.recargosEnFactura}" />
+
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+									<p:tab title="#{msgs.lbl_documento_digitalizado}" id="tabDocumentoDigitalizado">
+										<p:outputPanel id="panelDocumentoDigitalizado">
+											<p:panel>
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDocumento"
+													oncomplete="listadoDocumentosDigitalizadosNoAsignados.show()" action="#{categoriaEmpresaBean.cargarDocumentosDigitalizadosNoAsignados}"
+													update=":form:vistaTab:tabDocumentoDigitalizado,:form:panelDocumentosDigitalizadosNoAsignados" process="@this" />
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{categoriaEmpresaBean.listaDocumentoDigitalizadoCategoriaEmpresa}"
+													id="tablaDocumentoDigitalizadoCategoriaEmpresa" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+													var="_documentoDigitalizadoCategoriaEmpresa" paginator="true" paginatorPosition="bottom" style="width:100%"
+													rows="#{categoriaEmpresaBean.numeroFilas}" rowsPerPageTemplate="#{categoriaEmpresaBean.numeroFilasPorPagina}">
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.codigo}"
+														filterBy="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.codigo}">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_codigo}" />
+														</f:facet>
+														<h:outputText value="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.codigo}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTCategoria tableCell"
+														sortBy="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}"
+														filterBy="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}"
+														filterMatchMode="contains">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_categoria}" />
+														</f:facet>
+														<h:outputText value="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" />
+													</p:column>
+
+													<p:column styleClass="tableCell" sortBy="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.nombre}"
+														filterBy="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.nombre}">
+														<f:facet name="header">
+															<h:outputText value="#{msgs.lbl_nombre}" />
+														</f:facet>
+														<h:outputText value="#{_documentoDigitalizadoCategoriaEmpresa.documentoDigitalizado.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell" headerText="#{msgs.lbl_requerido}">
+														<p:selectBooleanCheckbox value="#{_documentoDigitalizadoCategoriaEmpresa.requerido}" disabled="false">
+															<p:ajax process="@this" event="change" global="false" />
+														</p:selectBooleanCheckbox>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<p:commandButton id="btnEliminarDocumentoDigitalizado" action="#{categoriaEmpresaBean.eliminarDocumentoDigitalizadoCategoriaEmpresa}"
+															icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:vistaTab:tabDocumentoDigitalizado, :form:vistaTab" process="@this">
+															<f:setPropertyActionListener target="#{categoriaEmpresaBean.documentoDigitalizadoCategoriaEmpresa}"
+																value="#{_documentoDigitalizadoCategoriaEmpresa}" />
+														</p:commandButton>
+													</p:column>
+
+												</p:dataTable>
+											</p:panel>
+										</p:outputPanel>
+									</p:tab>
+
+								</p:tabView>
+
+							</p:fieldset>
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_categoria_empresa_titulo_panel}" rendered="#{!categoriaEmpresaBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCategoriaEmpresa" rowIndexVar="secuencialCategoriaEmpresa"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{categoriaEmpresaBean.listaCategoriaEmpresa}" var="categoriaEmpresa"
+							binding="#{categoriaEmpresaBean.dtCategoriaEmpresa}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{categoriaEmpresaBean.numeroFilas}" rowsPerPageTemplate="#{categoriaEmpresaBean.numeroFilasPorPagina}"
+							selection="#{categoriaEmpresaBean.categoriaEmpresa}" selectionMode="single" rowKey="#{categoriaEmpresa.id}" sortBy="#{categoriaEmpresa.nombre}"
+							sortOrder="ASCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialCategoriaEmpresa+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" filterBy="#{categoriaEmpresa.codigo}" sortBy="#{categoriaEmpresa.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{categoriaEmpresa.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterBy="#{categoriaEmpresa.nombre}" sortBy="#{categoriaEmpresa.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{categoriaEmpresa.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{categoriaEmpresa.activo}">
+								<p:selectBooleanCheckbox value="#{categoriaEmpresa.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{categoriaEmpresa.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{categoriaEmpresa.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{categoriaEmpresaBean.categoriaEmpresa.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{categoriaEmpresaBean.categoriaEmpresa.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{categoriaEmpresaBean.categoriaEmpresa.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{categoriaEmpresaBean.categoriaEmpresa.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

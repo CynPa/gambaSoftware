@@ -1,0 +1,238 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{tipoIdentificacionBean}">
+
+					<as2:buttonEliminar bean="#{tipoIdentificacionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoIdentificacionBean.tipoIdentificacion.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoIdentificacionBean.tipoIdentificacion.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tipoIdentificacionBean}" tabla=":form:tablaTipoIdentificacion" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{tipoIdentificacionBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tipo_identificacion_panel}">
+
+						<!-- INICIO DIALOG TIPO COMPROBANTE -->
+						<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_sri_tipo_comprobante}" widgetVar="listadoTipoComprobante" modal="true" height="360"
+							width="560" showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelTipoComprobanteDlg">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoComprobante" rowIndexVar="secuencia"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tipoIdentificacionBean.listaTipoComprobanteNoAsignados}" var="_tipoComprobante"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rows="10" rowKey="#{_tipoComprobante.rowKey}"
+									selection="#{tipoIdentificacionBean.listaTipoComprobanteSeleccionados}" rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" selectionMode="multiple" />
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_tipoComprobante.codigo}" filterBy="#{_tipoComprobante.codigo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+										<h:outputText value="#{_tipoComprobante.codigo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_tipoComprobante.nombre}" filterBy="#{_tipoComprobante.nombre}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nombre}" />
+										</f:facet>
+										<h:outputText value="#{_tipoComprobante.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_tipoComprobante.descripcion}" filterBy="#{_tipoComprobante.descripcion}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_descripcion}" />
+										</f:facet>
+										<h:outputText value="#{_tipoComprobante.descripcion}" />
+									</p:column>
+
+								</p:dataTable>
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_agregar_salir}" oncomplete="listadoTipoComprobante.hide();"
+										action="#{tipoIdentificacionBean.agregarTipoComprobante}" process="@this :form:panelTipoComprobanteDlg"
+										update=":form:vistaTab:panelTipoComprobante" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- FIN DIALOG DE TURNOS NO ASIGNADOS -->
+
+						<h:panelGrid id="panelDetalle" columns="#{tipoIdentificacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tipoIdentificacionBean.tipoIdentificacion.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tipoIdentificacionBean.tipoIdentificacion.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_validar} #{msgs.lbl_empresa_identificacion}:" />
+							<p:selectBooleanCheckbox value="#{tipoIdentificacionBean.tipoIdentificacion.indicadorValidarIdentificacion}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tipoIdentificacionBean.tipoIdentificacion.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{tipoIdentificacionBean.tipoIdentificacion.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{tipoIdentificacionBean.tipoIdentificacion.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_longitud}:" />
+							<p:inputText styleClass="input-text" value="#{tipoIdentificacionBean.tipoIdentificacion.longitudMaxima}" id="txtLongitud">
+								<f:validateBean />
+							</p:inputText>
+						</h:panelGrid>
+
+						<p:tabView id="vistaTab" cache="true" dynamic="true">
+							<p:tab title="#{msgs.lbl_sri_tipo_comprobante}" id="tabTipoComprobante">
+								<p:outputPanel id="panelTipoComprobante">
+									<p:panel>
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarTipoComprobante" oncomplete="listadoTipoComprobante.show()"
+											action="#{tipoIdentificacionBean.cargarTipoComprobanteNoAsignados}" update=":form:panelTipoComprobanteDlg" process="@this" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{tipoIdentificacionBean.listaTipoIdentificacionComprobanteSRI}"
+											id="tablaTipoComprobante" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_ticsri" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rows="#{tipoIdentificacionBean.numeroFilas}"
+											rowsPerPageTemplate="#{tipoIdentificacionBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_ticsri.tipoComprobanteSRI.codigo}"
+												filterBy="#{_ticsri.tipoComprobanteSRI.codigo}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo}" />
+												</f:facet>
+												<h:outputText value="#{_ticsri.tipoComprobanteSRI.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" sortBy="#{_ticsri.tipoComprobanteSRI.nombre}"
+												filterBy="#{_ticsri.tipoComprobanteSRI.nombre}" filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_nombre}" />
+												</f:facet>
+												<h:outputText value="#{_ticsri.tipoComprobanteSRI.nombre}" />
+											</p:column>
+
+											<p:column>
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_sri_credito_tributario}" />
+												</f:facet>
+												<p:autoComplete id="autoCreditoTributario" queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+													value="#{_ticsri.tipoComprobanteSRI.listaCreditoTributarioSRI}" completeMethod="#{tipoIdentificacionBean.autocompletarCreditoTributario}"
+													var="_creditoTributario" itemLabel="#{_creditoTributario.codigo}" itemValue="#{_creditoTributario}" forceSelection="true" multiple="true" converter="creditoTributarioSRIConverter">
+													<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+														<h:outputText value="#{_creditoTributario.codigo}" />
+													</p:column>
+													<p:column headerText="#{msgs.lbl_nombre}" styleClass="columnaDTDescripcion tableCell">
+														<h:outputText value="#{_creditoTributario.nombre}" />
+													</p:column>
+												</p:autoComplete>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarTipoComprobante" action="#{tipoIdentificacionBean.eliminarTipoComprobante(_ticsri)}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:vistaTab:tabTipoComprobante, :form:vistaTab" process="@this">
+												</p:commandButton>
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!tipoIdentificacionBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_tipo_identificacion_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoIdentificacion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tipoIdentificacionBean.listaTipoIdentificacion}" var="_tipoIdentificacion" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{tipoIdentificacionBean.dtTipoIdentificacion}"
+							rows="#{tipoIdentificacionBean.numeroFilas}" rowsPerPageTemplate="#{tipoIdentificacionBean.numeroFilasPorPagina}"
+							selection="#{tipoIdentificacionBean.tipoIdentificacion}" selectionMode="single" rowKey="#{_tipoIdentificacion.id}"
+							sortBy="#{_tipoIdentificacion.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_tipoIdentificacion.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipoIdentificacion.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_tipoIdentificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_validar}">
+								<p:selectBooleanCheckbox value="#{_tipoIdentificacion.indicadorValidarIdentificacion}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_tipoIdentificacion.activo}">
+								<p:selectBooleanCheckbox value="#{_tipoIdentificacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_tipoIdentificacion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tipoIdentificacion.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tipoIdentificacionBean.tipoIdentificacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tipoIdentificacionBean.tipoIdentificacion.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{tipoIdentificacionBean.tipoIdentificacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tipoIdentificacionBean.tipoIdentificacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

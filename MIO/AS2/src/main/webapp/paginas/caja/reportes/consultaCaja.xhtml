@@ -1,0 +1,322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+
+				<tnt:panelImprimir entidadDestino=""
+					bean="#{reporteEstadoFinancieroBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{estadoFinancieroBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value="tablaEstadoFinanciero" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+				</ui:include>
+
+				<p:panel header="#{msgs.lbl_titulo_estado_financiero}">
+					<p:fieldset>
+						<p:outputPanel id="panelFiltros">
+							<h:panelGroup>
+								<h:outputText value="#{msgs.lbl_comparativo}:" />
+								<h:selectBooleanCheckbox
+									value="#{estadoFinancieroBean.comparativo}" id="chkComparativo">
+									<p:ajax update="panelFiltros2" process="@this" />
+								</h:selectBooleanCheckbox>
+							</h:panelGroup>
+							<h:panelGrid columns="2">
+
+								<p:panel header="#{msgs.lbl_periodo} 1" id="panelFiltros1">
+
+									<h:panelGrid columns="2">
+
+										<h:outputText value="#{msgs.lbl_anio_desde}:" />
+										<p:inputMask id="txtAnioHasta1" mask="9999"
+											value="#{estadoFinancieroBean.anioDesde}" />
+
+										<h:outputText value="#{msgs.lbl_mes_desde}:" />
+										<h:panelGroup>
+											<p:selectOneMenu styleClass="input-text"
+												value="#{estadoFinancieroBean.mesDesde}" id="cboMesHasta1">
+												<f:selectItems value="#{estadoFinancieroBean.listaMes}" />
+											</p:selectOneMenu>
+											<p:message for="cboMesHasta1" />
+										</h:panelGroup>
+
+
+									</h:panelGrid>
+
+								</p:panel>
+								<p:panel header="#{msgs.lbl_periodo} 2" id="panelFiltros2"
+									visible="#{estadoFinancieroBean.comparativo}">
+
+									<h:panelGrid columns="2">
+
+										<h:outputText value="#{msgs.lbl_anio_hasta}:" />
+										<p:inputMask id="txtAnioHasta2" mask="9999"
+											value="#{estadoFinancieroBean.anioHasta}" />
+
+										<h:outputText value="#{msgs.lbl_mes_hasta}:" />
+										<h:panelGroup>
+											<p:selectOneMenu styleClass="input-text"
+												value="#{estadoFinancieroBean.mesHasta}" id="cboMesHasta2">
+												<f:selectItems value="#{estadoFinancieroBean.listaMes}" />
+											</p:selectOneMenu>
+											<p:message for="cboMesHasta2" />
+										</h:panelGroup>
+
+									</h:panelGrid>
+
+								</p:panel>
+
+							</h:panelGrid>
+							<h:panelGrid columns="4">
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<h:panelGroup>
+									<p:selectOneMenu id="cboSucursal"
+										value="#{estadoFinancieroBean.sucursal.idSucursal}"
+										required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="-1" />
+										<f:selectItems value="#{estadoFinancieroBean.listaSucursal}" />
+									</p:selectOneMenu>
+									<p:message for="cboSucursal" display="icon" />
+								</h:panelGroup>
+								<h:outputText value="#{msgs.lbl_estado_financiero}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text"
+										value="#{estadoFinancieroBean.estadoFinanciero.tipoEstadoFinanciero}"
+										id="cboGrupoCuenta">
+										<f:selectItems
+											value="#{estadoFinancieroBean.listaTipoEstadoFinanciero}" />
+									</p:selectOneMenu>
+									<p:message for="cboGrupoCuenta" />
+								</h:panelGroup>
+								<h:outputText value="#{msgs.lbl_indicador_NIIF}:" />
+								<h:selectBooleanCheckbox
+									value="#{estadoFinancieroBean.estadoFinanciero.indicadorNIIF}"
+									id="chkNIIF">
+									<p:ajax process="@this" />
+								</h:selectBooleanCheckbox>
+								<h:outputText value="#{msgs.lbl_centro_costo}" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+									value="#{estadoFinancieroBean.centroCosto}"
+									completeMethod="#{estadoFinancieroBean.autocompletarCentroCosto}"
+									var="_centroCosto" itemLabel="#{_centroCosto.nombre}"
+									itemValue="#{_centroCosto}" forceSelection="true"
+									dropdown="true" minQueryLength="2" id="cboCentroCosto">
+
+									<p:column headerText="Codigo">#{_centroCosto.codigo}</p:column>
+									<p:column headerText="nombre">#{_centroCosto.nombre}</p:column>
+
+									<p:ajax event="itemSelect" process="@this" />
+								</p:autoComplete>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:fieldset>
+
+
+					<p:spacer height="4px" />
+
+
+					<p:panel header="#{msgs.lbl_reporte}">
+						<p:outputPanel id="panelConsulta">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{msgs.lbl_nota}:" />
+								<p:inputTextarea styleClass="input-text"
+									value="#{estadoFinancieroBean.estadoFinanciero.nota}"
+									id="txtnota">
+								</p:inputTextarea>
+								<p:commandButton value="#{msgs.btn_guardar}" id="btnGuardar"
+									action="#{estadoFinancieroBean.guardar}"
+									update="panelConsulta,mensajes" process="panelConsulta" />
+							</h:panelGrid>
+							<h:panelGrid columns="1" width="100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+									value="#{estadoFinancieroBean.estadoFinanciero.listaDetalleEstadoFinanciero}"
+									id="tablaEstadoFinanciero" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}"
+									var="_detalleEstadoFinanciero" paginator="true"
+									paginatorPosition="bottom" style="width:100%"
+									binding="#{estadoFinancieroBean.dtDetalleEstadoFinanciero}"
+									rows="#{estadoFinancieroBean.numeroFilasReporte}"
+									rowsPerPageTemplate="#{estadoFinancieroBean.numeroFilasPorPagina}">
+
+									<p:column>
+										<f:facet name="header">
+											<h:outputText value="#" />
+										</f:facet>
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+									<p:column
+										filterBy="#{_detalleEstadoFinanciero.cuentaContable.codigo}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+										<h:outputText
+											value="#{_detalleEstadoFinanciero.cuentaContable.codigo}"
+											rendered="#{!_detalleEstadoFinanciero.cuentaContable.indicadorMovimiento}" />
+
+										<h:link target="_blank"
+											outcome="/paginas/financiero/contabilidad/reportes/libroAuxiliar"
+											includeViewParams="true"
+											value="#{_detalleEstadoFinanciero.cuentaContable.codigo}"
+											rendered="#{_detalleEstadoFinanciero.cuentaContable.indicadorMovimiento}">
+
+											<f:param name="idCuentaContable"
+												value="#{_detalleEstadoFinanciero.cuentaContable.idCuentaContable}" />
+											<f:param name="anioDesde"
+												value="#{estadoFinancieroBean.anioDesde}" />
+											<f:param name="mesDesde"
+												value="#{estadoFinancieroBean.mesDesde}" />
+											<f:param name="anioHasta"
+												value="#{estadoFinancieroBean.anioDesde}" />
+											<f:param name="mesHasta"
+												value="#{estadoFinancieroBean.mesDesde}" />
+
+										</h:link>
+									</p:column>
+									<p:column
+										filterBy="#{_detalleEstadoFinanciero.cuentaContable.nombre}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_cuenta_contable}" />
+										</f:facet>
+										<h:outputText
+											value="#{_detalleEstadoFinanciero.cuentaContable.nombre}" />
+									</p:column>
+									<p:column style="text-align:right"
+										rendered="#{estadoFinancieroBean.comparativo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_saldo} 1" />
+										</f:facet>
+										<h:commandLink value="#{_detalleEstadoFinanciero.saldo}"
+											action="#{estadoFinancieroBean.editar}" />
+									</p:column>
+
+									<p:column style="text-align:right"
+										rendered="#{estadoFinancieroBean.comparativo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_saldo} 2" />
+										</f:facet>
+										<h:outputText value="#{_detalleEstadoFinanciero.saldo2}" />
+									</p:column>
+
+									<p:column style="text-align:right"
+										rendered="#{estadoFinancieroBean.comparativo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nota} 1" />
+										</f:facet>
+										<h:outputText value="#{_detalleEstadoFinanciero.nota}" />
+									</p:column>
+
+									<p:column style="text-align:right"
+										rendered="#{estadoFinancieroBean.comparativo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nota} 2" />
+										</f:facet>
+										<h:outputText value="#{_detalleEstadoFinanciero.nota2}" />
+									</p:column>
+
+									<p:columns rendered="#{!estadoFinancieroBean.comparativo}"
+										value="#{estadoFinancieroBean.listaNivelCuenta}" var="_column"
+										columnIndexVar="colIndex" styleClass="input-text-number">
+										<f:facet name="header">
+											<p:outputPanel>
+                    						#{_column.nombre}  
+              							 </p:outputPanel>
+										</f:facet>
+										<h:outputText value="#{_detalleEstadoFinanciero.saldo}"
+											rendered="#{_detalleEstadoFinanciero.idNivel == _column.id}" />
+									</p:columns>
+									
+									<p:column rendered="#{!estadoFinancieroBean.comparativo}">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nota}" />
+										</f:facet>
+										<p:inputText styleClass="input-text"
+											value="#{_detalleEstadoFinanciero.nota}" />
+									</p:column>
+									<p:columnGroup type="footer">
+										<p:row>
+											<p:column colspan="3" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText
+														value="#{msgs.lbl_titulo_resultado_ejercicio}" />
+												</f:facet>
+											</p:column>
+											<p:column style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText
+														value="#{estadoFinancieroBean.estadoFinanciero.resultadoEjercicio}" />
+												</f:facet>
+
+											</p:column>
+										</p:row>
+
+										<p:row>
+											<p:column colspan="3" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{msgs.lbl_titulo_activo}" />
+												</f:facet>
+											</p:column>
+											<p:column style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText
+														value="#{estadoFinancieroBean.estadoFinanciero.saldoActivo}" />
+												</f:facet>
+											</p:column>
+										</p:row>
+										<p:row>
+											<p:column colspan="3" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{msgs.lbl_titulo_pasivo}" />
+												</f:facet>
+											</p:column>
+											<p:column style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText
+														value="#{estadoFinancieroBean.estadoFinanciero.saldoPasivo}" />
+												</f:facet>
+											</p:column>
+										</p:row>
+										<p:row>
+											<p:column colspan="3" style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText value="#{msgs.lbl_titulo_patrimonio}" />
+												</f:facet>
+											</p:column>
+											<p:column style="text-align:right">
+												<f:facet name="footer">
+													<h:outputText
+														value="#{estadoFinancieroBean.estadoFinanciero.saldoPatrimonio}" />
+												</f:facet>
+
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:panel>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

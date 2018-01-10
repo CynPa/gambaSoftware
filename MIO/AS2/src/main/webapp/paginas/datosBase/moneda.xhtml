@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{monedaBean}">
+					<as2:buttonEliminar bean="#{monedaBean}">
+
+						<h:outputText value="#{msgs.lbl_codigo}: " />
+						<h:outputText value="#{monedaBean.moneda.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}: " />
+						<h:outputText value="#{monedaBean.moneda.nombre}" />
+
+					</as2:buttonEliminar>
+					<as2:buttonExportaExcel bean="#{monedaBean}" tabla=":form:tablaMonedas" />
+				</as2:toolBar>
+			
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_moneda_panel}" rendered="#{monedaBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{monedaBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{monedaBean.moneda.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{monedaBean.moneda.nombre}" id="txtNombre" required="true" size="50" maxlength="50">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{monedaBean.moneda.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{monedaBean.moneda.predeterminado}" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{monedaBean.moneda.descripcion}" id="txtDescripcion" size="100" maxlength="200">
+								<f:validateBean />
+							</p:inputTextarea>
+
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_moneda_panel}" rendered="#{!monedaBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMonedas" rowIndexVar="secuencialMoneda" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{monedaBean.monedas}" var="moneda"
+							paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{monedaBean.dataTableMoneda}" rows="#{monedaBean.numeroFilas}"
+							selection="#{monedaBean.moneda}" selectionMode="single" rowKey="#{moneda.id}" sortBy="#{moneda.codigo}" lazy="true"
+							rowsPerPageTemplate="#{monedaBean.numeroFilasPorPagina}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencialMoneda+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{moneda.codigo}" filterBy="#{moneda.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{moneda.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{moneda.nombre}" filterBy="#{moneda.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{moneda.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{moneda.activo}">
+								<p:selectBooleanCheckbox value="#{moneda.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{moneda.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell" >
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{moneda.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{monedaBean.moneda.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{monedaBean.moneda.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{monedaBean.moneda.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{monedaBean.moneda.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

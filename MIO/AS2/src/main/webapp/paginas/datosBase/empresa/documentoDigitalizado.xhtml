@@ -1,0 +1,183 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{documentoDigitalizadoBean}">
+
+					<as2:buttonEliminar bean="#{documentoDigitalizadoBean}">
+						<h:outputText value="#{msgs.lbl_documento_digitalizado}:" />
+						<h:outputText value="#{documentoDigitalizadoBean.documentoDigitalizado.codigo} #{documentoDigitalizadoBean.documentoDigitalizado.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{documentoDigitalizadoBean}" tabla=":form:tablaDocumentoDigitalizado" />
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_documento_digitalizado})" rendered="#{documentoDigitalizadoBean.editado}">
+
+						<h:panelGrid id="panelCabecera" columns="#{documentoDigitalizadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" required="true" value="#{documentoDigitalizadoBean.documentoDigitalizado.codigo}" id="txtCodigo">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" required="true" value="#{documentoDigitalizadoBean.documentoDigitalizado.nombre}" id="txtNombre">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboCategoria" value="#{msgs.lbl_categoria}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{documentoDigitalizadoBean.documentoDigitalizado.categoriaDocumentoDigitalizado}"
+								id="cboCategoria" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{documentoDigitalizadoBean.listaCategorias}" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{documentoDigitalizadoBean.documentoDigitalizado.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_caduca}:" />
+							<p:selectBooleanCheckbox value="#{documentoDigitalizadoBean.documentoDigitalizado.caduca}" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{documentoDigitalizadoBean.documentoDigitalizado.activo}" />
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<p:selectBooleanCheckbox value="#{documentoDigitalizadoBean.documentoDigitalizado.indicadorCliente}" />
+
+							<h:outputText value="#{msgs.lbl_proveedor}:" />
+							<p:selectBooleanCheckbox value="#{documentoDigitalizadoBean.documentoDigitalizado.indicadorProveedor}" />
+
+							<h:outputText value="#{msgs.lbl_empleado}:" />
+							<p:selectBooleanCheckbox value="#{documentoDigitalizadoBean.documentoDigitalizado.indicadorEmpleado}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{documentoDigitalizadoBean.documentoDigitalizado.predeterminado}" />
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_documento_digitalizado})" rendered="#{!documentoDigitalizadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaDocumentoDigitalizado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{documentoDigitalizadoBean.listaDocumentoDigitalizado}" var="_documentoDigitalizado"
+							binding="#{documentoDigitalizadoBean.dtDocumentoDigitalizado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{documentoDigitalizadoBean.numeroFilas}" rowsPerPageTemplate="#{documentoDigitalizadoBean.numeroFilasPorPagina}"
+							selection="#{documentoDigitalizadoBean.documentoDigitalizado}" selectionMode="single"
+							rowKey="#{_documentoDigitalizado.idDocumentoDigitalizado}" sortBy="#{_documentoDigitalizado.nombre}" sortOrder="ASCENDING">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_documentoDigitalizado.codigo}" filterBy="#{_documentoDigitalizado.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_documentoDigitalizado.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_documentoDigitalizado.nombre}" filterBy="#{_documentoDigitalizado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_documentoDigitalizado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{_documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}"
+								filterBy="#{_documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" filterOptions="#{documentoDigitalizadoBean.listaCategoriasFiltro}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_categoria}" />
+								</f:facet>
+								<h:outputText value="#{_documentoDigitalizado.categoriaDocumentoDigitalizado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_caduca}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_documentoDigitalizado.caduca}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_documentoDigitalizado.indicadorCliente}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_documentoDigitalizado.indicadorProveedor}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_documentoDigitalizado.indicadorEmpleado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="#{_documentoDigitalizado.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_documentoDigitalizado.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_documentoDigitalizado.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_documentoDigitalizado.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{documentoDigitalizadoBean.documentoDigitalizado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{documentoDigitalizadoBean.documentoDigitalizado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{documentoDigitalizadoBean.documentoDigitalizado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{documentoDigitalizadoBean.documentoDigitalizado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

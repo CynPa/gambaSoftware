@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{variableBean}">
+				
+					<as2:buttonEliminar bean="#{variableBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{variableBean.variable.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{variableBean.variable.nombre}" />
+					</as2:buttonEliminar>				
+
+					<as2:buttonExportaExcel bean="#{variableBean}" tabla=":form:tablaVariables" />
+
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{variableBean.editado}" header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_variables} )">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+
+								<h:panelGrid id="panelDetalle" columns="#{variableBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_codigo}:" />
+									<p:inputText styleClass="input-text" value="#{variableBean.variable.codigo}" id="txtCodigo" required="true" />
+
+									<h:outputText value="#{msgs.lbl_nombre}:" />
+									<p:inputText styleClass="input-text" value="#{variableBean.variable.nombre}" id="txtNombre" required="true" />
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" value="#{variableBean.variable.descripcion}" id="txtDescripcion" />
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer width="2px" />
+							
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalleVariable">
+
+								<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregar" action="#{variableBean.agregarDetalleVariableListener}"
+									update="panelDetalleVariable" process="@this,panelDetalleVariable" />
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{variableBean.listaDetalleVariable}" id="tablaDetalleVariable" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleVariable" paginator="true" paginatorPosition="bottom" style="width:100%"
+									binding="#{variableBean.dtDetalleVariable}" rowKey="#{_detalleVariable.id}" rows="#{variableBean.numeroFilas}"
+									rowsPerPageTemplate="#{variableBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion">
+										<p:commandButton value="..." actionListener="#{variableBean.listaCuentaContableBean.listarCuentaContable}" process="@this"
+											propartialSubmit="true" >
+											<p:ajax event="dialogReturn" listener="#{variableBean.cargarCuentaContable}" update=":form:panelDetalleVariable" />
+											<f:setPropertyActionListener target="#{variableBean.lineaDetalleVariable}" value="#{_detalleVariable}" />
+											<f:setPropertyActionListener target="#{variableBean.listaCuentaContableBean.indicadorSeleccionarTodo}" value="true" />
+										</p:commandButton>
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigoCuenta tableCell" headerText="#{msgs.lbl_codigo}">
+										<h:outputText value="#{_detalleVariable.cuentaContable.codigo}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_cuenta_contable}">
+										<h:outputText value="#{_detalleVariable.cuentaContable.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarDetalle" action="#{variableBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelDetalleVariable" process="@this" />
+									</p:column>
+
+								</p:dataTable>
+							</h:panelGrid>
+						</p:fieldset>							
+						</h:panelGrid>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!variableBean.editado}" header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_variables} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaVariables" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" value="#{variableBean.listaVariable}"
+							var="_variable" paginator="true" paginatorPosition="bottom" style="width:100%" binding="#{variableBean.dtVariable}"
+							rows="#{variableBean.numeroFilas}" rowsPerPageTemplate="#{variableBean.numeroFilasPorPagina}" selection="#{variableBean.variable}"
+							selectionMode="single" rowKey="#{_variable.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_variable.codigo}" filterBy="#{_variable.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_variable.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_variable.nombre}" filterBy="#{_variable.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_variable.nombre}" />
+							</p:column>							
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_variable.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{variableBean.variable.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{variableBean.variable.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{variableBean.variable.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{variableBean.variable.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,871 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{facturaClienteAgilBean}">
+
+					<as2:buttonEliminar bean="#{facturaClienteAgilBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{facturaClienteAgilBean.facturaCliente.numero}" />
+
+						<h:outputText value="#{msgs.lbl_cliente}:" />
+						<h:outputText value="#{facturaClienteAgilBean.facturaCliente.empresa.nombreFiscal}" />
+
+						<h:outputText value="#{msgs.lbl_valor}:" />
+						<h:outputText value="#{facturaClienteAgilBean.facturaCliente.totalFactura}">
+							<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+						</h:outputText>
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir id="btnImprimirFactura" beanReporte="#{reporteFacturaClienteBean}" bean="#{facturaClienteAgilBean}"
+						target="#{reporteFacturaClienteBean.facturaCliente}" value="#{facturaClienteAgilBean.facturaCliente}" />
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{facturaClienteAgilBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{facturaClienteAgilBean.facturaCliente.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+
+					<h:panelGroup rendered="#{facturaClienteAgilBean.organizacionTextilPadilla}">
+						<as2:buttonImprimir id="btnImprimirFacturaDetallada" beanReporte="#{reporteFacturaClienteDetalladoBean}" bean="#{facturaClienteAgilBean}"
+							target="#{reporteFacturaClienteDetalladoBean.facturaCliente}" value="#{facturaClienteAgilBean.facturaCliente}"
+							etiquetaImprimir="#{msgs.lbl_detallado}" />
+					</h:panelGroup>
+
+					<as2:buttonExportaExcel bean="#{facturaClienteAgilBean}" tabla=":form:tablaFacturaCliente" />
+				</as2:toolBar>
+
+				<p:dialog header="#{msgs.lbl_empresa_titulo_panel}" widgetVar="dglCrearCliente" modal="true" height="250" width="800" showEffect="slide"
+					hideEffect="slide">
+
+					<p:outputPanel id="panelDatosBasicosCliente">
+						<h:panelGrid columns="#{facturaClienteAgilBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor" rendered="#{facturaClienteAgilBean.renderClienteNuevo}">
+
+							<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{facturaClienteAgilBean.tipoIdentificacionCliente}" id="cboTipoIdentificacionCliente"
+								required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{facturaClienteAgilBean.listaTipoIdentificacion}" var="_tipoIdentificacion" itemLabel="#{_tipoIdentificacion.nombre}"
+									itemValue="#{_tipoIdentificacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" update=":form:panelValidacionIdentificacion" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_empresa_identificacion}:" />
+							<h:panelGroup id="panelValidacionIdentificacion">
+								<p:inputText styleClass="input-text" rendered="#{!facturaClienteAgilBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}"
+									value="#{facturaClienteAgilBean.identificacionCliente}" maxlength="20">
+									<f:validateBean />
+									<p:ajax event="change" process="@this" global="false" />
+								</p:inputText>
+
+								<p:inputMask mask="#{empty facturaClienteAgilBean.tipoIdentificacionCliente ? '' : facturaClienteAgilBean.tipoIdentificacionCliente.mascara}"
+									value="#{facturaClienteAgilBean.identificacionCliente}" styleClass="input-text"
+									rendered="#{facturaClienteAgilBean.tipoIdentificacionCliente.indicadorValidarIdentificacion}">
+									<p:ajax event="change" process="@this" global="false" />
+									<f:validateBean />
+								</p:inputMask>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_empresa_nombre_fiscal}:" />
+							<p:inputText styleClass="input-text" id="txtNombreCliente" value="#{facturaClienteAgilBean.nombreCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_ciudad}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCiudad" value="#{facturaClienteAgilBean.ciudad}"
+								completeMethod="#{facturaClienteAgilBean.autocompletarCiudad}" var="_ciudad" itemLabel="#{_ciudad.nombre}" itemValue="#{_ciudad}"
+								forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_codigo}">#{_ciudad.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_ciudad.nombre}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" global="false" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_direccion}:" />
+							<p:inputText styleClass="input-text" id="txtDireccionCliente" value="#{facturaClienteAgilBean.direccionCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_telefono}:" />
+							<p:inputText styleClass="input-text" id="txtTelefonoCliente" value="#{facturaClienteAgilBean.telefonoCliente}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_email}:" />
+							<p:inputText styleClass="input-text" id="txtEmail1" value="#{facturaClienteAgilBean.email}">
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+							<p:selectOneMenu value="#{facturaClienteAgilBean.agenteComercial}" id="cboAgenteComercialGenerico"
+								required="#{!facturaClienteAgilBean.organizacionGeneral}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{facturaClienteAgilBean.listaAgenteComercialCombo}" var="_agenteComercial"
+									itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+							</p:selectOneMenu>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.btn_aceptar}" action="#{facturaClienteAgilBean.crearCliente}" process="@this,panelDatosBasicosCliente"
+								update="cboDireccionCliente,autoEmpresa,ouputPanelAgenteComercial,txtEmail, cboFormaPagoSRI, cboCondicionPago"
+								oncomplete="validacionesModal(xhr, status, args, dglCrearCliente)" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<p:outputPanel id="panelNuevo">
+					<!-- Inicio Dialog Datos Voucher  -->
+					<p:outputPanel id="panelErrores">
+						<p:dialog header="Listado de errores" widgetVar="dialogoErrores" modal="true" height="400" width="800">
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{facturaClienteAgilBean.exContabilizacion.mensajes}" var="_mensaje"
+								rowIndexVar="secuencial">
+								<p:column headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+								<p:column headerText="Error">
+									<h:outputText value="#{_mensaje}" />
+								</p:column>
+							</p:dataTable>
+						</p:dialog>
+					</p:outputPanel>
+					<p:dialog header="#{msgs.lbl_voucher}" widgetVar="voucherDialog" id="voucherDialog" modal="true" height="190" width="780" showEffect="slide"
+						hideEffect="slide">
+						<p:outputPanel id="panelVoucher">
+							<h:panelGroup
+								rendered="#{(not empty facturaClienteAgilBean.detalleFormaCobroSeleccionado) and (facturaClienteAgilBean.detalleFormaCobroSeleccionado.formaPago.indicadorTarjetaCredito)}">
+								<h:panelGrid columns="#{facturaClienteAgilBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<h:outputLabel value="#{msgs.lbl_estacion}:" />
+									<h:outputLabel styleClass="input-text" value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.puntoVenta.codigoAlterno}"
+										id="txtPuntoDeVenta" />
+									<h:outputLabel value="#{msgs.lbl_tarjeta_credito}:" for="cboTarjetaCredito" />
+									<p:selectOneMenu styleClass="input-text" value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.tarjetaCredito}"
+										id="cboTarjetaCredito" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{facturaClienteAgilBean.listaTarjetaCredito}" var="_tarjetaCredito" itemLabel="#{_tarjetaCredito.nombre}"
+											itemValue="#{_tarjetaCredito}" />
+										<p:ajax process="@this" global="false" partialSubmit="true" event="change" update="@this cboPlanPago"
+											listener="#{facturaClienteAgilBean.cargarPlanTarjetaListener(facturaClienteAgilBean.detalleFormaCobroSeleccionado)}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<h:outputLabel value="#{msgs.lbl_plan_tarjeta_credito}:" for="cboPlanPago" />
+									<p:selectOneMenu styleClass="input-text" rendered="#{empty detalleFormaCobroSeleccionado.cobroTarjeta}"
+										value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.planTarjetaCredito}" id="cboPlanPago" required="true">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.tarjetaCredito.listaPlanTarjetaCredito}" var="_plan"
+											itemLabel="#{_plan.codigo}" itemValue="#{_plan}" />
+										<p:ajax process="@this" global="false" event="change" partialSubmit="true" update="@this" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<h:outputLabel for="txtNumeroTarjeta" value="#{msgs.lbl_numero_tarjeta}:" />
+									<p:inputText rendered="#{empty facturaClienteAgilBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.numeroTarjeta}" id="txtNumeroTarjeta" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>
+									<h:outputLabel value="#{msgs.lbl_interes}:" />
+									<p:inputText rendered="#{empty facturaClienteAgilBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.interes}">
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+										<f:validateBean />
+									</p:inputText>
+									<!-- <h:outputLabel value="#{msgs.lbl_numero}:" for="txtNumeroVoucher" />
+									<p:inputText rendered="#{empty facturaClienteAgilBean.detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.documentoReferencia}" id="txtNumeroVoucher" required="true">
+										<p:ajax process="@this" global="false" />
+										<f:validateBean />
+									</p:inputText>-->
+									<h:outputLabel for="txtLote" value="#{msgs.lbl_lote}:" />
+									<p:inputText rendered="#{empty detalleFormaCobroSeleccionado.cobroTarjeta}" styleClass="input-text"
+										value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.lote}" id="txtLote" required="true">
+										<f:validateBean />
+										<p:ajax process="@this" global="false" partialSubmit="true" />
+									</p:inputText>
+									<h:outputLabel value="#{msgs.lbl_sri_base_diferente_cero}:" />
+									<h:outputLabel styleClass="input-text" value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.baseImponibleDiferenteCero}"
+										id="txtBaseImponibleDiferenteCero" />
+									<h:outputLabel value="#{msgs.lbl_sri_base_cero}:" />
+									<h:outputLabel styleClass="input-text" value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.baseImponibleTarifaCero}"
+										id="txtBaseImponibleTarifaCero" />
+									<h:outputLabel value="#{msgs.lbl_sri_monto_iva}:" />
+									<h:outputLabel styleClass="input-text" value="#{facturaClienteAgilBean.detalleFormaCobroSeleccionado.montoIva}" id="txtMontoIva" />
+								</h:panelGrid>
+							</h:panelGroup>
+						</p:outputPanel>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_procesar}" process="@this :form:panelVoucher" update="@this :form:panelVoucher"
+									oncomplete="validacionesModal(xhr, status, args, voucherDialog)" icon="ui-icon-plus" />
+							</center>
+						</f:facet>
+					</p:dialog>
+					<!-- Fin Dialog Datos Voucher   -->
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_factura_cliente_agil}" rendered="#{facturaClienteAgilBean.editado}">
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{facturaClienteAgilBean}" />
+							<ui:param name="objetoActualizar" value=":form:tvDetalleFactura" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{facturaClienteAgilBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{facturaClienteAgilBean.facturaCliente.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{facturaClienteAgilBean.listaDocumentoCliente}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax update="txtNumero calFecha txtEmail cboFormaPagoSRI" event="change" global="false"
+										listener="#{facturaClienteAgilBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" value="#{facturaClienteAgilBean.facturaCliente.numero}" id="txtNumero"
+									mask="#{empty facturaClienteAgilBean.facturaCliente.documento ? '' : facturaClienteAgilBean.facturaCliente.documento.secuencia.patron}"
+									disabled="#{facturaClienteAgilBean.facturaCliente.idFacturaCliente == 0 and (facturaClienteAgilBean.indicadorAutoimpresor or facturaClienteAgilBean.facturaCliente.documento.indicadorDocumentoElectronico or !facturaClienteAgilBean.secuenciaEditable)}">
+									<f:validateBean />
+								</p:inputMask>
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{facturaClienteAgilBean.formatoFecha}" showOn="button" navigator="true"
+									disabled="facturaClienteAgilBean.facturaCliente.idFacturaCliente == 0" value="#{facturaClienteAgilBean.facturaCliente.fecha}" id="calFecha"
+									required="true">
+									<p:ajax listener="#{facturaClienteAgilBean.dateSelect}" process="@this cboCondicionPago" event="dateSelect" global="false" />
+									<p:ajax listener="#{facturaClienteAgilBean.cargarCuentaPorCobrar}" process="@this cboCondicionPago" event="change" global="false" />
+								</p:calendar>
+								<p:commandLink rendered="#{facturaClienteBean.crearClienteAgil}" onclick="dglCrearCliente.show();" update="panelDatosBasicosCliente"
+									process="@this">
+									<h:outputText value="#{msgs.lbl_cliente}:" />
+									<f:setPropertyActionListener target="#{facturaClienteAgilBean.renderClienteNuevo}" value="true" />
+								</p:commandLink>
+								<h:outputText value="#{msgs.lbl_cliente}:" rendered="#{!facturaClienteBean.crearClienteAgil}" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEmpresa"
+									value="#{facturaClienteAgilBean.facturaCliente.empresa}" completeMethod="#{facturaClienteAgilBean.autocompletarClientes}" var="_cliente"
+									itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2">
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+									<p:ajax listener="#{facturaClienteAgilBean.actualizarClienteListener}" process="@this" event="itemSelect"
+										update=":form:tvDetalleFactura:panelDetalleFactura :form:cboDireccionCliente,cboZona,cboCondicionPago, ouputPanelAgenteComercial,:form:txtEmail ,cboFormaPagoSRI,cboPedido" />
+								</p:autoComplete>
+								<p:outputLabel for="cboDireccionCliente" value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{facturaClienteAgilBean.facturaCliente.direccionEmpresa}" id="cboDireccionCliente"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{facturaClienteAgilBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_agente_comercial}:" />
+								<p:outputPanel id="ouputPanelAgenteComercial">
+									<p:selectOneMenu value="#{facturaClienteAgilBean.facturaCliente.agenteComercial}" id="cboAgenteComercial"
+										rendered="#{empty facturaClienteAgilBean.facturaCliente.agenteComercial or !facturaClienteAgilBean.organizacionTextilPadilla}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{facturaClienteAgilBean.listaAgenteComercialCombo}" var="_agenteComercial"
+											itemLabel="#{_agenteComercial.nombre2} #{_agenteComercial.nombre1}" itemValue="#{_agenteComercial}" />
+									</p:selectOneMenu>
+									<h:outputText id="txtAgenteComercial"
+										value="#{facturaClienteAgilBean.facturaCliente.agenteComercial.nombre2} #{facturaClienteAgilBean.facturaCliente.agenteComercial.nombre1}"
+										rendered="#{not empty facturaClienteAgilBean.facturaCliente.agenteComercial and facturaClienteAgilBean.organizacionTextilPadilla}" />
+								</p:outputPanel>
+								<h:outputText rendered="#{facturaClienteAgilBean.tipoOrganizacion!='TIPO_ORGANIZACION_ADRIALPETRO'}" value="#{msgs.lbl_pedido}" />
+								<p:selectOneMenu value="#{facturaClienteAgilBean.facturaCliente.pedidoCliente}" id="cboPedido"
+									rendered="#{facturaClienteAgilBean.tipoOrganizacion!='TIPO_ORGANIZACION_ADRIALPETRO' and facturaClienteAgilBean.facturaCliente.estado!='RECHAZADO_SRI'}">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{facturaClienteAgilBean.listaPedidoClientePorFacturar}" var="_pedidoCliente" itemLabel="#{_pedidoCliente.numero}"
+										itemValue="#{_pedidoCliente}" />
+									<p:ajax process="@this"
+										update=":form:tvDetalleFactura:panelDetalleFactura, :form:tvDetalleFactura:panelImpuestoDetalleFactura, :form:tvDetalleFactura:panelDetFormaCobro,
+											cboZona, cboAgenteComercial, cboCondicionPago, txtDescripcionCabecera , cboDireccionCliente"
+										listener="#{facturaClienteAgilBean.cargarDetallePedidoListener}" global="false" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{facturaClienteAgilBean.facturaCliente.descripcion}" id="txtDescripcionCabecera">
+									<f:validateBean />
+								</p:inputTextarea>
+								<h:outputText value="#{msgs.lbl_cargar_con_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{facturaClienteAgilBean.codigoCabecera}" id="txtCodigoCabecera">
+									<p:ajax listener="#{facturaClienteAgilBean.agregarDetalleDesdeCodigoCabecera}" process="@this"
+										update=":form:tvDetalleFactura:panelDetalleFactura #{p:component('txtCodigoCabecera')}" event="change" global="false"
+										oncomplete="nextFocus('#{p:component('txtCodigoCabecera')}')" />
+								</p:inputText>
+								<p:outputLabel for="txtEmail" value="#{msgs.lbl_email}:" />
+								<p:inputText styleClass="input-text" value="#{facturaClienteAgilBean.facturaCliente.email}" id="txtEmail"
+									required="#{facturaClienteAgilBean.facturaCliente.documento.indicadorDocumentoElectronico}">
+									<f:validateBean />
+								</p:inputText>
+								<h:outputText value="#{msgs.lbl_zona}:" />
+								<p:selectOneMenu value="#{facturaClienteAgilBean.facturaCliente.zona}" id="cboZona" required="false"
+									disabled="#{!facturaClienteAgilBean.indicadorUsuarioPOS}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{facturaClienteAgilBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+								<p:outputLabel for="cboCondicionPago" value="#{msgs.lbl_condicion_cobro}:" />
+								<h:panelGrid columns="3" style="width: 95% !important;" columnClasses="columnaEtiqueta,columnaEtiqueta,columnaEtiquetaGrande">
+									<p:selectOneMenu styleClass="input-text" value="#{facturaClienteAgilBean.facturaCliente.condicionPago}" id="cboCondicionPago" required="true"
+										disabled="#{!facturaClienteAgilBean.indicadorUsuarioPOS}">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{facturaClienteAgilBean.listaCondicionPago}" var="_condicionPago" itemLabel="#{_condicionPago.nombre}"
+											itemValue="#{_condicionPago}" />
+										<f:validateBean />
+										<p:ajax listener="#{facturaClienteAgilBean.cargarCuentaPorCobrar}" process="@this calFecha" event="change" global="false" />
+									</p:selectOneMenu>
+									<p:outputLabel value="#{msgs.lbl_forma_pago_sri}:" />
+									<p:selectOneMenu
+										disabled="#{not empty facturaClienteAgilBean.facturaCliente.documento and  facturaClienteAgilBean.facturaCliente.documento.indicadorDocumentoTributario == false}"
+										styleClass="input-text" id="cboFormaPagoSRI" value="#{facturaClienteAgilBean.facturaCliente.facturaClienteSRI.codigoFormaPagoSRI}"
+										required="true">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{facturaClienteAgilBean.listaFormaPagoSRI}" var="_fp" itemLabel="#{_fp.nombre}" itemValue="#{_fp.codigo}" />
+										<f:validateBean for="cboFormaPagoSRI" />
+										<p:ajax process="@this" global="false" />
+									</p:selectOneMenu>
+								</h:panelGrid>
+							</h:panelGrid>
+						</p:fieldset>
+						<p:spacer />
+						<p:tabView cache="true" dynamic="false" id="tvDetalleFactura" activeIndex="0">
+							<p:tab title="#{msgs.lbl_detalle_factura}">
+								<p:outputPanel id="panelDetalleFactura">
+									<h:panelGrid columns="1" style="width:100%">
+										<h:panelGroup>
+											<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{facturaClienteAgilBean.agregarDetalleFactura}"
+												update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura" process="@this" icon="ui-icon-plus" />
+											<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+										</h:panelGroup>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{facturaClienteAgilBean.detalleFacturaCliente}"
+											id="tablaDetalleFacturaCLiente" rowIndexVar="secuencial" binding="#{facturaClienteAgilBean.dtDetalleFacturaCliente}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleFacturaCliente" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{facturaClienteAgilBean.numeroFilas}" rowsPerPageTemplate="#{facturaClienteAgilBean.numeroFilasPorPagina}"
+											rowKey="#{_detalleFacturaCliente.id}">
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+											<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+												<p:inputText value="#{_detalleFacturaCliente.producto.codigo}" id="txtCodigoProducto">
+													<p:ajax listener="#{facturaClienteAgilBean.actualizarProductoListener}" process="@this :form:calFecha" event="change" global="false"
+														update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura"
+														oncomplete="nextFocus('#{p:component('txtCantidad')}')" />
+													<f:validateBean for="txtCodigoProducto" />
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText id="txtNombreProducto" value="#{_detalleFacturaCliente.producto.nombre}" />
+											</p:column>
+											<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_venta}">
+												<h:panelGroup>
+													<p:selectOneMenu styleClass="input-text" value="#{_detalleFacturaCliente.unidadVenta}" id="cboUnidadDespachar" required="true">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{_detalleFacturaCliente.producto.traListaUnidadConversion}" var="_unidadDespachar"
+															itemLabel="#{_unidadDespachar.nombre}" itemValue="#{_unidadDespachar}" />
+														<p:ajax process="@this" event="change" />
+													</p:selectOneMenu>
+												</h:panelGroup>
+											</p:column>
+											<p:column styleClass="columnaDTActivo tableCell #{!_detalleFacturaCliente.indicadorImpuesto ? 'color_rojo' : ''}"
+												headerText="#{msgs.lbl_producto_indicador_impuestos}">
+												<p:selectBooleanCheckbox value="#{_detalleFacturaCliente.indicadorImpuesto}" disabled="true">
+												</p:selectBooleanCheckbox>
+											</p:column>
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_saldo}">
+												<h:outputText value="#{_detalleFacturaCliente.saldo}" />
+											</p:column>
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+												<p:inputText value="#{_detalleFacturaCliente.cantidad}" id="txtCantidad" size="9">
+													<f:validateBean />
+													<p:ajax listener="#{facturaClienteAgilBean.totalizar}" process="@this " event="change" global="false"
+														update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura"
+														oncomplete="#{facturaClienteAgilBean.organizacionTextilPadilla} ? nextFocus('#{p:component('txtPorcentajeDescuento')}') : nextFocus('#{p:component('txtPrecio')}')" />
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_peso}" rendered="#{facturaClienteAgilBean.indicadorManejoPeso}">
+												<p:inputText value="#{_detalleFacturaCliente.peso}" id="txtPeso" size="9"
+													rendered="#{_detalleFacturaCliente.producto.indicadorManejoPeso}">
+													<f:validateBean />
+													<p:ajax listener="#{facturaClienteAgilBean.totalizar}" process="@this" event="change" global="false"
+														update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura"
+														oncomplete="nextFocus('#{p:component('txtPrecio')}')" />
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+												<p:inputText value="#{_detalleFacturaCliente.precio}" id="txtPrecio" size="10"
+													disabled="#{facturaClienteAgilBean.organizacionTextilPadilla or !facturaClienteAgilBean.facturaCliente.empresaFinal.cliente.indicadorEditarPrecio}">
+													<f:validateBean />
+													<p:ajax listener="#{facturaClienteAgilBean.totalizar}" process="@this" event="change" global="false"
+														update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura"
+														oncomplete="nextFocus('#{p:component('txtPorcentajeDescuento')}')" />
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_unitario}">
+												<h:outputText value="#{_detalleFacturaCliente.descuento}" id="txtDescuento">
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTPorcentaje tableCell">
+												<f:facet name="header">
+													<h:outputText value="%" />
+													<br />
+													<p:spinner value="#{facturaClienteAgilBean.descuentoGeneral}" id="txtDescuentoGeneral" min="0" stepFactor="1" size="3" max="100">
+														<p:ajax event="change" listener="#{facturaClienteAgilBean.actualizarPorcentajeDescuentoGeneral}" process="@this,txtDescuentoGeneral"
+															update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura,
+															:form:tvDetalleFactura:panelDetFormaCobro"></p:ajax>
+													</p:spinner>
+												</f:facet>
+												<p:inputText value="#{_detalleFacturaCliente.porcentajeDescuento}" id="txtPorcentajeDescuento" size="5">
+													<p:ajax listener="#{facturaClienteAgilBean.actualizarPorcentajeDescuento}" process="@this,txtCantidad,txtPrecio"
+														update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura" event="change" global="false"
+														oncomplete="#{facturaClienteAgilBean.organizacionTextilPadilla} ? nextFocus('#{p:component('acLote')}') : nextFocus('#{p:component('txtCodigoProducto')}')" />
+												</p:inputText>
+											</p:column>
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_linea}">
+												<h:outputText value="#{_detalleFacturaCliente.descuentoLinea}" style="text-align:right" id="lblDescuentoLinea">
+													<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_linea}">
+												<h:outputText value="#{_detalleFacturaCliente.precioLinea}" style="text-align:right" id="lblPrecioLinea">
+													<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+											<p:column styleClass="columnaDTLote tableCell" headerText="#{msgs.lbl_lote}">
+												<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text"
+													value="#{_detalleFacturaCliente.detalleDespachoCliente.inventarioProducto.lote}" size="40"
+													completeMethod="#{facturaClienteAgilBean.autocompletarLotes}" var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}"
+													forceSelection="true" dropdown="false" minQueryLength="2" required="#{_detalleFacturaCliente.producto.indicadorLote}"
+													rendered="#{_detalleFacturaCliente.producto.indicadorLote}" disabled="#{_detalleFacturaCliente.id>0}">
+													<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+													<p:ajax event="itemSelect" process="@this" update=":form:tvDetalleFactura:panelDetalleFactura"
+														listener="#{facturaClienteAgilBean.actualizarSaldo}" />
+												</p:autoComplete>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarDetalle" action="#{facturaClienteAgilBean.eliminarDetalle}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tvDetalleFactura:panelDetalleFactura,:form:tvDetalleFactura:panelImpuestoDetalleFactura"
+													process="@this">
+												</p:commandButton>
+											</p:column>
+											<p:columnGroup type="footer" id="panelTotal">
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_subtotal}:" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotal">
+															<h:outputText value="#{facturaClienteAgilBean.facturaCliente.total}" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_descuento}:" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right">
+															<h:outputText value="#{facturaClienteAgilBean.facturaCliente.descuento}" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row rendered="#{facturaClienteAgilBean.facturaCliente.montoIce > 0}">
+													<p:column colspan="11" footerText="#{msgs.lbl_indicador_impuesto_ice}:	" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{facturaClienteAgilBean.facturaCliente.montoIce}" style="text-align:right" id="txtIce">
+																<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_producto_indicador_impuestos}" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtImpuesto">
+															<h:outputText value="#{facturaClienteAgilBean.facturaCliente.impuesto}" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_descuento_impuesto}" style="text-align:right">
+													</p:column>
+													<p:column>
+														<f:facet name="footer">
+															<h:outputText value="#{facturaClienteAgilBean.facturaCliente.descuentoImpuesto}" style="text-align:right" id="txtDescuentoImpuesto">
+																<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+												<p:row>
+													<p:column colspan="11" footerText="#{msgs.lbl_total}:" style="text-align:right">
+													</p:column>
+													<p:column style="text-align:right">
+														<f:facet name="footer" colspan="10" style="text-align:right" id="txtSubtotal">
+															<h:outputText value="#{facturaClienteAgilBean.facturaCliente.totalFactura}" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+											</p:columnGroup>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_detalle_impuesto}" id="tabImpuestoDetalleFactura">
+								<p:outputPanel id="panelImpuestoDetalleFactura">
+									<h:panelGrid columns="1" id="panelImpuestoDetalle" style="width:100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{facturaClienteAgilBean.listaImpuestoProductoFacturaCliente}"
+											id="tablaImpuestoDetalleFacturaCLiente" rowIndexVar="secuencial" binding="#{facturaClienteAgilBean.dtImpuestoDetalleFacturaCliente}"
+											emptyMessage="#{msgs.msg_no_hay_datos}" var="_impuestoDetalleFacturaCliente" paginator="true" paginatorPosition="bottom" style="width:100%"
+											rows="#{facturaClienteAgilBean.numeroFilas}" rowsPerPageTemplate="#{facturaClienteAgilBean.numeroFilasPorPagina}"
+											rowKey="#{_impuestoDetalleFacturaCliente.id}">
+											<p:column headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_nombre_producto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.detalleFacturaCliente.producto.nombreComercial}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_nombre_impuesto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.impuesto.nombre}" id="txtNombreProductoImpuesto">
+												</h:outputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_porcentaje_impuesto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.porcentajeImpuesto}" id="txtPorcentajeProductoImpuesto" style="text-align:right">
+												</h:outputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_base_imponible}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.detalleFacturaCliente.baseImponible}" id="txtBaseImpuesto" style="text-align:right">
+												</h:outputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_valor_impuesto}">
+												<h:outputText value="#{_impuestoDetalleFacturaCliente.impuestoProducto}" id="txtImpuestoProducto" style="text-align:right">
+												</h:outputText>
+											</p:column>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+							<p:tab title="#{msgs.lbl_forma_cobro}" id="tabFormaCobroFactura">
+								<h:panelGrid id="panelCabecera" columns="6" style="text-align:left;">
+									<p:commandButton process="@this,tablaDetalleFormaCobro" value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalleFormaCobro"
+										update=":form:tvDetalleFactura:panelDetalleFormaCobroLista,btnAgregarDetalleFormaCobro"
+										action="#{facturaClienteAgilBean.crearDetalleFormaCobro}" />
+									<h:outputText value="" />
+									<h:outputText value="#{msgs.lbl_documento}" />
+									<h:panelGroup>
+										<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{facturaClienteAgilBean.documento.idDocumento}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{facturaClienteAgilBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+												itemValue="#{_documento.idDocumento}" />
+											<p:ajax process="@this" listener="#{facturaClienteAgilBean.actualizarDocumentoCobro}" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</h:panelGroup>
+									<h:outputText value="#{msgs.lbl_total}" />
+									<p:outputPanel id="totalFactura" autoUpdate="true">
+										<h:outputText value="#{facturaClienteAgilBean.facturaCliente.totalFactura}">
+											<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+										</h:outputText>
+									</p:outputPanel>
+								</h:panelGrid>
+								<p:outputPanel id="panelDetFormaCobro">
+									<h:panelGrid columns="1" id="panelDetalleFormaCobroLista" width="100%">
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaCobro" rowIndexVar="secuencialFormaCobro"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{facturaClienteAgilBean.listaDetalleFormaCobro}" var="_formaCobro"
+											binding="#{facturaClienteAgilBean.dtDetalleFormaCobro}" paginator="false" style="width:100%" rows="#{facturaClienteAgilBean.numeroFilas}"
+											rowKey="#{_formaCobro.hashCode}">
+											<p:column styleClass="columnaDTAccion" headerText="Nº">
+												<h:outputText value="#{secuencialFormaCobro+1}" />
+											</p:column>
+											<p:column headerText="#{msgs.lbl_depositar_en}">
+												<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" value="#{_formaCobro.cuentaBancariaOrganizacion}"
+													required="true">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{facturaClienteAgilBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+														itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+													<f:validateBean />
+													<p:ajax process="@this" update="cboFormaPago,txtCuentaContableBanco" global="false"
+														listener="#{facturaClienteAgilBean.actualizarCuentaBancaria}" />
+												</p:selectOneMenu>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_cuenta_contable}">
+												<p:outputPanel id="txtCuentaContableBanco">
+													<h:outputText value="#{_formaCobro.cuentaContableFormaCobro.codigo}" rendered="#{!_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}"
+														title="#{_formaCobro.cuentaContableFormaCobro.nombre}">
+													</h:outputText>
+													<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaCobro" required="true" value="#{_formaCobro.cuentaContableFormaCobro}"
+														rendered="#{_formaCobro.cuentaBancariaOrganizacion.indicadorCruce}">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+															var="_cuentaContableFormaCobro"
+															itemLabel="#{_cuentaContableFormaCobro.cuentaContable.codigo}   #{_cuentaContableFormaCobro.cuentaContable.nombre}"
+															itemValue="#{_cuentaContableFormaCobro.cuentaContable}" />
+														<p:ajax process="@this" global="false" update=":form:tvDetalleFactura:panelDetFormaCobro" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:outputPanel>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_forma_pago}">
+												<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{_formaCobro.formaPago}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{_formaCobro.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+														itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+													<f:validateBean />
+													<p:ajax process="@this" global="false" update=":form:tvDetalleFactura:panelDetFormaCobro"
+														listener="#{facturaClienteAgilBean.actualizarFormaPago}" />
+												</p:selectOneMenu>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_valor}">
+												<p:inputText styleClass="input-text" id="txtValorFormaCobro" value="#{_formaCobro.valor}" disabled="#{_formaCobro.cobro.id > 0}">
+													<p:ajax event="change" update=":form:tvDetalleFactura:panelDetFormaCobro" global="false" process="@this"
+														oncomplete="nextFocus('#{p:component('txtReferenciaFormaCobro')}')"></p:ajax>
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_documento_referencia}">
+												<p:inputText styleClass="input-text" id="txtReferenciaFormaCobro" value="#{_formaCobro.documentoReferencia}">
+													<f:validateBean />
+													<p:ajax event="change" process="@this" global="false"></p:ajax>
+												</p:inputText>
+											</p:column>
+											<p:column headerText="#{msgs.lbl_voucher}" styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnVoucher" rendered="#{_formaCobro.formaPago.indicadorTarjetaCredito}"
+													action="#{facturaClienteAgilBean.actualizarVoucher}" icon="ui-icon-document" title="#{msgs.lbl_datos_voucher}"
+													update=":form:panelVoucher" process="@this txtValorFormaCobro" oncomplete="voucherDialog.show();">
+												</p:commandButton>
+											</p:column>
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarFormaCobro" action="#{facturaClienteAgilBean.eliminarFormaCobro}" icon="ui-icon-trash"
+													title="#{msgs.lbl_eliminar}" update=":form:tvDetalleFactura:panelDetalleFormaCobroLista" process="@this" />
+											</p:column>
+											<p:columnGroup type="footer">
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_total}" style="text-align:right" />
+													<p:column style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{facturaClienteAgilBean.totalLiquidarFormaCobro}" style="text-align:right">
+																<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+											</p:columnGroup>
+										</p:dataTable>
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+					</p:panel>
+				</p:outputPanel>
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_factura_cliente_agil}" rendered="#{!facturaClienteAgilBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturaCliente" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{facturaClienteAgilBean.listaFacturaCliente}" var="_facturaCliente" paginator="true"
+							binding="#{facturaClienteAgilBean.dtFacturaCliente}" rows="#{facturaClienteAgilBean.numeroFilas}" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{facturaClienteAgilBean.numeroFilasPorPagina}" selection="#{facturaClienteAgilBean.facturaCliente}"
+							selectionMode="single" rowKey="#{_facturaCliente.id}" sortBy="#{_facturaCliente.fechaCreacion}" sortOrder="DESCENDING" lazy="true">
+
+							<p:ajax process="@this" partialSubmit="true" global="false" event="rowToggle" listener="#{facturaClienteAgilBean.cargarDatosFactura}"
+								update=":form:tablaFacturaCliente:outListaEstadoCuentaClienteFactura" />
+
+							<p:column style="width:16px">
+								<p:rowToggler />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell" sortBy="#{_facturaCliente.numero}" filterBy="#{_facturaCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaCliente.numero}" />
+
+							</p:column>
+
+							<p:column sortBy="#{_facturaCliente.empresa.nombreFiscal}" filterBy="#{_facturaCliente.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_facturaCliente.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.fecha}">
+									<f:convertDateTime pattern="#{facturaClienteAgilBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_facturaCliente.total}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_subtotal}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.total}">
+									<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_facturaCliente.descuento}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.descuento}">
+									<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_indicador_impuesto_ice}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.montoIce}">
+									<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_facturaCliente.impuesto}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_indicador_impuestos}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.impuesto}">
+									<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_facturaCliente.descuentoImpuesto}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descuento_impuesto}" />
+								</f:facet>
+
+								<h:outputText value="#{_facturaCliente.descuentoImpuesto}">
+									<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.totalFactura}">
+									<f:convertNumber pattern="#{facturaClienteAgilBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_facturaCliente.despachoCliente.numero}"
+								filterBy="#{_facturaCliente.despachoCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_despacho}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _facturaCliente.despachoCliente}" target="_blank" outcome="/paginas/ventas/procesos/despachoCliente"
+									value="#{_facturaCliente.despachoCliente.numero}" includeViewParams="true">
+									<f:param name="idDespachoCliente" value="#{_facturaCliente.despachoCliente.id}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroFactura" sortBy="#{_facturaCliente.asiento.numero}" filterBy="#{_facturaCliente.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _facturaCliente.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_facturaCliente.asiento.numero}">
+									<f:param name="idAsiento" value="#{_facturaCliente.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="indicadorEmisionRetencion" filterBy="indicadorEmisionRetencion"
+								filterOptions="#{facturaClienteAgilBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_factura_proveedor_indicador_retencion_emitida}" />
+								</f:facet>
+								<h:selectBooleanCheckbox rendered="#{not empty _facturaCliente.facturaClienteSRI}" value="#{_facturaCliente.indicadorEmisionRetencion}"
+									disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_facturaCliente.estado}" filterBy="#{_facturaCliente.estado}"
+								filterOptions="#{facturaClienteAgilBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_facturaCliente.descripcion}" filterBy="#{_facturaCliente.descripcion}" styleClass="columnaDT">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_facturaCliente.descripcion}" />
+								<!--<as2:inputTextNota value="#{_facturaCliente.descripcion}" />-->
+							</p:column>
+
+							<p:column sortBy="#{_facturaCliente.facturaClienteSRI.mensajeSRI}" filterBy="#{_facturaCliente.facturaClienteSRI.mensajeSRI}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado } SRI" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_facturaCliente.facturaClienteSRI.mensajeSRI}" />
+							</p:column>
+
+							<p:rowExpansion>
+								<ui:include src="/template/listaEstadoCuentaClienteFactura.xhtml">
+									<ui:param name="bean" value="#{facturaClienteAgilBean}" />
+								</ui:include>
+							</p:rowExpansion>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{facturaClienteAgilBean.facturaCliente.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{facturaClienteAgilBean.facturaCliente.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{facturaClienteAgilBean.facturaCliente.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{facturaClienteAgilBean.facturaCliente.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>
+
+</html>

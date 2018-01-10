@@ -1,0 +1,1246 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{documentoContabilizacionBean}">							
+					<as2:buttonExportaExcel bean="#{documentoContabilizacionBean}" tabla=":form:tablaDocumentoContabilizacion"/>
+				</as2:toolBar>				
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{documentoContabilizacionBean}" />
+					<ui:param name="objetoActualizar" value=":form:tabView:panelCriterioContabilizacion :form:tabView:panelCriterioDistribucion" />
+					<ui:param name="listadoFiltrado" value="true" />
+					<ui:param name="mostrarCantidad" value="false" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_documento_panel}" rendered="#{documentoContabilizacionBean.editado}">
+
+						<h:panelGrid columns="1">
+							<p:fieldset>
+
+								<h:panelGrid id="panelDetalle" columns="#{documentoContabilizacionBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_nombre}:" />
+									<p:outputPanel id="txtNombreDocumento">
+										<h:outputText
+											value="#{documentoContabilizacionBean.documentoBase.nombre}  (#{documentoContabilizacionBean.documentoContabilizacion.procesoContabilizacion.nombre})" />
+
+									</p:outputPanel>
+									
+									<p:spacer />
+									
+									<p:commandButton value="#{msgs.btn_crear_documento_contabilizacion}" id="btnProcesar" update=":form:panelTabDocumentoContabilizacion :form:btnProcesar"
+										action="#{documentoContabilizacionBean.crearDocumentoContabilizacionDescuentoImpuestoVentas}" process="@this"
+										rendered="#{documentoContabilizacionBean.habilitarBotonCrear}" />
+
+								</h:panelGrid>
+							</p:fieldset>
+
+							<p:spacer width="2px" />
+							<p:outputPanel id="panelTabDocumentoContabilizacion">
+								<p:tabView id="tabView">
+
+									<!-- <p:ajax event="tabChange" process=":form:tabView:panelDocumentoContabilizacion" update=":form:tabView:panelCriterioContabilizacion :form:tabView:panelCriterioDistribucion"
+										global="false" /> -->
+
+									<p:tab title="#{msgs.lbl_documento_contabilizacion}" id="tabDocumentoContabilizacion">
+										<p:panel id="panelDocumentoContabilizacion">
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{documentoContabilizacionBean.listaDocumentoContabilizacion}" id="tablaProcesosDocumentoContabilizacion"
+												rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_documentoContabilizacion" paginator="true"
+												paginatorPosition="bottom" style="width:100%" binding="#{documentoContabilizacionBean.dtDocumentoContabilizacion}"
+												rowKey="#{_documentoContabilizacion.id}" rows="#{documentoContabilizacionBean.numeroFilas}" lazy="true">
+
+												<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_proceso}">
+													<h:outputText value="#{_documentoContabilizacion.procesoContabilizacion.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_debe}">
+													<p:selectBooleanCheckbox value="#{_documentoContabilizacion.debe}" readonly="true" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTActivo" headerText="#{msgs.lbl_haber}">
+													<p:selectBooleanCheckbox value="#{_documentoContabilizacion.haber}" readonly="true" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion" headerText="#{msgs.lbl_seleccionar}">
+													<p:commandButton icon="ui-icon-gear"
+														actionListener="#{documentoContabilizacionBean.seleccionarDocumentoContabilizacion(_documentoContabilizacion)}"
+														process="@this,:form:tabView:panelDocumentoContabilizacion" update=":form:tabView:panelCriterioContabilizacion :form:txtNombreDocumento" partialSubmit="true">
+													</p:commandButton>
+												</p:column>
+											</p:dataTable>
+										</p:panel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_criterio_contabilizacion}">
+										<p:outputPanel id="panelCriterioContabilizacion">
+
+											<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarCriterioContabilizacion"
+												action="#{documentoContabilizacionBean.agregarCriterioContabilizacion}" update=":form:tabView:panelCriterioContabilizacion"
+												process="@this" icon="ui-icon-plus" partialSubmit="true"/>
+												
+												
+											<p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+												<p:dataExporter type="xls" target="tablaCriterioContabilizacion" fileName="tablaCriterioContabilizacion" postProcessor="true"
+													pageOnly="false"  />
+											</p:commandButton>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCriterioContabilizacion" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+												binding="#{documentoContabilizacionBean.dtCriterioContabilizacion}" value="#{documentoContabilizacionBean.listaCriterioContabilizacion}"
+												var="_criterioContabilizacion" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowsPerPageTemplate="#{documentoContabilizacionBean.numeroFilasPorPagina}" rows="#{documentoContabilizacionBean.numeroFilas}"
+												rowKey="#{_criterioContabilizacion.id}" columnClasses="rowIndex" editable="true" editMode="cell">
+
+												<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencia+1}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion" exportable="false">
+													<p:commandButton value="..." process="@this" partialSubmit="true"
+														actionListener="#{documentoContabilizacionBean.listaCuentaContableBean.listarCuentaContable}">
+														<p:ajax event="dialogReturn" partialSubmit="true" listener="#{documentoContabilizacionBean.seleccionarCuentaContable}"
+															update="txtCodigoCuenta txtNombreCuenta" />
+														<f:setPropertyActionListener target="#{documentoContabilizacionBean.criterioContabilizacion}" value="#{_criterioContabilizacion}" />
+														<f:setPropertyActionListener target="#{documentoContabilizacionBean.listaCuentaContableBean.prefijoBusquedaCuenta}" value="#{null}" />
+														<f:setPropertyActionListener target="#{documentoContabilizacionBean.criterioDistribucion}" value="#{null}" />
+													</p:commandButton>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTCodigoCuenta" headerText="#{msgs.lbl_codigo}">
+													<p:inputText styleClass="input-text" value="#{_criterioContabilizacion.cuentaContable.codigoCuentaTransient}" id="txtCodigoCuenta">
+														<p:ajax listener="#{documentoContabilizacionBean.buscarCuentaContable}" process="@this"
+															update="txtCodigoCuenta txtNombreCuenta" event="change" partialSubmit="true" global="false" />
+													</p:inputText>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cuenta_contable}">
+													<h:outputText id="txtNombreCuenta" value="#{_criterioContabilizacion.cuentaContable.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTCodigoCuenta" headerText="#{msgs.lbl_documento}" rendered="#{documentoContabilizacionBean.mostrarDocumento}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.documento.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.documento}" id="cbodocumento">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+																	itemValue="#{_documento}" />
+																<f:validateBean />
+																<p:ajax event="change" partialSubmit="true" process="@this" update="@this" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor> 
+												</p:column>
+
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_sucursal}" rendered="#{documentoContabilizacionBean.mostrarSucursal}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.sucursal.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.sucursal}" id="cbosucursal">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+																	itemValue="#{_sucursal}" />
+																<f:validateBean />
+																<p:ajax event="change" partialSubmit="true" process="@this" update="@this" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_concepto_contable}"
+													rendered="#{documentoContabilizacionBean.mostrarConceptoContable}">
+													<p:selectOneMenu value="#{_criterioContabilizacion.conceptoContable}" id="cboConceptoContable">
+														<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+														<f:selectItems value="#{documentoContabilizacionBean.listaConceptoContable}" var="_conceptoContable"
+															itemLabel="#{_conceptoContable.nombre}" itemValue="#{_conceptoContable}" />
+														<f:validateBean />
+														<p:ajax event="change" partialSubmit="true" process="@this" update="@this" />
+													</p:selectOneMenu>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_empresa_categoria_empresa}"
+													rendered="#{documentoContabilizacionBean.mostrarCategoriaEmpresa}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.categoriaEmpresa.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.categoriaEmpresa}" id="cboCategoriaEmpresa">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCategoriaEmpresa}" var="_categoriaEmpresa"
+																	itemLabel="#{_categoriaEmpresa.nombre}" itemValue="#{_categoriaEmpresa}" />
+																<f:validateBean />
+																<p:ajax event="change" partialSubmit="true" process="@this" update="@this" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cliente}" rendered="#{documentoContabilizacionBean.mostrarCliente}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.cliente.nombreFiscal}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}"  id="cboCliente" value="#{_criterioContabilizacion.cliente}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+																itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" size="500" >
+																<p:column>#{_cliente.identificacion}</p:column>
+																<p:column>#{_cliente.nombreFiscal}</p:column>
+																<p:column>#{_cliente.nombreComercial}</p:column>
+																<p:ajax process="@this" event="itemSelect" partialSubmit="true" update="@this" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_proveedor}" rendered="#{documentoContabilizacionBean.mostrarProveedor}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.proveedor.nombreFiscal}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}"  id="cboProveedor" value="#{_criterioContabilizacion.proveedor}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+																itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" size="500" >
+																<p:column>#{_proveedor.identificacion}</p:column>
+																<p:column>#{_proveedor.nombreFiscal}</p:column>
+																<p:column>#{_proveedor.nombreComercial}</p:column>
+																<p:ajax process="@this" event="itemSelect" partialSubmit="true" update="@this" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_categoria_producto}"
+													rendered="#{documentoContabilizacionBean.mostrarCategoriaProducto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.categoriaProducto.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.categoriaProducto}" id="cboCategoriaProducto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCategoriaProducto}" var="_categoriaProducto"
+																	itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false"
+																	action="#{documentoContabilizacionBean.seleccionarCriterioContabilizacion(_criterioContabilizacion)}" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_producto_subcategoria_producto}"
+													rendered="#{documentoContabilizacionBean.mostrarSubcategoriaProducto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.subcategoriaProducto.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="cboSubcategoriaProducto"
+																value="#{_criterioContabilizacion.subcategoriaProducto}" completeMethod="#{documentoContabilizacionBean.autocompletarSubcategoriaProducto}"
+																var="_subcategoriaProducto" itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" forceSelection="true"
+																dropdown="true" minQueryLength="2">
+		
+																<p:column headerText="#{msgs.lbl_nombre_producto}">#{_subcategoriaProducto.nombre}</p:column>
+		
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell" rendered="#{documentoContabilizacionBean.mostrarProducto}" exportable="false">
+													<p:commandButton partialSubmit="true" icon="ui-icon-plus" process="@this" oncomplete="dglModalProducto.show();"
+														actionListener="#{documentoContabilizacionBean.seleccionarCriterioContabilizacion(_criterioContabilizacion)}">
+													</p:commandButton>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre"  headerText="#{msgs.lbl_producto}" rendered="#{documentoContabilizacionBean.mostrarProducto}">
+													<h:outputText id="lblProducto" value="#{_criterioContabilizacion.producto.codigo} #{_criterioContabilizacion.producto.nombreComercial}" />
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTBodega" headerText="#{msgs.lbl_bodega}" rendered="#{documentoContabilizacionBean.mostrarBodega}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.bodega.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.bodega}" id="cboBodega">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre"  headerText="#{msgs.lbl_destino_costo}" rendered="#{documentoContabilizacionBean.mostrarDestinoCosto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.destinoCosto.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.destinoCosto}" id="cboDestinoCosto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaDestinoCosto}" var="_destinoCosto" itemLabel="#{_destinoCosto.nombre}"
+																	itemValue="#{_destinoCosto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_zona}" rendered="#{documentoContabilizacionBean.mostrarZona}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.zona.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.zona}" id="cboZona">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_titulo_categoria_impuesto}" rendered="#{documentoContabilizacionBean.mostrarCategoriaImpuesto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.categoriaImpuesto.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.categoriaImpuesto}" id="cboCategoriaImpuesto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCategoriaImpuesto}" var="_categoriaImpuesto" itemLabel="#{_categoriaImpuesto.nombre}"
+																	itemValue="#{_categoriaImpuesto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre_impuesto}" rendered="#{documentoContabilizacionBean.mostrarImpuesto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.impuesto.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.impuesto}" id="cboImpuesto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaImpuesto}" var="_impuesto" itemLabel="#{_impuesto.nombre}"
+																	itemValue="#{_impuesto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_canal}" rendered="#{documentoContabilizacionBean.mostrarCanal}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.canal.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.canal}" id="cboCanal">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCanal}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_motivo} #{msgs.lbl_nota_credito_cliente}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoNotaCreditoCliente}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.motivoNotaCreditoCliente.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.motivoNotaCreditoCliente}" id="cboMotivoNotaCreditoCliente">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoNotaCreditoCliente}" var="_motivoNotaCreditoCliente"
+																	itemLabel="#{_motivoNotaCreditoCliente.nombre}" itemValue="#{_motivoNotaCreditoCliente}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo} #{msgs.lbl_nota_credito_proveedor}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoNotaCreditoProveedor}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.motivoNotaCreditoProveedor.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.motivoNotaCreditoProveedor}" id="cboMotivoNotaCreditoProveedor">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoNotaCreditoProveedor}" var="_motivoNotaCreditoProveedor"
+																	itemLabel="#{_motivoNotaCreditoProveedor.nombre}" itemValue="#{_motivoNotaCreditoProveedor}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo_ajuste_inventario}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoAjusteInventario and documentoContabilizacionBean.documentoContabilizacion.procesoContabilizacion.indicadorMotivoAjusteInventario}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.motivoAjusteInventario.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.motivoAjusteInventario}" id="cboMotivoAjusteInventario">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoAjusteInventario}" var="_motivoAjusteInventario"
+																	itemLabel="#{_motivoAjusteInventario.nombre}" itemValue="#{_motivoAjusteInventario}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo_baja_activo}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoBajaActivo}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.motivoBajaActivo.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.motivoBajaActivo}" id="cboMotivoBajaActivo">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoBajaActivo}" var="_motivoBajaActivo"
+																	itemLabel="#{_motivoBajaActivo.nombre}" itemValue="#{_motivoBajaActivo}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_categoria_activo}"
+													rendered="#{documentoContabilizacionBean.mostrarCategoriaActivo}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.categoriaActivo.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioContabilizacion.categoriaActivo}" id="cboCategoriaActivo">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCategoriaActivo}" var="_categoriaActivo"
+																	itemLabel="#{_categoriaActivo.nombre}" itemValue="#{_categoriaActivo}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_activo_fijo}" rendered="#{documentoContabilizacionBean.mostrarActivoFijo}">
+													<p:cellEditor> 
+															<f:facet name="output"> 
+																<h:outputText value="#{_criterioContabilizacion.activoFijo.nombre}" /> 
+															</f:facet> 
+															
+															<f:facet name="input"> 
+																<p:selectOneMenu value="#{_criterioContabilizacion.activoFijo}" id="cboActivoFijo">
+																	<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																	<f:selectItems value="#{documentoContabilizacionBean.listaActivoFijo}" var="_activoFijo" itemLabel="#{_activoFijo.nombre}"
+																		itemValue="#{_activoFijo}" />
+																	<f:validateBean />
+																	<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+																</p:selectOneMenu>
+															</f:facet>
+													</p:cellEditor> 
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_empleado}" rendered="#{documentoContabilizacionBean.mostrarEmpleado}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.empleado.apellidos} #{_criterioContabilizacion.empleado.nombres}" /> 
+														</f:facet> 
+														
+														<f:facet name="input"> 
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_criterioContabilizacion.empleado}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarEmpleado}" var="_empleado"
+																itemLabel="#{_empleado.apellidos} #{_empleado.nombres}" itemValue="#{_empleado}" forceSelection="true" dropdown="true"
+																minQueryLength="2" size="50" id="autoEmpleado">
+		
+																<p:column>#{_empleado.apellidos}</p:column>
+																<p:column>#{_empleado.nombres}</p:column>
+		
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" />
+		
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor> 
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_departamento}" rendered="#{documentoContabilizacionBean.mostrarDepartamento}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.departamento.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input"> 
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_criterioContabilizacion.departamento}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarDepartamento}" var="_dept" itemLabel="#{_dept.nombre}" itemValue="#{_dept}"
+																forceSelection="true" dropdown="true" minQueryLength="2" id="autoDept">
+																<p:column>
+																	<h:outputText value="#{_dept.nombre}" />
+																</p:column>
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" global="false" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor> 
+												</p:column>
+
+												<!-- RUBRO -->
+												<p:column  styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_rubro}" rendered="#{documentoContabilizacionBean.mostrarRubro}" filterBy="#{_criterioContabilizacion.rubro.nombre}"> 
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.rubro.nombre}" /> 
+														</f:facet> 
+										
+														<f:facet name="input"> 
+														<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_criterioContabilizacion.rubro}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarRubro}" var="_rubro" itemLabel="#{_rubro.nombre}" itemValue="#{_rubro}"
+																forceSelection="true" dropdown="true" minQueryLength="2" id="autoRubro">
+																<p:column>
+																	<h:outputText value="#{_rubro.nombre}" />
+																</p:column>
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" global="false" />
+															</p:autoComplete> 
+														</f:facet>
+													</p:cellEditor> 
+												</p:column> 
+												<!-- FIN RUBRO -->
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_tipo_amortizacion}" rendered="#{documentoContabilizacionBean.mostrarTipoAmortizacion}"> 
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioContabilizacion.tipoAmortizacion.nombre}" /> 
+														</f:facet> 
+										
+														<f:facet name="input"> 
+															<p:selectOneMenu value="#{_criterioContabilizacion.tipoAmortizacion}" id="cboTipoAmortizacion">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaTipoAmortizacion}" var="_tipoAmortizacion" itemLabel="#{_tipoAmortizacion.nombre}"
+																	itemValue="#{_tipoAmortizacion}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor> 
+												</p:column> 
+
+												<p:column styleClass="tableCell columnaDTNombreCorto" headerText="#{msgs.lbl_orden}" exportable="false">
+													<p:inputText value="#{_criterioContabilizacion.orden}" id="cboOrden" size="4" maxlength="4" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion" exportable="false">
+													<p:commandButton partialSubmit="true" id="btnEliminarCriterioContabilizacion" action="#{documentoContabilizacionBean.eliminarCriterioContabilizacion}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tabView:panelCriterioContabilizacion" process="@this" />
+												</p:column>
+											</p:dataTable>
+										</p:outputPanel>
+									</p:tab>
+									<p:tab title="#{msgs.lbl_criterio_distribucion}">
+										<p:outputPanel id="panelCriterioDistribucion">
+
+											<p:commandButton value="#{msgs.btn_agregar}" id="btnAgregarCriterioDistribucion"
+												action="#{documentoContabilizacionBean.agregarCriterioDistribucion}" update=":form:tabView:panelCriterioDistribucion"
+												process="@this, :form:tabView:panelCriterioDistribucion" icon="ui-icon-plus" partialSubmit="true" />
+												
+											<p:commandButton title="#{msgs.lbl_excel}" icon="excel" ajax="false">
+												<p:dataExporter type="xls" target="tablaCriterioDistribucion" fileName="tablaCriterioDistribucion" postProcessor="true"
+													pageOnly="false"  />
+											</p:commandButton>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCriterioDistribucion" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+												binding="#{documentoContabilizacionBean.dtCriterioDistribucion}" value="#{documentoContabilizacionBean.listaCriterioDistribucion}"
+												var="_criterioDistribucion" paginator="true" paginatorPosition="bottom" style="width:100%"
+												rowsPerPageTemplate="#{documentoContabilizacionBean.numeroFilasPorPagina}" rows="#{documentoContabilizacionBean.numeroFilas}"
+												rowKey="#{_criterioDistribucion.id}" columnClasses="rowIndex" editable="true" editMode="cell">
+
+												<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+													<h:outputText value="#{secuencia+1}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" rendered="#{not empty documentoContabilizacionBean.nombreDimension1}" exportable="false">
+													<h:panelGroup>
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelCriterioDistribucion" partialSubmit="true" actionListener="#{documentoContabilizacionBean.listaDimensionContableBean.listarDimensionContableListener('1')}">
+															<p:ajax partialSubmit="true" event="dialogReturn" listener="#{documentoContabilizacionBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelCriterioDistribucion"/>
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioDistribucion}"
+																value="#{_criterioDistribucion}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioContabilizacion}"
+																value="#{null}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.listaDimensionContableBean.numeroDimension}"
+																value="1" />
+														</p:commandButton>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" rendered="#{not empty documentoContabilizacionBean.nombreDimension1}"
+													headerText="#{documentoContabilizacionBean.nombreDimension1}" id="dimensionContable1">
+														
+													<h:outputText value="#{_criterioDistribucion.dimensionContable1.nombre}" />
+												</p:column>
+												
+												<p:column styleClass="tableCell" rendered="#{not empty documentoContabilizacionBean.nombreDimension2}" exportable="false">
+													<h:panelGroup>
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelCriterioDistribucion" partialSubmit="true" actionListener="#{documentoContabilizacionBean.listaDimensionContableBean.listarDimensionContableListener('2')}">
+															<p:ajax partialSubmit="true" event="dialogReturn" listener="#{documentoContabilizacionBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelCriterioDistribucion"/>
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioDistribucion}"
+																value="#{_criterioDistribucion}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioContabilizacion}"
+																value="#{null}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.listaDimensionContableBean.numeroDimension}"
+																value="2" />
+														</p:commandButton>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" rendered="#{not empty documentoContabilizacionBean.nombreDimension2}"
+													headerText="#{documentoContabilizacionBean.nombreDimension2}" id="dimensionContable2">
+
+													<h:outputText value="#{_criterioDistribucion.dimensionContable2.nombre}" />
+												</p:column>
+												
+												<p:column styleClass="tableCell" rendered="#{not empty documentoContabilizacionBean.nombreDimension3}">
+													<h:panelGroup>
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelCriterioDistribucion" partialSubmit="true" actionListener="#{documentoContabilizacionBean.listaDimensionContableBean.listarDimensionContableListener('3')}">
+															<p:ajax partialSubmit="true" event="dialogReturn" listener="#{documentoContabilizacionBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelCriterioDistribucion"/>
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioDistribucion}"
+																value="#{_criterioDistribucion}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioContabilizacion}"
+																value="#{null}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.listaDimensionContableBean.numeroDimension}"
+																value="3" />
+														</p:commandButton>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" rendered="#{not empty documentoContabilizacionBean.nombreDimension3}"
+													headerText="#{documentoContabilizacionBean.nombreDimension3}" id="dimensionContable3">
+													
+													<h:outputText value="#{_criterioDistribucion.dimensionContable3.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell" rendered="#{not empty documentoContabilizacionBean.nombreDimension4}">
+													<h:panelGroup>
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelCriterioDistribucion" partialSubmit="true" actionListener="#{documentoContabilizacionBean.listaDimensionContableBean.listarDimensionContableListener('4')}">
+															<p:ajax partialSubmit="true" event="dialogReturn" listener="#{documentoContabilizacionBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelCriterioDistribucion"/>
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioDistribucion}"
+																value="#{_criterioDistribucion}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioContabilizacion}"
+																value="#{null}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.listaDimensionContableBean.numeroDimension}"
+																value="4" />
+														</p:commandButton>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" rendered="#{not empty documentoContabilizacionBean.nombreDimension4}" 
+													headerText="#{documentoContabilizacionBean.nombreDimension4}" id="dimensionContable4">
+													
+													<h:outputText value="#{_criterioDistribucion.dimensionContable4.nombre}" />
+												</p:column>
+
+
+												<p:column styleClass="tableCell" rendered="#{not empty documentoContabilizacionBean.nombreDimension5}">
+													<h:panelGroup>
+														<p:commandButton icon="ui-icon-gear" process="@this,:form:tabView:panelCriterioDistribucion" partialSubmit="true" actionListener="#{documentoContabilizacionBean.listaDimensionContableBean.listarDimensionContableListener('5')}">
+															<p:ajax partialSubmit="true" event="dialogReturn" listener="#{documentoContabilizacionBean.seleccionarDimensionContableListener}"
+																update=":form:tabView:panelCriterioDistribucion"/>
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioDistribucion}"
+																value="#{_criterioDistribucion}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.criterioContabilizacion}"
+																value="#{null}" />
+															<f:setPropertyActionListener
+																target="#{documentoContabilizacionBean.listaDimensionContableBean.numeroDimension}"
+																value="5" />
+														</p:commandButton>
+													</h:panelGroup>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" rendered="#{not empty documentoContabilizacionBean.nombreDimension5}"
+													headerText="#{documentoContabilizacionBean.nombreDimension5}" id="dimensionContable5">
+													
+													<h:outputText value="#{_criterioDistribucion.dimensionContable5.nombre}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_documento}" rendered="#{documentoContabilizacionBean.mostrarDocumento}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.documento.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.documento}" id="cbodocumento">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+																	itemValue="#{_documento}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" update="@this" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_sucursal}" rendered="#{documentoContabilizacionBean.mostrarSucursal}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.sucursal.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.sucursal}" id="cbosucursal">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+																	itemValue="#{_sucursal}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" update="@this" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_concepto_contable}"
+													rendered="#{documentoContabilizacionBean.mostrarConceptoContable}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.conceptoContable.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.conceptoContable}" id="cboConceptoContable">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaConceptoContable}" var="_conceptoContable"
+																	itemLabel="#{_conceptoContable.nombre}" itemValue="#{_conceptoContable}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" update="@this" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_empresa_categoria_empresa}"
+													rendered="#{documentoContabilizacionBean.mostrarCategoriaEmpresa}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.categoriaEmpresa.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.categoriaEmpresa}" id="cboCategoriaEmpresa">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCategoriaEmpresa}" var="_categoriaEmpresa"
+																	itemLabel="#{_categoriaEmpresa.nombre}" itemValue="#{_categoriaEmpresa}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" update="@this" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_cliente}" rendered="#{documentoContabilizacionBean.mostrarCliente}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.cliente.nombreFiscal}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoCliente" value="#{_criterioDistribucion.cliente}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}">
+							
+																<p:column>#{_cliente.identificacion}</p:column>
+																<p:column>#{_cliente.nombreFiscal}</p:column>
+																<p:column>#{_cliente.nombreComercial}</p:column>
+							
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" update="@this" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_proveedor}" rendered="#{documentoContabilizacionBean.mostrarProveedor}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.proveedor.nombreFiscal}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text-col" value="#{_criterioDistribucion.proveedor}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}"
+																itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" id="autProveedor">
+							
+																<p:column>#{_proveedor.identificacion}</p:column>
+																<p:column>#{_proveedor.nombreFiscal}</p:column>
+																<p:column>#{_proveedor.nombreComercial}</p:column>
+							
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" global="false" update="@this" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_categoria_producto}"
+													rendered="#{documentoContabilizacionBean.mostrarCategoriaProducto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.categoriaProducto.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.categoriaProducto}" id="cboCategoriaProducto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCategoriaProducto}" var="_categoriaProducto"
+																	itemLabel="#{_categoriaProducto.nombre}" itemValue="#{_categoriaProducto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false"
+																	action="#{documentoContabilizacionBean.seleccionarCriterioDistribucion(_criterioDistribucion)}" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_producto_subcategoria_producto}"
+													rendered="#{documentoContabilizacionBean.mostrarSubcategoriaProducto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.subcategoriaProducto.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.subcategoriaProducto}" id="cboSubcategoriaProducto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaSubcategoriaProducto}" var="_subcategoriaProducto"
+																	itemLabel="#{_subcategoriaProducto.nombre}" itemValue="#{_subcategoriaProducto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell" rendered="#{documentoContabilizacionBean.mostrarProducto}" exportable="false">
+													<p:commandButton partialSubmit="true" icon="ui-icon-plus" process="@this" oncomplete="dglModalProducto.show();"
+														actionListener="#{documentoContabilizacionBean.seleccionarCriterioDistribucion(_criterioDistribucion)}">
+													</p:commandButton>
+												</p:column>
+												
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_producto}" rendered="#{documentoContabilizacionBean.mostrarProducto}">
+													<h:outputText id="lblProducto" value="#{_criterioDistribucion.producto.codigo} #{_criterioDistribucion.producto.nombreComercial}" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_bodega}" rendered="#{documentoContabilizacionBean.mostrarBodega}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.bodega.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.bodega}" id="cboBodega">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaBodega}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre"  headerText="#{msgs.lbl_destino_costo}" rendered="#{documentoContabilizacionBean.mostrarDestinoCosto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.destinoCosto.nombre}" /> 
+														</f:facet>
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.destinoCosto}" id="cboDestinoCosto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaDestinoCosto}" var="_destinoCosto" itemLabel="#{_destinoCosto.nombre}"
+																	itemValue="#{_destinoCosto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_zona}" rendered="#{documentoContabilizacionBean.mostrarZona}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.zona.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.zona}" id="cboZona">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaZona}" var="_zona" itemLabel="#{_zona.nombre}" itemValue="#{_zona}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_nombre_impuesto}" rendered="#{documentoContabilizacionBean.mostrarImpuesto}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.impuesto.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.impuesto}" id="cboImpuesto">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaImpuesto}" var="_impuesto" itemLabel="#{_impuesto.nombre}"
+																	itemValue="#{_impuesto}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell" headerText="#{msgs.lbl_canal}" rendered="#{documentoContabilizacionBean.mostrarCanal}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.canal.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.canal}" id="cboCanal">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCanal}" var="_canal" itemLabel="#{_canal.nombre}" itemValue="#{_canal}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo} #{msgs.lbl_nota_credito_cliente}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoNotaCreditoCliente}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.motivoNotaCreditoCliente.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.motivoNotaCreditoCliente}" id="cboMotivoNotaCreditoCliente">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoNotaCreditoCliente}" var="_motivoNotaCreditoCliente"
+																	itemLabel="#{_motivoNotaCreditoCliente.nombre}" itemValue="#{_motivoNotaCreditoCliente}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo} #{msgs.lbl_nota_credito_proveedor}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoNotaCreditoProveedor}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.motivoNotaCreditoProveedor.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.motivoNotaCreditoProveedor}" id="cboMotivoNotaCreditoProveedor">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoNotaCreditoProveedor}" var="_motivoNotaCreditoProveedor"
+																	itemLabel="#{_motivoNotaCreditoProveedor.nombre}" itemValue="#{_motivoNotaCreditoProveedor}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo_ajuste_inventario}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoAjusteInventario}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.motivoAjusteInventario.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.motivoAjusteInventario}" id="cboMotivoAjusteInventario">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoAjusteInventario}" var="_motivoAjusteInventario"
+																	itemLabel="#{_motivoAjusteInventario.nombre}" itemValue="#{_motivoAjusteInventario}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_motivo_baja_activo}"
+													rendered="#{documentoContabilizacionBean.mostrarMotivoBajaActivo}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.motivoBajaActivo.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.motivoBajaActivo}" id="cboMotivoBajaActivo">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaMotivoBajaActivo}" var="_motivoBajaActivo"
+																	itemLabel="#{_motivoBajaActivo.nombre}" itemValue="#{_motivoBajaActivo}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_categoria_activo}"
+													rendered="#{documentoContabilizacionBean.mostrarCategoriaActivo}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.categoriaActivo.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.categoriaActivo}" id="cboCategoriaActivo">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaCategoriaActivo}" var="_categoriaActivo"
+																	itemLabel="#{_categoriaActivo.nombre}" itemValue="#{_categoriaActivo}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_activo_fijo}" rendered="#{documentoContabilizacionBean.mostrarActivoFijo}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.activoFijo.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.activoFijo}" id="cboActivoFijo">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaActivoFijo}" var="_activoFijo" itemLabel="#{_activoFijo.nombre}"
+																	itemValue="#{_activoFijo}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_empleado}" rendered="#{documentoContabilizacionBean.mostrarEmpleado}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.empleado.nombreCompleto}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_criterioDistribucion.empleado}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarEmpleado}" var="_empleado"
+																itemLabel="#{_empleado.apellidos} #{_empleado.nombres}" itemValue="#{_empleado}" forceSelection="true" dropdown="true"
+																minQueryLength="2" size="50" id="autoEmpleado">
+	
+																<p:column>#{_empleado.apellidos}</p:column>
+																<p:column>#{_empleado.nombres}</p:column>
+	
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" />
+
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_departamento}" rendered="#{documentoContabilizacionBean.mostrarDepartamento}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.departamento.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_criterioDistribucion.departamento}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarDepartamento}" var="_dept" itemLabel="#{_dept.nombre}" itemValue="#{_dept}"
+																forceSelection="true" dropdown="true" minQueryLength="2" id="autoDept2">
+																<p:column>
+																	<h:outputText value="#{_dept.nombre}" />
+																</p:column>
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" global="false" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_rubro}" rendered="#{documentoContabilizacionBean.mostrarRubro}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.rubro.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_criterioDistribucion.rubro}"
+																completeMethod="#{documentoContabilizacionBean.autocompletarRubro}" var="_rubro" itemLabel="#{_rubro.nombre}" itemValue="#{_rubro}"
+																forceSelection="true" dropdown="true" minQueryLength="2" id="autoRubro2">
+																<p:column>
+																	<h:outputText value="#{_rubro.nombre}" />
+																</p:column>
+		
+																<p:ajax partialSubmit="true" process="@this" event="itemSelect" global="false" />
+															</p:autoComplete>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_tipo_amortizacion}" rendered="#{documentoContabilizacionBean.mostrarTipoAmortizacion}">
+													<p:cellEditor> 
+														<f:facet name="output"> 
+															<h:outputText value="#{_criterioDistribucion.tipoAmortizacion.nombre}" /> 
+														</f:facet> 
+														
+														<f:facet name="input">
+															<p:selectOneMenu value="#{_criterioDistribucion.tipoAmortizacion}" id="cboTipoAmortizacion">
+																<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+																<f:selectItems value="#{documentoContabilizacionBean.listaTipoAmortizacion}" var="_tipoAmortizacion" itemLabel="#{_tipoAmortizacion.nombre}"
+																	itemValue="#{_tipoAmortizacion}" />
+																<f:validateBean />
+																<p:ajax partialSubmit="true" event="change" process="@this" global="false" />
+															</p:selectOneMenu>
+														</f:facet>
+													</p:cellEditor>
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTNombre" headerText="#{msgs.lbl_orden}" exportable="false">
+													<p:inputText styleClass="input-text-col" value="#{_criterioDistribucion.orden}" id="cboOrden" size="4" maxlength="4" />
+												</p:column>
+
+												<p:column styleClass="tableCell columnaDTAccion" exportable="false">
+													<p:commandButton partialSubmit="true" id="btnEliminarCriterioDistribucion" action="#{documentoContabilizacionBean.eliminarCriterioDistribucion}"
+														icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:tabView:panelCriterioDistribucion" process="@this" />
+												</p:column>
+
+											</p:dataTable>
+
+										</p:outputPanel>
+									</p:tab>
+
+
+								</p:tabView>
+							</p:outputPanel>
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_documento_panel}" rendered="#{!documentoContabilizacionBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDocumentoContabilizacion" rowIndexVar="secuencia" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{documentoContabilizacionBean.listaDocumentoBase}" var="documentoBase" binding="#{documentoContabilizacionBean.dtDocumentoBase}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{documentoContabilizacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{documentoContabilizacionBean.numeroFilasPorPagina}" selection="#{documentoContabilizacionBean.documentoBase}" 
+							selectionMode="single" rowKey="#{documentoBase}" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{documentoBase.nombre}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+					
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

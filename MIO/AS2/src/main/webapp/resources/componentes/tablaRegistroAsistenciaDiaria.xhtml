@@ -1,0 +1,141 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:composite="http://java.sun.com/jsf/composite"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:p="http://primefaces.org/ui">
+
+<!-- INTERFACE -->
+<composite:interface displayName="Asistencia">
+	<composite:attribute required="true" name="lista" />
+	<composite:attribute required="true" name="bean" />
+	<composite:attribute required="true" name="agrupado" />
+	<composite:attribute required="true" name="id" />
+	<composite:attribute required="true" name="filteredValue" />
+</composite:interface>
+
+<!-- IMPLEMENTATION -->
+<composite:implementation>
+	<p:outputPanel id="panelListadoAsistencia">
+
+		<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+			id="#{cc.attrs.id}" rowIndexVar="secuencialAsistencia"
+			emptyMessage="#{msgs.msg_no_hay_datos}" value="#{cc.attrs.lista}"
+			var="asistencia"
+			binding="#{!cc.attrs.agrupado ? reporteAsistenciaDiariaBean.dtAsistencia : reporteAsistenciaDiariaBean.dtAsistenciaResumido }"
+			paginator="true" paginatorPosition="bottom" style="width:100%"
+			rows="#{cc.attrs.bean.numeroFilas}"
+			rowsPerPageTemplate="#{cc.attrs.bean.numeroFilasPorPagina}"
+			selection="#{cc.attrs.bean.asistencia}" selectionMode="single"
+			rowKey="#{asistencia.id}" lazy="#{!cc.attrs.agrupado}"
+			filteredValue="#{cc.attrs.filteredValue}">
+
+			<p:column styleClass="columnaDTAccion" headerText="Nº">
+				<h:outputText value="#{secuencialAsistencia+1}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTNombre tableCell"
+				headerText="#{msgs.lbl_apellidos}"
+				filterBy="#{asistencia.empleado.apellidos}"
+				rendered="#{!cc.attrs.agrupado}">
+				<h:outputText value="#{asistencia.empleado.apellidos}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTNombre tableCell"
+				headerText="#{msgs.lbl_nombres}"
+				filterBy="#{asistencia.empleado.nombres}"
+				rendered="#{!cc.attrs.agrupado}">
+				<h:outputText value="#{asistencia.empleado.nombres}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTNombre tableCell"
+				headerText="#{msgs.lbl_departamento}"
+				filterBy="#{asistencia.empleado.departamento.nombre}"
+				rendered="#{!cc.attrs.agrupado}">
+				<h:outputText value="#{asistencia.empleado.departamento.nombre}" />
+			</p:column>
+
+			<p:column styleClass="columnaDTFecha tableCell"
+				headerText="#{msgs.lbl_fecha}">
+				<h:outputText value="#{asistencia.fecha}">
+					<f:convertDateTime pattern="#{cc.attrs.bean.formatoFecha}" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_entrada}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.entrada}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_entrada}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.marcacionEntrada}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_receso_salida}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.salidaReceso}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_receso_salida}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.marcacionSalidaReceso}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_receso_entrada}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.entradaReceso}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell color_gris">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_receso_entrada}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.marcacionEntradaReceso}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_hora_salida}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.salida}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+			</p:column>
+
+			<p:column styleClass="columnaDTValorCorto tableCell">
+				<f:facet name="header">
+					<h:outputText value="#{msgs.lbl_marcacion_salida}" />
+				</f:facet>
+				<h:outputText value="#{asistencia.marcacionSalida}">
+					<f:convertDateTime pattern="HH:mm" timeZone="America/Guayaquil" />
+				</h:outputText>
+			</p:column>
+		</p:dataTable>
+	</p:outputPanel>
+</composite:implementation>
+</html>

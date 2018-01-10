@@ -1,0 +1,213 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{variableCalidadProductoBean}">
+					<as2:buttonExportaExcel bean="#{variableCalidadProductoBean}" tabla=":form:tablaVariableCalidadProducto" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{variableCalidadProductoBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_variable_calidad_producto}">
+
+						<!-- INICIO DIALOG VARIABLE CALIDAD -->
+						<p:dialog header="#{msgs.lbl_panel_listado} #{msgs.lbl_variable_calidad}" widgetVar="listadoVariableCalidad" modal="true" height="360"
+							width="560" showEffect="slide" hideEffect="slide">
+							<p:outputPanel id="panelVariableCalidadDlg">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaVariableCalidad" rowIndexVar="secuencia"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{variableCalidadProductoBean.listaVariableCalidadNoAsignados}" var="_variableCalidad"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rows="10" rowKey="#{_variableCalidad.rowKey}"
+									selection="#{variableCalidadProductoBean.listaVariableCalidadSeleccionados}" rowsPerPageTemplate="#{departamentoBean.numeroFilasPorPagina}">
+
+									<p:column styleClass="columnaDTAccion tableCell" selectionMode="multiple" />
+
+									<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_variableCalidad.codigo}" filterBy="#{_variableCalidad.codigo}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+										<h:outputText value="#{_variableCalidad.codigo}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_variableCalidad.nombre}" filterBy="#{_variableCalidad.nombre}"
+										filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_nombre}" />
+										</f:facet>
+										<h:outputText value="#{_variableCalidad.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_variableCalidad.categoriaVariableCalidad.nombre}"
+										filterBy="#{_variableCalidad.categoriaVariableCalidad.nombre}" filterMatchMode="contains">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_categoria}" />
+										</f:facet>
+										<h:outputText value="#{_variableCalidad.categoriaVariableCalidad.nombre}" />
+									</p:column>
+								</p:dataTable>
+							</p:outputPanel>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_agregar_salir}" oncomplete="listadoVariableCalidad.hide();"
+										action="#{variableCalidadProductoBean.agregarVariableCalidad}" process="@this :form:panelVariableCalidadDlg"
+										update=":form:vistaTab:panelVariableCalidad" />
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- FIN DIALOG DE VARIABLE CALIDAD -->
+
+						<h:panelGrid id="panelDetalle" columns="#{variableCalidadProductoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+							<p:outputLabel value="#{msgs.lbl_codigo}:" />
+							<h:outputText styleClass="input-text" value="#{variableCalidadProductoBean.producto.codigo}" />
+
+							<p:outputLabel value="#{msgs.lbl_nombre}:" />
+							<h:outputText styleClass="input-text" value="#{variableCalidadProductoBean.producto.nombre}" />
+						</h:panelGrid>
+
+						<p:tabView id="vistaTab" cache="true" dynamic="true">
+							<p:tab title="#{msgs.lbl_variable_calidad}" id="tabVariableCalidad">
+								<p:outputPanel id="panelVariableCalidad">
+									<p:panel>
+										<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarVariableCalidad" oncomplete="listadoVariableCalidad.show()"
+											action="#{variableCalidadProductoBean.cargarVariableCalidadNoAsignados}" update=":form:panelVariableCalidadDlg" process="@this" />
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{variableCalidadProductoBean.listaVariableCalidadProducto}"
+											id="tablaVariableCalidad" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_vcp" paginator="true"
+											paginatorPosition="bottom" style="width:100%" rows="#{variableCalidadProductoBean.numeroFilas}"
+											rowsPerPageTemplate="#{variableCalidadProductoBean.numeroFilasPorPagina}">
+
+											<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_vcp.variableCalidad.codigo}" filterBy="#{_vcp.variableCalidad.codigo}">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_codigo}" />
+												</f:facet>
+												<h:outputText value="#{_vcp.variableCalidad.codigo}" />
+											</p:column>
+
+											<p:column styleClass="tableCell" sortBy="#{_vcp.variableCalidad.nombre}" filterBy="#{_vcp.variableCalidad.nombre}"
+												filterMatchMode="contains">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_nombre}" />
+												</f:facet>
+												<h:outputText value="#{_vcp.variableCalidad.nombre}" />
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_minimo}">
+												<p:inputText value="#{_vcp.valorMinimo}" size="8" id="txtValorMinimo">
+													<p:ajax process="@this" global="false" partialSubmit="true" />
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor} #{msgs.lbl_maximo}">
+												<p:inputText value="#{_vcp.valorMaximo}" size="8" id="txtValorMaximo">
+													<p:ajax process="@this" global="false" partialSubmit="true" />
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarTipoComprobante" action="#{variableCalidadProductoBean.eliminarVariableCalidad(_vcp)}"
+													icon="ui-icon-trash" title="#{msgs.lbl_eliminar}" update=":form:vistaTab:tabVariableCalidad, :form:vistaTab" process="@this">
+												</p:commandButton>
+											</p:column>
+
+										</p:dataTable>
+									</p:panel>
+								</p:outputPanel>
+							</p:tab>
+						</p:tabView>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!variableCalidadProductoBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_variable_calidad_producto}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaVariableCalidadProducto" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{variableCalidadProductoBean.listaProducto}" var="_producto" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{variableCalidadProductoBean.dtProducto}"
+							rows="#{variableCalidadProductoBean.numeroFilas}" rowsPerPageTemplate="#{variableCalidadProductoBean.numeroFilasPorPagina}"
+							selection="#{variableCalidadProductoBean.producto}" selectionMode="single" rowKey="#{_producto.id}" sortBy="#{_producto.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_producto.codigo}" filterBy="#{_producto.codigo}" styleClass="columnaDTCodigoProducto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_producto.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_producto.nombre}" filterBy="#{_producto.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_producto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_producto.subcategoriaProducto.categoriaProducto.nombre}"
+								filterBy="#{_producto.subcategoriaProducto.categoriaProducto.nombre}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_categoria_producto}" />
+								</f:facet>
+								<h:outputText value="#{_producto.subcategoriaProducto.categoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_producto.subcategoriaProducto.nombre}" filterBy="#{_producto.subcategoriaProducto.nombre}"
+								styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}" />
+								</f:facet>
+
+								<h:outputText value="#{_producto.subcategoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_producto.unidad.nombre}" filterBy="#{_producto.unidad.nombre}" styleClass="columnaDTUnidad tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_unidad}" />
+								</f:facet>
+
+								<h:outputText value="#{_producto.unidad.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_producto.activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_producto.activo}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{variableCalidadProductoBean.producto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{variableCalidadProductoBean.producto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{variableCalidadProductoBean.producto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{variableCalidadProductoBean.producto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

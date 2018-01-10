@@ -1,0 +1,499 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{pagoCashBean}">
+					<as2:buttonEliminar bean="#{pagoCashBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{pagoCashBean.pagoCash.fechaPago}">
+							<f:convertDateTime pattern="#{pagoCashBean.formatoFecha}" />
+						</h:outputText>
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{pagoCashBean.pagoCash.numero}" />
+					</as2:buttonEliminar>
+					<as2:buttonImprimir id="btnImprimirPagoCash" beanReporte="#{reportePagoCashBean}" bean="#{pagoCashBean}" target="#{reportePagoCashBean.pagoCash}"
+						value="#{pagoCashBean.pagoCash}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{pagoCashBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{pagoCashBean.pagoCash.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}" />
+					<as2:buttonExportaExcel bean="#{pagoCashBean}" tabla=":form:tablaPagoCash" />
+				</as2:toolBar>
+				<!-- Inicio Detalle Pago Cash a Contabilizar Dialog -->
+				<p:outputPanel id="panelPagosAContabilizarCashManagement">
+					<p:panel rendered="#{pagoCashBean.mostrarDialogContabilizar}">
+						<p:dialog header="#{msgs.lbl_contabilizar} #{msgs.lbl_pago_cash}" widgetVar="pagosAContabilizarDialog" id="pagosAContabilizarDialog"
+							modal="true" height="400" width="700" showEffect="slide" hideEffect="slide">
+							<h:panelGrid id="panelGridPagosAContabilizarCashManagement" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+								<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+									<h:outputText value="#{msgs.lbl_fecha} Contabilizacion" />
+									<p:calendar pattern="#{pagoCashBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoCashBean.pagoCash.fechaContabilizacion}"
+										id="calFechaContabilizacion" required="true">
+										<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+										<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+									</p:calendar>
+									<h:outputText value="#{msgs.lbl_documento} #{msgs.lbl_referencia}" />
+									<p:inputText id="txtDocumentoReferencia" value="#{pagoCashBean.documentoReferencia}" required="true">
+										<f:validateBean />
+									</p:inputText>
+								</h:panelGrid>
+								<h:panelGrid columns="1" style="text-align:center;">
+									<p:commandButton value="#{msgs.lbl_contabilizar}" actionListener="#{pagoCashBean.contabilizarPagoCash}"
+										process="@this :form:panelPagosAContabilizarCashManagement txtDocumentoReferencia"
+										oncomplete="validacionesModal(xhr, status, args, pagosAContabilizarDialog)"
+										update="panelListado calFechaContabilizacion txtDocumentoReferencia" icon="ui-icon-plus" />
+								</h:panelGrid>
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pagoCashBean.listaDetallePagoCashContabilizar}"
+									id="tablaPagosAContabilizarCashManagement" rowIndexVar="secuencial" binding="#{pagoCashBean.dtDetallePagoCashAContabilizar}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePagoCashContabilizar" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{pagoCashBean.numeroFilas}" rowsPerPageTemplate="#{pagoCashBean.numeroFilasPorPagina}" rowKey="#{_detallePagoCashContabilizar.id}">
+									<p:column headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_proveedor}" filterBy="#{_detallePagoCashContabilizar.proveedor.empresa.nombreFiscal}"
+										sortBy="#{_detallePagoCashContabilizar.proveedor.empresa.nombreFiscal}">
+										<h:outputText value="#{_detallePagoCashContabilizar.proveedor.empresa.nombreFiscal}" />
+									</p:column>
+									<p:column headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}" sortBy="#{_detallePagoCashContabilizar.cuentaPorPagar.fechaVencimiento}"
+										styleClass="columnaDTFecha tableCell0">
+										<h:outputText value="#{_detallePagoCashContabilizar.cuentaPorPagar.fechaVencimiento}">
+											<f:convertDateTime pattern="#{aprobarPagoCashBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="#{msgs.lbl_pago_valor_pendiente}" styleClass="columnaDTValor tableCell">
+										<h:outputText value="#{_detallePagoCashContabilizar.cuentaPorPagar.saldo}">
+											<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}" styleClass="columnaDTValor tableCell">
+										<h:outputText id="txtValor" value="#{_detallePagoCashContabilizar.valor}">
+											<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTActivo tableCell">
+										<f:facet name="header">
+											<h:outputLabel value="#{msgs.btn_procesar}" />
+											<p:separator />
+											<p:selectBooleanCheckbox value="#{pagoCashBean.seleccionarTodos}">
+												<p:ajax process="@this" global="false" listener="#{pagoCashBean.procesarTodos()}" update=":form:tablaPagosAContabilizarCashManagement" />
+											</p:selectBooleanCheckbox>
+										</f:facet>
+										<center>
+											<p:selectBooleanCheckbox id="chkProcesado" value="#{_detallePagoCashContabilizar.indicadorProcesado}" required="true">
+												<f:validateRequired for="chkProcesado"></f:validateRequired>
+												<p:ajax event="change" process="@this :form:tablaPagosAContabilizarCashManagement" global="false"
+													listener="#{pagoCashBean.calcularTotalValorAPagar}" update=":form:tablaPagosAContabilizarCashManagement"></p:ajax>
+											</p:selectBooleanCheckbox>
+										</center>
+									</p:column>
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="4" footerText="#{msgs.lbl_total}:" style="text-align:right">
+											</p:column>
+											<p:column>
+												<f:facet name="footer" colspan="10" style="text-align:right" id="txtTotal">
+													<h:outputText value="#{pagoCashBean.pagoCash.valorPago}">
+														<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column>
+												<f:facet name="footer" colspan="2" style="text-align:right" id="txtTotal">
+													<h:outputText value="#{pagoCashBean.totalValorAPagar}">
+														<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:dialog>
+					</p:panel>
+				</p:outputPanel>
+				<!-- Fin Detalle Pago Cash a Contabilizar Dialog -->
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_pago_cash} )" rendered="#{pagoCashBean.editado}">
+						<!-- Inicio Anticipo Pago Cash Dialog -->
+						<p:dialog header="#{msgs.lbl_generar} #{msgs.lbl_anticipo_cliente_abreviatura}" widgetVar="anticipoCashManagementDialog"
+							id="anticipoCashManagementDialog" modal="true" height="180" width="600" showEffect="slide" hideEffect="slide" closable="false">
+							<p:outputPanel id="panelAnticipoCashManagement">
+								<h:panelGrid id="panelGridAnticipoCashManagement" columns="2" columnClasses="columnaEtiqueta,columnaValor"
+									rendered="#{pagoCashBean.indicadorRenderedAnticipo}">
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{pagoCashBean.empresa}"
+										completeMethod="#{pagoCashBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}"
+										forceSelection="true" dropdown="true" minQueryLength="2" id="autProveedor">
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+										<p:ajax process="@this" event="itemSelect" />
+									</p:autoComplete>
+									<h:outputText value="#{msgs.lbl_responsable}:" rendered="#{pagoCashBean.indicadorOrdenCompraConPersonaResponsable}" />
+									<p:selectOneMenu styleClass="input-text" value="#{pagoCashBean.personaResponsable}" id="cboPersonaResponsable"
+										rendered="#{pagoCashBean.indicadorOrdenCompraConPersonaResponsable}" required="#{pagoCashBean.indicadorOrdenCompraConPersonaResponsable}">
+										<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+										<f:selectItems value="#{pagoCashBean.listaPersonaResponsable}" var="_personaResponsable"
+											itemLabel="#{_personaResponsable.nombres} #{_personaResponsable.apellidos}" itemValue="#{_personaResponsable}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+									<h:outputText value="#{msgs.lbl_anticipo_cliente_valor}:" />
+									<p:inputText styleClass="input-text" value="#{pagoCashBean.valorAnticipo}" id="txtValorPagoAnticipo">
+									</p:inputText>
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+									<p:inputTextarea value="#{pagoCashBean.descripcionAnticipo}" id="txtDescripcionAnticipo" styleClass="input-text" />
+								</h:panelGrid>
+							</p:outputPanel>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.lbl_generar} #{msgs.lbl_anticipo_cliente_abreviatura}" action="#{pagoCashBean.agregarAnticipo}"
+										process="@this, panelGridAnticipoCashManagement" oncomplete="anticipoCashManagementDialog.hide()"
+										update="@this :form:panelAnticipoCashManagement :form:panelDetallePagoCash :form:txtValorPago" icon="ui-icon-plus" />
+									<p:commandButton value="#{msgs.btn_cancelar}" process="@this" oncomplete="anticipoCashManagementDialog.hide()" icon="ui-icon-cancel">
+										<f:setPropertyActionListener value="false" target="#{pagoCashBean.indicadorRenderedAnticipo}"></f:setPropertyActionListener>
+									</p:commandButton>
+								</center>
+							</f:facet>
+						</p:dialog>
+						<!-- Fin Anticipo Pago Cash Dialog -->
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{pagoCashBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<p:outputLabel for="cboDocumento" value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{pagoCashBean.pagoCash.documento.idDocumento}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoCashBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento.idDocumento}" />
+									<p:ajax process="@this" update="txtNumero" listener="#{pagoCashBean.actualizarDocumento}" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{pagoCashBean.pagoCash.numero}"
+									mask="#{pagoCashBean.pagoCash.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+								<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_pago_titulo_tab_pago}:" />
+								<p:calendar pattern="#{pagoCashBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoCashBean.pagoCash.fechaPago}" id="calFecha"
+									required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+									<f:validateBean />
+								</p:calendar>
+								<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_pago_fecha_vencimiento_factura}:" />
+								<p:calendar pattern="#{pagoCashBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoCashBean.pagoCash.fechaVencimiento}"
+									id="calFechaVencimiento" required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+								</p:calendar>
+								<p:outputLabel for="cboCuentaBancariaOrganizacion" value="#{msgs.lbl_pagar_de}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+									value="#{pagoCashBean.pagoCash.cuentaBancariaOrganizacion}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoCashBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+										itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+									<f:validateBean />
+									<p:ajax process="@this" listener="#{pagoCashBean.actualizarCuentaBancaria}" update="cboFormaPago cboTipo" global="false" partialSubmit="true" />
+								</p:selectOneMenu>
+								<p:outputLabel for="cboFormaPago" value="#{msgs.lbl_forma_pago}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{pagoCashBean.pagoCash.formaPago}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoCashBean.listaFormaPagoOrganizacion}" var="_formaPagoCuenta" itemLabel="#{_formaPagoCuenta.nombre}"
+										itemValue="#{_formaPagoCuenta}" />
+									<f:validateBean />
+									<p:ajax process="@this" global="false"></p:ajax>
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_tipo_servicio}:" />
+								<p:selectOneMenu disabled="#{pagoCashBean.activadorTipoServicio}" styleClass="input-text" required="#{!pagoCashBean.activadorTipoServicio}"
+									value="#{pagoCashBean.pagoCash.tipoServicioCuentaBancaria}" id="cboTipo">
+									<f:selectItems value="#{pagoCashEmpleadoBean.listaTipoServicioCuentaBancaria}" />
+									<f:validateBean />
+									<p:ajax process="@this"></p:ajax>
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_valor}:" />
+								<p:outputPanel id="txtValorPago">
+									<h:outputText styleClass="input-text" value="#{pagoCashBean.pagoCash.valorPago}">
+										<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+									</h:outputText>
+								</p:outputPanel>
+								<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{pagoCashBean.categoriaEmpresa}" id="cboCategoriaEmpresa">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoCashBean.listaCategoriaEmpresa}" var="_categoriaEmpresa" itemLabel="#{_categoriaEmpresa.nombre}"
+										itemValue="#{_categoriaEmpresa}" />
+									<f:validateBean />
+									<p:ajax process="@this" global="false" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_documento} #{msgs.lbl_filtros}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboDocumentoFiltro" value="#{pagoCashBean.documentoFiltro}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoCashBean.listaDocumentoFiltro}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_documento} #{msgs.lbl_pago_titulo}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboDocumentoPago" value="#{pagoCashBean.pagoCash.documentoPago}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoCashBean.listaDocumentoPago}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+								<h:outputText value="#{msgs.lbl_documento} #{msgs.lbl_anticipo}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboDocumentoAnticipo" value="#{pagoCashBean.pagoCash.documentoAnticipo}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{pagoCashBean.listaDocumentoAnticipo}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+									<p:ajax process="@this" event="change" global="false" />
+								</p:selectOneMenu>
+							</h:panelGrid>
+						</p:fieldset>
+						<p:fieldset>
+							<h:panelGroup>
+								<p:commandButton value="#{msgs.btn_pago_cargar_facturas_pendientes}" id="btnAgregarDetalle"
+									actionListener="#{pagoCashBean.cargarFacturasPendientes}" update=":form:panelDetallePagoCash :form:txtValorPago"
+									process="@this tablaDetallePagoCash" icon="ui-icon-plus" />
+							</h:panelGroup>
+							<h:panelGroup>
+								<p:commandButton id="btnGenerarExcel" process="@this :form:panelDetallePagoCash" icon="ui-icon-plus" update=":form:panelAnticipoCashManagement :form:panelPagoCash"
+									value="#{msgs.lbl_generar} #{msgs.lbl_anticipo_cliente_abreviatura}" oncomplete="anticipoCashManagementDialog.show()">
+									<f:setPropertyActionListener value="true" target="#{pagoCashBean.indicadorRenderedAnticipo}"></f:setPropertyActionListener>
+								</p:commandButton>
+							</h:panelGroup>
+						</p:fieldset>
+						<!-- INICIO DETALLE PAGO CASH -->
+						<p:outputPanel id="panelPagoCash">
+							<h:panelGrid columns="1" id="panelDetallePagoCash" style="width:100%">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{pagoCashBean.pagoCash.listaDetallePagoCash}" id="tablaDetallePagoCash"
+									rowIndexVar="secuencial" binding="#{pagoCashBean.dtDetallePagoCash}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detallePagoCash"
+									paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{pagoCashBean.numeroFilas}"
+									rowsPerPageTemplate="#{pagoCashBean.numeroFilasPorPagina}" rowKey="#{_detallePagoCash.rowKey}"
+									filteredValue="#{pagoCashBean.listaDetallePagoCashFilters}">
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_proveedor}" filterBy="#{_detallePagoCash.proveedor.empresa.nombreFiscal}"
+										sortBy="#{_detallePagoCash.proveedor.empresa.nombreFiscal}" filterMatchMode="contains">
+										<h:outputText value="#{_detallePagoCash.proveedor.empresa.nombreFiscal}" />
+									</p:column>
+
+
+									<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_orden_pago_proveedor}"
+										rendered="#{pagoCashBean.usaOrdenPago}" filterBy="#{_detallePagoCash.cuentaPorPagar.ordenPagoProveedor.numero}"
+										sortBy="#{_detallePagoCash.cuentaPorPagar.ordenPagoProveedor.numero}" filterMatchMode="contains">
+										<h:link rendered="#{not empty _detallePagoCash.cuentaPorPagar.ordenPagoProveedor}" target="_blank"
+											outcome="/paginas/financiero/pagos/procesos/ordenPagoProveedor" includeViewParams="true"
+											value="#{_detallePagoCash.cuentaPorPagar.ordenPagoProveedor.numero}">
+											<f:param name="numero" value="#{_detallePagoCash.cuentaPorPagar.ordenPagoProveedor.numero}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="columnaDTNumeroDocumento tableCell" headerText="#{msgs.lbl_numero}"
+										filterBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}" sortBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}"
+										filterMatchMode="contains">
+										<!-- 										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}" /> -->
+										<h:link rendered="#{not empty _detallePagoCash.cuentaPorPagar.facturaProveedor}" target="_blank"
+											outcome="/paginas/compras/procesos/facturaProveedor" includeViewParams="true"
+											value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}">
+											<f:param name="numero" value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.numero}" />
+										</h:link>
+									</p:column>
+									<p:column styleClass="columnaDTNumeroFactura tableCell" headerText="#{msgs.lbl_pago_numero_factura}"
+										filterBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+										sortBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" filterMatchMode="contains">
+										<h:outputText rendered="#{not empty _detallePagoCash.cuentaPorPagar.facturaProveedor}"
+											value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_detallePagoCash.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+									</p:column>
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_emision_factura}"
+										sortBy="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.fecha}">
+										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.facturaProveedor.fecha}">
+											<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}"
+										sortBy="#{_detallePagoCash.cuentaPorPagar.fechaVencimiento}">
+										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.fechaVencimiento}">
+											<f:convertDateTime pattern="#{pagoCashBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_dias_vencidos}">
+										<h:outputText rendered="#{_detallePagoCash.diasVencidos>0}" value="#{_detallePagoCash.diasVencidos - 1}">
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_pago_numero_cuota}">
+										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.numeroCuota}" />
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_pendiente}">
+										<h:outputText value="#{_detallePagoCash.cuentaPorPagar.saldo}">
+											<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}">
+										<p:inputText styleClass="input-text" id="txtValor" rendered="#{!_detallePagoCash.indicadorDeshabilitarIngreso}"
+											value="#{_detallePagoCash.valor}">
+											<f:validateBean />
+											<p:ajax process="@this :form:panelPagoCash" update=":form:panelDetallePagoCash :form:txtValorPago"
+												listener="#{pagoCashBean.calcularValorPagoCash}" />
+										</p:inputText>
+										<h:outputText value="#{_detallePagoCash.valor}" rendered="#{_detallePagoCash.indicadorDeshabilitarIngreso}">
+											<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+										</h:outputText>
+										<p:message for="txtValor" />
+									</p:column>
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+										<p:inputText value="#{_detallePagoCash.descripcion}" disabled="#{_detallePagoCash.indicadorDeshabilitarIngreso}" styleClass="input-text" />
+									</p:column>
+									<p:column styleClass="columnaDTActivo tableCell">
+										<f:facet name="header">
+											<p:commandLink id="btnPagarGlobal" process="@this :form:panelPagoCash" global="false" title="#{msgs.lbl_pagar}"
+												update=":form:panelPagoCash :form:txtValorPago" action="#{pagoCashBean.cargarValorCuotaGlobal}">
+												<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+											</p:commandLink>
+											<p:commandLink id="btnLimpiarGlobal" process="@this :form:panelPagoCash" global="false" title="#{msgs.lbl_limpiar}"
+												update=":form:panelPagoCash :form:txtValorPago" action="#{pagoCashBean.limpiarValorCuotaGlobal}">
+												<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+											</p:commandLink>
+										</f:facet>
+										<center>
+											<p:commandLink id="btnPagar" process="@this :form:panelPagoCash" global="false" title="#{msgs.lbl_pagar}"
+												update=":form:panelPagoCash :form:txtValorPago" action="#{pagoCashBean.cargarValorCuota}"
+												disabled="#{empty _detallePagoCash.cuentaPorPagar}">
+												<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+											</p:commandLink>
+											<p:commandLink id="btnLimpiar" process="@this :form:panelPagoCash" global="false" title="#{msgs.lbl_limpiar}"
+												update=":form:panelPagoCash :form:txtValorPago" action="#{pagoCashBean.limpiarValorCuota}"
+												disabled="#{empty _detallePagoCash.cuentaPorPagar}">
+												<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+											</p:commandLink>
+										</center>
+									</p:column>
+									<p:columnGroup type="footer">
+										<p:row>
+											<p:column colspan="#{pagoCashBean.usaOrdenPago?10:9}" footerText="Valor A liquidar " style="text-align:right" />
+											<p:column styleClass="input-text-number">
+												<f:facet name="footer">
+													<h:outputText value="#{pagoCashBean.totalValorALiquidar}">
+														<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+													</h:outputText>
+												</f:facet>
+											</p:column>
+											<p:column colspan="1" />
+											<p:column colspan="3" />
+										</p:row>
+									</p:columnGroup>
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+						<!-- FIN DETALLE PAGO CASH -->
+					</p:panel>
+				</p:outputPanel>
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_pago_cash} )" rendered="#{!pagoCashBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagoCash" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{pagoCashBean.listaPagoCash}" var="_pagoCash" binding="#{pagoCashBean.dtPagoCash}" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{pagoCashBean.numeroFilas}" rowsPerPageTemplate="#{pagoCashBean.numeroFilasPorPagina}"
+							selection="#{pagoCashBean.pagoCash}" selectionMode="single" rowKey="#{_pagoCash.idPagoCash}" lazy="true" sortBy="#{_pagoCash.numero}"
+							sortOrder="DESCENDING">
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							<p:column styleClass="columnaDTNumeroDocumento" sortBy="#{_pagoCash.numero}" filterBy="#{_pagoCash.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:link rendered="#{not empty _pagoCash.idPagoCash}" target="_blank" outcome="/paginas/financiero/pagos/procesos/pago"
+									includeViewParams="true" value="#{_pagoCash.numero}">
+									<f:param name="idPagoCash" value="#{_pagoCash.idPagoCash}" />
+								</h:link>
+							</p:column>
+							<p:column sortBy="#{_pagoCash.documento.nombre}" filterBy="#{_pagoCash.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.documento.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTNumeroDocumento" sortBy="#{_pagoCash.documentoReferencia}" filterBy="#{_pagoCash.documentoReferencia}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento_referencia}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.documentoReferencia}" />
+							</p:column>
+							<p:column styleClass="columnaDTFecha" sortBy="#{_pagoCash.fechaPago}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.fechaPago}">
+									<f:convertDateTime pattern="#{pagoCashBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTValor">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.valorPago}">
+									<f:convertNumber pattern="#{pagoCashBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column sortBy="#{_pagoCash.cuentaBancariaOrganizacion.cuentaBancaria.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_titulo_cuentaBancaria}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.cuentaBancariaOrganizacion.cuentaBancaria.numero}" />
+							</p:column>
+							<p:column styleClass="columnaDTNombreCorto" sortBy="#{_pagoCash.formaPago.nombre}" filterBy="#{_pagoCash.formaPago.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_forma_pago}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.formaPago.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" sortBy="#{_pagoCash.asiento.numero}" filterBy="#{_pagoCash.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_pagoCash.asiento}" rendered="#{not empty _pagoCash.asiento}">
+									<f:param name="idAsiento" value="#{_pagoCash.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+							<p:column styleClass="columnaDTEstado" sortBy="#{_pagoCash.estado}" filterBy="#{_pagoCash.estado}" filterOptions="#{cobroBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_pagoCash.estado.nombre}" />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_generar} #{msgs.lbl_archivo}" />
+								</f:facet>
+								<center>
+									<p:commandButton ajax="false" icon="action" disabled="#{_pagoCash.estado != 'APROBADO'}">
+										<f:setPropertyActionListener target="#{pagoCashBean.pagoCash}" value="#{_pagoCash}" />
+										<p:fileDownload value="#{pagoCashBean.file}" />
+									</p:commandButton>
+								</center>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<p:commandButton id="btnContabilizar" process="@this" icon="action" update=":form:panelPagosAContabilizarCashManagement"
+									oncomplete="pagosAContabilizarDialog.show()" actionListener="#{pagoCashBean.seleccionarPagoCashAContabilizar}"
+									disabled="#{_pagoCash.estado != 'APROBADO'}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{pagoCashBean.pagoCash}" value="#{_pagoCash}" bean="#{pagoCashBean}" formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/"
+									actualiza=":form:panelListado" visible="#{_pagoCash.pdf!=null}" />
+
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+					<p:separator />
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{pagoCashBean.pagoCash.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{pagoCashBean.pagoCash.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{pagoCashBean.pagoCash.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{pagoCashBean.pagoCash.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

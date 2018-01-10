@@ -1,0 +1,97 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_presupuesto} #{msgs.lbl_comparativo}">
+
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reportePresupuestoVsContableBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+
+					<ui:include src="/template/listaPartidaPresupuestariaMultiple.xhtml">
+						<ui:param name="bean" value="#{reportePresupuestoVsContableBean}" />
+						<ui:param name="objetoActualizar" value=":form:panelFiltros" />
+					</ui:include>
+
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputLabel for="items" value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu value="#{reportePresupuestoVsContableBean.tipoReporte}" id="items">
+								<f:selectItems value="#{reportePresupuestoVsContableBean.listaTipoReporte}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+							</p:selectOneMenu>
+
+							<!-- <p:outputLabel for="cboSucursal" value="#{msgs.lbl_sucursal}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reportePresupuestoVsContableBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reportePresupuestoVsContableBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" />
+								<p:ajax process="@this" update="@form" event="change" global="false"></p:ajax>
+							</p:selectOneMenu> -->
+
+							<p:outputLabel for="cboEjercicio" value="#{msgs.lbl_ejercicio}:" />
+							<p:selectOneMenu styleClass="input-text" required="true" value="#{reportePresupuestoVsContableBean.ejercicio}" id="cboEjercicio">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePresupuestoVsContableBean.listaEjercicio}" var="_ejercicio" itemLabel="#{_ejercicio.nombre}"
+									itemValue="#{_ejercicio}" />
+								<p:ajax update="@this" event="change" global="false" process="cboEjercicio" listener="#{reportePresupuestoVsContableBean.actualizarPeriodo}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboNivelDimensionContable" value="#{msgs.lbl_nivel}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reportePresupuestoVsContableBean.nivel}" id="cboNivelDimensionContable">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePresupuestoVsContableBean.listaNivelDimensionContable}" />
+								<f:validateBean />
+								<p:ajax update="cboDimensionContable" process="@this" event="change" listener="#{reportePresupuestoVsContableBean.actualizarDimension}" />
+							</p:selectOneMenu>
+							<!-- <h:outputText value="#{msgs.lbl_partida_presupuestaria}:" />
+							<p:commandButton icon="ui-icon-plus" action="#{reportePresupuestoVsContableBean.seleccionarPartidaPrespuestaria}"
+								onclick="dglModalPartidaPresupuestaria.show()" type="button" process="@this" />
+ -->
+							<p:outputLabel for="cboDimensionContable" value="#{msgs.lbl_dimension_contable}:" />
+							<p:selectOneMenu required="true" styleClass="input-text" value="#{reportePresupuestoVsContableBean.dimensionContable}"
+								id="cboDimensionContable">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePresupuestoVsContableBean.listaDimensionContable}" var="_dimensionContable"
+									itemLabel="#{_dimensionContable.codigo} - #{_dimensionContable.nombre}" itemValue="#{_dimensionContable}" />
+								<f:validateBean />
+								<p:ajax process="@this" update="@this" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_mes}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reportePresupuestoVsContableBean.mesSeleccionado}" id="cboMes">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{reportePresupuestoVsContableBean.listaMes}" var="_tipo" itemLabel="#{_tipo.label}" itemValue="#{_tipo.value}" />
+								<p:ajax process="@this" update="@form" event="change" global="false"></p:ajax>
+							</p:selectOneMenu>
+
+							<!-- 							<h:outputText value="#{msgs.lbl_indicador_NIIF}:" /> -->
+							<!-- 							<p:selectBooleanCheckbox value="#{reportePresupuestoVsContableBean.indicadorNIIF}" /> -->
+							<!-- 
+							<h:outputText value="#{msgs.lbl_resumen}:" />
+							<p:selectBooleanCheckbox value="#{reportePresupuestoVsContableBean.indicadorAcumulado}" /> -->
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+				</p:outputPanel>
+
+			</p:panel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,209 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+
+				<p:toolbar>
+					<p:toolbarGroup align="left">
+
+						<as2:buttonExportaExcel bean="#{iBPProductoBean}" tabla=":form:tablaProducto" />
+
+					</p:toolbarGroup>
+				</p:toolbar>
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_producto})">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProducto" emptyMessage="#{msgs.msg_no_hay_datos}" rowIndexVar="secuencial"
+							value="#{iBPProductoBean.listaProducto}" var="producto" binding="#{iBPProductoBean.dtProducto}" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{iBPProductoBean.numeroFilas}" rowsPerPageTemplate="#{iBPProductoBean.numeroFilasPorPagina}" rowKey="#{producto.id}"
+							editable="true" editMode="cell" selection="#{iBPProductoBean.producto}" selectionMode="single">
+
+							<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}" filterMatchMode="contains" filterBy="#{producto.codigo}">
+								<h:outputText value="#{producto.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombre}" filterMatchMode="contains" filterBy="#{producto.nombre}">
+								<h:outputText value="#{producto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterMatchMode="contains"
+								filterBy="#{producto.subcategoriaProducto.categoriaProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_categoria_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.subcategoriaProducto.categoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" filterMatchMode="contains" filterBy="#{producto.subcategoriaProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.subcategoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo} #{msgs.lbl_impuesto}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.ibpCodigoImpuesto}" id="outCodigoImpuesto" />
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText value="#{producto.ibpCodigoImpuesto}" required="true">
+											<p:ajax process="@this" listener="#{iBPProductoBean.guardar(producto)}" global="false" update="outCodigoImpuesto" />
+										</p:inputText>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_clasificacion}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.ibpClasificacion.codigo} - #{producto.ibpClasificacion.nombre}" id="outClasificacion" />
+									</f:facet>
+									<f:facet name="input">
+										<p:selectOneMenu style="text-align: left;" value="#{producto.ibpClasificacion}" required="false">
+											<f:selectItem itemLabel="" itemValue="" />
+											<f:selectItems value="#{iBPProductoBean.listaIBPClasificacion}" var="_clasificacion"
+												itemLabel="#{_clasificacion.codigo} - #{_clasificacion.nombre}" itemValue="#{_clasificacion}" />
+											<p:ajax process="@this" listener="#{iBPProductoBean.actualizarIBPClasificacion(producto)}" update="outClasificacion outMarca sltMarca"
+												event="change" global="false" />
+										</p:selectOneMenu>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_marca}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.ibpMarca.codigo} - #{producto.ibpMarca.nombre}" id="outMarca" />
+									</f:facet>
+									<f:facet name="input">
+										<p:outputPanel id="sltMarca">
+											<p:selectOneMenu style="text-align: left;" value="#{producto.ibpMarca}" required="#{producto.ibpClasificacion != null}">
+												<f:selectItem itemLabel="" itemValue="" />
+												<f:selectItems value="#{producto.listaIBPMarca}" var="_marca" itemLabel="#{_marca.codigo} - #{_marca.nombre}" itemValue="#{_marca}" />
+												<p:ajax process="@this" listener="#{iBPProductoBean.guardar(producto)}" update="outMarca" event="change" global="false" />
+											</p:selectOneMenu>
+										</p:outputPanel>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_presentacion_ibp}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.ibpPresentacion}" id="outPresentacion" />
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText value="#{producto.ibpPresentacion}" required="true">
+											<p:ajax process="@this" global="false" update="outPresentacion" listener="#{iBPProductoBean.guardar(producto)}" />
+										</p:inputText>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+							
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_presentacion_ice}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.icePresentacion}" id="outIcePresentacion" />
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText value="#{producto.icePresentacion}" required="true">
+											<p:ajax process="@this" global="false" update="outIcePresentacion" listener="#{iBPProductoBean.guardar(producto)}" />
+										</p:inputText>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_capacidad}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.ibpCapacidad.codigo} - #{producto.ibpCapacidad.nombre}" id="outCapacidad" />
+									</f:facet>
+									<f:facet name="input">
+										<p:outputPanel id="sltCapacidad">
+											<p:selectOneMenu style="text-align: left;" value="#{producto.ibpCapacidad}" required="false">
+												<f:selectItem itemLabel="" itemValue="" />
+												<f:selectItems value="#{iBPProductoBean.listaIBPCapacidad}" var="_capacidad" itemLabel="#{_capacidad.codigo} - #{_capacidad.nombre}"
+													itemValue="#{_capacidad}" />
+												<p:ajax process="@this" listener="#{iBPProductoBean.guardar(producto)}" update="outCapacidad" event="change" global="false" />
+											</p:selectOneMenu>
+										</p:outputPanel>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_unidad}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.ibpUnidad.codigo} - #{producto.ibpUnidad.nombre}" id="outUnidad" />
+									</f:facet>
+									<f:facet name="input">
+										<p:outputPanel id="sltUnidad">
+											<p:selectOneMenu style="text-align: left;" value="#{producto.ibpUnidad}" required="false">
+												<f:selectItem itemLabel="" itemValue="" />
+												<f:selectItems value="#{iBPProductoBean.listaIBPUnidad}" var="_unidad" itemLabel="#{_unidad.codigo} - #{_unidad.nombre}"
+													itemValue="#{_unidad}" />
+												<p:ajax process="@this" listener="#{iBPProductoBean.guardar(producto)}" update="outUnidad" event="change" global="false" />
+											</p:selectOneMenu>
+										</p:outputPanel>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_grado_alcohol}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.ibpGradoAlcohol}" id="outGradoAlcohol" />
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText value="#{producto.ibpGradoAlcohol}" required="true">
+											<p:ajax process="@this" global="false" update="outGradoAlcohol" listener="#{iBPProductoBean.guardar(producto)}" />
+										</p:inputText>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+							
+							
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_gramos_azucar}">
+								<p:cellEditor>
+									<f:facet name="output">
+										<h:outputText value="#{producto.iceGramosAzucar}" id="outGramosAzucar" />
+									</f:facet>
+									<f:facet name="input">
+										<p:inputText value="#{producto.iceGramosAzucar}" required="true">
+											<p:ajax process="@this" global="false" update="outGramosAzucar" listener="#{iBPProductoBean.guardar(producto)}" />
+										</p:inputText>
+									</f:facet>
+								</p:cellEditor>
+							</p:column>
+
+						</p:dataTable>
+
+					</p:panel>
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{iBPProductoBean.producto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{iBPProductoBean.producto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{iBPProductoBean.producto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{iBPProductoBean.producto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

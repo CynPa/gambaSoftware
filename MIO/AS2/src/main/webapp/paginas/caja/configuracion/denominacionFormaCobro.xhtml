@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{denominacionFormaCobroBean}">
+
+					<as2:buttonEliminar bean="#{denominacionFormaCobroBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{denominacionFormaCobroBean.denominacionFormaCobro.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{denominacionFormaCobroBean.denominacionFormaCobro.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{denominacionFormaCobroBean}" tabla=":form:tablaDenominacionFormaCobro" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{denominacionFormaCobroBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_denominacion_forma_cobro})">
+
+						<h:panelGrid id="panelDetalle" columns="#{denominacionFormaCobroBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{denominacionFormaCobroBean.denominacionFormaCobro.codigo}" id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{denominacionFormaCobroBean.denominacionFormaCobro.nombre}" id="txtNombre" />
+
+							<h:outputLabel value="#{msgs.lbl_valor}:" for="txtValor" />
+							<p:inputText value="#{denominacionFormaCobroBean.denominacionFormaCobro.valor}" styleClass="input-text" id="txtValor">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="cboFormaPago" value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{denominacionFormaCobroBean.denominacionFormaCobro.formaPago}" id="cboFormaPago">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{denominacionFormaCobroBean.listFormaPago}" var="_formaPago" itemLabel="#{_formaPago.codigo} - #{_formaPago.nombre}"
+									itemValue="#{_formaPago}" />
+								<f:validateBean />
+								<p:ajax process="@this" update="@this" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{denominacionFormaCobroBean.denominacionFormaCobro.descripcion}" id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{denominacionFormaCobroBean.denominacionFormaCobro.activo}" />
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!denominacionFormaCobroBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_denominacion_forma_cobro})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDenominacionFormaCobro" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{denominacionFormaCobroBean.listaDenominacionFormaCobro}" var="_denominacion"
+							binding="#{denominacionFormaCobroBean.dtDenominacion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{denominacionFormaCobroBean.numeroFilas}" rowsPerPageTemplate="#{denominacionFormaCobroBean.numeroFilasPorPagina}"
+							selection="#{denominacionFormaCobroBean.denominacionFormaCobro}" selectionMode="single" rowKey="#{_denominacion.id}"
+							sortBy="#{_denominacion.codigo}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_denominacion.codigo}" sortBy="#{_denominacion.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_denominacion.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_denominacion.nombre}" sortBy="#{_denominacion.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_denominacion.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_denominacion.valor}" styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_denominacion.valor}" />
+							</p:column>
+
+							<p:column filterBy="#{_denominacion.formaPago.nombre}" sortBy="#{_denominacion.formaPago.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_forma_pago}" />
+								</f:facet>
+								<h:outputText value="#{_denominacion.formaPago.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_denominacion.activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_denominacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_denominacion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_denominacion.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{denominacionFormaCobroBean.denominacionFormaCobro.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{denominacionFormaCobroBean.denominacionFormaCobro.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{denominacionFormaCobroBean.denominacionFormaCobro.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{denominacionFormaCobroBean.denominacionFormaCobro.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

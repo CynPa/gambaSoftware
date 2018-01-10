@@ -1,0 +1,126 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_costo_historico}">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteMantenimientoBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel value="#{msgs.lbl_agrupar}:" for="cboAgrupar" />
+							<p:selectOneMenu value="#{reporteMantenimientoBean.agrupar}" required="true" id="cboAgrupar">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteMantenimientoBean.listaAgrupar}" var="_agrupar" itemLabel="#{_agrupar.label}" itemValue="#{_agrupar.value}">
+								</f:selectItems>
+								<p:ajax event="change" process="@this" partialSubmit="true" global="false" />
+							</p:selectOneMenu>
+
+							<h:outputText value=" " />
+							<h:outputText value=" " />
+
+							<p:outputLabel for="calFechaDesde" value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar pattern="#{reporteMantenimientoBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteMantenimientoBean.fechaDesde}"
+								id="calFechaDesde" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="calFechaHasta" value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar pattern="#{reporteMantenimientoBean.formatoFecha}" showOn="button" navigator="true" value="#{reporteMantenimientoBean.fechaHasta}"
+								id="calFechaHasta" required="true">
+								<p:ajax process="@this" event="dateSelect" global="false" />
+								<p:ajax process="@this" event="change" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="cboCategoria" value="#{msgs.lbl_categoria_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteMantenimientoBean.categoriaEquipo}" id="cboCategoria" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteMantenimientoBean.listaCategoriaEquipo}" var="_categoriaEquipo" itemLabel="#{_categoriaEquipo.nombre}"
+									itemValue="#{_categoriaEquipo}" />
+								<p:ajax process="@this" global="false" update="cboSubcategoria autoEquipo cboComponenteEquipo"
+									listener="#{reporteMantenimientoBean.actualizarCategoriaEquipo}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboSubcategoria" value="#{msgs.lbl_subcategoria_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteMantenimientoBean.subcategoriaEquipo}" id="cboSubcategoria" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteMantenimientoBean.listaSubcategoriaEquipo}" var="_subcategoriaEquipo" itemLabel="#{_subcategoriaEquipo.nombre}"
+									itemValue="#{_subcategoriaEquipo}" />
+								<p:ajax process="@this" global="false" update="autoEquipo cboComponenteEquipo"
+									listener="#{reporteMantenimientoBean.actualizarSubcategoriaEquipo}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="autoEquipo" value="#{msgs.lbl_equipo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoEquipo"
+								value="#{reporteMantenimientoBean.equipo}" completeMethod="#{reporteMantenimientoBean.autocompletarEquipo}" var="_equipo"
+								itemLabel="#{_equipo.nombre}" itemValue="#{_equipo}" forceSelection="true" dropdown="true" minQueryLength="2">
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_codigo}" />
+									</f:facet>
+									<h:outputText value=" #{_equipo.codigo}" />
+								</p:column>
+								<p:column>
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_nombre}" />
+									</f:facet>
+									<h:outputText value=" #{_equipo.nombre}" />
+								</p:column>
+								<p:ajax process="@this" event="itemSelect" global="false" update="cboComponenteEquipo" listener="#{reporteMantenimientoBean.actualizarEquipo}" />
+								<f:validateBean />
+							</p:autoComplete>
+
+							<p:outputLabel for="cboComponenteEquipo" value="#{msgs.lbl_componente_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteMantenimientoBean.componenteEquipo}" id="cboComponenteEquipo" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteMantenimientoBean.listaComponenteEquipo}" var="_componente" itemLabel="#{_componente.nombre}"
+									itemValue="#{_componente}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+
+							<p:outputLabel for="cboActividad" value="#{msgs.lbl_actividad}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{reporteMantenimientoBean.actividad}" id="cboActividad" required="false">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{reporteMantenimientoBean.listaActividad}" var="_actividad" itemLabel="#{_actividad.nombre}" itemValue="#{_actividad}" />
+								<p:ajax process="@this" global="false" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="autoOT" value="#{msgs.lbl_orden_trabajo_mantenimiento}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoOT"
+								value="#{reporteMantenimientoBean.ordenTrabajoMantenimiento}" completeMethod="#{reporteMantenimientoBean.autocompletarOrdenTrabajo}" var="_ot"
+								itemLabel="#{_ot.numero}" itemValue="#{_ot}" forceSelection="true" dropdown="true" minQueryLength="2">
+
+								<p:column headerText="#{msgs.lbl_numero}">#{_ot.numero}</p:column>
+								<p:column headerText="#{msgs.lbl_fecha}">#{_ot.fechaMantenimiento}</p:column>
+								<p:column headerText="#{msgs.lbl_descripcion}">#{_ot.descripcion}</p:column>
+
+								<p:ajax process="@this" event="itemSelect" partialSubmit="true" global="false" />
+							</p:autoComplete>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

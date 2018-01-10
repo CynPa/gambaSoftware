@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{subcategoriaEquipoBean}">
+
+					<as2:buttonEliminar bean="#{subcategoriaEquipoBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{subcategoriaEquipoBean.subcategoriaEquipo.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{subcategoriaEquipoBean.subcategoriaEquipo.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{subcategoriaEquipoBean}" tabla=":form:tablaSubcategoriaEquipo" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{subcategoriaEquipoBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_subcategoria_equipo})">
+
+						<h:panelGrid id="panelDetalle" columns="#{subcategoriaEquipoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{subcategoriaEquipoBean.subcategoriaEquipo.codigo}" id="txtCodigo" required="true">
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{subcategoriaEquipoBean.subcategoriaEquipo.nombre}" id="txtNombre" required="true">
+							</p:inputText>
+
+							<p:outputLabel value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{subcategoriaEquipoBean.subcategoriaEquipo.descripcion}" id="txtDescripcion">
+							</p:inputTextarea>
+
+							<p:outputLabel for="cboCategoriaEquipo" value="#{msgs.lbl_categoria_equipo}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboCategoriaEquipo" value="#{subcategoriaEquipoBean.subcategoriaEquipo.categoriaEquipo}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{subcategoriaEquipoBean.listaCategoriaEquipo}" var="_categoria" itemLabel="#{_categoria.nombre}"
+									itemValue="#{_categoria}"></f:selectItems>
+							</p:selectOneMenu>
+
+							<p:outputLabel value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{subcategoriaEquipoBean.subcategoriaEquipo.activo}" />
+
+							<p:outputLabel value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{subcategoriaEquipoBean.subcategoriaEquipo.predeterminado}" />
+
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel rendered="#{!subcategoriaEquipoBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_subcategoria_equipo})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSubcategoriaEquipo" rowIndexVar="secuencialSubcategoriaEquipo"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{subcategoriaEquipoBean.listaSubcategoriaEquipo}" var="subcategoriaEquipo"
+							binding="#{subcategoriaEquipoBean.dtSubcategoriaEquipo}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{subcategoriaEquipoBean.numeroFilas}" rowsPerPageTemplate="#{subcategoriaEquipoBean.numeroFilasPorPagina}"
+							selection="#{subcategoriaEquipoBean.subcategoriaEquipo}" selectionMode="single" rowKey="#{subcategoriaEquipo.id}"
+							sortBy="#{subcategoriaEquipo.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialsubcategoriaEquipo+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{subcategoriaEquipo.codigo}" filterBy="#{subcategoriaEquipo.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{subcategoriaEquipo.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{subcategoriaEquipo.nombre}" filterBy="#{subcategoriaEquipo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{subcategoriaEquipo.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{subcategoriaEquipo.descripcion}" filterBy="#{subcategoriaEquipo.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{subcategoriaEquipo.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" sortBy="#{subcategoriaEquipo.categoriaEquipo.nombre}"
+								filterBy="#{subcategoriaEquipo.categoriaEquipo.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_categoria_equipo}" />
+								</f:facet>
+								<h:outputText value="#{subcategoriaEquipo.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{subcategoriaEquipo.activo}" headerText="#{msgs.lbl_activo}">
+								<p:selectBooleanCheckbox value="#{subcategoriaEquipo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{subcategoriaEquipo.predeterminado}" disabled="true" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{subcategoriaEquipoBean.subcategoriaEquipo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{subcategoriaEquipoBean.subcategoriaEquipo.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{subcategoriaEquipoBean.subcategoriaEquipo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{subcategoriaEquipoBean.subcategoriaEquipo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

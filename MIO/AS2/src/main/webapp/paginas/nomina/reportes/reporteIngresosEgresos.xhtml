@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:panel header="#{msgs.lbl_titulo_reporte_ingresos_egresos}">
+			
+				<tnt:panelImprimir entidadDestino=""
+					bean="#{reporteIngresosEgresosBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+				
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid
+							columns="#{reporteIngresosEgresosBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_sucursal_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteIngresosEgresosBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems
+									value="#{reporteIngresosEgresosBean.listaSucursal}"
+									var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteIngresosEgresosBean.departamento}"
+								id="cboDepartamento">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems
+									value="#{reporteIngresosEgresosBean.listaDepartamento}"
+									var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento}" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboPagoRol" value="#{msgs.lbl_fecha_rol}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteIngresosEgresosBean.pagoRol.idPagoRol}"
+								id="cboPagoRol" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems
+									value="#{reporteIngresosEgresosBean.listaPagoRol}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_centro_costo}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{reporteIngresosEgresosBean.dimensionContable}"
+								completeMethod="#{reporteIngresosEgresosBean.autocompletarCentroCostos}" var="_centroCostos" itemLabel="#{_centroCostos.nombre}" itemValue="#{_centroCostos}"
+								forceSelection="true" dropdown="true" minQueryLength="2" >
+						
+								<p:column headerText="#{msgs.lbl_codigo}">#{_centroCostos.codigo}</p:column>
+								<p:column headerText="#{msgs.lbl_nombre}">#{_centroCostos.nombre}</p:column>
+						
+								<p:ajax process="@this" event="itemSelect" global="false" />
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_empresa_categoria_empresa}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteIngresosEgresosBean.idCategoriaEmpresa}"
+								id="cboCategoriaEmpresa" required="true">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="0" />
+								<f:selectItems
+									value="#{reporteIngresosEgresosBean.listaCategoriaEmpresa}"
+									var="_categoriaEmpresa"
+									itemLabel="#{_categoriaEmpresa.nombre}"
+									itemValue="#{_categoriaEmpresa.idCategoriaEmpresa}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboFormaPagoEmpleado" value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteIngresosEgresosBean.formaPagoEmpleado}"
+								id="cboFormaPagoEmpleado" required="true">
+								<f:selectItems
+									value="#{reporteIngresosEgresosBean.listaFormaPagoEmpleado}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_mostrar_provision}:" />
+							<p:selectBooleanCheckbox
+								value="#{reporteIngresosEgresosBean.indicadorMostrarProvision}"
+								id="chkMostrarProvision"></p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_agrupado}:" />
+							<p:selectOneRadio id="options"
+								value="#{reporteIngresosEgresosBean.agrupado}" required="true">
+								<f:selectItems
+									value="#{reporteIngresosEgresosBean.listaAgrupado}"></f:selectItems>
+								<p:ajax process="@this" 
+									listener="#{reporteIngresosEgresosBean.actualizarAgrupamiento()}"
+									event="change"></p:ajax>
+							</p:selectOneRadio>
+							
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:selectBooleanCheckbox value="#{reporteIngresosEgresosBean.indicadorCodigos}"></p:selectBooleanCheckbox>
+
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+							process="@this" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

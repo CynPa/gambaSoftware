@@ -1,0 +1,291 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+
+				<as2:toolBar bean="#{garantiaClienteBean}">
+					<as2:buttonEliminar bean="#{garantiaClienteBean}">
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteGarantiaClienteBean}" bean="#{garantiaClienteBean}"
+						target="#{reporteGarantiaClienteBean.garantiaCliente}" value="#{garantiaClienteBean.garantiaCliente}" />
+
+					<as2:buttonExportaExcel bean="#{garantiaClienteBean}" tabla=":form:tablaGarantiaClientes" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{garantiaClienteBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_garantia_cliente_panel}">
+
+						<h:panelGrid id="panelDetalle" columns="#{garantiaClienteBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="cboTipoGarantiaCliente" value="#{msgs.lbl_tipo}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.tipoGarantiaCliente}" id="cboTipoGarantiaCliente"
+								required="true" disabled="#{garantiaClienteBean.garantiaCliente.id!=0}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{garantiaClienteBean.listaTipoGarantiaCliente}" var="_tipoGarantiaCliente" itemLabel="#{_tipoGarantiaCliente.nombre}"
+									itemValue="#{_tipoGarantiaCliente}" />
+								<f:validateBean />
+								<p:ajax process="@this" update=":form:panelNuevo" />
+							</p:selectOneMenu>
+
+
+							<p:outputLabel for="txtCliente" value="#{msgs.lbl_cliente}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.empresa}"
+								completeMethod="#{garantiaClienteBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+								forceSelection="true" size="50" dropdown="true" minQueryLength="2" required="true" id="txtCliente" >
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+							</p:autoComplete>
+
+							<h:outputText value="#{msgs.lbl_banco}" />
+							<p:selectOneMenu styleClass="input-text" id="cboBanco" value="#{garantiaClienteBean.garantiaCliente.banco}"
+								required="#{garantiaClienteBean.indicadorCheque}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{garantiaClienteBean.listaBanco}" var="_banco" itemLabel="#{_banco.nombre}" itemValue="#{_banco}" />
+								<f:validateBean for="cboBanco" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero_cuenta_bancaria}:" />
+							<p:inputText styleClass="input-text" required="#{garantiaClienteBean.indicadorCheque}"
+								value="#{garantiaClienteBean.garantiaCliente.numeroCuenta}" id="txtNumeroCuenta">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNumero" value="#{msgs.lbl_numero}:" />
+							<p:inputText styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.numero}" id="txtNumero" required="true">
+								<f:validateBean for="txtNumero" />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_ingreso}:" />
+							<h:panelGroup>
+								<p:calendar rendered="#{empty garantiaClienteBean.garantiaCliente.detalleFormaCobro}" pattern="#{garantiaClienteBean.formatoFecha}"
+									showOn="button" navigator="true" value="#{garantiaClienteBean.garantiaCliente.fechaIngreso}" id="calFechaIngreso" required="true">
+									<p:ajax update="calFechaCobro" process="@this,txtDiasCreditoOtorgado" listener="#{garantiaClienteBean.actualizarFechaCobro}"
+										event="dateSelect" />
+								</p:calendar>
+
+								<h:outputText rendered="#{not empty garantiaClienteBean.garantiaCliente.detalleFormaCobro}"
+									value="#{garantiaClienteBean.garantiaCliente.fechaIngreso}">
+									<f:convertDateTime pattern="#{garantiaClienteBean.formatoFecha}" />
+								</h:outputText>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_dias_credito_otorgado}:" />
+							<p:inputText styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.diasCreditoOtorgado}" id="txtDiasCreditoOtorgado">
+								<p:ajax update="calFechaCobro" process="@this,calFechaIngreso" listener="#{garantiaClienteBean.actualizarFechaCobro}" event="change" />
+								<f:validateBean for="txtDiasCreditoOtorgado" />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_fecha_cobro}:" />
+							<p:calendar pattern="#{garantiaClienteBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{garantiaClienteBean.garantiaCliente.fechaCobro}" id="calFechaCobro">
+								<p:ajax update="txtDiasCreditoOtorgado" process="@this" listener="#{garantiaClienteBean.actualizarDiasCreditoDateSelect}" event="dateSelect" />
+								<p:ajax update="txtDiasCreditoOtorgado" process="@this" listener="#{garantiaClienteBean.actualizarDiasCreditoListener}" event="change" />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_girador}:" />
+							<p:inputText styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.girador}" id="txtGirador"
+								required="#{garantiaClienteBean.indicadorCheque}">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtRecibidoPor" value="#{msgs.lbl_recibido_por}:" />
+							<p:inputText styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.recibidoPor}" id="txtRecibidoPor" required="true">
+								<f:validateBean for="txtRecibidoPor" />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<p:inputText styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.valor}" id="txtValor">
+								<f:validateBean for="txtValor" />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_depositar_en}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion"
+								value="#{garantiaClienteBean.garantiaCliente.cuentaBancariaOrganizacion}" required="#{garantiaClienteBean.indicadorCheque}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{garantiaClienteBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+								<f:validateBean for="cboCuentaBancariaOrganizacion" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_observacion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.observacion}" id="txtObservacion">
+								<f:validateBean for="txtObservacion" />
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_estado}:" />
+							<p:selectOneMenu styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.estadoGarantiaCliente}" id="cboEstadoGarantiaCliente"
+								required="true" disabled="#{(garantiaClienteBean.garantiaCliente.id==0) or (not empty garantiaClienteBean.garantiaCliente.detalleFormaCobro)}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{garantiaClienteBean.listaEstadoGarantiaCliente}" />
+								<f:validateBean />
+								<p:ajax update="panelNuevo" process="@this" event="change" listener="#{garantiaClienteBean.cambioEstadoGarantiaCliente}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_tipo}:" rendered="#{garantiaClienteBean.indicadorEstadoGarantiaCliente}" id="lblTipo" />
+							<h:panelGroup rendered="#{garantiaClienteBean.indicadorEstadoGarantiaCliente}">
+								<p:selectOneRadio id="rboxTipo" value="#{garantiaClienteBean.garantiaCliente.traIndicadorPersonaProtestada}">
+									<f:selectItem itemLabel="#{msgs.lbl_cliente}" itemValue="1" />
+									<f:selectItem itemLabel="#{msgs.lbl_vendedor}" itemValue="2" />
+									<f:selectItem itemLabel="#{msgs.lbl_empleado}" itemValue="3" />
+									<p:ajax update="panelNuevo" process="@this" event="change" listener="#{garantiaClienteBean.cambioMotivoResponsable}" />
+								</p:selectOneRadio>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_documento}:" rendered="#{garantiaClienteBean.indicadorEstadoGarantiaCliente}" id="lblCombo" />
+							<h:panelGroup rendered="#{garantiaClienteBean.indicadorEstadoGarantiaCliente}">
+								<p:selectOneMenu styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.traIdOpcionPersonaProtestada}"
+									id="cboOpcionPersonaProtestada" required="true" disabled="#{!garantiaClienteBean.indicadorEstadoGarantiaCliente}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{garantiaClienteBean.listaCargaCombo}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+
+							<h:outputText value="#{msgs.lbl_valor_protestado}:" rendered="#{garantiaClienteBean.indicadorEstadoGarantiaCliente}" id="lblValorProtestado" />
+							<h:panelGroup rendered="#{garantiaClienteBean.indicadorEstadoGarantiaCliente}">
+								<p:inputText styleClass="input-text" value="#{garantiaClienteBean.garantiaCliente.valorProtestado}" id="txtValorProtestado">
+									<f:validateBean />
+								</p:inputText>
+							</h:panelGroup>
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!garantiaClienteBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_garantia_cliente_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGarantiaClientes" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{garantiaClienteBean.listaGarantiaCliente}" var="_garantiaCliente" binding="#{garantiaClienteBean.dtGarantiaCliente}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{garantiaClienteBean.numeroFilas}"
+							rowsPerPageTemplate="#{garantiaClienteBean.numeroFilasPorPagina}" selection="#{garantiaClienteBean.garantiaCliente}" selectionMode="single"
+							rowKey="#{_garantiaCliente.idGarantiaCliente}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="input-text-number columnaDTNombre" filterBy="#{_garantiaCliente.detalleFormaCobro.cobro.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cobro}" />
+								</f:facet>
+								<h:outputText rendered="#{not empty _garantiaCliente.detalleFormaCobro.cobro}" value="#{_garantiaCliente.detalleFormaCobro.cobro.numero}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_garantiaCliente.empresa.nombreFiscal}"
+								filterBy="#{_garantiaCliente.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_garantiaCliente.banco.nombre}" filterBy="#{_garantiaCliente.banco.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_banco}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.banco.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_garantiaCliente.numeroCuenta}" filterBy="#{_garantiaCliente.numeroCuenta}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero_cuenta_bancaria}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.numeroCuenta}" />
+							</p:column>
+
+
+							<p:column styleClass="input-text-number columnaDTNombre" sortBy="#{_garantiaCliente.numero}" filterBy="#{_garantiaCliente.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_garantiaCliente.fechaIngreso}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_ingreso}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.fechaIngreso}">
+									<f:convertDateTime pattern="#{garantiaClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_garantiaCliente.fechaCobro}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_cobro}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.fechaCobro}">
+									<f:convertDateTime pattern="#{garantiaClienteBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" rendered="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _garantiaCliente.facturaCliente}" target="_blank" outcome="/paginas/ventas/procesos/notaDebitoCliente" includeViewParams="true"
+									value="#{_garantiaCliente.facturaCliente}">
+									<f:param name="numeroNotaDebito" value="#{_garantiaCliente.facturaCliente.numero}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{_garantiaCliente.estadoGarantiaCliente}" filterBy="#{_garantiaCliente.estadoGarantiaCliente}"
+								filterOptions="#{garantiaClienteBean.listaEstadoGarantiaClienteFiltro}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.estadoGarantiaCliente.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_garantiaCliente.observacion}" filterBy="#{_garantiaCliente.observacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<p:inputTextarea value="#{_garantiaCliente.observacion}" rows="1" readonly="true">
+								</p:inputTextarea>
+							</p:column>
+
+							<p:column sortBy="#{_garantiaCliente.valor}" styleClass="input-text-number">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_garantiaCliente.valor}">
+									<f:convertNumber pattern="#{garantiaClienteBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{garantiaClienteBean.garantiaCliente.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{garantiaClienteBean.garantiaCliente.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{garantiaClienteBean.garantiaCliente.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{garantiaClienteBean.garantiaCliente.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+				<p:separator />
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barraExportar.xhtml">
+					<ui:param name="bean" value="#{consultaCobroBean}" />
+					<ui:param name="tabla" value="tablaConsultaCobro" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+				</ui:include>
+
+				<p:outputPanel id="panelFiltros">
+
+					<p:panel header="#{msgs.lbl_filtros}s">
+
+						<h:panelGrid columns="6">
+
+							<p:selectOneRadio id="opciones" value="#{consultaCobroBean.opcion}">
+								<f:selectItem itemLabel="Todos" itemValue="0" />
+								<f:selectItem itemLabel="Cobros sin cierre de caja" itemValue="1" />
+								<f:selectItem itemLabel="Cierres de caja sin deposito" itemValue="2" />
+								<p:ajax process="@this" update=":form:panelListado" />
+							</p:selectOneRadio>
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<h:panelGroup id="pgPanelLiberacionCobros">
+
+					<p:dialog header="Liberacion Cobro" widgetVar="liberacionCobroDialogo" modal="true" height="130" width="330" showEffect="slide"
+						hideEffect="slide">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<h:outputText value="#{consultaCobroBean.detalleFormaCobro.cobro.numero}" />
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<h:outputText value="#{consultaCobroBean.detalleFormaCobro.cobro.fecha}" />
+
+							<h:outputText value="#{msgs.lbl_cliente}:" />
+							<h:outputText value="#{consultaCobroBean.detalleFormaCobro.cobro.empresa.nombreFiscal}" />
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<h:outputText value="#{consultaCobroBean.detalleFormaCobro.valor}" />
+
+							<h:outputText value="#{msgs.lbl_cierre_caja}:" />
+							<h:outputText value="#{consultaCobroBean.detalleFormaCobro.detalleCierreCaja.cierreCaja.numero}" />
+						</h:panelGrid>
+
+						<f:facet name="footer">
+							<center>
+								<p:commandButton id="btnCancelarLiberacionCobro" value="#{msgs.btn_cancelar}" oncomplete="liberacionCobroDialogo.hide();" process="@this">
+								</p:commandButton>
+
+								<p:commandButton id="btnGuardarLiberacionCobro" action="#{consultaCobroBean.liberarCobro}" value="#{msgs.btn_aceptar}"
+									oncomplete="liberacionCobroDialogo.hide();" process="@this" update=":form:panelListado">
+								</p:commandButton>
+
+							</center>
+						</f:facet>
+
+
+					</p:dialog>
+				</h:panelGroup>
+
+
+				<p:outputPanel id="panelListado">
+
+					<p:outputPanel id="panelConsulta">
+
+						<p:panel header="#{msgs.lbl_consulta_cobro}" rendered="#{!consultaCobroBean.editado}">
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaConsultaCobro" rowIndexVar="secuencial"
+								emptyMessage="#{msgs.msg_no_hay_datos}" value="#{consultaCobroBean.listaDetalleFormaCobro}" var="_detalleFormaCobro"
+								binding="#{consultaCobroBean.dtConsultaCobro}" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rows="#{consultaCobroBean.numeroFilas}" selection="#{consultaCobroBean.detalleFormaCobro}"
+								rowsPerPageTemplate="#{cobroBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_detalleFormaCobro.id}"
+								sortBy="#{_detalleFormaCobro.cobro.fecha}" sortOrder="DESCENDING" lazy="true">
+
+								<p:columnGroup type="header">
+									<p:row>
+										<p:column colspan="1" rowspan="2" headerText="Nº" />
+										<p:column colspan="8" headerText="#{msgs.lbl_cobro}" />
+										<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_cierre_caja}" sortBy="#{_detalleFormaCobro.detalleCierreCaja.cierreCaja.numero}"
+											filterBy="#{_detalleFormaCobro.detalleCierreCaja.cierreCaja.numero}" />
+										<p:column colspan="4" headerText="#{msgs.lbl_deposito_cierre_caja}" />
+										<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_liberar_cobro}" />
+									</p:row>
+									<p:row>
+										<p:column headerText="#{msgs.lbl_numero}" sortBy="#{_detalleFormaCobro.cobro.numero}" filterBy="#{_detalleFormaCobro.cobro.numero}" />
+										<p:column headerText="#{msgs.lbl_fecha}" sortBy="#{_detalleFormaCobro.cobro.fecha}" />
+										<p:column headerText="#{msgs.lbl_cliente}" sortBy="#{_detalleFormaCobro.cobro.empresa.nombreFiscal}"
+											filterBy="#{_detalleFormaCobro.cobro.empresa.nombreFiscal}" />
+										<p:column headerText="#{msgs.lbl_forma_cobro}" sortBy="#{_detalleFormaCobro.formaPago.nombre}"
+											filterBy="#{_detalleFormaCobro.formaPago.nombre}" />
+
+										<p:column sortBy="#{_detalleFormaCobro.documentoReferencia}" filterBy="#{_detalleFormaCobro.documentoReferencia}">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_documento_referencia}" />
+											</f:facet>
+										</p:column>
+
+										<p:column sortBy="#{_detalleFormaCobro.banco.nombre}" filterBy="#{_detalleFormaCobro.banco.nombre}">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_banco}" />
+											</f:facet>
+											<h:outputText value="#{_detalleFormaCobro.banco.nombre}" />
+										</p:column>
+
+										<p:column headerText="#{msgs.lbl_valor}" sortBy="#{_detalleFormaCobro.valor}" />
+										<p:column headerText="#{msgs.lbl_asiento}" sortBy="#{_detalleFormaCobro.cobro.asiento.numero}"
+											filterBy="#{_detalleFormaCobro.cobro.asiento.numero}" />
+										<p:column headerText="#{msgs.lbl_numero}" sortBy="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.numero}"
+											filterBy="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.numero}" />
+										<p:column headerText="#{msgs.lbl_fecha}" sortBy="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.fechaContabilizacion}" />
+										<p:column headerText="#{msgs.lbl_valor}" sortBy="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.valor}" />
+										<p:column headerText="#{msgs.lbl_asiento}" sortBy="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.asiento.numero}"
+											filterBy="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.asiento.numero}" />
+									</p:row>
+
+								</p:columnGroup>
+
+								<p:column styleClass="columnaDTAccion tableCell">
+									<f:facet name="header">
+										<h:outputText value="Nº" />
+									</f:facet>
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_numero} #{msgs.lbl_cobro}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.cobro.numero}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTFecha tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_cobro}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.cobro.fecha}">
+										<f:convertDateTime pattern="#{consultaCobroBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_cliente}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.cobro.empresa.nombreFiscal}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_forma_cobro}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.formaPago.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombreCorto tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_documento_referencia}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.documentoReferencia}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTNombre tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_banco}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.banco.nombre}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTValorGrande input-text-number tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_valor}}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.valor}">
+										<f:convertNumber pattern="#{consultaCobroBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTNombreCorto tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_asiento} #{msgs.lbl_cobro}" />
+									</f:facet>
+									<h:link rendered="#{not empty _detalleFormaCobro.cobro.asiento}" target="_blank"
+										outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+										value="#{_detalleFormaCobro.cobro.asiento.numero}">
+										<f:param name="idAsiento" value="#{_detalleFormaCobro.cobro.asiento.idAsiento}" />
+									</h:link>
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_numero} #{msgs.lbl_cierre_caja}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.detalleCierreCaja.cierreCaja.numero}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_numero} #{msgs.lbl_deposito_cierre_caja}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.numero}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.fechaContabilizacion}">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_deposito_cierre_caja}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.fechaContabilizacion}">
+										<f:convertDateTime pattern="#{consultaCobroBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTValor input-text-number tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_valor} #{msgs.lbl_deposito_cierre_caja}" />
+									</f:facet>
+									<h:outputText value="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.valor}">
+										<f:convertNumber pattern="#{consultaCobroBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="columnaDTNombreCorto tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_asiento} #{msgs.lbl_deposito_cierre_caja}" />
+									</f:facet>
+									<h:link rendered="#{not empty _detalleFormaCobro.detalleCierreCaja.interfazContableProceso.asiento}" target="_blank"
+										outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+										value="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.asiento.numero}">
+										<f:param name="idAsiento" value="#{_detalleFormaCobro.detalleCierreCaja.interfazContableProceso.asiento.idAsiento}" />
+									</h:link>
+								</p:column>
+
+								<p:column styleClass="columnaDTAccion tableCell" exportable="false" headerText="liberar">
+									<center>
+										<p:commandButton oncomplete="liberacionCobroDialogo.show();" icon="ui-icon-arrowreturnthick-1-n" process="@this"
+											action="#{consultaCobroBean.cargarDatosCobro}" update=":form:pgPanelLiberacionCobros"
+											disabled="#{empty _detalleFormaCobro.detalleCierreCaja }" title="#{msgs.lbl_liberar_cobro}" >
+										</p:commandButton>
+									</center>
+								</p:column>
+
+							</p:dataTable>
+						</p:panel>
+
+					</p:outputPanel>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

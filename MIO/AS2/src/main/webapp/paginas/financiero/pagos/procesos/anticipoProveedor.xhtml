@@ -1,0 +1,582 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="numeroAnticipo" value="#{anticipoProveedorBean.numeroAnticipo}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{anticipoProveedorBean}">
+					<as2:buttonEliminar bean="#{anticipoProveedorBean}" titulo="#{msgs.btn_anular}">
+						<!-- p:outputPanel id="panelAnular" autoUpdate="true">
+							<h:panelGrid columns="2">
+								<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.numero}" />
+
+								<h:outputText value="#{msgs.lbl_proveedor}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.empresa.nombreComercial}" />
+
+								<h:outputText value="#{msgs.lbl_valor}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.valor}">
+									<f:convertNumber pattern="#{anticipoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</h:panelGrid>
+						</p:outputPanel-->
+					</as2:buttonEliminar>
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{anticipoProveedorBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{anticipoProveedorBean.anticipoProveedor.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+					<as2:buttonImprimir beanReporte="#{reporteChequeAsientoBean}" bean="#{anticipoProveedorBean}" target="#{reporteChequeAsientoBean.asiento}"
+						value="#{anticipoProveedorBean.anticipoProveedor.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_cheque}" />
+					<as2:buttonExportaExcel bean="#{anticipoProveedorBean}" tabla=":form:tablaAnticipoProveedor" />
+				</as2:toolBar>
+
+				<!-- Inicio Dialog Contabilizar -->
+				<p:outputPanel id="panelAnticipoContabilizar">
+					<p:panel rendered="#{anticipoProveedorBean.mostrarDialogContabilizar}">
+						<p:dialog header="#{msgs.lbl_contabilizar} #{msgs.lbl_anticipo_proveedor_panel}" widgetVar="anticipoAContabilizarDialog"
+							id="anticipoAContabilizarDialog" modal="true" height="200" width="600" showEffect="slide" hideEffect="slide">
+
+							<h:panelGrid id="panelGridAnticipoContabilizar" columns="2" columnClasses="columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.numero}" />
+
+								<h:outputText value="#{msgs.lbl_proveedor}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.empresa.proveedor.empresa.nombreFiscal}" />
+
+								<h:outputText value="#{msgs.lbl_pago_valor}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.valor}">
+									<f:convertNumber pattern="#{anticipoProveedorBean.formatoDinero}" />
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_pagar_de}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.cuentaBancariaOrganizacion.nombreCompleto}:" />
+
+								<h:outputText value="#{msgs.lbl_forma_pago}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.formaPago.nombre}" />
+
+								<h:outputText value="#{msgs.lbl_documento_referencia}" />
+								<p:inputText styleClass="input-text" id="txtDocumentoReferenciaDialog" value="#{anticipoProveedorBean.anticipoProveedor.documentoReferencia}" />
+
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_procesar}" actionListener="#{anticipoProveedorBean.contabilizarAnticipoProveedor}"
+										process="@this :form:panelAnticipoContabilizar" oncomplete="anticipoAContabilizarDialog.hide()" update=":form:panelListado"
+										icon="ui-icon-plus" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:panel>
+				</p:outputPanel>
+				<!-- Fin Dialog Contabilizar -->
+
+				<!-- Inicio Dialog Cheque Entregar -->
+				<p:outputPanel id="panelAnticipoChequeEntregar">
+					<p:panel rendered="#{anticipoProveedorBean.mostrarDialogEntregarCheque}">
+						<p:dialog header="#{msgs.lbl_entregar_cheque} #{msgs.lbl_anticipo_proveedor_panel}" widgetVar="anticipoChequeEntregarDialog"
+							id="anticipoChequeEntregarDialog" modal="true" height="200" width="600" showEffect="slide" hideEffect="slide">
+
+							<h:panelGrid id="panelGridAnticipoChequeEntregar" columns="2" columnClasses="columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.numero}" />
+
+								<h:outputText value="#{msgs.lbl_proveedor}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.empresa.proveedor.empresa.nombreFiscal}" />
+
+								<h:outputText value="#{msgs.lbl_pago_valor}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.valor}">
+									<f:convertNumber pattern="#{anticipoProveedorBean.formatoDinero}" />
+								</h:outputText>
+
+								<h:outputText value="#{msgs.lbl_pagar_de}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.cuentaBancariaOrganizacion.nombreCompleto}:" />
+
+								<h:outputText value="#{msgs.lbl_forma_pago}:" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.formaPago.nombre}" />
+
+								<h:outputText value="#{msgs.lbl_documento_referencia}" />
+								<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.documentoReferencia}" />
+
+								<h:outputText value="#{msgs.lbl_fecha_entrega_cheque}:" />
+								<p:calendar pattern="#{anticipoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{anticipoProveedorBean.anticipoProveedor.fechaEntregaCheque}" id="calFechaEntregaCheque" disabled="true">
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_usuario_entrega_cheques}:" />
+								<h:panelGroup>
+									<h:outputText value="#{anticipoProveedorBean.anticipoProveedor.usuarioEntregaCheque}" />
+								</h:panelGroup>
+
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_procesar}" actionListener="#{anticipoProveedorBean.entregarCheque}"
+										process="@this :form:panelAnticipoChequeEntregar" oncomplete="anticipoChequeEntregarDialog.hide()" update=":form:panelListado"
+										icon="ui-icon-plus" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:panel>
+				</p:outputPanel>
+				<!-- Fin Dialog Cheque Entregar -->
+
+				<!-- Inicio Dialog Liquidacion Anticipo Proveedor  -->
+				<p:dialog header="#{msgs.lbl_liquidacion_anticipo_proveedor_titulo_panel_edicion}" widgetVar="liquidacionAnticipoProveedorDialog"
+					id="liquidacionAnticipoProveedorDialog" modal="true" height="300" width="950" showEffect="slide" hideEffect="slide">
+					<p:outputPanel id="panelAnticipolquidacionAnticipoProveedor">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaLiquidacionAnticipoProveedor" rowIndexVar="secuencial"
+							binding="#{anticipoProveedorBean.dtLiquidacionAnticipoProveedor}" emptyMessage="#{msgs.msg_no_hay_datos}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" value="#{anticipoProveedorBean.listaLiquidacionAnticipoProveedor}"
+							var="_liquidacionAnticipoProveedor" rowKey="#{_liquidacionAnticipoProveedor.id}" rows="#{anticipoProveedorBean.numeroFilas}"
+							sortBy="#{_liquidacionAnticipoProveedor.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_liquidacionAnticipoProveedor.numero}" filterBy="#{_liquidacionAnticipoProveedor.numero}"
+								styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_liquidacionAnticipoProveedor.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_liquidacionAnticipoProveedor.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+
+								<h:outputText value="#{_liquidacionAnticipoProveedor.fecha}">
+									<f:convertDateTime pattern="#{anticipoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTValorGrande tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_valor}" />
+								</f:facet>
+								<h:outputText value="#{_liquidacionAnticipoProveedor.valor}">
+									<f:convertNumber pattern="#{anticipoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _liquidacionAnticipoProveedor.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_liquidacionAnticipoProveedor.asiento.numero}">
+									<f:param name="idAsiento" value="#{_liquidacionAnticipoProveedor.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_liquidacionAnticipoProveedor.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anular}" />
+								</f:facet>
+
+								<p:commandButton id="btnAnularLiquidacion" process="@this" icon="action"
+									actionListener="#{anticipoProveedorBean.seleccionarLiquidacionProveedor}" oncomplete="confirmacionAnularLiquidacion.show()"
+									update=":form:panelAnularLiquidacion">
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- Fin Dialog Liquidacion Anticipo Proveedor  -->
+
+				<p:confirmDialog message="¿#{msgs.msg_confirmacion_anular}?" height="60" width="300" modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionAnularLiquidacion">
+					<p:outputPanel id="panelAnularLiquidacion" autoUpdate="true">
+
+						<h:panelGrid columns="2">
+							<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+							<h:outputText value="#{anticipoProveedorBean.liquidacionAnticipoProveedor.numero}" />
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<h:outputText value="#{anticipoProveedorBean.liquidacionAnticipoProveedor.documento.nombre}" />
+
+							<h:outputText value="#{msgs.lbl_valor}:" />
+							<h:outputText value="#{anticipoProveedorBean.liquidacionAnticipoProveedor.valor}">
+								<f:convertNumber pattern="#{anticipoProveedorBean.formatoDinero}" />
+							</h:outputText>
+						</h:panelGrid>
+
+						<h:panelGroup>
+							<center>
+								<p:commandButton value="#{msgs.confirmacion_si}" update=":form:panelAnticipolquidacionAnticipoProveedor,:form:panelListado" process="@this"
+									action="#{anticipoProveedorBean.anularLiquidacionProveedor}" oncomplete="confirmacionAnularLiquidacion.hide()" />
+								<p:commandButton value="#{msgs.confirmacion_no}" onclick="confirmacionAnularLiquidacion.hide()" />
+							</center>
+						</h:panelGroup>
+
+					</p:outputPanel>
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_anticipo_proveedor_panel}" rendered="#{anticipoProveedorBean.editado}">
+
+						<h:panelGrid id="panelDetalle" columns="#{anticipoProveedorBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_documento}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true"
+								value="#{anticipoProveedorBean.anticipoProveedor.documento.idDocumento}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{anticipoProveedorBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+									itemValue="#{_documento.idDocumento}" />
+
+								<p:ajax process="@this" update=":form:txtNumero" listener="#{anticipoProveedorBean.actualizarDocumento}" />
+
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_numero}:" />
+							<p:inputMask styleClass="input-text" id="txtNumero" value="#{anticipoProveedorBean.anticipoProveedor.numero}"
+								mask="#{anticipoProveedorBean.anticipoProveedor.documento.secuencia.patron}" disabled="#{!anticipoProveedorBean.secuenciaEditable}">
+								<f:validateBean />
+							</p:inputMask>
+
+							<h:outputText value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{anticipoProveedorBean.formatoFecha}" showOn="button" navigator="true"
+								value="#{anticipoProveedorBean.anticipoProveedor.fecha}" id="calFecha" required="true">
+								<f:validateBean />
+							</p:calendar>
+
+							<p:outputLabel for="txtProveedor" value="#{msgs.lbl_proveedor}:" />
+							<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+								value="#{anticipoProveedorBean.anticipoProveedor.empresa}" completeMethod="#{anticipoProveedorBean.autocompletarProveedores}" var="_proveedor"
+								itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}" forceSelection="true" dropdown="true" minQueryLength="2" size="50"
+								required="true" id="txtProveedor">
+
+								<p:column headerText="#{msgs.lbl_identificacion}">#{_proveedor.identificacion}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+								<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+								<p:ajax listener="#{anticipoProveedorBean.actualizarProveedor}" process="@this" event="itemSelect" update=":form:txtBeneficiario" />
+							</p:autoComplete>
+
+							<p:outputLabel for="cboCuentaBancariaOrganizacion" value="#{msgs.lbl_pagar_de}:" />
+							<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+								value="#{anticipoProveedorBean.anticipoProveedor.cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{anticipoProveedorBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+									itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion.idCuentaBancariaOrganizacion}" />
+								<f:validateBean />
+								<p:ajax process="@this" listener="#{anticipoProveedorBean.actualizarCuentaBancaria}" update=":form:cboFormaPago" />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="cboFormaPago" value="#{msgs.lbl_forma_pago}:" />
+							<p:selectOneMenu disabled="anticipoProveedorBean.anticipoProveedor.indicadorChequePosfechado}" styleClass="input-text" id="cboFormaPago"
+								required="true" value="#{anticipoProveedorBean.anticipoProveedor.formaPago}">
+								<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+								<f:selectItems value="#{anticipoProveedorBean.anticipoProveedor.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+									itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+								<f:validateBean />
+								<p:ajax process="@this,:form:calFecha" update=":form:panelNuevo txtReferenciaFormaCobro" global="false"
+									listener="#{anticipoProveedorBean.actualizarFormaPago}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_anticipo_proveedor_valor}:" />
+							<p:inputText styleClass="input-text" id="txtValorAnticipoProveedor" value="#{anticipoProveedorBean.anticipoProveedor.valor}">
+								<p:ajax process="@this" />
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_beneficiario}:" />
+							<p:inputText styleClass="input-text" id="txtBeneficiario" value="#{anticipoProveedorBean.anticipoProveedor.beneficiario}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_documento_referencia}:" />
+							<p:inputText styleClass="input-text" id="txtReferenciaFormaCobro" value="#{anticipoProveedorBean.anticipoProveedor.documentoReferencia}">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText rendered="#{(not empty anticipoProveedorBean.anticipoProveedor.formaPago) and (anticipoProveedorBean.anticipoProveedor.formaPago.indicadorCheque)}" value="#{msgs.lbl_tiene_cheque_posfechado}:" />
+							<p:selectBooleanCheckbox id="chkIndicadorChequePosfechado" value="#{anticipoProveedorBean.anticipoProveedor.indicadorChequePosfechado}"
+								rendered="#{(not empty anticipoProveedorBean.anticipoProveedor.formaPago) and (anticipoProveedorBean.anticipoProveedor.formaPago.indicadorCheque)}">
+								<p:ajax process="@this" update=":form:panelDetalle" global="false"></p:ajax>
+							</p:selectBooleanCheckbox>
+
+							<h:outputText value="#{msgs.lbl_fecha}" rendered="#{anticipoProveedorBean.anticipoProveedor.indicadorChequePosfechado}" />
+							<p:calendar rendered="#{anticipoProveedorBean.anticipoProveedor.indicadorChequePosfechado}" pattern="#{anticipoProveedorBean.formatoFecha}"
+								showOn="button" navigator="true" value="#{anticipoProveedorBean.anticipoProveedor.fechaPosfechado}" id="calFechaPosfechado" required="true">
+								<f:validateBean />
+							</p:calendar>
+
+							<h:outputText value="#{msgs.lbl_descripcion}" rendered="#{anticipoProveedorBean.anticipoProveedor.indicadorChequePosfechado}" />
+							<p:inputText rendered="#{anticipoProveedorBean.anticipoProveedor.indicadorChequePosfechado}"
+								value="#{anticipoProveedorBean.anticipoProveedor.notaPosfechado}" styleClass="input-text">
+							</p:inputText>
+							
+							<h:outputText value="#{msgs.lbl_responsable}:" rendered="#{anticipoProveedorBean.indicadorOrdenCompraConPersonaResponsable}" />
+							<p:selectOneMenu styleClass="input-text" value="#{anticipoProveedorBean.anticipoProveedor.personaResponsable}" id="cboPersonaResponsable"
+								rendered="#{anticipoProveedorBean.indicadorOrdenCompraConPersonaResponsable}"
+								required="#{anticipoProveedorBean.indicadorOrdenCompraConPersonaResponsable}">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{anticipoProveedorBean.listaPersonaResponsable}" var="_personaResponsable"
+									itemLabel="#{_personaResponsable.nombres} #{_personaResponsable.apellidos}" itemValue="#{_personaResponsable}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" id="txtDescripcion" value="#{anticipoProveedorBean.anticipoProveedor.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<h:panelGroup rendered="#{anticipoProveedorBean.mostrarSaldoInicial}">
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_saldo_inicial}:" />
+									<p:selectBooleanCheckbox value="#{anticipoProveedorBean.anticipoProveedor.indicadorSaldoInicial}" />
+								</h:panelGrid>
+							</h:panelGroup>
+						</h:panelGrid>
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_anticipo_proveedor_panel}" rendered="#{!anticipoProveedorBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAnticipoProveedor" rowIndexVar="secuencialNivelCuenta"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{anticipoProveedorBean.listaAnticipoProveedor}" var="_anticipoProveedor"
+							binding="#{anticipoProveedorBean.dtAnticipoProveedor}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{anticipoProveedorBean.numeroFilas}" rowsPerPageTemplate="#{anticipoProveedorBean.numeroFilasPorPagina}"
+							selection="#{anticipoProveedorBean.anticipoProveedor}" selectionMode="single" rowKey="#{_anticipoProveedor.id}"
+							sortBy="#{_anticipoProveedor.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialNivelCuenta+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.numero}" filterBy="#{_anticipoProveedor.numero}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoProveedor.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoProveedor.fecha}" styleClass="columnaDTFecha tableCell">
+									<f:convertDateTime pattern="#{anticipoProveedorBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.empresa.nombreFiscal}" filterBy="#{_anticipoProveedor.empresa.nombreFiscal}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoProveedor.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.formaPago.nombre}" filterBy="#{_anticipoProveedor.formaPago.nombre}"
+								styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_forma_pago}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoProveedor.formaPago.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.valor}" styleClass="columnaDTValor input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anticipo_proveedor_valor}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoProveedor.valor}">
+									<f:convertNumber pattern="#{anticipoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.saldo}" styleClass="columnaDTValor input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anticipo_proveedor_saldo}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoProveedor.saldo}">
+									<f:convertNumber pattern="#{anticipoProveedorBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_anticipoProveedor.notaCreditoProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nota_credito_proveedor_abreviatura}" />
+								</f:facet>
+
+								<h:outputText value="#{_anticipoProveedor.notaCreditoProveedor.numero}" />
+							</p:column>
+
+							<p:column filterBy="#{_anticipoProveedor.asiento.numero}" styleClass="columnaDTCodigo tableCell" sortBy="#{_anticipoProveedor.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _anticipoProveedor.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_anticipoProveedor.asiento.numero}">
+									<f:param name="idAsiento" value="#{_anticipoProveedor.asiento.idAsiento}" />
+								</h:link>
+
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{_anticipoProveedor.asientoDevolucion.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento_devolucion}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _anticipoProveedor.asientoDevolucion}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_anticipoProveedor.asientoDevolucion.numero}">
+									<f:param name="idAsiento" value="#{_anticipoProveedor.asientoDevolucion.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" filterBy="#{_anticipoProveedor.detalleOrdenPagoProveedor.ordenPagoProveedor.numero}"
+								rendered="#{anticipoProveedorBean.usaOrdenPago}">
+								<f:facet name="header">
+									<h:outputText value="# #{msgs.lbl_orden_pago_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_anticipoProveedor.detalleOrdenPagoProveedor.ordenPagoProveedor.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.estado}" filterBy="#{_anticipoProveedor.estado}"
+								filterOptions="#{anticipoProveedorBean.listaEstadoItem}" styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_anticipoProveedor.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.sucursal.nombre}" filterBy="#{_anticipoProveedor.sucursal.nombre}"
+								styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_anticipoProveedor.sucursal.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_liquidar}" />
+								</f:facet>
+
+								<p:commandButton id="btnLiquidar" process="@this" icon="action" action="#{anticipoProveedorBean.liquidarAnticipoProveedor}"
+									disabled="#{!(_anticipoProveedor.saldo>0) or _anticipoProveedor.estado != 'CONTABILIZADO' }">
+
+									<f:setPropertyActionListener value="#{_anticipoProveedor}" target="#{anticipoProveedorBean.anticipoProveedor}" />
+								</p:commandButton>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_devolucion}" />
+								</f:facet>
+
+								<p:commandButton id="btnDevolucion" process="@this" icon="action" action="#{anticipoProveedorBean.devolverAnticipoProveedor}"
+									disabled="#{!(_anticipoProveedor.saldo>0)}">
+									<f:setPropertyActionListener value="#{_anticipoProveedor}" target="#{anticipoProveedorBean.anticipoProveedor}" />
+								</p:commandButton>
+							</p:column>
+							
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_anular} #{msgs.lbl_devolucion}" />
+								</f:facet>
+
+								<p:commandButton id="btnAnularDevolucion" process="@this" icon="action" action="#{anticipoProveedorBean.anularDevolverAnticipoProveedor}"
+									disabled="#{(_anticipoProveedor.asientoDevolucion == null)}">
+
+									<f:setPropertyActionListener value="#{_anticipoProveedor}" target="#{anticipoProveedorBean.anticipoProveedor}" />
+								</p:commandButton>
+							</p:column>
+							
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_ver_liquidacion}" />
+								</f:facet>
+
+								<p:commandButton id="btnLiquidacion" process="@this" icon="action" oncomplete="liquidacionAnticipoProveedorDialog.show()"
+									update=":form:panelAnticipolquidacionAnticipoProveedor" disabled="#{_anticipoProveedor.estado != 'CONTABILIZADO'}">
+
+									<f:setPropertyActionListener value="#{_anticipoProveedor}" target="#{anticipoProveedorBean.anticipoProveedor}" />
+
+								</p:commandButton>
+							</p:column>
+
+							<p:column headerText="#{msgs.btn_procesar}" styleClass="columnaDTAccion tableCell">
+								<center>
+									<p:commandButton icon="ui-icon-gear" action="#{anticipoProveedorBean.seleccionarAnticipoAContabilizar}" process="@this :form:panelListado"
+										oncomplete="anticipoAContabilizarDialog.show()" update=":form:panelAnticipoContabilizar"
+										disabled="#{_anticipoProveedor.estado != 'APROBADO'}" />
+								</center>
+							</p:column>
+
+							<p:column sortBy="#{_anticipoProveedor.descripcion}" filterBy="#{_anticipoProveedor.descripcion}" styleClass="columnaDTNombre tableCell"
+								exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_anticipoProveedor.descripcion}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{anticipoProveedorBean.anticipoProveedor}" value="#{_anticipoProveedor}" bean="#{anticipoProveedorBean}"
+									formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado" visible="#{_anticipoProveedor.pdf!=null}" />
+
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{anticipoProveedorBean.anticipoProveedor.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{anticipoProveedorBean.anticipoProveedor.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{anticipoProveedorBean.anticipoProveedor.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{anticipoProveedorBean.anticipoProveedor.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

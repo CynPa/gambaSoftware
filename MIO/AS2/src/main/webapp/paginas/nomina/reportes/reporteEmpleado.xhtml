@@ -1,0 +1,102 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:panel header="#{msgs.lbl_reporteEmpledos}">
+			
+				<tnt:panelImprimir entidadDestino="" 
+					bean="#{reporteEmpleadosBean}" entidadOrigen="">
+				</tnt:panelImprimir>
+
+				<p:outputPanel id="panelFiltros">
+					<p:fieldset>
+						<h:panelGrid
+							columns="#{reporteEmpleadosBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputLabel value="#{msgs.lbl_tipo_reporte}:" />
+							<p:selectOneMenu value="#{reporteEmpleadosBean.tipoReporte}">
+								<f:selectItems value="#{reporteEmpleadosBean.listaTipoReporte}" />
+								<p:ajax process="@this" global="false" update="rbEstado,calFechaDesde,calFechaHasta,cboMes"
+									partialSubmit="true" />
+							</p:selectOneMenu>
+
+							<h:outputLabel value="#{msgs.lbl_estado_empleado}:" />
+							<p:selectOneRadio id="rbEstado" value="#{reporteEmpleadosBean.estado}" disabled="#{reporteEmpleadosBean.tipoReporte != 'ENTRADAS'}">
+								<f:selectItems value="#{reporteEmpleadosBean.listaEstado}" />
+							</p:selectOneRadio>
+
+							<h:outputText value="#{msgs.lbl_fecha_desde}:" />
+							<p:calendar disabled="#{reporteEmpleadosBean.tipoReporte == 'CUMPLEANOS'}" pattern="#{reporteEmpleadosBean.formatoFecha}" showOn="button"
+								navigator="true" value="#{reporteEmpleadosBean.fechaDesde}" id="calFechaDesde" />
+
+							<h:outputText value="#{msgs.lbl_fecha_hasta}:" />
+							<p:calendar disabled="#{reporteEmpleadosBean.tipoReporte == 'CUMPLEANOS'}" pattern="#{reporteEmpleadosBean.formatoFecha}" showOn="button"
+								navigator="true" value="#{reporteEmpleadosBean.fechaHasta}" id="calFechaHasta" />
+
+							<h:outputText value="#{msgs.lbl_mes}:" />
+							<p:selectOneMenu id="cboMes" disabled="#{reporteEmpleadosBean.tipoReporte != 'CUMPLEANOS'}" styleClass="input-text"
+								value="#{reporteEmpleadosBean.mes}">
+								<f:selectItems value="#{reporteEmpleadosBean.listaMes}" />
+							</p:selectOneMenu>
+
+							<h:outputText value="#{msgs.lbl_departamento_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteEmpleadosBean.departamento}"
+								id="cboDepartamento">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems
+									value="#{reporteSobreEmpleadoBean.listaDepartamento}"
+									var="_departamento" itemLabel="#{_departamento.nombre}"
+									itemValue="#{_departamento}" />
+							</p:selectOneMenu>
+							
+							
+							<h:outputText value="#{msgs.lbl_sucursal_empleado}:" />
+							<p:selectOneMenu styleClass="input-text"
+								value="#{reporteEmpleadosBean.sucursal}" id="cboSucursal">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems
+									value="#{reporteIngresosEgresosBean.listaSucursal}"
+									var="_sucursal" itemLabel="#{_sucursal.nombre}"
+									itemValue="#{_sucursal}" />
+							</p:selectOneMenu>
+
+							
+							<h:outputText value="#{msgs.lbl_genero}:" />
+							<h:panelGroup>
+								<p:selectOneMenu styleClass="input-text" value="#{reporteEmpleadosBean.genero}" id="cboGenero" >
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{empleadoBean.listaGenero}" />
+								</p:selectOneMenu>
+							</h:panelGroup>
+							
+						</h:panelGrid>
+					</p:fieldset>
+
+					<p:separator />
+
+					<h:panelGrid columns="1" style="text-align:center;">
+						<p:commandButton value="#{msgs.btn_imprimir}" id="btnImprimir"
+							process="@this" oncomplete="confirmacionImprimir.show()"
+							icon="print">
+						</p:commandButton>
+					</h:panelGrid>
+
+				</p:outputPanel>
+
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

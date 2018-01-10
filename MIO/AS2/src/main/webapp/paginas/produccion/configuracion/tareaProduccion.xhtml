@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<!--
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{tareaProduccionBean}" />
+					<ui:param name="tabla" value="tablaTareaProduccion" />
+					<ui:param name="columnasAExcluir" value="4" />
+					<ui:param name="columnasAExcluirPdf" value="4" />
+				</ui:include>
+				-->
+
+				<as2:toolBar bean="#{tareaProduccionBean}">
+					<as2:buttonEliminar bean="#{tareaProduccionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tareaProduccionBean.tareaProduccion.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tareaProduccionBean.tareaProduccion.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tareaProduccionBean}" tabla=":form:tablaTareaProduccion" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{tareaProduccionBean.editado}" header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_tarea_produccion})">
+
+						<h:panelGrid id="panelDetalle" columns="#{tareaProduccionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{tareaProduccionBean.tareaProduccion.codigo}" id="txtCodigo" required="true" />
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{tareaProduccionBean.tareaProduccion.nombre}" id="txtNombre" required="true" />
+
+							<p:outputLabel for="cboCentroTrabajo" value="#{msgs.lbl_centro_trabajo}:" />
+							<p:selectOneMenu value="#{tareaProduccionBean.tareaProduccion.centroTrabajo}" id="cboCentroTrabajo" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tareaProduccionBean.listaCentroTrabajo}" var="_centroTrabajo" itemLabel="#{_centroTrabajo.nombre}"
+									itemValue="#{_centroTrabajo}" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:spacer />
+							<p:spacer />
+
+							<p:outputLabel for="cboMaquina" value="#{msgs.lbl_maquina}:" />
+							<p:selectOneMenu value="#{tareaProduccionBean.tareaProduccion.maquina}" id="cboMaquina" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tareaProduccionBean.listaMaquina}" var="_maquina" itemLabel="#{_maquina.nombre}" itemValue="#{_maquina}" />
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtNumeroMaquinas" value="#{msgs.lbl_tarifa} (#{msgs.lbl_maquina}):" />
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaValor,columnaEtiqueta" style="width:85%;">
+								<h:outputText value="#:" />
+								<p:inputText styleClass="input-text" value="#{tareaProduccionBean.tareaProduccion.numeroMaquinas}" id="txtNumeroMaquinas">
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_tarifa}:" />
+								<p:outputPanel autoUpdate="true">
+									<h:outputText value="#{tareaProduccionBean.tareaProduccion.numeroMaquinas*tareaProduccionBean.tareaProduccion.maquina.tarifa}" />
+								</p:outputPanel>
+							</h:panelGrid>
+
+							<p:outputLabel for="cboTarifa" value="#{msgs.lbl_tarifa_operacion}:" />
+							<p:selectOneMenu value="#{tareaProduccionBean.tareaProduccion.tarifaOperacion}" id="cboTarifa" required="true">
+								<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+								<f:selectItems value="#{tareaProduccionBean.listaTarifaOperacion}" var="_tarifa" itemLabel="#{_tarifa.nombre}" itemValue="#{_tarifa}" />
+								<p:ajax process="@this" global="false" />
+								<f:validateBean />
+							</p:selectOneMenu>
+
+							<p:outputLabel for="txtNumeroPersonas" value="#{msgs.lbl_tarifa} (#{msgs.lbl_persona}):" />
+							<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaValor,columnaEtiqueta" style="width:85%;">
+								<h:outputText value="#:" />
+								<p:inputText styleClass="input-text" value="#{tareaProduccionBean.tareaProduccion.numeroPersonas}" id="txtNumeroPersonas">
+									<p:ajax process="@this" global="false" />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_tarifa}:" />
+								<p:outputPanel autoUpdate="true">
+									<h:outputText value="#{tareaProduccionBean.tareaProduccion.numeroPersonas*tareaProduccionBean.tareaProduccion.tarifaOperacion.costo}" />
+								</p:outputPanel>
+							</h:panelGrid>
+
+							<p:outputLabel value="#{msgs.lbl_fijo}:" />
+							<p:selectBooleanCheckbox value="#{tareaProduccionBean.tareaProduccion.indicadorFijo}" />
+
+							<p:outputLabel value="#{msgs.lbl_automatico}:" />
+							<p:selectBooleanCheckbox value="#{tareaProduccionBean.tareaProduccion.indicadorAutomatico}" />
+
+							<p:outputLabel value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{tareaProduccionBean.tareaProduccion.activo}" />
+
+							<p:outputLabel value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{tareaProduccionBean.tareaProduccion.predeterminado}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{tareaProduccionBean.tareaProduccion.descripcion}" id="txtDescripcion" />
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!tareaProduccionBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_tarea_produccion})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTareaProduccion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{tareaProduccionBean.listaTareaProduccion}" var="_tareaProduccion"
+							binding="#{tareaProduccionBean.dtTareaProduccion}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tareaProduccionBean.numeroFilas}" rowsPerPageTemplate="#{tareaProduccionBean.numeroFilasPorPagina}"
+							selection="#{tareaProduccionBean.tareaProduccion}" selectionMode="single" rowKey="#{_tareaProduccion.id}" sortBy="#{_tareaProduccion.codigo}"
+							lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_tareaProduccion.codigo}" sortBy="#{_tareaProduccion.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tareaProduccion.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_tareaProduccion.nombre}" sortBy="#{_tareaProduccion.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tareaProduccion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor input-text-number tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tarifa} (#{msgs.lbl_maquina})" />
+								</f:facet>
+								<h:outputText value="#{_tareaProduccion.numeroMaquinas*_tareaProduccion.maquina.tarifa}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor input-text-number tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_tarifa} (#{msgs.lbl_persona})" />
+								</f:facet>
+								<h:outputText value="#{_tareaProduccion.numeroPersonas*_tareaProduccion.tarifaOperacion.costo}" />
+							</p:column>
+
+							<p:column sortBy="#{_tareaProduccion.indicadorFijo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fijo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tareaProduccion.indicadorFijo}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_tareaProduccion.indicadorAutomatico}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_automatico}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tareaProduccion.indicadorAutomatico}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_tareaProduccion.activo}" styleClass="columnaDTActivo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tareaProduccion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTPredeterminado" sortBy="#{_tareaProduccion.predeterminado}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_predeterminado}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{_tareaProduccion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{_tareaProduccion.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tareaProduccion.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{tareaProduccionBean.tareaProduccion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{tareaProduccionBean.tareaProduccion.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{tareaProduccionBean.tareaProduccion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{tareaProduccionBean.tareaProduccion.usuarioModificacion}" />
+					</ui:include>
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

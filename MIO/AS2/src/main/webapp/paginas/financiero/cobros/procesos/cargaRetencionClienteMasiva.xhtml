@@ -1,0 +1,145 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+
+
+
+
+				<p:panel header="#{msgs.lbl_carga_retencion_cliente_masiva}">
+
+					<h:panelGrid id="panelDetalle" columns="#{cargaRetencionClienteMasivaBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+
+
+						<p:outputPanel>
+							<p:panelGrid columns="2">
+								<p:outputLabel value="#{msgs.lbl_fecha} #{msgs.lbl_cobro}" />
+								<p:calendar value="#{cargaRetencionClienteMasivaBean.fecha}" pattern="#{cargaRetencionClienteMasivaBean.formatoFecha}" showButtonPanel="true"
+									locale="es" showOn="button" required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+									<f:validateBean />
+								</p:calendar>
+							</p:panelGrid>
+						</p:outputPanel>
+
+
+						<p:outputPanel id="outputCargarXML">
+							<p:fieldset>
+								<center>
+									<p:fileUpload id="fileArchiv" fileUploadListener="#{cargaRetencionClienteMasivaBean.cargarXMLMasivo}" mode="advanced" auto="true"
+										sizeLimit="10000000" allowTypes="/(\.|\/)(xml)$/" label="#{msgs.btn_examinar}" update=":form:outResumen :form:outResumenGeneral"
+										multiple="true">
+									</p:fileUpload>
+								</center>
+							</p:fieldset>
+
+
+						</p:outputPanel>
+
+
+						<p:commandButton id="btnProcess" value="#{msgs.btn_procesar}" actionListener="#{cargaRetencionClienteMasivaBean.procesarCobros}"
+							update=":form:outResumen :form:outResumenGeneral" global="true"/>
+
+
+
+
+						<p:outputPanel id="outResumenGeneral">
+							<p:panelGrid columns="2">
+								<p:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_rentenciones_seleccionadas} :" />
+									<h:outputText value="#{cargaRetencionClienteMasivaBean.numeroArchivos}" />
+
+									<h:outputText value="#{msgs.lbl_con_problemas} :" />
+									<h:outputText style="background-color:#8A0808; color:white" value="#{cargaRetencionClienteMasivaBean.numeroArchivosConProblemas}" />
+
+									<h:outputText value="#{msgs.lbl_retenciones_procesadas} :" />
+									<h:outputText style="background-color:#088A08; color:white" value="#{cargaRetencionClienteMasivaBean.numeroArchivosProcesados}" />
+								</p:panelGrid>
+
+							</p:panelGrid>
+
+						</p:outputPanel>
+
+					</h:panelGrid>
+
+
+
+
+					<p:panelGrid columns="1" id="pGResumen">
+
+
+
+						<p:outputPanel id="outResumen">
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaResumen" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+								value="#{cargaRetencionClienteMasivaBean.listaResumenFacturas}" var="_resumenCobro" paginator="true" paginatorPosition="bottom"
+								style="width:100%" rows="#{cargaRetencionClienteMasivaBean.numeroFilas}" sortOrder="ASCENDING"
+								rowsPerPageTemplate="#{empresaBean.numeroFilasPorPagina}">
+
+
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_archivo}" styleClass="columnaDTNombre tableCell">
+									<h:outputText styleClass="input-text" value="#{_resumenCobro[4]}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_cuentaBancaria_numero} #{msgs.lbl_retencion}" styleClass="columnaDTNombre tableCell">
+									<h:outputText styleClass="input-text" value="#{_resumenCobro[2]}" />
+								</p:column>
+
+
+								<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_factura}">
+									<h:link target="_blank" outcome="/paginas/ventas/procesos/facturaCliente" includeViewParams="true" value="#{_resumenCobro[0]}">
+										<f:param name="idFacturaCliente" value="#{_resumenCobro[6]}" />
+									</h:link>
+								</p:column>
+
+
+								<p:column headerText="#{msgs.lbl_estado_lectura_xml}" styleClass="columnaDTNombre tableCell">
+									<h:outputText rendered="#{_resumenCobro[1] != 'CORRECTO'}" value="#{_resumenCobro[1]}" style="background-color:#8A0808; color:white" />
+									<h:outputText rendered="#{_resumenCobro[1] == 'CORRECTO'}" value="#{_resumenCobro[1]}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_retencion}" styleClass="columnaDTNombreLargo tableCell">
+									<h:outputText value="#{_resumenCobro[5]}" />
+								</p:column>
+
+
+
+								<p:column headerText="#{msgs.lbl_estado_proceso}" styleClass="columnaDTNombre tableCell">
+									<h:outputText rendered="#{_resumenCobro[3] == 'SIN PROBLEMAS'}" value="#{_resumenCobro[3]}" style="background-color:#088A08; color:white" />
+									<h:outputText rendered="#{_resumenCobro[3] != 'SIN PROBLEMAS'}" value="#{_resumenCobro[3]}" />
+								</p:column>
+
+
+
+							</p:dataTable>
+						</p:outputPanel>
+
+
+					</p:panelGrid>
+
+				</p:panel>
+
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

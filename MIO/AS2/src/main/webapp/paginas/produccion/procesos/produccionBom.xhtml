@@ -1,0 +1,400 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="numeroTransformacion" value="#{produccionBomBean.numeroTransformacion}" />
+</f:metadata>
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{produccionBomBean}">
+					<as2:buttonEliminar bean="#{produccionBomBean}" titulo="#{msgs.btn_anular}" />
+
+					<as2:buttonImprimir id="btnImprimirTransformacionProducto" beanReporte="#{reporteTransformacionProductoBean}"
+						bean="#{produccionBomBean}" target="#{reporteTransformacionProductoBean.transformacionProducto}"
+						value="#{produccionBomBean.transferencia}" />
+
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{produccionBomBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{produccionBomBean.transferencia.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+
+					<as2:buttonExportaExcel bean="#{produccionBomBean}" tabla="tablaTransferencias" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{produccionBomBean}" />
+					<ui:param name="mostrarCantidad" value="true" />
+					<ui:param name="objetoActualizar" value=":form:panelNuevo" />
+				</ui:include>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_transformacion_producto})" rendered="#{produccionBomBean.editado}">
+
+						<ui:include src="/template/nuevoLote.xhtml">
+							<ui:param name="bean" value="#{produccionBomBean}" />
+							<ui:param name="objetoActualizar" value=":form:autoLoteProductoTerminado" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid columns="#{produccionBomBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="cboDocumentoOrigen" value="#{msgs.lbl_documento}" />
+								<p:selectOneMenu styleClass="input-text" value="#{produccionBomBean.transferencia.documento}" id="cboDocumentoOrigen" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{produccionBomBean.listaDocumentoOrigen}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<f:validateBean />
+									<p:ajax process="@this" update="txtNumero" listener="#{produccionBomBean.actualizarDocumento}" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboDocumentoDestino" value="#{msgs.lbl_documento} (#{msgs.lbl_destino})" />
+								<p:selectOneMenu styleClass="input-text" value="#{produccionBomBean.transferencia.documentoDestino}" id="cboDocumentoDestino"
+									required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{produccionBomBean.listaDocumentoDestino}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<f:validateBean />
+									<p:ajax process="@this" update="@none" />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtNumero" value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{produccionBomBean.transferencia.numero}"
+									mask="#{produccionBomBean.transferencia.documento.secuencia.patron}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha}:" />
+								<h:panelGroup>
+									<p:calendar pattern="#{produccionBomBean.formatoFecha}" showOn="button" navigator="true"
+										value="#{produccionBomBean.transferencia.fecha}" id="calFecha">
+										<f:validateBean />
+									</p:calendar>
+								</h:panelGroup>
+
+								<p:outputLabel value="#{msgs.lbl_producto}:" />
+								<h:panelGroup>
+									<p:commandButton
+										rendered="#{produccionBomBean.transferencia.id == 0 and empty produccionBomBean.transferencia.ordenFabricacion}"
+										process="@this" onclick="dglModalProducto.show();" icon="ui-icon ui-icon-newwin" title="#{msgs.lbl_listado}" />
+									<h:outputText
+										value="#{produccionBomBean.transferencia.productoTerminadoTransformacion.codigo} #{produccionBomBean.transferencia.productoTerminadoTransformacion.nombre}" />
+								</h:panelGroup>
+
+								<p:outputLabel for="autoOrdenfabricacion" value="#{msgs.lbl_orden_fabricacion}:" />
+								<p:autoComplete id="autoOrdenfabricacion" queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text"
+									value="#{produccionBomBean.transferencia.ordenFabricacion}" completeMethod="#{sesionControler.autocompletarOrdenFabricacion}"
+									var="_ordenFabricacion" itemValue="#{_ordenFabricacion}" itemLabel="#{_ordenFabricacion.numero}" forceSelection="false" required="false"
+									minQueryLength="2" dropdown="true" disabled="#{produccionBomBean.transferencia.id != 0}">
+
+									<p:column>
+										<h:outputText value="#{_ordenFabricacion.numero}" />
+									</p:column>
+
+									<p:column>
+										<h:outputText value="#{_ordenFabricacion.fechaLanzamiento}">
+											<f:convertDateTime pattern="#{produccionBomBean.formatoFecha}" />
+										</h:outputText>
+									</p:column>
+									<p:ajax event="itemSelect" process="@this" global="false" partialSubmit="true" update=":form:panelNuevo"
+										listener="#{produccionBomBean.actualizarOrdenFabricacion}" />
+									<p:ajax event="change" process="@this" global="false" partialSubmit="true" update=":form:panelNuevo"
+										listener="#{produccionBomBean.actualizarOrdenFabricacion}" />
+									<f:validateBean />
+
+								</p:autoComplete>
+
+								<p:outputLabel for="textCantidad" value="#{msgs.lbl_cantidad}:" />
+
+								<h:panelGrid columns="3">
+									<p:inputText id="textCantidad" value="#{produccionBomBean.transferencia.cantidadTransformacion}" required="true">
+										<p:ajax event="change" process="@this" listener="#{produccionBomBean.actualizarCantidad}" update="tablaDetalleMovimientoInventario"
+											global="false" />
+										<f:validateBean />
+									</p:inputText>
+
+									<p:outputLabel for="autoLoteProductoTerminado" value="#{msgs.lbl_lote}:"
+										rendered="#{produccionBomBean.transferencia.productoTerminadoTransformacion.indicadorLote}" />
+
+									<h:panelGrid columns="2" styleClass="columna90" cellpadding="0" cellspacing="0">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="autoLoteProductoTerminado" styleClass="input-text"
+											value="#{produccionBomBean.transferencia.loteTransformacion}"
+											completeMethod="#{produccionBomBean.autocompletarLotesProductoTerminado}" var="_lote" itemLabel="#{_lote.codigo}"
+											itemValue="#{_lote}" forceSelection="true" dropdown="false" minQueryLength="2"
+											rendered="#{produccionBomBean.transferencia.productoTerminadoTransformacion.indicadorLote}" required="true">
+
+											<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+											<p:ajax event="itemSelect" process="@this" update="@this" global="false" partialSubmit="true" />
+											<!-- <p:ajax event="change" process="@this" update="@this" global="false" partialSubmit="true" /> -->
+										</p:autoComplete>
+
+										<p:commandButton icon="ui-icon-newwin" id="btnCrearLote"
+											rendered="#{produccionBomBean.transferencia.productoTerminadoTransformacion.indicadorLote}"
+											update=":form:panelListaInventarioProductoLote" process="@this" oncomplete="dglModalInventarioProductoLote.show();"
+											action="#{produccionBomBean.crearLoteListener}"
+											disabled="#{empty produccionBomBean.transferencia.productoTerminadoTransformacion}" title="#{msgs.lbl_crear} #{msgs.lbl_lote}">
+										</p:commandButton>
+									</h:panelGrid>
+
+								</h:panelGrid>
+
+								<p:outputLabel for="cboBodegaDestino" value="#{msgs.lbl_bodega}:" />
+								<p:selectOneMenu styleClass="input-text" id="cboBodegaDestino" value="#{produccionBomBean.transferencia.bodegaDestino}"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{produccionBomBean.listaBodegaDestino}" var="_bodega" itemLabel="#{_bodega.nombre}" itemValue="#{_bodega}" />
+									<p:ajax event="change" process="@this" listener="#{produccionBomBean.eventBodegaDestino}" update="tablaDetalleMovimientoInventario"
+										global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{produccionBomBean.transferencia.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" process="@this :form:tablaDetalleMovimientoInventario"
+										icon="ui-icon-plus" actionListener="#{produccionBomBean.agregarDetalleListener}" update=":form:tablaDetalleMovimientoInventario" />
+									<!-- <p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" /> -->
+								</h:panelGroup>
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{produccionBomBean.detalleMovimientoInventario}"
+									id="tablaDetalleMovimientoInventario" rowIndexVar="secuencial" binding="#{produccionBomBean.dtDetalleMovimientoInventario}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleMovimientoInventario" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rowKey="#{_detalleMovimientoInventario.id}" rows="#{produccionBomBean.numeroFilas}"
+									rowsPerPageTemplate="#{produccionBomBean.numeroFilasPorPagina}">
+
+									<p:column headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_codigo_producto}" styleClass="tableCell columnaDTCodigoProducto">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{_detalleMovimientoInventario.producto}"
+											completeMethod="#{produccionBomBean.autocompletarProductos}" var="_producto" itemLabel="#{_producto.codigo}"
+											itemValue="#{_producto}" dropdown="false" minQueryLength="2" id="txtCodigoProducto">
+											<p:column headerText="#{msgs.lbl_codigo}">#{_producto.codigo}</p:column>
+											<p:column headerText="#{msgs.lbl_codigo_alterno}">#{_producto.codigoAlterno}</p:column>
+											<p:column headerText="#{msgs.lbl_nombre}">#{_producto.nombre}</p:column>
+											<p:ajax listener="#{produccionBomBean.actualizarProductoListener}" process="@this" event="itemSelect" global="false"
+												update="txtCodigoProducto, txtNombreProducto, txtUnidadProducto txtBodegaDestino txtBodegaOrigen cboBodegaMaterial"
+												oncomplete="nextFocus(':form:txtCantidad')" />
+											<f:validateBean />
+										</p:autoComplete>
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_nombre_producto}">
+										<h:outputText value="#{_detalleMovimientoInventario.producto.nombre}" id="txtNombreProducto">
+										</h:outputText>
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_unidad_producto}">
+										<h:outputText value="#{_detalleMovimientoInventario.producto.unidad.nombre}" id="txtUnidadProducto">
+										</h:outputText>
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_bodega}">
+										<h:outputText id="txtBodegaDestino" value="#{_detalleMovimientoInventario.bodegaDestino.nombre}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_bodega} (#{msgs.lbl_material_panel})">
+										<h:outputText id="txtBodegaOrigen" value="#{_detalleMovimientoInventario.bodegaOrigen.nombre}"
+											rendered="#{produccionBomBean.transferencia.idMovimientoInventario gt 0}" />
+										<p:selectOneMenu styleClass="input-text" value="#{_detalleMovimientoInventario.bodegaOrigen}" id="cboBodegaMaterial" required="true"
+											rendered="#{produccionBomBean.transferencia.idMovimientoInventario == 0}">
+											<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+											<f:selectItems value="#{_detalleMovimientoInventario.listaBodegasTrabajoProducto}" var="_bodegaMaterial"
+												itemLabel="#{_bodegaMaterial.nombre}" itemValue="#{_bodegaMaterial}" />
+											<f:validateBean />
+											<p:ajax process="@this" update="@none" />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_descripcion}">
+										<p:inputText styleClass="input-text100" value="#{_detalleMovimientoInventario.descripcion}" />
+									</p:column>
+
+									<p:column headerText="#{msgs.lbl_cantidad}">
+										<p:inputText styleClass="input-text100" value="#{_detalleMovimientoInventario.cantidad}" id="txtCantidad" size="10" maxlength="10">
+											<f:validateBean />
+											<p:ajax process="@this" event="change" update=":form:panelDetalle" />
+										</p:inputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTLote tableCell" headerText="#{msgs.lbl_lote}">
+										<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acLote" styleClass="input-text" size="15"
+											value="#{_detalleMovimientoInventario.inventarioProducto.lote}" completeMethod="#{produccionBomBean.autocompletarLotes}"
+											var="_lote" itemLabel="#{_lote.codigo}" itemValue="#{_lote}" forceSelection="true" dropdown="false" minQueryLength="2"
+											required="#{_detalleMovimientoInventario.producto.indicadorLote}" rendered="#{_detalleMovimientoInventario.producto.indicadorLote}"
+											disabled="#{_detalleMovimientoInventario.id>0}">
+
+											<p:column headerText="Codigo">#{_lote.codigo}</p:column>
+											<p:ajax event="itemSelect" process="@this" update=":form:panelDetalle" />
+
+											<!-- <p:ajax event="change" process="@this" update=":form:panelDetalle" /> -->
+										</p:autoComplete>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion">
+										<p:commandButton id="btnEliminarDetalle" action="#{produccionBomBean.eliminarDetalle}" icon="ui-icon-trash"
+											title="#{msgs.lbl_eliminar}" update=":form:panelDetalle" process="@this" />
+									</p:column>
+
+
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="7" footerText="#{msgs.lbl_total}:" style="text-align:right">
+											</p:column>
+											<p:column footerText="#{produccionBomBean.transferencia.total}" style="text-align:right" id="txtTotal" />
+											<p:column></p:column>
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_transformacion_producto})" rendered="#{!produccionBomBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTransferencias" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{produccionBomBean.listaTransferencia}" var="_tranferencia" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{produccionBomBean.dtMovimientoInventario}"
+							rows="#{produccionBomBean.numeroFilas}" rowsPerPageTemplate="#{produccionBomBean.numeroFilasPorPagina}"
+							selection="#{produccionBomBean.transferencia}" selectionMode="single" rowKey="#{_tranferencia.id}" lazy="true"
+							sortBy="#{_tranferencia.numero}" sortOrder="DESCENDING">
+
+							<p:column styleClass="columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.numero}" filterBy="#{_tranferencia.numero}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.fecha}">
+									<f:convertDateTime pattern="#{produccionBomBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_tranferencia.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.documento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.productoTerminadoTransformacion.codigo}" filterBy="#{_tranferencia.productoTerminadoTransformacion.codigo}"
+								styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo_producto2}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.productoTerminadoTransformacion.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.productoTerminadoTransformacion.nombre}" filterBy="#{_tranferencia.productoTerminadoTransformacion.nombre}"
+								styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre_producto}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.productoTerminadoTransformacion.nombre}" />
+							</p:column>
+							
+							<p:column sortBy="#{_tranferencia.sucursal.nombre}" filterBy="#{_tranferencia.sucursal.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.sucursal.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.ordenFabricacion.numero}" filterBy="#{_tranferencia.ordenFabricacion.numero}"
+								styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_orden_fabricacion}" />
+								</f:facet>
+								<h:link rendered="#{not empty _tranferencia.ordenFabricacion}" target="_blank" outcome="/paginas/produccion/procesos/ordenFabricacion"
+									includeViewParams="true" value="#{_tranferencia.ordenFabricacion.numero}">
+									<f:param name="idOrdenFabricacion" value="#{_tranferencia.ordenFabricacion.idOrdenFabricacion}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.asiento.numero}" filterBy="#{_tranferencia.asiento.numero}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _tranferencia.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_tranferencia.asiento.numero}">
+									<f:param name="idAsiento" value="#{_tranferencia.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.estado}" filterBy="#{_tranferencia.estado}" filterOptions="#{produccionBomBean.listaEstadoItem}"
+								styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_tranferencia.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_tranferencia.descripcion}" filterBy="#{_tranferencia.descripcion}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<as2:inputTextNota value="#{_tranferencia.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_contabilizar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="ui-icon-check" process="@this" action="#{produccionBomBean.contabilizar(_tranferencia)}"
+										update=":form:panelListado">
+									</p:commandButton>
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{produccionBomBean.transferencia.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{produccionBomBean.transferencia.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{produccionBomBean.transferencia.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{produccionBomBean.transferencia.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

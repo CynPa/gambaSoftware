@@ -1,0 +1,239 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{categoriaActivoBean}">
+					<as2:buttonEliminar bean="#{categoriaActivoBean}" />
+					<as2:buttonExportaExcel bean="#{categoriaActivoBean}" tabla=":form:tablaCategoriaActivo" />
+				</as2:toolBar>
+
+				<ui:include src="/template/listaCuentaContable.html">
+					<ui:param name="bean" value="#{categoriaActivoBean}" />
+					<ui:param name="objetoActualizar" value=":form:tabView:panelContabilidad" />
+				</ui:include>
+
+				<p:separator />
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_categoria_activo} )" rendered="#{categoriaActivoBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{categoriaActivoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+								<p:inputText styleClass="input-text" value="#{categoriaActivoBean.categoriaActivo.codigo}" id="txtCodigo" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+								<p:inputText styleClass="input-text" value="#{categoriaActivoBean.categoriaActivo.nombre}" id="txtNombre" required="true">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{categoriaActivoBean.categoriaActivo.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+								<h:outputText value="#{msgs.lbl_activo}:" />
+								<p:selectBooleanCheckbox value="#{categoriaActivoBean.categoriaActivo.activo}" />
+
+								<h:outputText value="#{msgs.lbl_predeterminado}:" />
+								<p:selectBooleanCheckbox value="#{categoriaActivoBean.categoriaActivo.predeterminado}" />
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2" />
+
+						<p:outputPanel id="panelTabsFactura">
+
+							<p:tabView cache="true" dynamic="true" id="tabView">
+
+								<p:tab title="#{msgs.lbl_subcategoria_activos}">
+
+									<p:outputPanel id="panelSubcategoriaActivos">
+
+										<h:panelGrid columns="1" style="width:100%" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+											<h:panelGroup>
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{categoriaActivoBean.agregarSubcategoriaActivo}"
+													update=":form:tabView:panelSubcategoriaActivos" process="@this :form:tabView:panelSubcategoriaActivos" icon="ui-icon-plus" />
+											</h:panelGroup>
+
+											<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{categoriaActivoBean.listaSubcategoriaActivo}" id="tablaSubcategoriaActivo" rowIndexVar="secuencial"
+												binding="#{categoriaActivoBean.dtSubcategoriaActivo}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_subcategoriaActivo" paginator="true"
+												paginatorPosition="bottom" style="width:100%" rows="#{categoriaActivoBean.numeroFilas}"
+												rowsPerPageTemplate="#{categoriaActivoBean.numeroFilasPorPagina}" rowKey="#{_subcategoriaActivo.id}">
+
+												<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+													<h:outputText value="#{secuencial+1}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_codigo}" styleClass="columnaDTCodigo tableCell">
+													<p:inputText value="#{_subcategoriaActivo.codigo}" id="txtCodigoSubcategoria" styleClass="input-text">
+														<f:validateBean for="txtCodigoSubcategoria" />
+													</p:inputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_nombre}" styleClass="columnaDTNombre tableCell">
+													<p:inputText value="#{_subcategoriaActivo.nombre}" id="txtNombreSubcategoria" styleClass="input-text">
+														<f:validateBean for="txtNombreSubcategoria" />
+													</p:inputText>
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_descripcion}" styleClass="tableCell">
+													<p:inputText value="#{_subcategoriaActivo.descripcion}" id="txtDescripcion" styleClass="input-text">
+														<f:validateBean for="txtDescripcion" />
+													</p:inputText>
+												</p:column>
+												
+												<p:column headerText="#{msgs.lbl_activo}" styleClass="columnaDTActivo tableCell">
+													<p:selectBooleanCheckbox value="#{_subcategoriaActivo.activo}" />
+												</p:column>
+
+												<p:column headerText="#{msgs.lbl_predeterminado}" styleClass="columnaDTActivo tableCell">
+													<p:selectBooleanCheckbox value="#{_subcategoriaActivo.predeterminado}" />
+												</p:column>
+
+												<p:column styleClass="columnaDTAccion tableCell">
+													<p:commandButton id="btnEliminarDetalle" action="#{categoriaActivoBean.eliminarSubcategoriaActivo}" icon="ui-icon-trash"
+														title="#{msgs.lbl_eliminar}" update=":form:tabView:panelSubcategoriaActivos" process="@this" />
+												</p:column>												
+												
+											</p:dataTable>
+										</h:panelGrid>
+
+									</p:outputPanel>
+
+								</p:tab>
+
+								<p:tab title="#{msgs.lbl_contabilidad}">
+
+									<p:fieldset>
+
+										<p:outputPanel id="panelContabilidad">
+
+											<h:panelGrid columns="2" width="100%">
+
+												<p:fieldset legend="#{msgs.lbl_cuentas_contables}">
+													<h:panelGrid columns="3" columnClasses="columnaValor,columnaBoton,columnaValor">
+
+														<h:outputText value="#{msgs.lbl_cuenta_contable_activo_fijo}:" />
+														<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+															action="#{categoriaActivoBean.actualizarCuentaContableActivoFijo}">
+														</p:commandButton>
+														<as2:outputTextCuentaContable cuentaContable="#{categoriaActivoBean.categoriaActivo.cuentaContableActivoFijo}" />
+
+														<h:outputText value="#{msgs.lbl_cuenta_contable_depreciacion}:" />
+														<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+															action="#{categoriaActivoBean.actualizarCuentaContableDepreciacion}">
+														</p:commandButton>
+														<as2:outputTextCuentaContable cuentaContable="#{categoriaActivoBean.categoriaActivo.cuentaContableDepreciacion}" />
+
+														<h:outputText value="#{msgs.lbl_cuenta_contable_depreciacion_acumulada}:" />
+														<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+															action="#{categoriaActivoBean.actualizarCuentaContableDepreciacionAcumulada}">
+														</p:commandButton>
+														<as2:outputTextCuentaContable cuentaContable="#{categoriaActivoBean.categoriaActivo.cuentaContableDepreciacionAcumulada}" />
+
+													</h:panelGrid>
+												</p:fieldset>
+
+												<p:fieldset legend="#{msgs.lbl_cuentas_contables_revalorizacion}">
+													<h:panelGrid columns="3" columnClasses="columnaValor,columnaBoton,columnaValor">
+
+														<h:outputText value="#{msgs.lbl_cuenta_contable_superavit_por_revalorizacion}:" />
+														<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+															action="#{categoriaActivoBean.actualizarCuentaContableSuperavitPorRevalorizacion}">
+														</p:commandButton>
+														<as2:outputTextCuentaContable cuentaContable="#{categoriaActivoBean.categoriaActivo.cuentaContableSuperavitPorRevalorizacion}" />
+
+														<h:outputText value="#{msgs.lbl_cuenta_contable_de_deficit_por_revalorizacion}:" />
+														<p:commandButton value="..." process="@this" oncomplete="cuentaContableDialog.show();" update=":form:panelListaCuentaContable"
+															action="#{categoriaActivoBean.actualizarCuentaContableDeDeficitPorRevalorizacion}">
+														</p:commandButton>
+														<as2:outputTextCuentaContable cuentaContable="#{categoriaActivoBean.categoriaActivo.cuentaContableDeDeficitPorRevalorizacion}" />
+
+													</h:panelGrid>
+												</p:fieldset>
+
+											</h:panelGrid>
+
+										</p:outputPanel>
+									</p:fieldset>
+								</p:tab>
+
+							</p:tabView>
+						</p:outputPanel>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_categoria_activo} )" rendered="#{!categoriaActivoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCategoriaActivo" rowIndexVar="secuencialCategoriaActivo" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{categoriaActivoBean.listaCategoriaActivo}" var="_categoriaActivo" binding="#{categoriaActivoBean.dtCategoriaActivo}" paginator="true"
+							paginatorPosition="bottom" style="width:100%" rows="#{categoriaActivoBean.numeroFilas}"
+							rowsPerPageTemplate="#{categoriaActivoBean.numeroFilasPorPagina}" selection="#{categoriaActivoBean.categoriaActivo}" selectionMode="single"
+							rowKey="#{_categoriaActivo.id}" sortBy="#{_categoriaActivo.nombre}" sortOrder="ASCENDING" lazy="true">
+
+							<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+								<h:outputText value="#{secuencialCategoriaActivo+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_categoriaActivo.codigo}" sortBy="#{_categoriaActivo.codigo}" styleClass="columnaDTCodigo tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_categoriaActivo.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_categoriaActivo.nombre}" sortBy="#{_categoriaActivo.nombre}" styleClass="columnaDTNombre tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_categoriaActivo.nombre}" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_activo}" sortBy="#{_categoriaActivo.activo}" styleClass="columnaDTActivo tableCell">
+								<p:selectBooleanCheckbox value="#{_categoriaActivo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_predeterminado}" sortBy="#{_categoriaActivo.predeterminado}" styleClass="columnaDTActivo tableCell">
+								<p:selectBooleanCheckbox value="#{_categoriaActivo.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_categoriaActivo.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{categoriaActivoBean.categoriaActivo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{categoriaActivoBean.categoriaActivo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{categoriaActivoBean.categoriaActivo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{categoriaActivoBean.categoriaActivo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

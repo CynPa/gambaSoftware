@@ -1,0 +1,370 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{guiaRemisionElectronicaBean}">
+
+					<as2:buttonEliminar bean="#{guiaRemisionElectronicaBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_numero}:" />
+						<h:outputText value="#{guiaRemisionElectronicaBean.guiaRemision.numero}" />
+
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{guiaRemisionElectronicaBean.guiaRemision.fecha}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reporteGuiaRemisionBean}" bean="#{guiaRemisionElectronicaBean}" target="#{reporteGuiaRemisionBean.idGuiaRemision}"
+						value="#{guiaRemisionElectronicaBean.guiaRemision.idGuiaRemision}" etiquetaImprimir="#{msgs.lbl_imprimir_guia_remision}" />
+
+					<as2:buttonExportaExcel bean="#{guiaRemisionElectronicaBean}" tabla=":form:tablaGuiaRemision" />
+					
+					<p:commandButton icon="ui-icon-transfer-e-w" process="@this" oncomplete="dlgCargarArchivo.show()"
+						title="#{msgs.lbl_cargar_guia_remision}" />
+						
+					<as2:buttonEnviarMail id="btnEnviarMail" bean="#{guiaRemisionElectronicaBean}" />
+					
+				</as2:toolBar>
+				
+				<ui:include src="/template/listaProductoMultiple.xhtml">
+					<ui:param name="bean" value="#{guiaRemisionElectronicaBean}" />
+					<ui:param name="objetoActualizar" value=":form:panelDetalleGuiaRemision" />
+					<ui:param name="listadoFiltrado" value="true" />
+					<ui:param name="mostrarCantidad" value="true" />
+				</ui:include>
+				
+				<!-- CARGAR EXCELL -->
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarArchivo" modal="true" height="200" width="450" showEffect="clip" hideEffect="clip"
+					resizable="false">
+					<p:outputPanel id="outputCargarFichero" autoUpdate="true">
+						<center>
+							<p:fileUpload fileUploadListener="#{guiaRemisionElectronicaBean.cargarGuiaRemision}" mode="advanced" update=":form:panelListado"
+								auto="true" sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_cargar_excel}" process="@this" />
+						</center>
+						
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaErrores" value="#{guiaRemisionElectronicaBean.errores}" var="_errors" emptyMessage="#{msgs.msg_no_hay_datos}"
+							rowIndexVar="secuencia" style="width:100%" paginator="true" rows="20">
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell" headerText="Error">
+								<h:outputText value="#{_errors.error}" />
+							</p:column>
+						</p:dataTable>
+					
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN CARGAR EXCELL -->
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{guiaRemisionElectronicaBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_guia_remision}">
+						<p:fieldset>
+							<h:panelGrid id="panelDetalle" columns="#{guiaRemisionElectronicaBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{guiaRemisionElectronicaBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+	
+									<p:ajax update="txtNumeroGuiaRemision txtEmailTransportista txtEmailCliente" event="change" process="@this" global="false" listener="#{guiaRemisionElectronicaBean.actualizarDocumento}"/>
+	
+									<f:validateBean />
+								</p:selectOneMenu>
+	
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputText required="true" styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.numero}" id="txtNumeroGuiaRemision"
+									disabled="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}">
+									<f:validateBean />
+								</p:inputText>
+	
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar required="true" pattern="#{guiaRemisionElectronicaBean.formatoFecha}" showOn="button" navigator="true" value="#{guiaRemisionElectronicaBean.guiaRemision.fecha}"
+									id="calFechaGuiaRemision">
+									<f:validateBean />
+								</p:calendar>
+	
+								<h:outputText value="#{msgs.lbl_fecha_vigencia}:" />
+								<p:calendar required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}" pattern="#{guiaRemisionElectronicaBean.formatoFecha}" showOn="button" navigator="true" value="#{guiaRemisionElectronicaBean.guiaRemision.fechaVigencia}"
+									id="calFechaVigenciaGuiaRemision">
+									<f:validateBean />
+								</p:calendar>
+								
+								<h:outputText value="#{msgs.lbl_hora_salida}:" />
+					            <p:calendar id="horaSalida" value="#{guiaRemisionElectronicaBean.guiaRemision.horaSalida}" pattern="HH:mm" timeOnly="true" title="Hora Salida" required="true" />
+					            
+	   							<h:outputText value="#{msgs.lbl_hora_llegada}:" />
+					            <p:calendar id="horaLlegada" value="#{guiaRemisionElectronicaBean.guiaRemision.horaLlegada}" pattern="HH:mm" timeOnly="true" title="Hora Llegada" required="true" />
+	
+								<h:outputText value="#{msgs.lbl_nombre_ciudad_origen}:" />
+								<p:selectOneMenu required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}" value="#{guiaRemisionElectronicaBean.guiaRemision.ciudadOrigen}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{guiaRemisionElectronicaBean.listaCiudadCombo}" var="_ciudadOrigen" itemLabel="#{_ciudadOrigen.nombre}"
+										itemValue="#{_ciudadOrigen}" />
+	
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+	
+								<h:outputText value="#{msgs.lbl_nombre_ciudad_destino}:" />
+								<p:selectOneMenu required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}" value="#{guiaRemisionElectronicaBean.guiaRemision.ciudadDestino}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{guiaRemisionElectronicaBean.listaCiudadCombo}" var="_ciudadDestino" itemLabel="#{_ciudadDestino.nombre}"
+										itemValue="#{_ciudadDestino}" />
+	
+									<p:ajax process="@this" global="false" />
+									<f:validateBean />
+								</p:selectOneMenu>
+	
+								<h:outputText value="#{msgs.lbl_titulo_vehiculo}" />
+								<p:selectOneMenu styleClass="input-text" id="cboVehiculo" value="#{guiaRemisionElectronicaBean.guiaRemision.vehiculo}" required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{guiaRemisionElectronicaBean.listaVehiculoCombo}" var="_vehiculo" itemLabel="#{_vehiculo.nombreCompletoVehiculo}"
+										itemValue="#{_vehiculo}" />
+									<p:ajax listener="#{guiaRemisionElectronicaBean.actualizarConductor}" process="@this" global="false" update="txtConductor,txtLicencia,txtPlaca,cboTipoIdentificacion,txtEmailTransportista,txtEmailCliente" />
+									<f:validateBean />
+								</p:selectOneMenu>
+								
+								<h:outputText value="#{msgs.lbl_placa}:" />
+								<p:inputText required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}" styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.placa}" id="txtPlaca">
+									<f:validateBean />
+								</p:inputText>
+	
+								<h:outputText value="#{msgs.lbl_conductor}:" />
+								<p:inputText required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}" styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.conductor}" id="txtConductor">
+									<f:validateBean />
+								</p:inputText>	
+								
+								<h:outputText value="#{msgs.lbl_tipo_identificacion}:" />
+								<h:panelGroup>
+									<p:selectOneMenu styleClass="input-text"
+										value="#{guiaRemisionElectronicaBean.guiaRemision.tipoIdentificacionTransportista}"
+										id="cboTipoIdentificacion" required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems
+											value="#{guiaRemisionElectronicaBean.listaTipoIdentificacionCombo}"
+											var="_tipoIdentificacion"
+											itemLabel="#{_tipoIdentificacion.nombre}"
+											itemValue="#{_tipoIdentificacion}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+								</h:panelGroup>						
+	
+								<h:outputText value="#{msgs.lbl_identificacion}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.licencia}" id="txtLicencia" required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico}">
+									<f:validateBean />
+								</p:inputText>
+								
+								<h:outputText value="#{msgs.lbl_tarifa}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.tarifa}" id="txtTarifa">
+									<f:validateBean />
+								</p:inputText>	
+								
+								<h:outputText value="#{msgs.lbl_email_transportista}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.emailTransportista}" id="txtEmailTransportista"
+									required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico and (guiaRemisionElectronicaBean.guiaRemision.emailCliente == null or guiaRemisionElectronicaBean.guiaRemision.emailCliente.isEmpty() or guiaRemisionElectronicaBean.guiaRemision.emailCliente.length() == 0)}">
+									<p:ajax process="@this" global="false" update="txtEmailCliente" event="change" />
+									<f:validateBean />
+								</p:inputText>
+								
+								<h:outputText value="#{msgs.lbl_cliente}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.empresa}"
+									completeMethod="#{guiaRemisionElectronicaBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+									forceSelection="true" dropdown="true" minQueryLength="2">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{guiaRemisionElectronicaBean.actualizarCliente}" process="@this" event="itemSelect" global="false"
+										update="cboDireccionCliente txtEmailCliente" />
+								</p:autoComplete>
+								
+								<h:outputText value="#{msgs.lbl_empresa_direccion_factura}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.direccionEmpresa}" id="cboDireccionCliente"
+									required="true">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{guiaRemisionElectronicaBean.listaDireccionEmpresa}" var="_dir" itemValue="#{_dir}" itemLabel="#{_dir.direccionCompleta}" />
+								</p:selectOneMenu>
+								
+								<h:outputText value="#{msgs.lbl_email_cliente}:" />
+								<p:inputText styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.emailCliente}" id="txtEmailCliente"
+									required="#{guiaRemisionElectronicaBean.guiaRemision.documento.indicadorDocumentoElectronico and (guiaRemisionElectronicaBean.guiaRemision.emailTransportista == null or guiaRemisionElectronicaBean.guiaRemision.emailTransportista.isEmpty() or guiaRemisionElectronicaBean.guiaRemision.emailTransportista.length() == 0)}"
+									disabled="#{guiaRemisionElectronicaBean.guiaRemision == null}">
+									<p:ajax process="@this" global="false" update="txtEmailTransportista" event="change" />
+									<f:validateBean />
+								</p:inputText>
+								
+								<h:outputText value="#{msgs.lbl_factura}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" id="autoFactura" value="#{guiaRemisionElectronicaBean.guiaRemision.facturaCliente}"
+									completeMethod="#{guiaRemisionElectronicaBean.autocompletarFacturas}" var="_factura" itemLabel="#{_factura.numero}"
+									itemValue="#{_factura}" forceSelection="false" dropdown="true" minQueryLength="2" required="false">
+	
+									<p:column>
+										<h:outputText value="#{_factura.numero}" />
+									</p:column>
+								</p:autoComplete>
+								
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{guiaRemisionElectronicaBean.guiaRemision.descripcion}" id="txtDescripcionGuiaRemision" />
+							</h:panelGrid>
+						</p:fieldset>
+						<p:spacer />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" width="100%">
+								<h:panelGroup>
+									<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{guiaRemisionElectronicaBean.agregarDetalle}"
+										update="panelDetalleGuiaRemision" process="@this,panelDetalleGuiaRemision" icon="ui-icon-plus" />
+	
+									<p:commandButton value="#{msgs.lbl_listar_producto}" icon="ui-icon-plus" onclick="dglModalProducto.show();" type="button" />
+	
+								</h:panelGroup>
+	
+								<p:outputPanel id="panelDetalleGuiaRemision">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{guiaRemisionElectronicaBean.listaDetalleGuiaRemision}" id="tablaDetalleGuiaRemision" rowIndexVar="secuencial"
+										binding="#{guiaRemisionElectronicaBean.dtDetalleGuiaRemision}" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleGuiaRemision"
+										paginator="true" paginatorPosition="bottom" style="width:100%" rowKey="#{_detalleGuiaRemision.id}"
+										rows="#{guiaRemisionElectronicaBean.numeroFilas}" rowsPerPageTemplate="#{guiaRemisionElectronicaBean.numeroFilasPorPagina}">
+	
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+	
+										<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}">
+											<p:inputText value="#{_detalleGuiaRemision.producto.codigo}" id="txtCodigoProducto"
+												rendered="#{_detalleGuiaRemision.producto.idProducto == 0}"
+												disabled="#{_detalleGuiaRemision.id>0}">
+	
+												<p:ajax listener="#{guiaRemisionElectronicaBean.actualizarProducto}" process="txtCodigoProducto" event="change" global="false"
+													oncomplete="nextFocus('#{p:component('txtCantidad')}')"
+													update="txtCodigoProducto,txtNombreProducto, :form:panelDetalleGuiaRemision" />
+												<f:validateBean />
+											</p:inputText>
+	
+											<h:outputText value="#{_detalleGuiaRemision.producto.codigo}"
+												rendered="#{_detalleGuiaRemision.producto.idProducto != 0}" />
+										</p:column>
+	
+										<p:column headerText="#{msgs.lbl_nombre_producto}" styleClass="tableCell">
+											<h:outputText value="#{_detalleGuiaRemision.producto.nombre}" id="txtNombreProducto">
+											</h:outputText>
+										</p:column>
+	
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+											<p:inputText value="#{_detalleGuiaRemision.cantidad}" id="txtCantidad">
+												<f:validateBean />
+											</p:inputText>
+										</p:column>
+	
+										<p:column styleClass="columnaDTAccion tableCell">
+											<p:commandButton id="btnEliminarDetalle" action="#{guiaRemisionElectronicaBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+												update=":form:panelDetalleGuiaRemision" process="@this" />
+										</p:column>
+									</p:dataTable>
+								</p:outputPanel>
+							</h:panelGrid>
+	
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!guiaRemisionElectronicaBean.editado}" header="#{msgs.lbl_panel_listado} (#{msgs.lbl_titulo_guia_remision})">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGuiaRemision" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{guiaRemisionElectronicaBean.listaGuiaRemision}" var="_guiaRemision" paginator="true" paginatorPosition="bottom" style="width:100%"
+							binding="#{guiaRemisionElectronicaBean.dtGuiaRemision}" rows="#{guiaRemisionElectronicaBean.numeroFilas}" selection="#{guiaRemisionElectronicaBean.guiaRemision}"
+							rowsPerPageTemplate="#{guiaRemisionElectronicaBean.numeroFilasPorPagina}" selectionMode="single" rowKey="#{_guiaRemision.id}"
+							sortBy="#{_guiaRemision.numero}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroFactura tableCell" sortBy="#{_guiaRemision.numero}" filterBy="#{_guiaRemision.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+
+								<h:outputText value="#{_guiaRemision.numero}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha}" sortBy="#{_guiaRemision.fecha}">
+								<h:outputText value="#{_guiaRemision.fecha}">
+									<f:convertDateTime pattern="#{guiaRemisionElectronicaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_vigencia}" sortBy="#{_guiaRemision.fechaVigencia}">
+								<h:outputText value="#{_guiaRemision.fechaVigencia}">
+									<f:convertDateTime pattern="#{guiaRemisionElectronicaBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<!-- <p:column sortBy="#{_guiaRemision.empresa.nombreFiscal}" filterBy="#{_guiaRemision.empresa.nombreFiscal}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cliente}" />
+								</f:facet>
+
+								<h:outputText value="#{_guiaRemision.empresa.nombreFiscal}" />
+							</p:column>-->
+
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_guiaRemision.estado}" filterBy="#{_guiaRemision.estado}"
+								filterOptions="#{guiaRemisionElectronicaBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_guiaRemision.estado.nombre}" />
+							</p:column>
+							
+							<p:column styleClass="tableCell" sortBy="#{_guiaRemision.descripcion}" filterBy="#{_guiaRemision.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_guiaRemision.descripcion}">
+								</h:outputText>
+							</p:column>
+							
+							<p:column sortBy="#{_guiaRemision.mensajeSRI}" filterBy="#{_guiaRemision.mensajeSRI}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado } SRI" />
+								</f:facet>
+
+								<as2:inputTextNota value="#{_guiaRemision.mensajeSRI}" />
+							</p:column>
+
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{guiaRemisionElectronicaBean.guiaRemision.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{guiaRemisionElectronicaBean.guiaRemision.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{guiaRemisionElectronicaBean.guiaRemision.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{guiaRemisionElectronicaBean.guiaRemision.usuarioModificacion}" />
+
+				</ui:include>
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

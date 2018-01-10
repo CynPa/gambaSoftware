@@ -1,0 +1,321 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:panel header="#{msgs.lbl_titulo_RDEP}" id="panelContenedor">
+
+				<tnt:panelImprimir bean="#{reporteRelacionDependenciaBean}" entidadOrigen="" entidadDestino="" />
+
+
+				<h:panelGrid columns="2">
+					<h:outputText value="#{msgs.lbl_mes} :" style="width: 70px;" />
+					<p:selectOneMenu styleClass="input-text" value="#{relacionDependenciaBean.mes}" id="cboMes">
+						<f:selectItem itemLabel="TODOS" itemValue="0" />
+						<f:selectItems value="#{relacionDependenciaBean.listaMes}" />
+						<p:ajax process="@this"></p:ajax>
+					</p:selectOneMenu>
+
+					<h:outputText value="#{msgs.lbl_anio} :" />
+					<p:inputMask id="txtAnio" mask="9999" value="#{relacionDependenciaBean.anio}">
+						<p:ajax process="@this" global="false"></p:ajax>
+					</p:inputMask>
+
+					<h:outputText value="Acumulado :" />
+					<p:selectBooleanCheckbox value="#{relacionDependenciaBean.acumulado}">
+						<p:ajax process="@this"></p:ajax>
+					</p:selectBooleanCheckbox>
+
+				</h:panelGrid>
+
+				<p:panel id="panelBotones" style="text-align: center;">
+					<p:commandButton value="#{msgs.btn_procesar}" actionListener="#{relacionDependenciaBean.btnProcesarActionListener}" process="@this"
+						update=":form:panelBotones :form:panelDetalleRDEP" />
+
+					<p:commandButton value="#{msgs.lbl_generar_anexo_xml}" ajax="false" process="@this, :form:txtAnio, :form:panelContenedor"
+						update=":form:panelDetalleRDEP" disabled="#{!relacionDependenciaBean.processed}">
+						<p:fileDownload value="#{relacionDependenciaBean.file}" />
+					</p:commandButton>
+
+					<p:commandButton title="#{msgs.btn_imprimir}" id="btnImprimir" process="@this" oncomplete="confirmacionImprimir.show()" icon="print"
+						disabled="#{!relacionDependenciaBean.processed}" />
+
+					<p:commandButton ajax="false" icon="excel">
+						<p:dataExporter type="xls" target=":form:tablaRelacionDependencia" fileName="RDEP" postProcessor="#{relacionDependenciaBean.postProcessXLS}"
+							pageOnly="#{relacionDependenciaBean.exportarPaginaActual}" />
+					</p:commandButton>
+				</p:panel>
+
+				<p:outputPanel id="panelDetalleRDEP">
+					<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{relacionDependenciaBean.listaRelacionDependencia}"
+						id="tablaRelacionDependencia" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_relacion_dependencia" paginator="true"
+						paginatorPosition="bottom" style="width:100%" rowKey="#{_relacion_dependencia.empleado.idEmpleado}"
+						rows="#{relacionDependenciaBean.numeroFilas}" rowsPerPageTemplate="#{relacionDependenciaBean.numeroFilasPorPagina}">
+
+						<p:column headerText="Nยบ" styleClass="columnaDTAccion tableCell">
+							<h:outputText value="#{secuencial+1}" />
+						</p:column>
+
+						<p:column sortBy="#{_relacion_dependencia.apellido}" styleClass="tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_apellidos}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.apellido}" />
+						</p:column>
+
+						<p:column sortBy="#{_relacion_dependencia.nombre}" styleClass="tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_nombres}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.nombre}" />
+						</p:column>
+
+						<p:column sortBy="#{_relacion_dependencia.cedula}" styleClass="columnaDTCodigo tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_cedula}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.cedula}" />
+						</p:column>
+
+						<p:column sortBy="#{_relacion_dependencia.telefono}" styleClass="columnaDTCodigo tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_telefono}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.telefono}" />
+						</p:column>
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_sueldo_salario}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.sueldoSalario}" />
+						</p:column>
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_sobre_sueldo}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.sobreSueldo}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_sueldo_salario}(Otro)" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.sueldoSalarioOtroEmpleador}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_decimo_tercero}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.decimoTercero}" />
+						</p:column>
+						<p:column styleClass="columnaDTValor">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_decimo_cuarto}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.decimoCuarto}" />
+						</p:column>
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_utilidades}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.utilidades}" />
+						</p:column>
+						
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_fondo_reserva}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.fondoReserva}" />
+						</p:column>
+						
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="Ingreso Gravado Empleador" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.sueldoSalario+_relacion_dependencia.sobreSueldo+_relacion_dependencia.utilidades}" />
+						</p:column>
+						
+						
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="IESS" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.aportePersonalIess}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="IESS (Otro)" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.aportePersonalIessOtroEmpleador}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_alimentacion}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.deducibleAlimentacion}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_educacion}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.deducibleEducacion}" />
+						</p:column>
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_salud}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.deducibleSalud}" />
+						</p:column>
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_vestimenta}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.deducibleVestimenta}" />
+						</p:column>
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_vivienda}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.deducibleVivienda}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_base_imponible}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.baseImponible}" />
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell" rendered="#{relacionDependenciaBean.mes == 0}">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_valor_a_retener}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.impuestoRentaCausado}">
+								<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+							</h:outputText>
+						</p:column>
+
+						<p:column styleClass="columnaDTValor tableCell">
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_valor_retenido}" />
+							</f:facet>
+							<h:outputText value="#{_relacion_dependencia.valorRetenido}">
+								<!--<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />-->
+							</h:outputText>
+						</p:column>
+
+						<p:columnGroup type="footer">
+							<p:row>
+								<p:column colspan="5" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalSueldoSalario}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalSobreSueldo}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalSueldoSalarioOtro}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalDecimoTercero}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalDecimoCuarto}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalUtilidades}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalIess}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalIessOtro}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column />
+								<p:column />
+								<p:column />
+								<p:column />
+								<p:column />
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalBaseImponible}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column rendered="#{relacionDependenciaBean.mes == 0}">
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalValorRetener}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+								<p:column>
+									<f:facet name="footer" style="text-align:right">
+										<h:outputText value="#{relacionDependenciaBean.totalValorRetenido}">
+											<f:convertNumber pattern="#{relacionDependenciaBean.formatoDinero}" />
+										</h:outputText>
+									</f:facet>
+								</p:column>
+
+							</p:row>
+						</p:columnGroup>
+
+					</p:dataTable>
+				</p:outputPanel>
+			</p:panel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

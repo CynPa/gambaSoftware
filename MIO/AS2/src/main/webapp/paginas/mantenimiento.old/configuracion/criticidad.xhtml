@@ -1,0 +1,151 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<ui:include src="/template/barra.xhtml">
+					<ui:param name="bean" value="#{criticidadBean}" />s
+				</ui:include>
+
+				<p:outputPanel autoUpdate="true">
+					<p:growl id="mensajes" showDetail="true" />
+				</p:outputPanel>
+				
+				<p:separator />
+				
+				<p:confirmDialog message="#{msgs.confirmacion_msg}? " width="200"
+					modal="true" showEffect="explode" hideEffect="explode"
+					severity="alert" widgetVar="confirmacionEliminar">
+
+					<h:outputText value="#{criticidadBean.criticidad.nombre}" />
+
+					<p:commandButton value="#{msgs.confirmacion_si}"
+						update="tablaCriticidad,mensajes" process="@this"
+						actionListener="#{criticidadBean.eliminar}"
+						oncomplete="confirmacionEliminar.hide()" />
+
+					<p:commandButton value="#{msgs.confirmacion_no}"
+						onclick="confirmacionEliminar.hide()" />
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{criticidadBean.editado}"
+						header="#{msgs.lbl_panel_edicion} #{msgs.lbl_criticidad}">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{criticidadBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{criticidadBean.criticidad.codigo}" id="txtCodigo" />
+
+							<h:outputText value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{criticidadBean.criticidad.nombre}" id="txtNombre" />
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{criticidadBean.criticidad.descripcion}"
+								id="txtDescripcion" />
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{criticidadBean.criticidad.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{criticidadBean.criticidad.predeterminado}" />
+
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!criticidadBean.editado}"
+						header="#{msgs.lbl_panel_listado} #{msgs.lbl_criticidad}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaCriticidad" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{criticidadBean.listaCriticidad}" var="_criticidad"
+							binding="#{criticidadBean.dtCriticidad}" paginator="true"
+							paginatorPosition="bottom" style="width:100%"
+							rows="#{criticidadBean.numeroFilas}"
+							rowsPerPageTemplate="#{criticidadBean.numeroFilasPorPagina}"
+							selection="#{criticidadBean.criticidad}" selectionMode="single"
+							rowKey="#{_criticidad.id}">
+
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column filterBy="#{_criticidad.codigo}"
+								sortBy="#{_criticidad.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_criticidad.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{_criticidad.nombre}"
+								sortBy="#{_criticidad.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_criticidad.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_criticidad.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_criticidad.descripcion}" />
+							</p:column>
+
+							<p:column sortBy="#{_criticidad.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<center>
+									<p:selectBooleanCheckbox value="#{_criticidad.activo}"
+										disabled="true" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{criticidadBean.criticidad.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{criticidadBean.criticidad.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{criticidadBean.criticidad.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{criticidadBean.criticidad.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

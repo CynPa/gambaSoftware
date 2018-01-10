@@ -1,0 +1,208 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{rubroVariableEmpleadoBean}" />
+
+				<!-- INICIO DIALOG DE SUBIR RUBROS VARIABLES  -->
+
+				<p:dialog header="#{msgs.lbl_archivo}" widgetVar="dlgCargarRubrosVariables" modal="true" height="150" width="325" showEffect="clip"
+					hideEffect="clip" resizable="false">
+					<p:outputPanel id="outputCargarExcel">
+						<p:fieldset>
+							<center>
+								<p:fileUpload fileUploadListener="#{rubroVariableEmpleadoBean.cargarRubrosVariables}" mode="advanced" update="panelNuevo" auto="true"
+									sizeLimit="10000000" allowTypes="/(\.|\/)(xls)$/" label="#{msgs.btn_examinar}" process="@this outputCargarExcel"
+									oncomplete="dlgCargarRubrosVariables.hide()" />
+							</center>
+						</p:fieldset>
+					</p:outputPanel>
+				</p:dialog>
+
+				<!-- FIN DIALOG DE SUBIR RUBROS VARIABLES -->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_pago_rol} #{rubroVariableEmpleadoBean.pagoRol.fecha}">
+
+						<p:fieldset>
+
+							<h:panelGrid columns="#{rubroVariableEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{rubroVariableEmpleadoBean.empresa}"
+										completeMethod="#{rubroVariableEmpleadoBean.autocompletarEmpleados}" var="_empleado"
+										itemLabel="#{_empleado.empleado.apellidos} #{_empleado.empleado.nombres}" itemValue="#{_empleado}" forceSelection="true" dropdown="true"
+										minQueryLength="2" id="autEmpleado">
+
+										<p:column headerText="#{msgs.lbl_codigo}">#{_empleado.empleado.empresa.codigo}</p:column>
+										<p:column headerText="#{msgs.lbl_identificacion}">#{_empleado.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_apellidos}">#{_empleado.empleado.apellidos}</p:column>
+										<p:column headerText="#{msgs.lbl_nombres}">#{_empleado.empleado.nombres}</p:column>
+
+										<p:ajax listener="#{rubroVariableEmpleadoBean.actualizarEmpleado}" process="@this" event="itemSelect"
+											update=":form:tablaPagoRolEmpleadoRubro" global="false" />
+									</p:autoComplete>
+									<p:commandButton id="btnLimpiar" icon="ui-icon-trash" update=":form:tablaPagoRolEmpleadoRubro autEmpleado"
+										action="#{rubroVariableEmpleadoBean.limpiarFiltroEmpleado}">
+									</p:commandButton>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.lbl_rubro_empleado}:" />
+								<h:panelGroup>
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{rubroVariableEmpleadoBean.rubro}"
+										completeMethod="#{rubroVariableEmpleadoBean.autocompletarRubros}" var="_rubro" itemLabel="#{_rubro.nombre}" itemValue="#{_rubro}"
+										forceSelection="true" dropdown="true" minQueryLength="2" id="autRubro">
+										<p:column headerText="#{msgs.lbl_codigo}">#{_rubro.codigo}</p:column>
+										<p:column headerText="#{msgs.lbl_nombre}">#{_rubro.nombre}</p:column>
+										<p:ajax listener="#{rubroVariableEmpleadoBean.actualizarRubro}" process="@this" event="itemSelect" update=":form:panelNuevo" global="false" />
+									</p:autoComplete>
+									<p:commandButton id="btnLimpiarRubro" icon="ui-icon-trash" update=":form:tablaPagoRolEmpleadoRubro autRubro"
+										action="#{rubroVariableEmpleadoBean.limpiarFiltroRubro}">
+									</p:commandButton>
+								</h:panelGroup>
+
+								<h:outputText value="#{msgs.btn_generar_plantilla}:" />
+								<p:commandButton ajax="false" icon="action" disabled="#{empty rubroVariableEmpleadoBean.rubro}">
+									<p:fileDownload value="#{rubroVariableEmpleadoBean.archivo}" />
+								</p:commandButton>
+
+								<h:outputText value="#{msgs.lbl_exportar}:" />
+								<p:commandButton ajax="false" icon="excel" disabled="#{empty rubroVariableEmpleadoBean.rubro}">
+									<p:fileDownload value="#{rubroVariableEmpleadoBean.valores}" />
+								</p:commandButton>
+
+								<h:outputText value="#{msgs.btn_cargar_excel}:" />
+								<p:commandButton id="btnCargarExcel" title="#{msgs.btn_cargar_excel}" icon="ui-icon-bookmark" update="outputCargarExcel"
+									onclick="dlgCargarRubrosVariables.show()" process="@this" disabled="#{empty rubroVariableEmpleadoBean.rubro}" />
+
+								<!-- MENSAJE QUE SUGIERE REPROCESAR EL ROL -->
+								<h:outputText value="" rendered="#{rubroVariableEmpleadoBean.pagoRol.indicadorReprocesar}" />
+								<h:outputText value="#{msgs.msg_reprocesar_nomina}" rendered="#{rubroVariableEmpleadoBean.pagoRol.indicadorReprocesar}"
+									styleClass="text_color_rojo" />
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPagoRolEmpleadoRubro" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{rubroVariableEmpleadoBean.listaPagoRolEmpleadoRubro}" var="_pagoRolEmpleadoRubro"
+							binding="#{rubroVariableEmpleadoBean.dtPagoRolEmpleadoRubro}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{rubroVariableEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{rubroVariableEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{rubroVariableEmpleadoBean.pagoRolEmpleadoRubro}" selectionMode="single" rowKey="#{_pagoRolEmpleadoRubro.idPagoRolEmpleadoRubro}"
+							sortBy="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.apellidos}" sortOrder="ASCENDING">
+
+							<f:facet name="header">
+								<h:outputText value="#{msgs.lbl_panel_listado} #{msgs.lbl_rubro}" />
+							</f:facet>
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}"
+								filterBy="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.empresa.codigo}" sortBy="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.empresa.codigo}">
+								<h:outputText value="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.empresa.codigo}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_apellidos}"
+								filterBy="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.apellidos}" sortBy="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.apellidos}">
+								<h:outputText value="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombres}"
+								filterBy="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.nombres}" sortBy="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.nombres}">
+								<h:outputText value="#{_pagoRolEmpleadoRubro.pagoRolEmpleado.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_rubro}">
+								<h:outputText value="#{_pagoRolEmpleadoRubro.rubro.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_indicador_tiempo}">
+								<h:panelGroup rendered="#{_pagoRolEmpleadoRubro.rubro.indicadorTiempo}">
+									<h:outputText value="#{_pagoRolEmpleadoRubro.tiempo}" rendered="#{_pagoRolEmpleadoRubro.indicadorAutomatico}" />
+
+									<p:inputText styleClass="input-text" value="#{_pagoRolEmpleadoRubro.tiempo}" rendered="#{!_pagoRolEmpleadoRubro.indicadorAutomatico}">
+										<p:ajax process="@this" global="false" listener="#{rubroVariableEmpleadoBean.totalizarTiempoValor}" update=":form:tablaPagoRolEmpleadoRubro" />
+									</p:inputText>
+								</h:panelGroup>
+							</p:column>
+
+							<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor}">
+								<h:outputText value="#{_pagoRolEmpleadoRubro.valor}" styleClass="#{_pagoRolEmpleadoRubro.indicadorAutomatico ? 'text_color_rojo' : ''}"
+									title="#{_pagoRolEmpleadoRubro.indicadorAutomatico ? 'Rubro automatico (Descuento mes previo/otros)' : ''}"
+									rendered="#{_pagoRolEmpleadoRubro.rubro.indicadorTiempo or _pagoRolEmpleadoRubro.indicadorAutomatico}" />
+
+								<p:inputText styleClass="input-text " value="#{_pagoRolEmpleadoRubro.valor}"
+									rendered="#{!(_pagoRolEmpleadoRubro.rubro.indicadorTiempo or _pagoRolEmpleadoRubro.indicadorAutomatico)}">
+									<p:ajax process="@this" global="false" listener="#{rubroVariableEmpleadoBean.totalizarTiempoValor}" update=":form:tablaPagoRolEmpleadoRubro" />
+								</p:inputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="NO #{msgs.lbl_procesar}">
+								<p:selectBooleanCheckbox value="#{_pagoRolEmpleadoRubro.indicadorNoProcesado}" rendered="#{_pagoRolEmpleadoRubro.rubro.operacion == -1}">
+									<p:ajax process="@this" partialSubmit="true" update="@this"
+										listener="#{rubroVariableEmpleadoBean.noProcesarRubroListener(_pagoRolEmpleadoRubro)}" />
+								</p:selectBooleanCheckbox>
+							</p:column>
+
+							<p:columnGroup type="footer" id="panelTotal">
+								<p:row>
+									<p:column colspan="5" footerText="Total: " style="text-align:right">
+									</p:column>
+
+									<p:column>
+										<f:facet name="footer">
+											<h:outputText value="#{rubroVariableEmpleadoBean.totalHoras}" style="text-align:right" id="txtTotalHoras">
+												<f:convertNumber pattern="#{facturaClienteBean.formatoDinero}" />
+											</h:outputText>
+										</f:facet>
+									</p:column>
+									<p:column>
+										<f:facet name="footer">
+											<h:outputText value="#{rubroVariableEmpleadoBean.totalValor}" style="text-align:right" id="txtTotalValor">
+												<f:convertNumber pattern="#{facturaClienteBean.formatoDinero}" />
+											</h:outputText>
+										</f:facet>
+									</p:column>
+									
+									<p:column colspan="1"/>
+																		
+								</p:row>
+
+							</p:columnGroup>
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado"></p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="" />
+					<ui:param name="usuarioCreacion" value="" />
+					<ui:param name="fechaModificacion" value="" />
+					<ui:param name="usuarioModificacion" value="" />
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

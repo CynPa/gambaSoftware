@@ -1,0 +1,502 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<ui:composition template="/template/template.xhtml">
+	<ui:define name="contenido">
+		<h:form prependId="false" id="form">
+			<p:outputPanel id="panelContenedor">
+				<as2:toolBar bean="#{presupuestoFacturaProveedorImportacionBean}">
+					<as2:buttonImprimir beanReporte="#{reportePresupuestoFacturaProveedorImportacionBean}" bean="#{presupuestoFacturaProveedorImportacionBean}"
+						target="#{reportePresupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion}"
+						value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion}" />
+					<as2:buttonExportaExcel bean="#{presupuestoFacturaProveedorImportacionBean}" tabla=":form:tablaFacturaImportacion" />
+				</as2:toolBar>
+				<p:dialog header="#{msgs.lbl_gasto_importacion}" widgetVar="dialogoGastoImportacionOpcional" modal="true" height="350" width="600"
+					showEffect="slide" hideEffect="slide">
+					<p:outputPanel id="panelGastoImportacionOpcional">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaGastosImportacionOpcional" rowIndexVar="secuencialGastoImportacionOpcional"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{presupuestoFacturaProveedorImportacionBean.listaDocumentoGastoImportacionOpcional}"
+							var="_gastoImportacionOpcional" paginator="true" paginatorPosition="bottom" style="width:100%" rows="10"
+							rowKey="#{_gastoImportacionOpcional.id}" selection="#{presupuestoFacturaProveedorImportacionBean.listaDocumentoGastoImportacionSeleccionado}">
+							<p:column selectionMode="multiple" />
+							<p:column headerText="Nº">
+								<h:outputText value="#{secuencialGastoImportacionOpcional+1}" />
+							</p:column>
+							<p:column headerText="#{msgs.lbl_codigo}">
+								<h:outputText value="#{_gastoImportacionOpcional.gastoImportacion.codigo}" />
+							</p:column>
+							<p:column headerText="#{msgs.lbl_nombre}">
+								<h:outputText value="#{_gastoImportacionOpcional.gastoImportacion.nombre}" />
+							</p:column>
+						</p:dataTable>
+					</p:outputPanel>
+					<f:facet name="footer">
+						<center>
+							<p:commandButton value="#{msgs.lbl_cargar_detalles}" process="@this panelGastoImportacionOpcional"
+								action="#{presupuestoFacturaProveedorImportacionBean.agregarDetalle}" update=":form:outPutPanelDetalle"
+								oncomplete="dialogoGastoImportacionOpcional.hide()" />
+						</center>
+					</f:facet>
+				</p:dialog>
+				<p:outputPanel id="panelDialogoLiquidacion">
+					<p:dialog header="#{msgs.lbl_liquidacion}" widgetVar="dialogLiquidar" id="dialogLiquidar" modal="true" height="auto" width="299"
+						showEffect="slide" hideEffect="slide" closable="false">
+						<p:ajax event="close" listener="#{presupuestoFacturaProveedorImportacionBean.cerrarDialogoLiquidacion}" />
+						<p:outputPanel id="panelLiquidar" rendered="#{presupuestoFacturaProveedorImportacionBean.mostradoDialogoLiquidacion}">
+							<h:panelGrid columns="2" columnClasses="columnaEtiqueta, columnaValor" cellspacing="0" cellpadding="0">
+
+								<p:outputLabel for="calFechaContabilizacion" value="#{msgs.lbl_fecha_contabilizacion}:" />
+								<p:calendar pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{presupuestoFacturaProveedorImportacionBean.fechaContabilizacion}" id="calFechaContabilizacion" required="true">
+									<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" update="@this" />
+									<p:ajax process="@this" global="false" partialSubmit="true" event="change" update="@this" />
+									<f:validateBean />
+								</p:calendar>
+							</h:panelGrid>
+						</p:outputPanel>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.lbl_liquidar}" update=":form:panelListado panelLiquidar" process="@this panelLiquidar"
+									action="#{presupuestoFacturaProveedorImportacionBean.liquidarImportacionSegunPresupuesto}" />
+								<p:commandButton value="#{msgs.btn_cancelar}" process="@this" update="panelDialogoLiquidacion"
+									action="#{presupuestoFacturaProveedorImportacionBean.cerrarDialogoLiquidacion}" oncomplete="dialogLiquidar.hide()" />
+							</center>
+						</f:facet>
+					</p:dialog>
+				</p:outputPanel>
+
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_liquidacion}" rendered="#{presupuestoFacturaProveedorImportacionBean.editado}">
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{presupuestoFacturaProveedorImportacionBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<h:outputText styleClass="input-text"
+									value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.numero}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_proveedor}:" />
+								<h:outputText styleClass="input-text"
+									value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.empresa.nombreFiscal}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_puerto_embarque}:" />
+								<h:outputText styleClass="input-text" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.puertoEmbarque}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_fecha_embarque}:" />
+								<h:outputText styleClass="input-text" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.fechaEmbarque}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_puerto_llegada}:" />
+								<h:outputText styleClass="input-text" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.puertoLlegada}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_fecha_llegada}:" />
+								<h:outputText styleClass="input-text" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.fechaLlegada}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_pais_origen}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.pais.nombre}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_medio_transporte}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.medioTransporteEnum}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_numero_dui}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.numeroDUI}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_fecha_pago_dui}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.fechaPagoDUI}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_aseguradora}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.aseguradora}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_estado}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.estado}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_cuenta_contable}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.cuentaContableImportacion.traNombreParaMostrar}">
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_fecha_prorroteo}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.fechaProrrateo}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+								<h:outputText value="#{msgs.lbl_fecha_cierre}:" />
+								<h:outputText value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.fechaCierre}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+							</h:panelGrid>
+							<p:spacer width="20px"></p:spacer>
+							<p:outputPanel id="outputPanelDetalleFactura">
+								<h:panelGrid columns="1" width="100%" id="panelDetalleFactura">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+										value="#{presupuestoFacturaProveedorImportacionBean.listaDetalleFacturaProveedor}" id="tablaDetalleFacturaProveedor"
+										rowIndexVar="secuencial" binding="#{presupuestoFacturaProveedorImportacionBean.dtDetalleFacturaProveedor}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleFacturaProveedor" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_detalleFacturaProveedor.id}" rows="5" columnClasses="rowIndex">
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+										<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo_producto}">
+											<h:outputText id="txtCodigoProducto" value="#{_detalleFacturaProveedor.producto.codigo}">
+											</h:outputText>
+										</p:column>
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_nombre_producto}">
+											<h:outputText value="#{_detalleFacturaProveedor.producto.nombre}" id="txtUnidadProducto" />
+										</p:column>
+										<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_producto}">
+											<h:outputText value="#{_detalleFacturaProveedor.producto.unidad.nombre}" id="txtNombreProducto">
+											</h:outputText>
+										</p:column>
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_partida_arancelaria}">
+											<h:outputText value="#{_detalleFacturaProveedor.partidaArancelaria.nombre}" />
+										</p:column>
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+											<h:outputText value="#{_detalleFacturaProveedor.cantidad}" />
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+											<h:outputText value="#{_detalleFacturaProveedor.precio}" />
+										</p:column>
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_peso_neto}">
+											<h:outputText value="#{_detalleFacturaProveedor.pesoNeto}" id="txtPesoNeto">
+											</h:outputText>
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_unitario}">
+											<h:outputText value="#{_detalleFacturaProveedor.descuento}" id="txtDescuento">
+											</h:outputText>
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_descuento_linea}">
+											<h:outputText value="#{_detalleFacturaProveedor.descuentoLinea}" id="lblDescuentoLinea" style="text-align:right" />
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_linea}">
+											<h:outputText value="#{_detalleFacturaProveedor.precioLinea}" id="lblPrecioLinea" style="text-align:right" />
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_gasto_real}">
+											<h:outputText value="#{_detalleFacturaProveedor.gastoReal}" id="lblPrecioRealImportacion" style="text-align:right">
+											</h:outputText>
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_precio_unitario}">
+											<h:outputText value="#{_detalleFacturaProveedor.gastoReal/_detalleFacturaProveedor.cantidad}" id="lblPrecioUnitarioRealImportacion"
+												style="text-align:right">
+											</h:outputText>
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_gasto_presupuestado}">
+											<h:outputText value="#{_detalleFacturaProveedor.gastoPresupuesto}" id="lblPrecioPresupuestadoImportacion" style="text-align:right">
+												<f:convertNumber maxFractionDigits="2" />
+											</h:outputText>
+										</p:column>
+										<p:columnGroup type="footer" id="panelTotal">
+											<p:row>
+												<p:column colspan="10" footerText="#{msgs.lbl_subtotal}:" style="text-align:right">
+												</p:column>
+												<p:column footerText=" #{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.total}"
+													style="text-align:right" id="txtTotal" />
+												<p:column />
+												<p:column />
+												<p:column />
+											</p:row>
+											<p:row>
+												<p:column colspan="10" footerText="#{msgs.lbl_descuento}:" style="text-align:right">
+												</p:column>
+												<p:column footerText=" #{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.descuento}"
+													style="text-align:right" id="txtDescuentoPedido" />
+												<p:column />
+												<p:column />
+												<p:column />
+											</p:row>
+											<p:row>
+												<p:column colspan="10" footerText="#{msgs.lbl_producto_indicador_impuestos}:" style="text-align:right">
+												</p:column>
+												<p:column footerText=" #{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.impuesto}"
+													style="text-align:right" id="txtImpuesto" />
+												<p:column />
+												<p:column />
+												<p:column />
+											</p:row>
+											<p:row>
+												<p:column colspan="10" footerText="#{msgs.lbl_total}:" style="text-align:right">
+												</p:column>
+												<p:column footerText="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.totalFactura}"
+													style="text-align:right" id="txtSubtotal" />
+												<p:column footerText="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.totalValorGastoReal}"
+													style="text-align:right" id="txttotalGastoReal"></p:column>
+												<p:column />
+												<p:column footerText="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.facturaProveedor.totalGastoPresupuesto}"
+													style="text-align:right" id="txttotalGastoPresupuesto">
+												</p:column>
+											</p:row>
+										</p:columnGroup>
+									</p:dataTable>
+								</h:panelGrid>
+							</p:outputPanel>
+						</p:fieldset>
+						<p:spacer width="6px" />
+						<p:fieldset>
+							<p:outputPanel id="outPutPanelDetalle">
+								<h:panelGrid columns="1" id="panelDetalle" style="width:100%">
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}"
+										value="#{presupuestoFacturaProveedorImportacionBean.listaDetalleFacturaProveedorImportacionGasto}"
+										id="tablaDetalleFacturaProveedorImportacionGasto" rowIndexVar="secuencial"
+										binding="#{presupuestoFacturaProveedorImportacionBean.dtDetalleFacturaProveedorImportacionGasto}" emptyMessage="#{msgs.msg_no_hay_datos}"
+										var="_detalleFacturaProveedorImportacionGasto" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rows="#{presupuestoFacturaProveedorImportacionBean.numeroFilas}" rowKey="#{_detalleFacturaProveedorImportacionGasto.id}">
+										<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_gasto_importacion}">
+											<h:outputText value="#{_detalleFacturaProveedorImportacionGasto.gastoImportacion.nombre}" />
+										</p:column>
+										<p:column styleClass="columnaDTNombreCorto tableCell" headerText="#{msgs.lbl_tipo_prorrateo}">
+											<h:outputText value="#{_detalleFacturaProveedorImportacionGasto.tipoProrrateoEnum}" />
+										</p:column>
+										<p:column styleClass="columnaDTActivo tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_calculo_automatico}" />
+											</f:facet>
+											<p:selectBooleanCheckbox value="#{_detalleFacturaProveedorImportacionGasto.gastoImportacion.indicadorCalculoAutomatico}" disabled="true" />
+										</p:column>
+
+										<p:column styleClass="columnaDTActivo tableCell">
+											<f:facet name="header">
+												<h:outputText value="#{msgs.lbl_factura_exterior}" />
+											</f:facet>
+											<p:selectBooleanCheckbox value="#{_detalleFacturaProveedorImportacionGasto.gastoImportacion.indicadorFacturaExterior}" disabled="true" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_porcentaje}">
+											<h:outputText value="#{_detalleFacturaProveedorImportacionGasto.gastoImportacion.porcentaje}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_valor_manual}">
+											<h:outputText value="#{_detalleFacturaProveedorImportacionGasto.gastoImportacion.valorManual}" />
+										</p:column>
+
+										 <!--<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_fecha}">
+											<p:calendar pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" showOn="button" navigator="true" size="9"
+												value="#{_detalleFacturaProveedorImportacionGasto.fechaGasto}" id="calFechaGasto">
+												<f:validateBean />
+											</p:calendar>
+										</p:column>-->
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+											<p:inputText styleClass="input-text" id="txtDescripcion" value="#{_detalleFacturaProveedorImportacionGasto.descripcion}" />
+										</p:column>
+										<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_gasto_real}">
+											<h:outputText value="#{_detalleFacturaProveedorImportacionGasto.valorReal}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTValor tableCell"
+												headerText="#{msgs.lbl_gasto_presupuestado}">
+												<p:inputText styleClass="input-text" id="valorPresupuesto"
+													title="#{_detalleFacturaProveedorImportacionGasto.gastoImportacion.indicadorFacturaExterior or _detalleFacturaProveedorImportacionGasto.gastoImportacion.indicadorCalculoAutomatico? msgs.lbl_mensaje_calculo_automatico:''}"
+													value="#{_detalleFacturaProveedorImportacionGasto.valorPresupuesto}"
+													disabled="#{_detalleFacturaProveedorImportacionGasto.gastoImportacion.indicadorFacturaExterior or _detalleFacturaProveedorImportacionGasto.gastoImportacion.indicadorCalculoAutomatico}">
+													<f:validateBean />
+													<p:ajax process="@this"
+														update=":form:tablaDetalleFacturaProveedorImportacionGasto"
+														event="change" global="false" partialSubmit="false" />
+												</p:inputText>
+											</p:column>
+
+											<p:columnGroup type="footer" id="panelTotalGasto">
+												<p:row>
+													<p:column colspan="8" footerText="#{msgs.lbl_total}:" style="text-align:right">
+													</p:column>
+													<p:column footerText=" #{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.totalValorGastoReal}"
+														style="text-align:right" id="txtTotalGastoReal" />
+													<p:column>
+													<f:facet name="footer" colspan="11" style="text-align:right" id="txtSubtotal">
+															<h:outputText id="txtTotalGastoPresupuestado" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.totalValorGastoPresupuestado}">
+																<f:convertNumber pattern="#{presupuestoFacturaProveedorImportacionBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+												</p:row>
+											</p:columnGroup>
+									</p:dataTable>
+								</h:panelGrid>
+							</p:outputPanel>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_liquidacion} )" rendered="#{!presupuestoFacturaProveedorImportacionBean.editado}">
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturaImportacion" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{presupuestoFacturaProveedorImportacionBean.listaFacturaProveedorImportacion}"
+							var="_facturaProveedorImportacion" paginator="true" binding="#{presupuestoFacturaProveedorImportacionBean.dtFacturaProveedorImportacion}"
+							rows="#{presupuestoFacturaProveedorImportacionBean.numeroFilas}" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{presupuestoFacturaProveedorImportacionBean.numeroFilasPorPagina}"
+							selection="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion}" selectionMode="single"
+							rowKey="#{_facturaProveedorImportacion.id}" sortBy="#{_facturaProveedorImportacion.facturaProveedor.numero}" sortOrder="DESCENDING" lazy="true">
+							
+							<p:ajax process="@this" partialSubmit="true" global="false" event="rowToggle"
+								listener="#{presupuestoFacturaProveedorImportacionBean.cargarDatosFacturaImportacion}" />
+							<p:column style="width:16px">
+								<p:rowToggler />
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+							<p:column styleClass="columnaDTNumeroFactura tableCell" sortBy="#{_facturaProveedorImportacion.facturaProveedor.numero}"
+								filterBy="#{_facturaProveedorImportacion.facturaProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.facturaProveedor.numero}" />
+							</p:column>
+							<p:column styleClass="tableCell" sortBy="#{_facturaProveedorImportacion.facturaProveedor.empresa.nombreFiscal}"
+								filterBy="#{_facturaProveedorImportacion.facturaProveedor.empresa.nombreFiscal}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.facturaProveedor.empresa.nombreFiscal}" />
+							</p:column>
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_facturaProveedorImportacion.puertoEmbarque}"
+								filterBy="#{_facturaProveedor.facturaProveedorImportacion.puertoEmbarque}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_puerto_embarque}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.puertoEmbarque}" />
+							</p:column>
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{_facturaProveedorImportacion.puertoLlegada}"
+								filterBy="#{_facturaProveedorImportacion.puertoLlegada}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_puerto_llegada}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.puertoLlegada}" />
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_facturaProveedorImportacion.fechaEmbarque}"
+								filterBy="#{_facturaProveedorImportacion.fechaEmbarque}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_embarque}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.fechaEmbarque}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_facturaProveedorImportacion.fechaLlegada}"
+								filterBy="#{_facturaProveedorImportacion.fechaLlegada}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha_llegada}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.fechaLlegada}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_facturaProveedorImportacion.facturaProveedor.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.facturaProveedor.fecha}">
+									<f:convertDateTime pattern="#{presupuestoFacturaProveedorImportacionBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTValor tableCell" sortBy="#{_facturaProveedorImportacion.facturaProveedor.totalFactura}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_total}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.facturaProveedor.totalFactura}">
+									<f:convertNumber pattern="#{presupuestoFacturaProveedorImportacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_gasto_real}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.totalValorGastoReal}">
+									<f:convertNumber pattern="#{presupuestoFacturaProveedorImportacionBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_facturaProveedorImportacion.asiento.numero}"
+								filterBy="#{_facturaProveedorImportacion.asiento.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+
+								<h:link rendered="#{not empty _facturaProveedorImportacion.asiento}" target="_blank"
+									outcome="/paginas/financiero/contabilidad/procesos/asientoContable" includeViewParams="true"
+									value="#{_facturaProveedorImportacion.asiento.numero}">
+									<f:param name="idAsiento" value="#{_facturaProveedorImportacion.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<h:link target="_blank" outcome="/paginas/compras/procesos/recepcionProveedor" includeViewParams="true" value="#{msgs.lbl_recibir}"
+									rendered="#{_facturaProveedorImportacion.facturaProveedor.estado!='ANULADO'}">
+									<f:param name="idFacturaProveedor" value="#{_facturaProveedorImportacion.facturaProveedor.id}" />
+								</h:link>
+							</p:column>
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" sortBy="#{_facturaProveedorImportacion.facturaProveedor.recepcionProveedor.numero}"
+								filterBy="#{_facturaProveedorImportacion.facturaProveedor.recepcionProveedor.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_recepcion}" />
+								</f:facet>
+								<h:link rendered="#{not empty _facturaProveedorImportacion.facturaProveedor.recepcionProveedor}" target="_blank"
+									outcome="/paginas/compras/procesos/recepcionProveedor" value="#{_facturaProveedorImportacion.facturaProveedor.recepcionProveedor.numero}"
+									includeViewParams="true">
+									<f:param name="idRecepcionProveedor" value="#{_facturaProveedorImportacion.facturaProveedor.recepcionProveedor.id}" />
+								</h:link>
+							</p:column>
+							<p:column styleClass="columnaDTEstado tableCell" sortBy="#{_facturaProveedorImportacion.facturaProveedor.estado}"
+								filterBy="#{_facturaProveedorImportacion.facturaProveedor.estado}"
+								filterOptions="#{presupuestoFacturaProveedorImportacionBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.facturaProveedor.estado.nombre}" />
+							</p:column>
+							<p:column styleClass="tableCell" sortBy="#{_facturaProveedorImportacion.facturaProveedor.descripcion}"
+								filterBy="#{_facturaProveedorImportacion.facturaProveedor.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_facturaProveedorImportacion.facturaProveedor.descripcion}" title="#{_facturaProveedor.facturaProveedor.descripcion}">
+									<f:attribute name="limit" value="60" />
+									<f:converter converterId="stringLimitConverter" />
+								</h:outputText>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_preliquidar}" />
+								</f:facet>
+								<p:commandButton icon="ui-icon-extlink" title="#{msgs.btn_preliquidar}" id="btnReLiquidatr"
+									action="#{presupuestoFacturaProveedorImportacionBean.reLiquidar}"
+									update=":form:outputPanelDetalleFactura :form:outPutPanelDetalle :form:panelListado" process="@this :form:outPutPanelDetalle"
+									disabled="#{_facturaProveedorImportacion.facturaProveedor.estado!='ELABORADO'}">
+									<f:setPropertyActionListener target="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion}"
+										value="#{_facturaProveedorImportacion}" />
+								</p:commandButton>
+							</p:column>
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.btn_liquidar}" />
+								</f:facet>
+								<center>
+									<p:commandButton icon="ui-icon-locked" title="#{msgs.btn_liquidar}" id="btnLiquidar"
+										action="#{presupuestoFacturaProveedorImportacionBean.liquidarImportacion}" update=":form:panelListado" process="@this,:form:panelListado"
+										disabled="#{_facturaProveedorImportacion.facturaProveedor.estado!='ELABORADO' or empty _facturaProveedorImportacion.facturaProveedor.recepcionProveedor}">
+										<f:setPropertyActionListener target="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion}"
+											value="#{_facturaProveedorImportacion}" />
+									</p:commandButton>
+								</center>
+							</p:column>
+							<p:rowExpansion>
+								<ui:include src="/template/listaFacturasProveedorImportacion.xhtml">
+									<ui:param name="bean" value="#{presupuestoFacturaProveedorImportacionBean}" />
+								</ui:include>
+							</p:rowExpansion>
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+				<p:separator />
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.usuarioCreacion}" />
+					<ui:param name="fechaModificacion" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{presupuestoFacturaProveedorImportacionBean.facturaProveedorImportacion.usuarioModificacion}" />
+				</ui:include>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,144 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{diaFestivoBean}">
+
+					<as2:buttonEliminar bean="#{diaFestivoBean}">
+						<h:outputText value="#{msgs.lbl_fecha}:" />
+						<h:outputText value="#{diaFestivoBean.diaFestivo.fecha}" />
+					</as2:buttonEliminar>
+
+					<p:commandButton id="btnCopiar" icon="duplicate" title="#{msgs.lbl_copiar}" process="@this" oncomplete="dialogCopiar.show()"
+						update=":form:panelContenedor" rendered="#{!diaFestivoBean.editado}">
+					</p:commandButton>
+
+					<as2:buttonExportaExcel bean="#{diaFestivoBean}" tabla=":form:tablaDiaFestivo" />
+
+				</as2:toolBar>
+
+				<p:confirmDialog id="dialogCopiar" header="#{msgs.lbl_copiar}" widgetVar="dialogCopiar" height="80" width="300"
+					message="#{msgs.msg_copiar_dia_festivo}">
+
+					<p:outputPanel id="panelCopiar" autoUpdate="true">
+						<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor">
+
+							<h:outputText value="#{msgs.lbl_anno_origen}:" />
+							<p:inputText id="txtAnnoOrigen" value="#{diaFestivoBean.annoOrigen}" styleClass="input-text" required="true">
+								<p:ajax event="change" process="@this" global="false" />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_anno_destino}:" />
+							<p:inputText id="txtAnnoDestino" value="#{diaFestivoBean.annoDestino}" styleClass="input-text" required="true">
+								<p:ajax event="change" process="@this" global="false" />
+							</p:inputText>
+
+						</h:panelGrid>
+					</p:outputPanel>
+
+					<center>
+						<p:commandButton value="#{msgs.lbl_copiar}" action="#{diaFestivoBean.copiar}" process="@this txtAnnoOrigen txtAnnoDestino"
+							update="@this :form:panelContenedor" partialSubmit="true" onclick="dialogCopiar.hide()">
+						</p:commandButton>
+
+						<p:commandButton process="@this" value="#{msgs.btn_cancelar}" partialSubmit="true" onclick="dialogCopiar.hide()" />
+					</center>
+				</p:confirmDialog>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_dia_festivo})" rendered="#{diaFestivoBean.editado}">
+						<h:panelGrid id="panelCabecera" columns="#{diaFestivoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="calFecha" value="#{msgs.lbl_fecha}:" />
+							<p:calendar pattern="#{diaFestivoBean.formatoFecha}" showOn="button" navigator="true" value="#{diaFestivoBean.diaFestivo.fecha}" id="calFecha"
+								required="true">
+								<p:ajax event="dateSelect" process="@this" global="false" />
+								<p:ajax event="change" process="@this" global="false" />
+							</p:calendar>
+
+							<p:outputLabel for="chRepetir" value="#{msgs.lbl_repetir_annos}:" />
+							<p:selectBooleanCheckbox value="#{diaFestivoBean.diaFestivo.indicadorRepetir}" id="chRepetir" />
+
+							<p:outputLabel for="chAct" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{diaFestivoBean.diaFestivo.activo}" id="chAct" />
+
+							<p:outputLabel for="chPred" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{diaFestivoBean.diaFestivo.predeterminado}" id="chPred" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{diaFestivoBean.diaFestivo.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_dia_festivo})" rendered="#{!diaFestivoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaDiaFestivo" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{diaFestivoBean.listaDiaFestivo}" var="_diaFestivo" binding="#{diaFestivoBean.dtDiaFestivo}"
+							paginator="true" paginatorPosition="bottom" style="width:100%" rows="#{diaFestivoBean.numeroFilas}"
+							rowsPerPageTemplate="#{diaFestivoBean.numeroFilasPorPagina}" selection="#{diaFestivoBean.diaFestivo}" selectionMode="single"
+							rowKey="#{_diaFestivo.idDiaFestivo}" sortBy="#{_diaFestivo.fecha}" sortOrder="ASCENDING">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="fecha">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_diaFestivo.fecha}">
+									<f:convertDateTime pattern="#{diaFestivoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_repetir}" sortBy="#{_diaFestivo.indicadorRepetir}">
+								<p:selectBooleanCheckbox value="#{_diaFestivo.indicadorRepetir}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo tableCell" headerText="#{msgs.lbl_activo}" sortBy="#{_diaFestivo.activo}">
+								<p:selectBooleanCheckbox value="#{_diaFestivo.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado tableCell" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_diaFestivo.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_diaFestivo.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{diaFestivoBean.diaFestivo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{diaFestivoBean.diaFestivo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{diaFestivoBean.diaFestivo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{diaFestivoBean.diaFestivo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

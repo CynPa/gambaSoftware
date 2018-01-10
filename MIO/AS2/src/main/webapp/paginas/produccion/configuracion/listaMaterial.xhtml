@@ -1,0 +1,484 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="headAdicionales">
+		<style>
+.ui-tree.ui-tree-horizontal .ui-treenode {
+	padding: 1px 3px;
+}
+</style>
+	</ui:define>
+
+	<ui:define name="contenido">
+
+		<h:form enctype="multipart/form-data" prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{listaMaterialBean}">
+					<as2:buttonImprimir bean="#{listaMaterialBean}" beanReporte="#{reporteListaMaterialBean}" value="#{listaMaterialBean.producto}"
+						target="#{reporteListaMaterialBean.producto}">
+					</as2:buttonImprimir>
+					<as2:buttonExportaExcel bean="#{listaMaterialBean}" tabla=":form:tablaProductos" />
+				</as2:toolBar>
+
+				<!-- CARGAR ARBOL COMPONENTES -->
+				<p:dialog header="#{msgs.lbl_titulo_componentes}" widgetVar="dglModalArbolComponentes" modal="true" height="350" width="1200" showEffect="slide"
+					hideEffect="slide">
+					<p:outputPanel id="panelArbolComponentes">
+						<p:tree value="#{listaMaterialBean.root}" var="_producto" orientation="horizontal">
+							<p:treeNode styleClass="tableCell">
+								<h:outputText value="#{_producto.codigo} #{_producto.nombre}" />
+							</p:treeNode>
+						</p:tree>
+					</p:outputPanel>
+				</p:dialog>
+				<!-- FIN CARGAR ARBOL COMPONENTES-->
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel header="#{msgs.lbl_producto_lista_materiales}" rendered="#{listaMaterialBean.editado}">
+
+						<ui:include src="/template/listaProductoMultiple.xhtml">
+							<ui:param name="bean" value="#{listaMaterialBean}" />
+							<ui:param name="objetoActualizar" value=":form:panelDetalle" />
+						</ui:include>
+
+						<h:panelGrid columns="1">
+
+							<h:panelGrid columns="#{listaMaterialBean.numeroColumnasPanelNuevo}" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_codigo}:" />
+								<h:outputText value="#{listaMaterialBean.producto.codigo}" />
+
+								<h:outputText value="#{msgs.lbl_nombre}:" />
+								<h:outputText value="#{listaMaterialBean.producto.nombre}" />
+
+								<h:outputText value="#{msgs.lbl_unidad_stock}" />
+								<h:outputText value="#{listaMaterialBean.producto.unidad.nombre}" />
+
+								<h:outputText value="#{msgs.lbl_cantidad_produccion}:" />
+								<p:inputText value="#{listaMaterialBean.producto.cantidadProduccion}">
+									<f:validateBean />
+									<p:ajax process="@this" global="false" partialSubmit="true" />
+								</p:inputText>
+							</h:panelGrid>
+
+							<p:outputPanel id="panelDetalle">
+								<p:tabView id="tabView" activeIndex="#{listaMaterialBean.activeIndex}">
+
+									<p:tab title="#{msgs.lbl_producto_lista_materiales}">
+										<p:outputPanel id="panelMaterial">
+											<h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarMaterial" oncomplete="dglModalProducto.show();" update="@none"
+													process="@this" icon="ui-icon-plus" disabled="#{not empty versionListaMaterialSelecionado}">
+													<f:setPropertyActionListener target="#{listaMaterialBean.tipoSeleccion}" value="MATERIAL" />
+												</p:commandButton>
+
+												<p:spacer height="4px" />
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaMateriales" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" value="#{listaMaterialBean.listaProductoMaterial}" var="_material" paginator="true"
+													paginatorPosition="bottom" style="width:100%" rows="#{listaMaterialBean.numeroFilas}"
+													rowsPerPageTemplate="#{listaMaterialBean.numeroFilasPorPagina}" rowKey="#{_material.id}" lazy="true">
+
+													<p:columnGroup type="header">
+														<p:row>
+															<p:column colspan="1" rowspan="2" headerText="Nº" />
+															<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_orden}" />
+															<p:column colspan="5" headerText="#{msgs.lbl_materiales}" />
+
+															<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_proporcion_material_principal_produccion}" />
+															<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_activo}" />
+															<p:column colspan="1" rowspan="2" headerText="#{msgs.lbl_principal}" />
+															<p:column colspan="1" rowspan="2">
+																<f:facet name="header">
+																	<h:outputText value="#{msgs.lbl_explotaLDM}" title="#{msgs.lbl_descripcion_explotaLDM}" />
+																</f:facet>
+															</p:column>
+															<p:column colspan="1" rowspan="2">
+																<f:facet name="header">
+																	<h:outputText value="#{msgs.lbl_genera_suborden}" title="#{msgs.lbl_genera_suborden}" />
+																</f:facet>
+															</p:column>
+															<p:column colspan="1" rowspan="2">
+																<f:facet name="header">
+																	<h:outputText value="#{msgs.lbl_validar_stock_suborden}" title="#{msgs.lbl_validar_stock_suborden}" />
+																</f:facet>
+															</p:column>
+
+															<p:column colspan="4" headerText="#{msgs.lbl_producto_lista_sustitutos}" />
+															<p:column colspan="1" rowspan="2" />
+														</p:row>
+														<p:row>
+															<p:column headerText="#{msgs.lbl_codigo}" />
+															<p:column headerText="#{msgs.lbl_nombre}" />
+															<p:column headerText="#{msgs.lbl_unidad_stock}" />
+															<p:column headerText="#{msgs.lbl_cantidad}" />
+															<p:column headerText="%" />
+
+															<p:column headerText="#{msgs.lbl_codigo}" />
+															<p:column headerText="#{msgs.lbl_nombre}" />
+															<p:column headerText="#{msgs.lbl_unidad_stock}" />
+															<p:column headerText="#{msgs.lbl_cantidad}" />
+														</p:row>
+													</p:columnGroup>
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<p:inputText styleClass="input-text" id="txtOrden" value="#{_material.orden}">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTCodigoProducto tableCell">
+														<h:outputText styleClass="input-text" value="#{_material.material.codigo}" id="txtCodigoMaterial" />
+													</p:column>
+
+													<p:column styleClass="columnaDTNombre tableCell">
+														<h:outputText styleClass="input-text" value="#{_material.material.nombre}" id="txtNombreMaterial" />
+													</p:column>
+
+													<p:column styleClass="columnaDTUnidad tableCell">
+														<h:outputText styleClass="input-text" value="#{_material.material.unidad.nombre}" id="txtNombreUnidadMaterial" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell">
+														<p:inputText styleClass="input-text" value="#{_material.cantidad}" id="txtCantidadMaterial">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTPorcentaje tableCell">
+														<p:inputText styleClass="input-text" id="txtProporcion" value="#{_material.proporcion}">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTCantidad tableCell color_gris">
+														<h:outputText value="#{_material.proporcionMaterialPrincipalHijo}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTActivo tableCell">
+														<p:selectBooleanCheckbox value="#{_material.activo}">
+															<p:ajax process="@this" global="false" partialSubmit="true" />
+														</p:selectBooleanCheckbox>
+													</p:column>
+
+													<p:column styleClass="columnaDTActivo tableCell">
+														<p:selectBooleanCheckbox value="#{_material.indicadorPrincipal}">
+															<p:ajax process="@this" global="false" partialSubmit="true" />
+														</p:selectBooleanCheckbox>
+													</p:column>
+
+													<p:column styleClass="columnaDTActivo tableCell">
+														<p:selectBooleanCheckbox value="#{_material.indicadorExplota}" id="ckExplota">
+															<p:ajax process="@this" global="false" partialSubmit="true" update="ckSuborden" />
+														</p:selectBooleanCheckbox>
+													</p:column>
+
+													<p:column styleClass="columnaDTActivo tableCell">
+														<p:selectBooleanCheckbox value="#{_material.indicadorGeneraSuborden}" id="ckSuborden">
+															<p:ajax listener="#{listaMaterialBean.changeGeneraSubOrden(_material)}" process="@this" global="false" partialSubmit="true"
+																update="ckExplota ckValidaSuborden" />
+														</p:selectBooleanCheckbox>
+													</p:column>
+
+													<p:column styleClass="columnaDTActivo tableCell">
+														<p:selectBooleanCheckbox value="#{_material.indicadorValidaStockSuborden}" id="ckValidaSuborden"
+															disabled="#{!_material.indicadorGeneraSuborden}">
+															<p:ajax process="@this" global="false" partialSubmit="true" />
+														</p:selectBooleanCheckbox>
+													</p:column>
+
+													<p:column styleClass="columnaDTCodigoProducto tableCell" headerText="#{msgs.lbl_codigo}">
+														<h:panelGroup>
+															<p:commandButton id="btnEliminarSustituto" icon="ui-icon-close" title="#{msgs.lbl_eliminar}" update=":form:tabView:panelMaterial"
+																process="@this" global="false">
+																<f:setPropertyActionListener target="#{_material.sustituto}" value="#{null}" />
+																<f:setPropertyActionListener target="#{_material.cantidadSustituto}" value="#{0}" />
+															</p:commandButton>
+
+															<p:commandLink value="#{not empty _material.sustituto ? _material.sustituto.codigo : msgs.lbl_seleccione}" process="@this"
+																oncomplete="dglModalProducto.show();">
+																<f:setPropertyActionListener target="#{listaMaterialBean.tipoSeleccion}" value="SUSTITUTO" />
+																<f:setPropertyActionListener target="#{listaMaterialBean.material}" value="#{_material}" />
+															</p:commandLink>
+														</h:panelGroup>
+													</p:column>
+
+													<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombre}">
+														<h:outputText value="#{_material.sustituto.nombre}" id="txtNombreSustituto" />
+													</p:column>
+
+													<p:column styleClass="columnaDTUnidad tableCell" headerText="#{msgs.lbl_unidad_stock}">
+														<h:outputText styleClass="input-text" value="#{_material.sustituto.unidad.nombre}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+														<p:inputText styleClass="input-text" rendered="#{not empty _material.sustituto}" value="#{_material.cantidadSustituto}"
+															id="txtCantidadSustituto">
+															<p:ajax process="@this" global="false" partialSubmit="true" />
+															<f:validateDoubleRange minimum="0.01" />
+														</p:inputText>
+													</p:column>
+
+													<!-- 
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+														<p:inputText value="#{_material.descripcion}" id="txtDescripcionMaterial" styleClass="input-text100">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+													 -->
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<p:commandButton id="btnEliminarMaterial" action="#{listaMaterialBean.eliminarMaterial(_material)}" icon="ui-icon-trash"
+															title="#{msgs.lbl_eliminar}" update=":form:tabView:panelMaterial" process="@this">
+														</p:commandButton>
+													</p:column>
+
+												</p:dataTable>
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+
+									<p:tab title="#{msgs.lbl_sub_producto}">
+										<p:outputPanel id="panelSubProducto">
+											<h:panelGrid columns="1" cellpadding="0" cellspacing="0">
+
+												<p:commandButton value="#{msgs.btn_agregar_detalle}" process="@this" oncomplete="dglModalProducto.show();" icon="ui-icon-plus"
+													title="#{msgs.btn_agregar_detalle}">
+													<f:setPropertyActionListener target="#{listaMaterialBean.tipoSeleccion}" value="SUBPRODUCTO" />
+												</p:commandButton>
+
+												<p:spacer height="4px" />
+
+												<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaSubProducto" rowIndexVar="secuencial"
+													emptyMessage="#{msgs.msg_no_hay_datos}" value="#{listaMaterialBean.listaSubProducto}" var="_subProducto" paginator="true"
+													paginatorPosition="bottom" style="width:100%" rows="#{listaMaterialBean.numeroFilas}"
+													rowsPerPageTemplate="#{listaMaterialBean.numeroFilasPorPagina}" rowKey="#{_subProducto.id}" lazy="true">
+
+													<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+														<h:outputText value="#{secuencial+1}" />
+													</p:column>
+
+													<p:column styleClass="columnaDTCodigo tableCell" headerText="#{msgs.lbl_codigo}">
+														<h:outputText value="#{_subProducto.producto.codigo}" id="txtCodigoMaterial" />
+													</p:column>
+
+													<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_nombre}">
+														<h:outputText value="#{_subProducto.producto.nombre}" id="txtNombreMaterial" />
+													</p:column>
+
+
+													<p:column styleClass="columnaDTPorcentaje tableCell" headerText="% (#{msgs.lbl_costo})">
+														<p:inputText value="#{_subProducto.porcentajeCosto}" id="txtPorcentajeCostoSubProducto" size="8">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTPorcentaje tableCell" headerText="% (#{msgs.lbl_cantidad})">
+														<p:inputText value="#{_subProducto.porcentaje}" id="txtPorcentajeSubProducto" readonly="#{_subProducto.cantidad>0}" size="8">
+															<p:ajax update=":form:tabView:panelSubProducto" process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTValor tableCell" headerText="#{msgs.lbl_cantidad}">
+														<p:inputText value="#{_subProducto.cantidad}" id="txtCantidadSubProducto" readonly="#{_subProducto.porcentaje>0}" size="8">
+															<f:validateBean />
+															<p:ajax process="@this" global="false" />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_valido_desde}">
+														<p:calendar pattern="#{listaMaterialBean.formatoFecha}" showOn="button" navigator="true" value="#{_subProducto.fechaDesde}"
+															id="calFechaDesde" size="10">
+															<p:ajax process="@this" global="false" event="dateSelect" />
+															<p:ajax process="@this" global="false" event="change" />
+															<f:validateBean />
+														</p:calendar>
+													</p:column>
+
+													<p:column styleClass="columnaDTFechaInput tableCell" headerText="#{msgs.lbl_valido_hasta}">
+														<p:calendar pattern="#{listaMaterialBean.formatoFecha}" showOn="button" navigator="true" value="#{_subProducto.fechaHasta}"
+															id="calFechaHasta" size="10">
+															<p:ajax process="@this" global="false" event="dateSelect" />
+															<p:ajax process="@this" global="false" event="change" />
+															<f:validateBean />
+														</p:calendar>
+													</p:column>
+
+													<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+														<p:inputText styleClass="input-text-col" value="#{_subProducto.descripcion}" id="txtDescripcionSubProducto" size="20">
+															<p:ajax process="@this" global="false" />
+															<f:validateBean />
+														</p:inputText>
+													</p:column>
+
+													<p:column styleClass="columnaDTAccion tableCell">
+														<p:commandButton id="btnEliminarSubProducto" action="#{listaMaterialBean.eliminarSubProducto(_subProducto)}" icon="ui-icon-trash"
+															title="#{msgs.lbl_eliminar}" update=":form:tabView:panelSubProducto" process="@this">
+														</p:commandButton>
+													</p:column>
+
+												</p:dataTable>
+											</h:panelGrid>
+										</p:outputPanel>
+									</p:tab>
+								</p:tabView>
+							</p:outputPanel>
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:dialog header="#{msgs.lbl_imagen}" widgetVar="imagenDialog" resizable="false" showEffect="fade" hideEffect="explode" modal="true">
+						<p:outputPanel id="panelImagen" autoUpdate="true">
+							<h:panelGrid columns="2">
+								<f:facet name="header">
+									<h:graphicImage value="/images/dynamic/?file=#{listaMaterialBean.producto.imagen}" width="400" height="300" />
+								</f:facet>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:dialog>
+
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_material_panel}" rendered="#{!listaMaterialBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaProductos" rowIndexVar="secuencialProducto"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{listaMaterialBean.listaProducto}" var="producto" paginator="true" paginatorPosition="bottom"
+							style="width:100%" rows="#{listaMaterialBean.numeroFilas}" rowsPerPageTemplate="#{listaMaterialBean.numeroFilasPorPagina}"
+							selection="#{listaMaterialBean.producto}" selectionMode="single" rowKey="#{producto.id}" styleClass="tablaProducto" sortBy="#{producto.codigo}"
+							lazy="true">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencialProducto+1}" />
+							</p:column>
+
+							<p:column sortBy="#{producto.codigo}" filterBy="#{producto.codigo}" styleClass="columnaDTCodigoProducto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{producto.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{producto.nombre}" filterBy="#{producto.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{producto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{producto.subcategoriaProducto.categoriaProducto.nombre}"
+								filterBy="#{producto.subcategoriaProducto.categoriaProducto.nombre}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_categoria_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.subcategoriaProducto.categoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{producto.subcategoriaProducto.nombre}" filterBy="#{producto.subcategoriaProducto.nombre}"
+								styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_subcategoria_producto}" />
+								</f:facet>
+
+								<h:outputText value="#{producto.subcategoriaProducto.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{producto.unidad.nombre}" filterBy="#{producto.unidad.nombre}" styleClass="columnaDTUnidad tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_unidad}" />
+								</f:facet>
+
+								<h:outputText value="#{producto.unidad.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombreCorto tableCell" sortBy="#{producto.presentacionProducto.nombre}"
+								filterBy="#{producto.presentacionProducto.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_presentacion_producto}" />
+								</f:facet>
+								<h:outputText value="#{producto.presentacionProducto.nombre}" />
+							</p:column>
+
+							<p:column exportable="false" styleClass="tableCell0 columnaDTCantidad" sortBy="#{producto.cantidadProduccion}"
+								filterBy="#{producto.cantidadProduccion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cantidad_produccion}" />
+								</f:facet>
+								<h:outputText value="#{producto.cantidadProduccion}" />
+							</p:column>
+
+							<p:column exportable="false" styleClass="tableCell0 columnaDTAccion" sortBy="#{producto.ordenCosteo}" filterBy="#{producto.ordenCosteo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_producto_orden_costeo}" />
+								</f:facet>
+								<h:outputText value="#{producto.ordenCosteo}" />
+							</p:column>
+
+
+							<p:column styleClass="columnaDTActivo tableCell" sortBy="indicadorListaMaterial" filterBy="indicadorListaMaterial"
+								filterOptions="#{listaMaterialBean.listaActivoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_panel_listado} #{msgs.lbl_material_panel}" />
+								</f:facet>
+								<h:selectBooleanCheckbox value="#{producto.indicadorListaMaterial}" disabled="true" />
+							</p:column>
+
+							<p:column sortBy="#{producto.activo}" styleClass="columnaDTActivo">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox value="#{producto.activo}" disabled="true" />
+							</p:column>
+
+							<p:column headerText="#{msgs.lbl_imagen}" exportable="false" styleClass="columnaDTAccion">
+								<p:commandLink onclick="imagenDialog.show()" process="@this" update=":form:panelImagen" title="#{msgs.lbl_imagen}">
+									<h:graphicImage library="images" name="imagen.png" style="height : 16px; width : 16px;" />
+									<f:setPropertyActionListener value="#{producto}" target="#{listaMaterialBean.producto}" />
+								</p:commandLink>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<p:commandLink actionListener="#{listaMaterialBean.crearArbol(producto)}" process="@this" update=":form:panelArbolComponentes"
+									title="#{msgs.btn_mostrar}" oncomplete="dglModalArbolComponentes.show();">
+									<h:graphicImage library="images" name="preview.png" style="height : 16px; width : 16px;" />
+								</p:commandLink>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{listaMaterialBean.producto.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{listaMaterialBean.producto.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{listaMaterialBean.producto.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{listaMaterialBean.producto.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

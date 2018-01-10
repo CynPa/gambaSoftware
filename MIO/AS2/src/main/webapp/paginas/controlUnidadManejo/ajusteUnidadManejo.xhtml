@@ -1,0 +1,271 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<!-- <f:metadata> -->
+<!-- 	<f:viewParam name="idAjusteUnidadManejo" value="#{ajusteUnidadManejoBean.idAjusteUnidadManejo}" /> -->
+<!-- </f:metadata> -->
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{ajusteUnidadManejoBean}">
+
+					<as2:buttonImprimir id="btnImprimirtransferenciaUnidadManejo" beanReporte="#{reporteTransferenciaUnidadManejoBean}"
+						bean="#{ajusteUnidadManejoBean}" target="#{reporteTransferenciaUnidadManejoBean.movimientoUnidadManejo}"
+						value="#{ajusteUnidadManejoBean.movimientoUnidadManejo}" />
+
+					<as2:buttonExportaExcel bean="#{ajusteUnidadManejoBean}" tabla=":form:tablaAjustes" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_ajuste} #{msgs.lbl_unidad_manejo})" rendered="#{ajusteUnidadManejoBean.editado}">
+
+						<ui:include src="/template/listaUnidadManejo.xhtml">
+							<ui:param name="bean" value="#{ajusteUnidadManejoBean}" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid columns="#{ajusteUnidadManejoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.documento}" id="cboDocumento" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{ajusteUnidadManejoBean.listaDocumentosAjuste}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento}" />
+									<p:ajax process="@this" update="txtNumero panelDetalle" listener="#{ajusteUnidadManejoBean.actualizarDocumento}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.numero}"
+									mask="#{ajusteUnidadManejoBean.movimientoUnidadManejo.documento.secuencia.patron}" disabled="#{!ajusteUnidadManejoBean.secuenciaEditable}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{ajusteUnidadManejoBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.fecha}" id="calFecha" disabled="true" />
+
+								<p:outputLabel for="acMotivoAjusteUnidadManejo" value="#{msgs.lbl_motivo} #{msgs.lbl_ajuste}:" />
+								<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" id="acMotivoAjusteUnidadManejo" styleClass="input-text"
+									value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.motivoAjusteUnidadManejo}"
+									completeMethod="#{ajusteUnidadManejoBean.autocompletarMotivoAjusteUnidadManejo}" var="_motivoAjusteUnidadManejo"
+									itemLabel="#{_motivoAjusteUnidadManejo.nombre}" itemValue="#{_motivoAjusteUnidadManejo}" forceSelection="true" dropdown="true"
+									minQueryLength="1" required="true">
+
+									<p:column headerText="#{msgs.lbl_codigo}">#{_motivoAjusteUnidadManejo.codigo}</p:column>
+									<p:column headerText="#{msgs.lbl_nombre}">#{_motivoAjusteUnidadManejo.nombre}</p:column>
+									<p:ajax process="@this" />
+								</p:autoComplete>
+
+								<h:outputText value="Tipo Ajuste:" />
+								<p:selectOneMenu id="tipoAjuste" value="#{ajusteUnidadManejoBean.clasificacion}" required="true">
+									<f:selectItems value="#{ajusteUnidadManejoBean.listaTipoAjuste}" />
+									<p:ajax process="@this" update="panelNuevo" partialSubmit="true" global="false" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" rendered="#{ajusteUnidadManejoBean.clasificacion == 'Sucursal'}" />
+								<p:selectOneMenu rendered="#{ajusteUnidadManejoBean.clasificacion == 'Sucursal'}" styleClass="input-text"
+									value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.sucursal}" id="cboSucursal" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{ajusteUnidadManejoBean.listaSucursal}" var="_sucursal" itemLabel="#{_sucursal.nombre}" itemValue="#{_sucursal}" />
+									<p:ajax process="@this" event="change" update="@none" listener="#{ajusteUnidadManejoBean.actualizarSucursal}"/>
+								</p:selectOneMenu>
+
+								<p:outputLabel for="txtCliente" value="#{msgs.lbl_cliente}:" rendered="#{ajusteUnidadManejoBean.clasificacion == 'Cliente'}" />
+								<p:autoComplete rendered="#{ajusteUnidadManejoBean.clasificacion == 'Cliente'}" queryDelay="#{sesionControler.retrasoFiltro}"
+									styleClass="input-text" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.empresa}"
+									completeMethod="#{ajusteUnidadManejoBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}" itemValue="#{_cliente}"
+									forceSelection="true" dropdown="true" minQueryLength="2" id="txtCliente" required="true">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{ajusteUnidadManejoBean.actualizarCliente}" process="@this" event="itemSelect" global="false" update="cboSubempresa" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_subcliente}:" rendered="#{ajusteUnidadManejoBean.clasificacion == 'Cliente'}" />
+								<p:selectOneMenu rendered="#{ajusteUnidadManejoBean.clasificacion == 'Cliente'}" styleClass="input-text"
+									value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.subempresa}" id="cboSubempresa">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{ajusteUnidadManejoBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+										itemLabel="#{_subempresa.empresaFinal}" />
+										<p:ajax process="@this" event="change" update="@none" listener="#{ajusteUnidadManejoBean.actualizarEmpresa}"/>
+								</p:selectOneMenu>
+
+								<p:outputLabel for="cboTransportista" value="#{msgs.lbl_titulo_transportista}:"
+									rendered="#{ajusteUnidadManejoBean.clasificacion == 'Transportista'}" />
+								<p:selectOneMenu rendered="#{ajusteUnidadManejoBean.clasificacion == 'Transportista'}" styleClass="input-text"
+									value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.transportista}" id="cboTransportista" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="null" />
+									<f:selectItems value="#{ajusteUnidadManejoBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+										itemValue="#{_transportista}" />
+									<p:ajax process="@this" event="change" update="@none" listener="#{ajusteUnidadManejoBean.actualizarTransportista}"/>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+
+								<h:panelGroup>
+									<p:commandButton value="Lista #{msgs.lbl_unidad_manejo}" icon="ui-icon-plus" onclick="dglModalUnidadManejo.show();" type="button" />
+								</h:panelGroup>
+
+								<p:outputPanel id="panelDetalleAjuste">
+
+									<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{ajusteUnidadManejoBean.detalleMovimientoUnidadManejo}"
+										id="tablaDetalleAjusteUnidadManejo" rowIndexVar="secuencial" binding="#{ajusteUnidadManejoBean.dtDetalleAjuste}"
+										emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleAjusteUnidadManejo" paginator="true" paginatorPosition="bottom" style="width:100%"
+										rowKey="#{_detalleAjusteUnidadManejo.id}" rows="#{ajusteUnidadManejoBean.numeroFilas}"
+										rowsPerPageTemplate="#{ajusteUnidadManejoBean.numeroFilasPorPagina}" sortOrder="ASCENDING">
+
+										<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+											<h:outputText value="#{secuencial+1}" />
+										</p:column>
+
+										<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleAjusteUnidadManejo.unidadManejo.codigo}"
+											filterMatchMode="contains">
+											<h:outputText styleClass="input-text-col" value="#{_detalleAjusteUnidadManejo.unidadManejo.codigo}" id="txtCodigoUnidadManejo">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_detalleAjusteUnidadManejo.unidadManejo.nombre}"
+											filterMatchMode="contains">
+											<h:outputText value="#{_detalleAjusteUnidadManejo.unidadManejo.nombre}" id="txtNombreUnidadManejo">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="tableCell" headerText="#{msgs.lbl_categoria_unidad_manejo}"
+											filterBy="#{_detalleAjusteUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" filterMatchMode="contains" rendered="false">
+											<h:outputText value="#{_detalleAjusteUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" id="txtNombreCategoriaUnidadManejo">
+											</h:outputText>
+										</p:column>
+
+										<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+											<p:spinner id="basic" value="#{_detalleAjusteUnidadManejo.cantidad}" min="1">
+												<f:validateBean />
+												<p:ajax process="@this" event="change" update=":form:panelDetalle" global="false" />
+											</p:spinner>
+										</p:column>
+
+										<p:column styleClass="tableCell columnaDTAccion">
+											<p:commandButton id="btnEliminarDetalle" action="#{ajusteUnidadManejoBean.eliminarDetalle}" icon="ui-icon-trash"
+												title="#{msgs.lbl_eliminar}" update=":form:panelDetalle" process="@this" global="false" />
+										</p:column>
+
+										<p:columnGroup type="footer" id="panelTotal">
+											<p:row>
+												<p:column colspan="3" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+												<p:column footerText="#{ajusteUnidadManejoBean.movimientoUnidadManejo.total}" style="text-align:right" id="txtTotal" />
+											</p:row>
+										</p:columnGroup>
+
+									</p:dataTable>
+								</p:outputPanel>
+
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_ajuste} #{msgs.lbl_unidad_manejo})" rendered="#{!ajusteUnidadManejoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAjustes" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{ajusteUnidadManejoBean.listaMovimientoUnidadManejo}" var="_ajusteUnidadManejo" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{ajusteUnidadManejoBean.dtListaAjuste}" rows="#{ajusteUnidadManejoBean.numeroFilas}"
+							rowsPerPageTemplate="#{ajusteUnidadManejoBean.numeroFilasPorPagina}" selection="#{ajusteUnidadManejoBean.movimientoUnidadManejo}"
+							selectionMode="single" rowKey="#{_ajusteUnidadManejo.id}" sortBy="#{_ajusteUnidadManejo.fecha}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_ajusteUnidadManejo.numero}" filterBy="#{_ajusteUnidadManejo.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteUnidadManejo.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_ajusteUnidadManejo.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteUnidadManejo.fecha}">
+									<f:convertDateTime pattern="#{ajusteUnidadManejoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_ajusteUnidadManejo.documento.nombre}"
+								filterBy="#{_ajusteUnidadManejo.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteUnidadManejo.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_responsable}" />
+								</f:facet>
+								<h:outputText
+									value="#{_ajusteUnidadManejo.sucursal.nombre != null ? _ajusteUnidadManejo.sucursal.nombre : _ajusteUnidadManejo.transportista.nombre != null ? _ajusteUnidadManejo.transportista.nombre: _ajusteUnidadManejo.empresa.nombreComercial}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_ajusteUnidadManejo.estado}" filterBy="#{_ajusteUnidadManejo.estado}"
+								filterOptions="#{ajusteUnidadManejoBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_ajusteUnidadManejo.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_ajusteUnidadManejo.descripcion}" filterBy="#{_ajusteUnidadManejo.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_ajusteUnidadManejo.descripcion}" />
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{ajusteUnidadManejoBean.movimientoUnidadManejo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

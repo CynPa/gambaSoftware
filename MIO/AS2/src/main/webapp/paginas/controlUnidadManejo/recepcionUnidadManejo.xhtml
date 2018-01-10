@@ -1,0 +1,322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{recepcionUnidadManejoBean}">
+
+					<as2:buttonExportaExcel bean="#{recepcionUnidadManejoBean}" tabla=":form:tablaAjustes" />
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+					<!-- 				Inicio Panel detalle de movimiento unidad de manejo-->
+					<p:outputPanel id="pgPanelAccion">
+						<p:dialog header="#{msgs.lbl_detalle}" widgetVar="accion" modal="true" height="240" width="600" showEffect="slide" hideEffect="slide"
+							closable="false" id="dialogAcciones">
+
+
+							<p:dataTable value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.detalleMovimientoUnidadManejo}"
+								id="tablaDetalleAjusteUnidadManejoAprobar" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+								var="_detalleRecepcionUnidadManejo" paginator="true" paginatorPosition="bottom" style="width:100%"
+								rowKey="#{_detalleRecepcionUnidadManejo.id}" rows="#{recepcionUnidadManejoBean.numeroFilas}"
+								rowsPerPageTemplate="#{recepcionUnidadManejoBean.numeroFilasPorPagina}" sortOrder="ASCENDING">
+
+								<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleRecepcionUnidadManejo.unidadManejo.codigo}"
+									filterMatchMode="contains">
+									<h:outputText styleClass="input-text-col" value="#{_detalleRecepcionUnidadManejo.unidadManejo.codigo}" id="txtCodigoUnidadManejoAcp">
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_detalleRecepcionUnidadManejo.unidadManejo.nombre}"
+									filterMatchMode="contains">
+									<h:outputText value="#{_detalleRecepcionUnidadManejo.unidadManejo.nombre}" id="txtNombreUnidadManejoAcp">
+									</h:outputText>
+								</p:column>
+
+								<p:column styleClass="tableCell" headerText="#{msgs.lbl_categoria_unidad_manejo}"
+									filterBy="#{_detalleRecepcionUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" filterMatchMode="contains" rendered="false">
+									<h:outputText value="#{_detalleRecepcionUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" id="txtNombreCategoriaUnidadManejoAcp">
+									</h:outputText>
+								</p:column>
+								<!-- 
+								<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_saldo}">
+									<h:outputText styleClass="input-text" value="#{_detalleRecepcionUnidadManejo.cantidadRecibida}" id="txtSaldoAcp" maxlength="10">
+									</h:outputText>
+								</p:column>
+								 -->
+								<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+									<h:outputText id="basicAcp" value="#{_detalleRecepcionUnidadManejo.cantidad}" />
+
+								</p:column>
+
+
+
+								<p:columnGroup type="footer" id="panelTotalAcp">
+									<p:row>
+										<p:column colspan="3" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+										<p:column footerText="#{recepcionUnidadManejoBean.movimientoUnidadManejo.total}" style="text-align:right" id="txtTotalAcp" />
+									</p:row>
+								</p:columnGroup>
+
+							</p:dataTable>
+
+							<f:facet name="footer">
+								<center>
+									<p:commandButton id="btnAccion" action="#{recepcionUnidadManejoBean.guardar}" value="#{msgs.btn_aceptar}" process="@this"
+										update="panelListado" oncomplete="validacionesModal(xhr, status, args, accion)">
+									</p:commandButton>
+									<p:commandButton id="btnAnular" action="#{recepcionUnidadManejoBean.anular}" value="#{msgs.btn_anular}" process="@this"
+										update="panelListado" oncomplete="validacionesModal(xhr, status, args, accion)">
+									</p:commandButton>
+								</center>
+							</f:facet>
+
+						</p:dialog>
+					</p:outputPanel>
+					<!-- 				Fin Panel detalle de movimiento unidad de manejo-->
+					<p:panel header="#{msgs.lbl_panel_edicion} (#{msgs.lbl_ajuste} #{msgs.lbl_unidad_manejo})" rendered="#{recepcionUnidadManejoBean.editado}">
+
+						<ui:include src="/template/listaUnidadManejo.xhtml">
+							<ui:param name="bean" value="#{recepcionUnidadManejoBean}" />
+							<ui:param name="listadoFiltrado" value="true" />
+							<ui:param name="mostrarCantidad" value="true" />
+						</ui:include>
+
+						<p:fieldset>
+							<h:panelGrid columns="#{recepcionUnidadManejoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_documento}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.documento.idDocumento}" id="cboDocumento"
+									required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+									<f:selectItems value="#{recepcionUnidadManejoBean.listaDocumentosAjuste}" var="_documento" itemLabel="#{_documento.nombre}"
+										itemValue="#{_documento.idDocumento}" />
+									<p:ajax process="@this" update="txtNumero panelDetalle" listener="#{recepcionUnidadManejoBean.actualizarDocumento}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_numero}:" />
+								<p:inputMask styleClass="input-text" id="txtNumero" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.numero}"
+									mask="#{recepcionUnidadManejoBean.recepcion.documento.secuencia.patron}" disabled="#{!recepcionUnidadManejoBean.secuenciaEditable}">
+									<f:validateBean />
+								</p:inputMask>
+
+								<p:outputLabel rendered="#{recepcionUnidadManejoBean.clasificacion != 'Transportista'}" value="#{msgs.lbl_sucursal}:" />
+								<h:outputText rendered="#{recepcionUnidadManejoBean.clasificacion != 'Transportista'}"
+									value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.sucursal.nombre}" />
+
+								<p:outputLabel rendered="#{recepcionUnidadManejoBean.clasificacion != 'Transportista'}" for="cboTransportista"
+									value="#{msgs.lbl_titulo_transportista}:" />
+								<p:selectOneMenu rendered="#{recepcionUnidadManejoBean.clasificacion != 'Transportista'}" styleClass="input-text"
+									value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.transportista}" id="cboTransportista" required="true">
+									<f:selectItems value="#{recepcionUnidadManejoBean.listaTransportista}" var="_transportista" itemLabel="#{_transportista.nombre}"
+										itemValue="#{_transportista}" />
+									<p:ajax process="@this" event="change" update="@none" />
+								</p:selectOneMenu>
+
+								<p:outputLabel rendered="#{recepcionUnidadManejoBean.clasificacion == 'Transportista'}" value="#{msgs.lbl_titulo_transportista}:" />
+								<h:outputText rendered="#{recepcionUnidadManejoBean.clasificacion == 'Transportista'}"
+									value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.transportista.nombre}" />
+
+								<p:outputLabel for="txtCliente" value="#{msgs.lbl_cliente}:" rendered="#{recepcionUnidadManejoBean.clasificacion == 'Transportista'}" />
+								<p:autoComplete rendered="#{recepcionUnidadManejoBean.clasificacion == 'Transportista'}" queryDelay="#{sesionControler.retrasoFiltro}"
+									styleClass="input-text" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.empresa}"
+									completeMethod="#{recepcionUnidadManejoBean.autocompletarClientes}" var="_cliente" itemLabel="#{_cliente.nombreFiscal}"
+									itemValue="#{_cliente}" forceSelection="true" dropdown="true" minQueryLength="2" id="txtCliente" required="true">
+
+									<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_cliente.identificacion}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_cliente.nombreFiscal}</p:column>
+									<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_cliente.nombreComercial}</p:column>
+
+									<p:ajax listener="#{recepcionUnidadManejoBean.actualizarCliente}" process="@this" event="itemSelect" global="false" update="cboSubempresa" />
+								</p:autoComplete>
+
+								<h:outputText value="#{msgs.lbl_subcliente}:" rendered="#{recepcionUnidadManejoBean.clasificacion == 'Transportista'}" />
+								<p:selectOneMenu rendered="#{recepcionUnidadManejoBean.clasificacion == 'Transportista'}" styleClass="input-text"
+									value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.subempresa}" id="cboSubempresa">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{recepcionUnidadManejoBean.listaSubempresa}" var="_subempresa" itemValue="#{_subempresa}"
+										itemLabel="#{_subempresa.empresaFinal}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_fecha}:" />
+								<p:calendar pattern="#{recepcionUnidadManejoBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.fecha}" id="calFecha" disabled="true" />
+
+								<h:outputText value="#{msgs.lbl_descripcion}:" />
+								<p:inputTextarea styleClass="input-text" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.descripcion}" id="txtDescripcion">
+									<f:validateBean />
+								</p:inputTextarea>
+							</h:panelGrid>
+						</p:fieldset>
+
+						<p:spacer width="2px" />
+
+						<p:fieldset>
+							<h:panelGrid columns="1" id="panelDetalle">
+								<h:panelGrid columns="2" cellpadding="0" cellspacing="0">
+									<h:panelGroup>
+										<p:commandButton value="Lista #{msgs.lbl_unidad_manejo}" icon="ui-icon-plus" onclick="dglModalUnidadManejo.show();" type="button" />
+										<p:commandButton icon="ui-icon-plus" id="btnCargarSaldos" value="#{msgs.lbl_cargar_saldo}" title="#{msgs.lbl_cargar_saldo}"
+											process="@this,:form:panelListado" actionListener="#{recepcionUnidadManejoBean.cargarSaldos}" update=":form:panelDetalle">
+										</p:commandButton>
+									</h:panelGroup>
+								</h:panelGrid>
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{recepcionUnidadManejoBean.detalleRecepcionMovimiento}"
+									id="tablaDetalleAjusteUnidadManejo" rowIndexVar="secuencial" binding="#{recepcionUnidadManejoBean.dtDetalleAjuste}"
+									emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleRecepcionUnidadManejo" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rowKey="#{_detalleRecepcionUnidadManejo.id}" rows="#{recepcionUnidadManejoBean.numeroFilas}"
+									rowsPerPageTemplate="#{recepcionUnidadManejoBean.numeroFilasPorPagina}" sortOrder="ASCENDING">
+
+									<p:column styleClass="tableCell columnaDTAccion" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigo" headerText="#{msgs.lbl_codigo}" filterBy="#{_detalleRecepcionUnidadManejo.unidadManejo.codigo}"
+										filterMatchMode="contains">
+										<h:outputText styleClass="input-text-col" value="#{_detalleRecepcionUnidadManejo.unidadManejo.codigo}" id="txtCodigoUnidadManejo">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_unidad_manejo}" filterBy="#{_detalleRecepcionUnidadManejo.unidadManejo.nombre}"
+										filterMatchMode="contains">
+										<h:outputText value="#{_detalleRecepcionUnidadManejo.unidadManejo.nombre}" id="txtNombreUnidadManejo">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="tableCell" headerText="#{msgs.lbl_categoria_unidad_manejo}"
+										filterBy="#{_detalleRecepcionUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" filterMatchMode="contains" rendered="false">
+										<h:outputText value="#{_detalleRecepcionUnidadManejo.unidadManejo.categoriaUnidadManejo.nombre}" id="txtNombreCategoriaUnidadManejo">
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_saldo}">
+										<h:outputText styleClass="input-text" value="#{_detalleRecepcionUnidadManejo.cantidadRecibida}" id="txtSaldo" maxlength="10">
+										</h:outputText>
+									</p:column>
+									<p:column styleClass="columnaDTCantidad tableCell" headerText="#{msgs.lbl_cantidad}">
+										<p:spinner id="basic" value="#{_detalleRecepcionUnidadManejo.cantidad}" min="0">
+											<f:validateBean />
+											<p:ajax process="@this" event="change" update=":form:panelDetalle" />
+										</p:spinner>
+									</p:column>
+
+									<p:column styleClass="tableCell columnaDTAccion">
+										<p:commandButton id="btnEliminarDetalle" action="#{recepcionUnidadManejoBean.eliminarDetalle}" icon="ui-icon-trash"
+											title="#{msgs.lbl_eliminar}" update=":form:panelDetalle" process="@this" />
+									</p:column>
+
+
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column colspan="3" footerText="#{msgs.lbl_total}:" style="text-align:right" />
+											<p:column footerText="#{recepcionUnidadManejoBean.movimientoUnidadManejo.total}" style="text-align:right" id="txtTotal" />
+										</p:row>
+									</p:columnGroup>
+
+								</p:dataTable>
+
+							</h:panelGrid>
+						</p:fieldset>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel header="#{msgs.lbl_panel_listado} (#{msgs.lbl_recepcion_unidad_manejo})" rendered="#{!recepcionUnidadManejoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaAjustes" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{recepcionUnidadManejoBean.listaMovimientoUnidadManejo}" var="_recepcionUnidadManejo" paginator="true" paginatorPosition="bottom"
+							style="width:100%" binding="#{recepcionUnidadManejoBean.dtListaAjuste}" rows="#{recepcionUnidadManejoBean.numeroFilas}"
+							rowsPerPageTemplate="#{recepcionUnidadManejoBean.numeroFilasPorPagina}" selection="#{recepcionUnidadManejoBean.movimientoUnidadManejo}"
+							selectionMode="single" rowKey="#{_recepcionUnidadManejo.id}" sortBy="#{_recepcionUnidadManejo.fecha}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="tableCell columnaDTAccion">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNumeroDocumento" sortBy="#{_recepcionUnidadManejo.numero}" filterBy="#{_recepcionUnidadManejo.numero}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_recepcionUnidadManejo.numero}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTFecha" sortBy="#{_recepcionUnidadManejo.fecha}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_recepcionUnidadManejo.fecha}">
+									<f:convertDateTime pattern="#{recepcionUnidadManejoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre" sortBy="#{_recepcionUnidadManejo.documento.nombre}"
+								filterBy="#{_recepcionUnidadManejo.documento.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_recepcionUnidadManejo.documento.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_responsable}" />
+								</f:facet>
+								<h:outputText
+									value="#{_transferenciaUnidadManejo.sucursal.nombre != null ?_recepcionUnidadManejo.sucursal.nombre :_recepcionUnidadManejo.transportista.nombre != null ?_recepcionUnidadManejo.transportista.nombre:_recepcionUnidadManejo.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column styleClass="tableCell columnaDTNombreCorto" sortBy="#{_recepcionUnidadManejo.estado}" filterBy="#{_recepcionUnidadManejo.estado}"
+								filterOptions="#{recepcionUnidadManejoBean.listaEstadoItem}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_recepcionUnidadManejo.estado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_recepcionUnidadManejo.descripcion}" filterBy="#{_recepcionUnidadManejo.descripcion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+
+								<h:outputText value="#{_recepcionUnidadManejo.descripcion}" />
+							</p:column>
+							<p:column styleClass="tableCell columnaDTAccion">
+								<p:commandButton id="btnOpenAccion" oncomplete="accion.show();" icon="ui-icon-gear" title="#{msgs.lbl_aprobar}" update=":form:pgPanelAccion"
+									process="@this" actionListener="#{recepcionUnidadManejoBean.cargarDatos}">
+								</p:commandButton>
+							</p:column>
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{recepcionUnidadManejoBean.movimientoUnidadManejo.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

@@ -1,0 +1,105 @@
+<p:outputPanel id="panelLecturaPesoBalanza" xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html" xmlns:f="http://java.sun.com/jsf/core" xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:p="http://primefaces.org/ui">
+
+
+	<p:panel id="panelLecturaPeso" rendered="#{mostrarBalanza}">
+		<p:hotkey bind="#{bean.lecturaBalanza.hotkeyFocoProducto}" update="@none" oncomplete="nextFocus('autoProducto_input')" process="@this" />
+
+		<p:hotkey bind="#{bean.lecturaBalanza.hotkeyCapturarPeso}" actionListener="#{bean.capturarPesoListener}" update=":form:panelLecturaPeso"
+			process=":form:panelLecturaPeso" />
+
+		<p:hotkey bind="#{bean.lecturaBalanza.hotkeyAgregarPeso}" actionListener="#{bean.agregarPesoListener}" update="#{update}"
+			process=":form:panelLecturaPeso" />
+
+		<h:panelGrid columns="4" columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor" cellspacing="0" cellpadding="0">
+
+			<p:outputLabel for="cboDispositivo" value="#{msgs.lbl_dispositivo}:" />
+			<p:selectOneMenu styleClass="input-text" value="#{bean.lecturaBalanza.dispositivo}" id="cboDispositivo"
+				required="#{bean.lecturaBalanza.producto != null}" disabled="#{disabled}">
+				<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+				<f:selectItems value="#{bean.listaDispositivo}" var="_dispositivo" itemLabel="#{_dispositivo.nombre} (#{_dispositivo.ip})"
+					itemValue="#{_dispositivo}" />
+				<p:ajax process="@this" update=":form:panelLecturaPeso" global="false" partialSubmit="true" />
+				<f:validateBean />
+			</p:selectOneMenu>
+
+			<p:outputLabel for="autoProducto" value="#{msgs.lbl_producto}:" id="outProducto" />
+			<p:inputText value="#{bean.lecturaBalanza.producto.nombre}" id="autoProducto" disabled="true" />
+			<!--<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{bean.lecturaBalanza.producto}"
+				completeMethod="#{bean.autocompletarProductos}" var="_producto" itemLabel="#{_producto.nombre}" itemValue="#{_producto}" dropdown="true"
+				minQueryLength="2" disabled="#{disabled}" id="autoProducto" title="#{bean.lecturaBalanza.hotkeyFocoProducto}">
+				<p:column headerText="#{msgs.lbl_codigo}">#{_producto.codigo}</p:column>
+				<p:column headerText="#{msgs.lbl_nombre}">#{_producto.nombre}</p:column>
+				<p:ajax event="itemSelect" process="@this" partialSubmit="true" update=":form:panelLecturaPeso" oncomplete="nextFocus('cboUnidadManejo_focus')" />
+				<f:validateBean />
+			</p:autoComplete>
+-->
+
+			<p:outputLabel for="cboUnidadManejo" id="labelUnidadManejo" value="#{msgs.lbl_unidad_manejo_panel}:" />
+			<h:panelGrid columns="3" style="text-align:left;">
+				<p:selectOneMenu styleClass="input-text" value="#{bean.lecturaBalanza.unidadManejo}" id="cboUnidadManejo"
+					required="#{bean.lecturaBalanza.producto != null}" disabled="#{disabled}">
+					<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+					<f:selectItems value="#{bean.listaUnidadManejo}" var="_unidadManejo" itemLabel="#{_unidadManejo.nombre} (#{_unidadManejo.peso})"
+						itemValue="#{_unidadManejo}" />
+					<p:ajax process="@this" global="false" partialSubmit="true" listener="#{bean.calcularCantidad}" update=":form:panelLecturaPeso" />
+					<f:validateBean />
+				</p:selectOneMenu>
+				<p:outputLabel for="txtNunidadManejo" value="#" />
+				<p:inputText styleClass="input-text" value="#{bean.lecturaBalanza.numeroUnidadesManejo}" required="#{true}" disabled="#{disabled}"
+					id="txtNunidadManejo">
+					<p:ajax process="@this" global="false" partialSubmit="true" listener="#{bean.calcularCantidad}" update=":form:panelLecturaPeso" />
+					<f:validateBean />
+				</p:inputText>
+			</h:panelGrid>
+
+
+			<p:outputLabel for="cboPallet" value="#{msgs.lbl_pallet}:" />
+			<p:selectOneMenu styleClass="input-text" value="#{bean.lecturaBalanza.pallet}" id="cboPallet" required="false" disabled="#{disabled}">
+				<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+				<f:selectItems value="#{bean.listaPallet}" var="_pallet" itemLabel="#{_pallet.nombre} (#{_pallet.peso})" itemValue="#{_pallet}" />
+				<p:ajax process="@this" update="@this" global="false" partialSubmit="true" />
+				<f:validateBean />
+			</p:selectOneMenu>
+
+			<p:outputLabel value="#{msgs.lbl_peso}:" />
+			<h:panelGrid columns="6" style="text-align:left;">
+				<p:outputLabel for="txtPesoBruto" value="#{msgs.lbl_bruto}:" />
+				<p:inputText disabled="#{!bean.lecturaBalanza.dispositivo.fueraLinea or bean.lecturaBalanza.producto == null}"
+					value="#{bean.lecturaBalanza.pesoBruto}" id="txtPesoBruto">
+					<p:ajax process="@this" global="false" partialSubmit="true" />
+					<f:validateBean />
+				</p:inputText>
+
+				<p:outputLabel value="#{msgs.lbl_neto}:" />
+				<h:outputText style="font-size: x-large;" value="#{bean.lecturaBalanza.pesoNeto}" />
+
+				<p:outputLabel value="#{msgs.lbl_cantidad}:"
+					rendered="#{bean.lecturaBalanza.cantidad!= null or bean.lecturaBalanza.unidadManejo.indicadorDigitarCantidad}" />
+				<p:inputText value="#{bean.lecturaBalanza.cantidad}" id="txtCantidad" rendered="#{bean.lecturaBalanza.unidadManejo.indicadorDigitarCantidad}">
+					<p:ajax process="@this" global="false" partialSubmit="true" />
+					<f:validateBean />
+				</p:inputText>
+				<h:outputText style="font-size: x-large;" value="#{bean.lecturaBalanza.cantidad}"
+					rendered="#{bean.lecturaBalanza.cantidad!= null and !bean.lecturaBalanza.unidadManejo.indicadorDigitarCantidad}" />
+			</h:panelGrid>
+
+			<p:spacer />
+
+			<h:panelGrid columns="2" style="text-align:left;">
+				<h:panelGroup>
+					<p:commandButton id="btnCapturar" value="#{msgs.btn_capturar_peso}" actionListener="#{bean.capturarPesoListener}" update=":form:panelLecturaPeso"
+						process=":form:panelLecturaPeso" disabled="#{disabled}" title="#{bean.lecturaBalanza.hotkeyCapturarPeso}" />
+
+					<p:commandButton id="btnAgregarPeso" value="#{msgs.lbl_agregar}" actionListener="#{bean.agregarPesoListener}"
+						disabled="#{bean.lecturaBalanza.pesoNeto == 0 or disabled}" update="#{update}" process=":form:panelLecturaPeso " 
+						title="#{bean.lecturaBalanza.hotkeyAgregarPeso}" />
+				</h:panelGroup>
+			</h:panelGrid>
+
+		</h:panelGrid>
+	</p:panel>
+
+
+</p:outputPanel>

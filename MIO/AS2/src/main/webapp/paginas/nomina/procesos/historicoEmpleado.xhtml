@@ -1,0 +1,322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form id="form" enctype="multipart/form-data" prependId="false">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{historicoEmpleadoBean}">
+
+					<as2:buttonImprimir id="btnImprimirFactura" beanReporte="#{reporteTipoContratoBean}" bean="#{historicoEmpleadoBean}"
+						target="#{reporteTipoContratoBean.historicoEmpleado}" value="#{historicoEmpleadoBean.historicoEmpleado}" />
+
+					<as2:buttonExportaExcel bean="#{historicoEmpleadoBean}" tabla=":form:tablaHistoricoEmpleado" />
+
+				</as2:toolBar>
+
+				<as2:uploadFile bean="#{historicoEmpleadoBean}" label="#{msgs.btn_cargar_pdf}" formatos="/(\.|\/)(pdf)$/"></as2:uploadFile>
+
+				<ui:include src="/template/listaEmpleado.xhtml">
+					<ui:param name="bean" value="#{historicoEmpleadoBean}" />
+					<ui:param name="objetoActualizar" value=":form:txtEmpleado" />
+				</ui:include>
+
+				<h:panelGroup id="pgPanelSimularFiniquito">
+					<p:dialog header="Simular Finiquito" widgetVar="simularFiniquitoDialogo" modal="true" height="100" width="300" showEffect="slide"
+						hideEffect="slide">
+						<h:panelGrid columns="2" columnClasses="columnaEtiqueta,columnaValor">
+							<h:outputText value="#{msgs.lbl_fecha_salida_empleado}:" />
+							<p:calendar pattern="#{historicoEmpleadoBean.formatoFecha}" showOn="button" navigator="true" required="true"
+								value="#{historicoEmpleadoBean.fechaSalida}" id="calFechaSalida">
+								<p:ajax process="@this" global="false" event="change"/>
+								<p:ajax process="@this" global="false" event="dateSelect"/>
+							</p:calendar>
+						</h:panelGrid>
+						<f:facet name="footer">
+							<center>
+								<p:commandButton value="#{msgs.btn_procesar}" process="@this" action="#{historicoEmpleadoBean.irFiniquitoEmpleado}" />
+								<p:commandButton value="#{msgs.btn_cancelar}" process="@this" oncomplete="simularFiniquitoDialogo.hide();" />
+							</center>
+						</f:facet>
+					</p:dialog>
+				</h:panelGroup>
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_historico_empleado} )" rendered="#{historicoEmpleadoBean.editado}">
+
+						<p:fieldset>
+							<h:panelGrid id="panelCabecera" columns="#{historicoEmpleadoBean.numeroColumnasPanelNuevo}"
+								columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+								<h:outputText value="#{msgs.lbl_empleado}:" />
+								<h:panelGroup>
+									<p:commandButton value="..." onclick="dglModalEmpleado.show()" type="button">
+									</p:commandButton>
+									<h:outputText id="txtEmpleado"
+										value="#{historicoEmpleadoBean.historicoEmpleado.empleado.apellidos} #{historicoEmpleadoBean.historicoEmpleado.empleado.nombres}" />
+								</h:panelGroup>
+
+								<p:outputLabel for="calenFechaIngreso" value="#{msgs.lbl_fecha_ingreso_empleado}:" />
+								<p:calendar pattern="#{historicoEmpleadoBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{historicoEmpleadoBean.historicoEmpleado.fechaIngreso}" id="calenFechaIngreso" required="true">
+									<p:ajax process="@this" update=":form:panelDetalleHistoricoEmpleado" listener="#{historicoEmpleadoBean.setFechaInicioEven}"
+										event="dateSelect" global="false" />
+									<p:ajax process="@this" update=":form:panelDetalleHistoricoEmpleado" event="change" listener="#{historicoEmpleadoBean.setFechaInicio}"
+										global="false" />
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_dias_fondo_reserva}:" />
+								<p:inputText styleClass="input-text" value="#{historicoEmpleadoBean.historicoEmpleado.diasFondoReserva}">
+									<f:validateBean />
+								</p:inputText>
+
+								<h:outputText value="#{msgs.lbl_fecha_vencimiento_contrato}:" />
+								<p:calendar pattern="#{historicoEmpleadoBean.formatoFecha}" showOn="button" navigator="true"
+									value="#{historicoEmpleadoBean.historicoEmpleado.fechaVencimientoContrato}" id="calenFechaVencimientoContrato">
+									<f:validateBean />
+								</p:calendar>
+
+								<h:outputText value="#{msgs.lbl_fecha_salida_empleado}:" />
+								<h:outputText value="#{historicoEmpleadoBean.historicoEmpleado.fechaSalida}">
+									<f:convertDateTime pattern="#{historicoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+
+							</h:panelGrid>
+
+						</p:fieldset>
+
+						<p:fieldset>
+
+							<p:commandButton value="#{msgs.btn_agregar_detalle}" id="btnAgregarDetalle" action="#{historicoEmpleadoBean.agregarDetalle}"
+								update=":form:panelDetalleHistoricoEmpleado" process="@this,:form:panelDetalleHistoricoEmpleado" icon="ui-icon-plus" />
+
+							<p:outputPanel id="panelDetalleHistoricoEmpleado">
+
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleHistoricoEmpleado" rowIndexVar="secuencial"
+									emptyMessage="#{msgs.msg_no_hay_datos}" value="#{historicoEmpleadoBean.listaDetalleHistoricoEmpleado}" var="_detalleHistoricoEmpleado"
+									binding="#{historicoEmpleadoBean.dtDetalleHistoricoEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+									rows="#{historicoEmpleadoBean.numeroFilas}" rowKey="#{_detalleHistoricoEmpleado.idDetalleHistoricoEmpleado}">
+
+									<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_tipo_contrato}" />
+										</f:facet>
+										<p:selectOneMenu styleClass="input-text" value="#{_detalleHistoricoEmpleado.tipoContrato}" id="cboTipoContrato" required="true">
+											<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+											<f:selectItems value="#{historicoEmpleadoBean.listaTipoContrato}" var="_tipoContrato" itemLabel="#{_tipoContrato.nombre}"
+												itemValue="#{_tipoContrato}" />
+											<p:ajax update=":form:panelDetalleHistoricoEmpleado" process="@this" />
+											<f:validateBean />
+										</p:selectOneMenu>
+									</p:column>
+
+									<p:column styleClass="tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_numero}" />
+										</f:facet>
+										<p:inputMask styleClass="input-text" value="#{_detalleHistoricoEmpleado.numeroContrato}" id="txtNumero"
+											mask="#{_detalleHistoricoEmpleado.tipoContrato.secuencia.patron}">
+											<f:validateBean />
+										</p:inputMask>
+									</p:column>
+
+									<p:column styleClass="columnaDTFechaInput tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_inicio}" />
+										</f:facet>
+										<p:calendar pattern="#{historicoEmpleadoBean.formatoFecha}" showOn="button" navigator="true"
+											value="#{_detalleHistoricoEmpleado.fechaInicio}" id="calFechaInicio" size="10">
+											<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+											<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+
+											<f:validateBean />
+										</p:calendar>
+									</p:column>
+
+									<p:column styleClass="columnaDTFechaInput tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha} #{msgs.lbl_inicio} (Contrato Fijo)" />
+										</f:facet>
+										<p:calendar pattern="#{historicoEmpleadoBean.formatoFecha}" showOn="button" navigator="true"
+											value="#{_detalleHistoricoEmpleado.fechaInicioContratoFijo}" id="calFechaInicioContratoFijo" size="10">
+											<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+											<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+
+											<f:validateBean />
+										</p:calendar>
+									</p:column>
+
+									<p:column styleClass="columnaDTFechaInput tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_fecha_fin}" />
+										</f:facet>
+										<h:panelGroup>
+											<p:calendar pattern="#{historicoEmpleadoBean.formatoFecha}" showOn="button" navigator="true" value="#{_detalleHistoricoEmpleado.fechaFin}"
+												id="calFechaFin" required="false" size="10">
+												<p:ajax process="@this" event="change" />
+												<p:ajax process="@this" event="dateSelect" />
+											</p:calendar>
+
+										</h:panelGroup>
+									</p:column>
+
+									<p:column styleClass="tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_horas_semana}" />
+										</f:facet>
+										<h:panelGroup>
+											<p:inputText styleClass="input-text-col" style="text-align: right;" value="#{_detalleHistoricoEmpleado.horasSemana}" id="txtHoras"
+												required="true">
+												<p:ajax process="@this" listener="#{historicoEmpleadoBean.porcentajeHorasSemana}" update="txtPorcentaje" />
+												<f:validateBean />
+											</p:inputText>
+											<p:message for="txtHoras" />
+										</h:panelGroup>
+									</p:column>
+
+									<p:column styleClass="columnaDTPorcentaje tableCell">
+										<f:facet name="header">
+											<h:outputText style="white-space:normal !important;" value="#{msgs.lbl_porcentaje}" />
+										</f:facet>
+										<p:outputPanel id="txtPorcentaje">
+											<h:outputText styleClass="input-text-number" value="#{_detalleHistoricoEmpleado.porcentajeCapacidadSemanal}">
+											</h:outputText>
+										</p:outputPanel>
+									</p:column>
+
+									<p:column styleClass="columnaDTAccion tableCell">
+										<p:commandButton id="btnEliminarDetalle" action="#{historicoEmpleadoBean.eliminarDetalle}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+											update=":form:panelDetalleHistoricoEmpleado" process="@this">
+										</p:commandButton>
+									</p:column>
+
+								</p:dataTable>
+
+							</p:outputPanel>
+
+						</p:fieldset>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_historico_empleado} )" rendered="#{!historicoEmpleadoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaHistoricoEmpleado" rowIndexVar="secuencial"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{historicoEmpleadoBean.listaHistoricoEmpleado}" var="_historicoEmpleado"
+							binding="#{historicoEmpleadoBean.dtHistoricoEmpleado}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{historicoEmpleadoBean.numeroFilas}" rowsPerPageTemplate="#{historicoEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{historicoEmpleadoBean.historicoEmpleado}" selectionMode="single" rowKey="#{_historicoEmpleado.idHistoricoEmpleado}">
+
+							<p:column styleClass="columnaDTAccion tableCell" headerText="Nº">
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTIdentificacion tableCell" sortBy="#{_historicoEmpleado.empleado.empresa.identificacion}" filterBy="#{_historicoEmpleado.empleado.empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{_historicoEmpleado.empleado.empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_historicoEmpleado.empleado.apellidos}" filterBy="#{_historicoEmpleado.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_apellios}" />
+								</f:facet>
+								<h:outputText value="#{_historicoEmpleado.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{_historicoEmpleado.empleado.nombres}" filterBy="#{_historicoEmpleado.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_nombres}" />
+								</f:facet>
+								<h:outputText value="#{_historicoEmpleado.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_historicoEmpleado.fechaIngreso}" headerText="#{msgs.lbl_fecha_ingreso_empleado}">
+								<h:outputText value="#{_historicoEmpleado.fechaIngreso}">
+									<f:convertDateTime pattern="#{historicoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" sortBy="#{_historicoEmpleado.fechaSalida}" headerText="#{msgs.lbl_fecha_salida_empleado}">
+								<h:outputText value="#{_historicoEmpleado.fechaSalida}">
+									<f:convertDateTime pattern="#{historicoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_vencimiento_contrato}"
+								sortBy="#{_historicoEmpleado.fechaVencimientoContrato}">
+								<h:outputText value="#{_historicoEmpleado.fechaVencimientoContrato}">
+									<f:convertDateTime pattern="#{historicoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+
+							<p:column styleClass="columnaDTFecha tableCell" headerText="#{msgs.lbl_fecha_finiquito}" sortBy="#{_historicoEmpleado.fechaFiniquito}">
+								<h:outputText value="#{_historicoEmpleado.fechaFiniquito}">
+									<f:convertDateTime pattern="#{historicoEmpleadoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" headerText="#{msgs.lbl_estado_finiquito}"
+								sortBy="#{_historicoEmpleado.estadoFiniquito.nombre}">
+								<h:outputText value="#{_historicoEmpleado.estadoFiniquito.nombre}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" headerText="#{msgs.lbl_descripcion}">
+								<h:outputText value="#{_historicoEmpleado.descripcion}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandLink immediate="true" ajax="false" action="#{historicoEmpleadoBean.processDownload}">
+									<h:graphicImage library="images" name="pdf.png" style="height : 16px; width : 16px;" />
+								</p:commandLink>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<p:commandLink process=":form:panelListado" action="#{historicoEmpleadoBean.seleccionar}" onclick="dglUploadFile.show()">
+									<h:graphicImage library="images" name="upload.png" style="height : 22px; width : 22px;" />
+								</p:commandLink>
+							</p:column>
+
+							<p:column styleClass="columnaDTAccion tableCell" exportable="false">
+								<f:facet name="header">
+									<h:outputText value="Simular Finiquito" />
+								</f:facet>
+								<center>
+									<p:commandButton disabled="#{historicoEmpleadoBean.indicadorSinQuincena}" oncomplete="simularFiniquitoDialogo.show();" icon="ui-icon-document" process="@this"
+										rendered="#{_historicoEmpleado.fechaSalida == null}" action="#{historicoEmpleadoBean.seleccionar}" />
+								</center>
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{historicoEmpleadoBean.historicoEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{historicoEmpleadoBean.historicoEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{historicoEmpleadoBean.historicoEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{historicoEmpleadoBean.historicoEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

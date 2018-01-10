@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:tnt="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<tnt:panelImprimir entidadDestino="" bean="#{reporteBalanceComprobacionBean}" entidadOrigen=""></tnt:panelImprimir>
+
+				<ui:include src="/template/barraReportes.xhtml">
+					<ui:param name="bean" value="#{balanceComprobacionBean}" />
+					<ui:param name="btnImprimir" value="true" />
+					<ui:param name="tabla" value=":form:tablaBalanceComprobacion" />
+					<ui:param name="columnasAExcluir" value="" />
+					<ui:param name="columnasAExcluirPdf" value="" />
+				</ui:include>			
+
+				<ui:include src="/template/listaDimensionContable.xhtml">
+					<ui:param name="bean" value="#{estadoFinancieroBean}" />
+					<ui:param name="objetoActualizar" value=":form:btnDimension" />
+					<ui:param name="indicadorSeleccionarTodo" value="true" />
+				</ui:include>
+				<p:panel header="#{msgs.lbl_titulo_balance_comprobacion}">
+
+					<p:fieldset>
+						<p:outputPanel id="panelFiltros">
+							<h:panelGrid columns="4">
+
+								<h:outputText value="#{msgs.lbl_anio_desde}:" />
+								<p:inputMask id="txtAnioDesde" mask="9999" value="#{balanceComprobacionBean.anioDesde}" />
+
+								<h:outputText value="#{msgs.lbl_mes_desde}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{balanceComprobacionBean.mesDesde}" id="cboMesDesde">
+									<f:selectItems value="#{balanceComprobacionBean.listaMes}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_anio_hasta}:" />
+								<p:inputMask id="txtAnioHasta" mask="9999" value="#{balanceComprobacionBean.anioHasta}" />
+
+								<h:outputText value="#{msgs.lbl_mes_hasta}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{balanceComprobacionBean.mesHasta}" id="cboMesHasta">
+									<f:selectItems value="#{balanceComprobacionBean.listaMes}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_sucursal}:" />
+								<p:selectOneMenu id="cboSucursal" value="#{balanceComprobacionBean.idSucursal}" required="true">
+									<f:selectItem itemLabel="#{msgs.lbl_todos}" itemValue="-1" />
+									<f:selectItems value="#{balanceComprobacionBean.listaSucursal}" />
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_dimension}:" />
+								<p:selectOneMenu styleClass="input-text" value="#{balanceComprobacionBean.listaDimensionContableBean.numeroDimension}" id="cboDimension">
+									<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+									<f:selectItems value="#{balanceComprobacionBean.listaDimension}" />
+									<p:ajax process="@this" global="false" update=":form:panelFiltros">
+										<f:setPropertyActionListener target="#{balanceComprobacionBean.listaDimensionContableBean.numeroDimension}" value="" />
+									</p:ajax>
+								</p:selectOneMenu>
+
+								<h:outputText value="#{msgs.lbl_valor_dimension}:" />
+
+								<!--<p:commandButton id="btnDimension" icon="ui-icon-gear" process="@this" value="#{balanceComprobacionBean.valorDimension}" update="@this"
+									oncomplete="dimensionContableDialog.show();">
+								</p:commandButton>  -->
+
+
+								<p:commandButton id="btnDimension" icon="ui-icon-gear" value="#{balanceComprobacionBean.valorDimension}" process="@this" partialSubmit="true"
+									actionListener="#{balanceComprobacionBean.listaDimensionContableBean.listarDimensionContableListener(balanceComprobacionBean.listaDimensionContableBean.numeroDimension,true)}">
+									<p:ajax event="dialogReturn" listener="#{balanceComprobacionBean.cargarDimensionContableListener}" update=":form:btnDimension" />
+								</p:commandButton>
+
+
+								<h:outputText value="#{msgs.lbl_indicador_NIIF}:" />
+								<h:selectBooleanCheckbox value="#{balanceComprobacionBean.estadoFinanciero.indicadorNIIF}" id="chkNIIF">
+									<p:ajax process="@this" />
+								</h:selectBooleanCheckbox>
+
+								<h:outputText value="#{msgs.lbl_indicador_movimiento}:" />
+								<h:selectBooleanCheckbox value="#{balanceComprobacionBean.estadoFinanciero.indicadorCuentaMovimiento}" id="chkCuentaMovimiento">
+								</h:selectBooleanCheckbox>
+
+
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:fieldset>
+
+					<p:spacer height="4px" />
+
+					<p:fieldset>
+						<p:outputPanel id="panelConsulta">
+							<h:panelGrid columns="1">
+								<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" value="#{balanceComprobacionBean.estadoFinanciero.listaDetalleEstadoFinanciero}" id="tablaBalanceComprobacion"
+									rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}" var="_detalleEstadoFinanciero" paginator="true"
+									binding="#{balanceComprobacionBean.dtDetalleEstadoFinanciero}" paginatorPosition="bottom" style="width:100%"
+									rows="#{balanceComprobacionBean.numeroFilasReporte}" rowsPerPageTemplate="#{balanceComprobacionBean.numeroFilasPorPagina}">
+
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_titulo_balance_comprobacion}" />
+									</f:facet>
+									<p:column styleClass="columnaDTAccion tableCell">
+										<f:facet name="header">
+											<h:outputText value="Nº" />
+										</f:facet>
+										<h:outputText value="#{secuencial+1}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTCodigoCuenta tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_codigo}" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleEstadoFinanciero.cuentaContable.codigo}"
+											rendered="#{!_detalleEstadoFinanciero.cuentaContable.indicadorMovimiento}" />
+
+										<h:link rendered="#{_detalleEstadoFinanciero.cuentaContable.indicadorMovimiento}" target="_blank"
+											outcome="/paginas/financiero/contabilidad/reportes/libroAuxiliar"
+											value="#{_detalleEstadoFinanciero.cuentaContable.codigo}">
+
+											<f:param name="idCuentaContable" value="#{_detalleEstadoFinanciero.cuentaContable.idCuentaContable}" />
+											<f:param name="anioDesde" value="#{balanceComprobacionBean.anioDesde}" />
+											<f:param name="mesDesde" value="#{balanceComprobacionBean.mesDesde}" />
+											<f:param name="anioHasta" value="#{balanceComprobacionBean.anioHasta}" />
+											<f:param name="mesHasta" value="#{balanceComprobacionBean.mesHasta}" />
+											<f:param name="idSucursal" value="#{balanceComprobacionBean.idSucursal}" />
+											<f:param name="dimension" value="#{estadoFinancieroBean.listaDimensionContableBean.numeroDimension}" />
+											<f:param name="valorDimension" value="#{estadoFinancieroBean.valorDimension}" />
+										</h:link>
+									</p:column>
+
+									<p:column styleClass="tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_cuenta_contable}" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleEstadoFinanciero.cuentaContable.nombre}" />
+									</p:column>
+
+									<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_saldo_inicial}" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleEstadoFinanciero.saldoInicial}" rendered="#{_detalleEstadoFinanciero.saldoInicial!=0}">
+											<f:convertNumber pattern="#{balanceComprobacionBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_asiento_debe}" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleEstadoFinanciero.debe}" rendered="#{_detalleEstadoFinanciero.debe!=0}">
+											<f:convertNumber pattern="#{balanceComprobacionBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_asiento_haber}" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleEstadoFinanciero.haber}" rendered="#{_detalleEstadoFinanciero.haber!=0}">
+											<f:convertNumber pattern="#{balanceComprobacionBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_saldo_deudor}" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleEstadoFinanciero.saldoDeudor}" rendered="#{_detalleEstadoFinanciero.saldoDeudor!=0}">
+											<f:convertNumber pattern="#{balanceComprobacionBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+
+									<p:column styleClass="columnaDTNombreCorto input-text-number tableCell">
+										<f:facet name="header">
+											<h:outputText value="#{msgs.lbl_saldo_acreedor}" />
+										</f:facet>
+
+										<h:outputText value="#{_detalleEstadoFinanciero.saldoAcreedor}" rendered="#{_detalleEstadoFinanciero.saldoAcreedor!=0}">
+											<f:convertNumber pattern="#{balanceComprobacionBean.formatoDinero}" />
+										</h:outputText>
+									</p:column>
+									
+									<p:columnGroup type="footer" id="panelTotal">
+										<p:row>
+											<p:column></p:column>
+											<p:column></p:column>
+											<p:column></p:column>
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{balanceComprobacionBean.saldoInicial}" id="txtSaldoInicial" style="text-align:right" />
+												</f:facet>
+											</p:column>
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{balanceComprobacionBean.totalDebe}" id="txtTotalDebe" style="text-align:right" />
+												</f:facet>
+											</p:column>
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{balanceComprobacionBean.totalHaber}" id="txtTotalHaber" style="text-align:right" />
+												</f:facet>
+											</p:column>
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{balanceComprobacionBean.totalDeudor}" id="txtTotalDeudor" style="text-align:right" />
+												</f:facet>
+											</p:column>
+											<p:column>
+												<f:facet name="footer">
+													<h:outputText value="#{balanceComprobacionBean.totalAcreedor}" id="txtTotalAcreedor" style="text-align:right" />
+												</f:facet>
+											</p:column>
+										</p:row>
+									</p:columnGroup>
+									
+									
+								</p:dataTable>
+							</h:panelGrid>
+						</p:outputPanel>
+					</p:fieldset>
+				</p:panel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

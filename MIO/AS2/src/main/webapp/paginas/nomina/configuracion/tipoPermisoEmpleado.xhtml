@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:p="http://primefaces.org/ui"
+	xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				
+				<as2:toolBar bean="#{tipoPermisoEmpleadoBean}">
+					<as2:buttonEliminar bean="#{tipoPermisoEmpleadoBean}">						
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.codigo}" />
+						
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.nombre}" />
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{tipoPermisoEmpleadoBean}" tabla=":form:tablaTipoPermisoEmpleado"/>
+				</as2:toolBar>
+
+				<p:outputPanel id="panelNuevo">
+
+					<p:panel rendered="#{tipoPermisoEmpleadoBean.editado}"
+						header="#{msgs.lbl_panel_edicion} ( #{msgs.lbl_tipo_permiso} )">
+
+						<h:panelGrid id="panelDetalle"
+							columns="#{tipoPermisoEmpleadoBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text"
+								value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.codigo}"
+								id="txtCodigo" required="true" />
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text"
+								value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.nombre}"
+								id="txtNombre" required="true" />						
+								
+							<!--<h:outputText value="#{msgs.lbl_cargo_vacacion}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.indicadorCargoVacacion}" />-->
+								
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox
+								value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.predeterminado}" />
+								
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text"
+								value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.descripcion}"
+								id="txtDescripcion" />
+
+						</h:panelGrid>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!tipoPermisoEmpleadoBean.editado}"
+						header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_tipo_permiso} )">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaTipoPermisoEmpleado" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{tipoPermisoEmpleadoBean.listaTipoPermisoEmpleado}"
+							var="_tipo_permiso_empleado"
+							binding="#{tipoPermisoEmpleadoBean.dtTipoPermisoEmpleado}"
+							paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{tipoPermisoEmpleadoBean.numeroFilas}"
+							rowsPerPageTemplate="#{tipoPermisoEmpleadoBean.numeroFilasPorPagina}"
+							selection="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado}"
+							selectionMode="single" rowKey="#{_tipo_permiso_empleado.id}"
+							sortBy="#{_tipo_permiso_empleado.codigo}" sortOrder="DESCENDING" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{_tipo_permiso_empleado.codigo}"
+								sortBy="#{_tipo_permiso_empleado.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_tipo_permiso_empleado.codigo}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre" filterBy="#{_tipo_permiso_empleado.nombre}"
+								sortBy="#{_tipo_permiso_empleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_tipo_permiso_empleado.nombre}" />
+							</p:column>					
+							
+							<h:selectBooleanCheckbox
+								value="#{_tipo_permiso_empleado.indicadorCargoVacacion}" />
+
+							<p:column styleClass="columnaDTActivo" sortBy="#{_tipo_permiso_empleado.activo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_activo}" />
+								</f:facet>
+								<p:selectBooleanCheckbox
+									value="#{_tipo_permiso_empleado.activo}" disabled="true" />
+							</p:column>
+							
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<f:facet name="header"></f:facet>
+								<p:selectBooleanCheckbox
+									value="#{_tipo_permiso_empleado.predeterminado}" disabled="true" />
+							</p:column>
+							
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_tipo_permiso_empleado.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion"
+							value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.fechaCreacion}" />
+						<ui:param name="usuarioCreacion"
+							value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.usuarioCreacion}" />
+						<ui:param name="fechaModificacion"
+							value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.fechaModificacion}" />
+						<ui:param name="usuarioModificacion"
+							value="#{tipoPermisoEmpleadoBean.tipoPermisoEmpleado.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

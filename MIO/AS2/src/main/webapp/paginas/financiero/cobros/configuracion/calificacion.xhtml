@@ -1,0 +1,141 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{calificacionBean}">
+
+					<as2:buttonEliminar bean="#{calificacionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{calificacionBean.calificacion.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{calificacionBean.calificacion.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{calificacionBean}" tabla=":form:tablacalificacion" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel rendered="#{calificacionBean.editado}" header="#{msgs.lbl_panel_edicion} #{msgs.lbl_tipo_identificacion_panel}">
+
+
+						<h:panelGrid id="panelDetalle" columns="#{calificacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputText styleClass="input-text" value="#{calificacionBean.calificacion.codigo}" id="txtCodigo" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{calificacionBean.calificacion.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<h:outputText value="#{msgs.lbl_desde}:" />
+							<p:spinner value="#{calificacionBean.calificacion.rangoDesde}" id="txtRangoDesde" min="0">
+								<f:validateBean />
+							</p:spinner>
+
+							<h:outputText value="#{msgs.lbl_hasta}:" />
+							<p:spinner value="#{calificacionBean.calificacion.rangoHasta}" id="txtRangoHasta" min="0">
+								<f:validateBean />
+							</p:spinner>
+
+							<h:outputText value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea styleClass="input-text" value="#{calificacionBean.calificacion.descripcion}" id="txtDescripcion">
+								<f:validateBean />
+							</p:inputTextarea>
+
+							<h:outputText value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox value="#{calificacionBean.calificacion.activo}" />
+
+							<h:outputText value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox value="#{calificacionBean.calificacion.predeterminado}" />
+
+
+						</h:panelGrid>
+
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+
+					<p:panel rendered="#{!calificacionBean.editado}" header="#{msgs.lbl_panel_listado} #{msgs.lbl_tipo_identificacion_panel}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablacalificacion" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{calificacionBean.listaCalificacion}" var="_calificacion" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{calificacionBean.dtCalificacion}" rows="#{calificacionBean.numeroFilas}"
+							rowsPerPageTemplate="#{calificacionBean.numeroFilasPorPagina}" selection="#{calificacionBean.calificacion}" selectionMode="single"
+							rowKey="#{_calificacion.id}" sortBy="#{_calificacion.codigo}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" sortBy="#{_calificacion.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{_calificacion.codigo}" />
+							</p:column>
+
+							<p:column sortBy="#{_calificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{_calificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_desde}">
+								<h:outputText value="#{_calificacion.rangoDesde}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_hasta}">
+								<h:outputText value="#{_calificacion.rangoHasta}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{_calificacion.activo}">
+								<p:selectBooleanCheckbox value="#{_calificacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{_calificacion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_calificacion.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{calificacionBean.calificacion.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{calificacionBean.calificacion.usuarioCreacion}" />
+
+						<ui:param name="fechaModificacion" value="#{calificacionBean.calificacion.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{calificacionBean.calificacion.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

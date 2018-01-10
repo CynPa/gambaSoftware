@@ -1,0 +1,653 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<f:metadata>
+	<f:viewParam name="idPago" value="#{pagoBean.idPago}" />
+	<f:viewParam name="idPagoCash" value="#{pagoBean.idPagoCash}" />
+	<f:viewParam name="idOrdenPago" value="#{pagoBean.idOrdenPago}" />
+</f:metadata>
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{pagoBean}">
+					<as2:buttonEliminar bean="#{pagoBean}" titulo="#{msgs.btn_anular}">
+						<h:outputText value="#{msgs.lbl_indicador_movimiento}:#" />
+						<h:outputText value="#{pagoBean.pago.numero}" />
+
+						<h:outputText value="#{msgs.lbl_proveedor}:" />
+						<h:outputText value="#{pagoBean.pago.empresa.nombreFiscal}" />
+
+						<h:outputText value="#{msgs.lbl_valor}:" />
+						<h:outputText value="#{pagoBean.pago.valor}">
+							<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+						</h:outputText>
+					</as2:buttonEliminar>
+
+					<as2:buttonImprimir beanReporte="#{reportePagoBean}" bean="#{pagoBean}" target="#{reportePagoBean.pago}" value="#{pagoBean.pago}" />
+					<as2:buttonImprimir beanReporte="#{reporteAsientoBean}" bean="#{pagoBean}" target="#{reporteAsientoBean.asiento}"
+						value="#{pagoBean.pago.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_asiento}"/>					
+					<as2:buttonImprimir beanReporte="#{reporteChequeAsientoBean}" bean="#{pagoBean}" target="#{reporteChequeAsientoBean.asiento}"
+						value="#{pagoBean.pago.asiento}" etiquetaImprimir="#{msgs.lbl_imprimir_cheque}" />
+					
+					<as2:buttonExportaExcel bean="#{pagoBean}" tabla=":form:tablaPago" />
+				</as2:toolBar>
+
+				<!-- Inicio Dialog Contabilizar -->
+				<p:outputPanel id="panelPagoContabilizar">
+					<p:panel rendered="#{pagoBean.mostrarDialogContabilizar}">
+						<p:dialog header="#{msgs.lbl_contabilizar} #{msgs.lbl_pago_panel}" widgetVar="pagosAContabilizarDialog" id="pagosAContabilizarDialog"
+							modal="true" height="400" width="800" showEffect="slide" hideEffect="slide">
+
+							<h:panelGrid id="panelGridPagosContabilizar" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<h:outputText value="#{pagoBean.pago.numero}" />
+
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<h:outputText value="#{pagoBean.pago.empresa.proveedor.empresa.nombreFiscal}" />
+
+									<h:outputText value="#{msgs.lbl_pago_valor}:" />
+									<h:outputText value="#{pagoBean.pago.valor}">
+										<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+									</h:outputText>
+
+								</h:panelGrid>
+
+								<h:panelGrid columns="1">
+									<p:fieldset>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaPagoCont" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pagoBean.listaDetalleFormaPago}" var="_detalleFormaPago"
+											binding="#{pagoBean.dtFormaPagoDialog}" style="width:100%"  rows="#{pagoBean.numeroFilas}" paginator="true">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_pagar_de}" styleClass="columnaDTCuentaOrganizacion tableCell">
+												<h:outputText value="#{_detalleFormaPago.cuentaBancariaOrganizacion.nombreCompleto}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombreCorto tableCell">
+												<h:outputText value="#{_detalleFormaPago.formaPago.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+												<h:outputText value="#{_detalleFormaPago.valor}">
+													<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento tableCell">
+												<p:inputText styleClass="input-text" id="txtReferenciaFormaPagoCont" value="#{_detalleFormaPago.documentoReferencia}">
+													<f:validateBean />
+												</p:inputText>
+											</p:column>
+
+										</p:dataTable>
+									</p:fieldset>
+
+								</h:panelGrid>
+
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_procesar}" actionListener="#{pagoBean.contabilizarPago}"
+										process="@this :form:panelPagoContabilizar :form:tablaDetalleFormaPagoCont" oncomplete="pagosAContabilizarDialog.hide()"
+										update=":form:panelListado" icon="ui-icon-plus" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:panel>
+				</p:outputPanel>
+				<!-- Fin Dialog Contabilizar -->
+
+				<!-- Inicio Dialog Entregar Cheque -->
+				<p:outputPanel id="panelPagoEntregarCheque">
+					<p:panel rendered="#{pagoBean.mostrarDialogEntregarCheque}">
+						<p:dialog header="#{msgs.lbl_entregar_cheque} #{msgs.lbl_pago_panel}" widgetVar="chequesAEntregarDialog" id="chequesAEntregarDialog"
+							modal="true" height="400" width="800" showEffect="slide" hideEffect="slide">
+
+							<h:panelGrid id="panelGridChequesAEntregar" columns="1" columnClasses="columnaEtiqueta,columnaValor">
+
+								<h:panelGrid columns="2">
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<h:outputText value="#{pagoBean.pago.numero}" />
+
+									<h:outputText value="#{msgs.lbl_proveedor}:" />
+									<h:outputText value="#{pagoBean.pago.empresa.proveedor.empresa.nombreFiscal}" />
+
+									<h:outputText value="#{msgs.lbl_pago_valor}:" />
+									<h:outputText value="#{pagoBean.pago.valor}">
+										<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+									</h:outputText>
+
+									<h:outputText value="#{msgs.lbl_fecha_entrega_cheque}:" />
+									<p:calendar pattern="#{pagoBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoBean.pago.fechaEntregaCheque}"
+										id="calFechaEntregaCheque" disabled="true">
+									</p:calendar>
+
+									<h:outputText value="#{msgs.lbl_usuario_entrega_cheques}:" />
+									<h:outputText value="#{pagoBean.pago.usuarioEntregaCheque}" />
+
+								</h:panelGrid>
+
+								<h:panelGrid columns="1">
+									<p:fieldset>
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaPagoCheque" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pagoBean.listaDetalleFormaPago}" var="_detalleFormaPago" style="width:100%" rows="5"
+											paginatorPosition="buttom" paginator="true">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_pagar_de}" styleClass="columnaDTCuentaOrganizacion tableCell">
+												<h:outputText value="#{_detalleFormaPago.cuentaBancariaOrganizacion.nombreCompleto}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombreCorto tableCell">
+												<h:outputText value="#{_detalleFormaPago.formaPago.nombre}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+												<h:outputText value="#{_detalleFormaPago.valor}">
+													<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+												</h:outputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento">
+												<h:outputText value="#{_detalleFormaPago.documentoReferencia}">
+												</h:outputText>
+											</p:column>
+
+										</p:dataTable>
+									</p:fieldset>
+
+								</h:panelGrid>
+
+							</h:panelGrid>
+							<f:facet name="footer">
+								<center>
+									<p:commandButton value="#{msgs.btn_procesar}" actionListener="#{pagoBean.entregarCheque}"
+										process="@this :form:panelPagoEntregarCheque :form:tablaDetalleFormaPagoCheque" oncomplete="chequesAEntregarDialog.hide()"
+										update=":form:panelListado" icon="ui-icon-plus" />
+								</center>
+							</f:facet>
+						</p:dialog>
+					</p:panel>
+				</p:outputPanel>
+				<!-- Fin Dialog Cheque -->
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_pago_panel}" rendered="#{pagoBean.editado}">
+
+						<p:tabView dynamic="false" cache="true" id="tvPago">
+							<p:tab title="#{msgs.lbl_pago_titulo_tab_pago}">
+
+								<h:panelGrid id="panelDetalle" columns="#{pagoBean.numeroColumnasPanelNuevo}"
+									columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+									<h:outputText value="#{msgs.lbl_documento}:" />
+									<p:selectOneMenu styleClass="input-text" id="cboDocumento" required="true" value="#{pagoBean.pago.documento}">
+										<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+										<f:selectItems value="#{pagoBean.listaDocumento}" var="_documento" itemLabel="#{_documento.nombre}" itemValue="#{_documento}" />
+										<p:ajax process="@this" update=":form:tvPago:txtNumero" event="change" global="false" listener="#{pagoBean.actualizarDocumento}" />
+										<f:validateBean />
+									</p:selectOneMenu>
+
+									<h:outputText value="#{msgs.lbl_numero}:" />
+									<p:inputMask styleClass="input-text" id="txtNumero" value="#{pagoBean.pago.numero}" mask="#{pagoBean.pago.documento.secuencia.patron}"
+										disabled="#{!pagoBean.secuenciaEditable}">
+										<f:validateBean />
+									</p:inputMask>
+
+									<h:outputText value="#{msgs.lbl_fecha}:" />
+									<p:calendar pattern="#{pagoBean.formatoFecha}" showOn="button" navigator="true" value="#{pagoBean.pago.fecha}" id="calFecha" required="true">
+										<p:ajax process="@this" global="false"/>
+										<f:validateBean />
+									</p:calendar>
+
+									<p:outputLabel for="txtProveedor" value="#{msgs.lbl_proveedor}:" />
+									<p:autoComplete queryDelay="#{sesionControler.retrasoFiltro}" styleClass="input-text" value="#{pagoBean.pago.empresa}"
+										completeMethod="#{pagoBean.autocompletarProveedores}" var="_proveedor" itemLabel="#{_proveedor.nombreFiscal}" itemValue="#{_proveedor}"
+										forceSelection="true" dropdown="true" minQueryLength="2" disabled="#{pagoBean.pago.id>0}" required="true" id="txtProveedor">
+
+										<p:column headerText="#{msgs.lbl_empresa_identificacion}">#{_proveedor.identificacion}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_fiscal}">#{_proveedor.nombreFiscal}</p:column>
+										<p:column headerText="#{msgs.lbl_empresa_nombre_comercial}">#{_proveedor.nombreComercial}</p:column>
+
+										<p:ajax listener="#{pagoBean.actualizarProveedor}" global="false" process="@this" event="itemSelect"
+											update=":form:tvPago:txtBeneficiario,:form:tablaFacturas" />
+									</p:autoComplete>
+
+									<h:outputText value="#{msgs.lbl_pago_valor}:" />
+									<p:inputText styleClass="input-text" id="txtValorPago" value="#{pagoBean.pago.valor}" disabled="#{pagoBean.pago.id>0}">
+										<p:ajax process="@this" update=":form:panelGridFacturas :form:tvPago:panelDetFormaPago" global="false" />
+										<f:validateBean />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_beneficiario}:" />
+									<p:inputText styleClass="input-text" id="txtBeneficiario" value="#{pagoBean.pago.beneficiario}">
+										<f:validateBean for="" />
+									</p:inputText>
+
+									<h:outputText value="#{msgs.lbl_descripcion}:" />
+									<p:inputTextarea styleClass="input-text" id="txtDescripcion" value="#{pagoBean.pago.descripcion}">
+										<f:validateBean />
+									</p:inputTextarea>
+
+								</h:panelGrid>
+
+							</p:tab>
+
+							<p:tab title="#{msgs.lbl_forma_pago}">
+
+								<p:commandButton process="@this :form:tvPago:tablaDetalleFormaPago" value="#{msgs.btn_agregar_detalle}"
+									update=":form:tvPago:panelDetalleFormaPago" action="#{pagoBean.crearFormaPago}" />
+
+								<p:outputPanel id="panelDetFormaPago">
+
+									<h:panelGrid columns="1" id="panelDetalleFormaPago" width="100%">
+
+										<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaDetalleFormaPago" rowIndexVar="secuencial"
+											emptyMessage="#{msgs.msg_no_hay_datos}" value="#{pagoBean.listaDetalleFormaPago}" var="_detalleFormaPago" binding="#{pagoBean.dtFormaPago}"
+											paginator="false" style="width:100%" rows="#{pagoBean.numeroFilas}">
+
+											<p:column headerText="Nº" styleClass="columnaDTAccion tableCell">
+												<h:outputText value="#{secuencial+1}" />
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_pagar_de}" styleClass="columnaDTNombreCorto tableCell">
+												<p:selectOneMenu styleClass="input-text" id="cboCuentaBancariaOrganizacion" required="true"
+													value="#{_detalleFormaPago.cuentaBancariaOrganizacion}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{pagoBean.listaCuentaBancariaOrganizacion}" var="_cuentaBancariaOrganizacion"
+														itemLabel="#{_cuentaBancariaOrganizacion.nombreCompleto}" itemValue="#{_cuentaBancariaOrganizacion}" />
+													<f:validateBean />
+
+													<p:ajax process="@this" update="cboFormaPago txtCuentaContableBanco txtReferenciaFormaPago" global="false" listener="#{pagoBean.actualizarCuentaBancaria}" />
+
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_cuenta_contable}" styleClass="tableCell">
+												<p:outputPanel id="txtCuentaContableBanco">
+
+													<h:outputText value="#{_detalleFormaPago.cuentaContableFormaPago.codigo}"
+														rendered="#{!_detalleFormaPago.cuentaBancariaOrganizacion.indicadorCruce}" title="#{_detalleFormaPago.cuentaContableFormaPago.nombre}">
+													</h:outputText>
+
+													<p:selectOneMenu styleClass="input-text" id="cboCuentaContableFormaPago" required="true"
+														value="#{_detalleFormaPago.cuentaContableFormaPago}" rendered="#{_detalleFormaPago.cuentaBancariaOrganizacion.indicadorCruce}">
+														<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+														<f:selectItems value="#{_detalleFormaPago.cuentaBancariaOrganizacion.listaCuentaContableCruceCuentaBancariaOrganizacion}"
+															var="_cuentaContableFormaPago"
+															itemLabel="#{_cuentaContableFormaPago.cuentaContable.codigo}   #{_cuentaContableFormaPago.cuentaContable.nombre}"
+															itemValue="#{_cuentaContableFormaPago.cuentaContable}" />
+														<p:ajax event="change" process="@this" global="false" update=":form:tvPago:panelDetFormaPago" />
+														<f:validateBean />
+													</p:selectOneMenu>
+												</p:outputPanel>
+
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_forma_pago}" styleClass="columnaDTNombreCorto tableCell">
+												<p:selectOneMenu styleClass="input-text" id="cboFormaPago" required="true" value="#{_detalleFormaPago.formaPago}"
+													disabled="#{_detalleFormaPago.indicadorChequePosfechado}">
+													<f:selectItem itemLabel="#{msgs.lbl_seleccione}" itemValue="" />
+													<f:selectItems value="#{_detalleFormaPago.cuentaBancariaOrganizacion.listaFormaPago}" var="_formaPagoCuenta"
+														itemLabel="#{_formaPagoCuenta.formaPago.nombre}" itemValue="#{_formaPagoCuenta.formaPago}" />
+													<f:validateBean />
+													<p:ajax process="@this" update=":form:tvPago:panelDetFormaPago txtReferenciaFormaPago" global="false"
+														listener="#{pagoBean.actualizarFormaPago}">
+													</p:ajax>
+												</p:selectOneMenu>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_valor}" styleClass="columnaDTValor tableCell">
+												<p:inputText styleClass="input-text" id="txtValorFormaPago" value="#{_detalleFormaPago.valor}">
+													<f:validateBean />
+													<p:ajax event="change" update=":form:tvPago:panelDetFormaPago" global="false" process="@this"
+														oncomplete="nextFocus(':form:tvPago:txtReferenciaFormaPago')"></p:ajax>
+												</p:inputText>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_documento_referencia}" styleClass="columnaDTNumeroDocumento">
+												<p:inputMask styleClass="input-text" id="txtReferenciaFormaPago" value="#{_detalleFormaPago.documentoReferencia}"
+													mask="#{_detalleFormaPago.secuencia.patron}" required="#{_detalleFormaPago.formaPago.indicadorCheque}">
+													<f:validateBean />
+												</p:inputMask>
+											</p:column>
+
+											<p:column headerText="#{msgs.lbl_tiene_cheque_posfechado}" styleClass="columnaDTActivo tableCell">
+												<p:selectBooleanCheckbox id="chkIndicadorChequePosfechado" value="#{_detalleFormaPago.indicadorChequePosfechado}"
+													rendered="#{(not empty _detalleFormaPago.formaPago) and (_detalleFormaPago.formaPago.indicadorCheque)}">
+													<p:ajax process="@this" update=":form:tvPago:panelDetFormaPago" global="false"></p:ajax>
+												</p:selectBooleanCheckbox>
+											</p:column>
+											<p:column styleClass="columnaDTFechaInput tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_fecha}" />
+												</f:facet>
+												<p:calendar rendered="#{_detalleFormaPago.indicadorChequePosfechado}" pattern="#{pagoBean.formatoFecha}" showOn="button" navigator="true"
+													value="#{_detalleFormaPago.fechaPosfechado}" id="calFechaPosfechado" size="10">
+													<p:ajax process="@this" global="false" partialSubmit="true" event="change" />
+													<p:ajax process="@this" global="false" partialSubmit="true" event="dateSelect" />
+													<f:validateBean />
+												</p:calendar>
+											</p:column>
+											<p:column styleClass="tableCell">
+												<f:facet name="header">
+													<h:outputText value="#{msgs.lbl_descripcion}" />
+												</f:facet>
+												<p:inputText rendered="#{_detalleFormaPago.indicadorChequePosfechado}" value="#{_detalleFormaPago.descripcion}" styleClass="input-text">
+												</p:inputText>
+											</p:column>
+
+											<p:column styleClass="columnaDTAccion tableCell">
+												<p:commandButton id="btnEliminarFormaPago" action="#{pagoBean.eliminarFormaPago}" icon="ui-icon-trash" title="#{msgs.lbl_eliminar}"
+													update=":form:tvPago:panelDetalleFormaPago" process="@this" />
+											</p:column>
+
+											<p:columnGroup type="footer">
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_total}" style="text-align:right" />
+													<p:column style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{pagoBean.totalLiquidarFormaPago}">
+																<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+
+												<p:row>
+													<p:column colspan="4" footerText="#{msgs.lbl_pago_diferencia}" style="text-align:right" />
+													<p:column style="text-align:right">
+														<f:facet name="footer">
+															<h:outputText value="#{pagoBean.pago.valor-pagoBean.totalLiquidarFormaPago}">
+																<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+															</h:outputText>
+														</f:facet>
+													</p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+													<p:column></p:column>
+												</p:row>
+											</p:columnGroup>
+
+										</p:dataTable>
+
+									</h:panelGrid>
+								</p:outputPanel>
+							</p:tab>
+
+						</p:tabView>
+
+						<h:panelGrid columns="1" id="panelGridFacturas" width="100%">
+
+							<p:commandButton process="@this :form:tvPago:txtValorPago" value="#{msgs.btn_pago_cargar_facturas_pendientes}"
+								update=":form:tablaFacturas :form:tvPago:txtValorPago" action="#{pagoBean.cargarFacturasPendientes}" disabled="#{pagoBean.pago.id>0}" />
+
+							<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaFacturas" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+								binding="#{pagoBean.dtDetallePago}" value="#{pagoBean.listaDetallePago}" var="_factura" paginator="true" paginatorPosition="bottom"
+								style="width:100%" rows="#{pagoBean.numeroFilas}" rowsPerPageTemplate="#{pagoBean.numeroFilasPorPagina}" selectionMode="single"
+								rowKey="#{_factura.cuentaPorPagar.id}" filteredValue="#{pagoBean.listaDetallePagoFiltrado}">
+
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pago_titulo_panel_facturas}" />
+								</f:facet>
+
+								<p:column headerText="Nº" styleClass="columnaDTAccion ">
+									<h:outputText value="#{secuencial+1}" />
+								</p:column>
+
+								<p:column sortBy="#{_factura.cuentaPorPagar.facturaProveedor.numero}" filterBy="#{_factura.cuentaPorPagar.facturaProveedor.numero}"
+									filterMatchMode="contains" styleClass="columnaDTNumeroDocumento tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_numero}" />
+									</f:facet>
+									<h:outputText value="#{_factura.cuentaPorPagar.facturaProveedor.numero}" />
+								</p:column>
+
+								<p:column sortBy="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}"
+									filterBy="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" filterMatchMode="contains" styleClass="columnaDTNombre tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_pago_numero_factura}" />
+									</f:facet>
+									<h:outputText rendered="#{empty _factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI}"
+										value="#{_factura.cuentaPorPagar.facturaProveedor.referencia3}" />
+									<h:outputText rendered="#{not empty _factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI}"
+										value="#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.establecimiento}-#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.puntoEmision}-#{_factura.cuentaPorPagar.facturaProveedor.facturaProveedorSRI.numero}" />
+								</p:column>
+
+								<p:column styleClas="tableCell">
+									<f:facet name="header">
+										<h:outputText value="#{msgs.lbl_descripcion}" />
+									</f:facet>
+									<h:outputText value="#{_factura.cuentaPorPagar.facturaProveedor.descripcion }" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_fecha} #{msgs.lbl_registro}" styleClass="columnaDTFecha tableCell"
+									sortBy="#{_factura.cuentaPorPagar.facturaProveedor.fecha}">
+									<h:outputText value="#{_factura.cuentaPorPagar.facturaProveedor.fecha}">
+										<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_fecha_vencimiento_factura}" styleClass="columnaDTFecha tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.fechaVencimiento}">
+										<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_numero_cuota}" styleClass="columnaDTAccion tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.numeroCuota}" />
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_valor_pendiente}" styleClass="columnaDTValor tableCell">
+									<h:outputText value="#{_factura.cuentaPorPagar.saldo}">
+										<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+									</h:outputText>
+								</p:column>
+
+								<p:column headerText="#{msgs.lbl_pago_valor_factura_a_liquidar}" styleClass="columnaDTValor tableCell">
+									<p:inputText styleClass="input-text" id="txtValor" value="#{_factura.valor}">
+										<f:validateBean />
+										<p:ajax process="@this :form:panelGridFacturas" global="false" listener="#{pagoBean.calcularValorAPagar}"
+											update=":form:panelGridFacturas :form:tvPago:txtValorPago" />
+									</p:inputText>
+								</p:column>
+								<p:column styleClass="columnaDTActivo tableCell">
+									<center>
+										<p:commandLink id="btnPagar" process="@this :form:panelGridFacturas" global="false" title="#{msgs.lbl_pagar}"
+											update=":form:tvPago:txtValorPago txtValor
+											:form:panelGridFacturas" action="#{pagoBean.cargarValorCuota}">
+											<h:graphicImage library="images" name="action_icon.png" style="height : 16px; width : 16px;" />
+
+										</p:commandLink>
+										<p:commandLink id="btnLimpiar" process="@this :form:panelGridFacturas" global="false" title="#{msgs.lbl_limpiar}"
+											update=":form:tvPago:txtValorPago txtValor :form:panelGridFacturas" action="#{pagoBean.limpiarValorCuota}">
+											<h:graphicImage library="images" name="eraser.png" style="height : 16px; width : 16px;" />
+
+										</p:commandLink>
+									</center>
+								</p:column>
+
+								<p:columnGroup type="footer">
+									<p:row>
+										<p:column colspan="7" footerText="#{msgs.lbl_pago_total_liquidado}" style="text-align:right" />
+										<p:column styleClass="input-text-number" style="text-align:right">
+											<f:facet name="footer">
+												<h:outputText value="#{pagoBean.totalLiquidado}">
+													<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+
+									<p:row>
+										<p:column colspan="7" footerText="#{msgs.lbl_pago_diferencia}" style="text-align:right" />
+										<p:column styleClass="input-text-number" style="text-align:right">
+											<f:facet name="footer">
+												<h:outputText value="#{pagoBean.pago.valor-pagoBean.totalLiquidado}">
+													<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+												</h:outputText>
+											</f:facet>
+										</p:column>
+									</p:row>
+
+								</p:columnGroup>
+
+							</p:dataTable>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_pago_panel}" rendered="#{!pagoBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaPago" rowIndexVar="secuencial" emptyMessage="#{msgs.msg_no_hay_datos}"
+							value="#{pagoBean.listaPago}" var="_pago" binding="#{pagoBean.dtPago}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rows="#{pagoBean.numeroFilas}" selection="#{pagoBean.pago}" rowsPerPageTemplate="#{pagoBean.numeroFilasPorPagina}" selectionMode="single"
+							rowKey="#{_pago.id}" sortBy="#{_pago.numero}" sortOrder="DESCENDING" lazy="true">
+							
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencial+1}" />
+							</p:column>
+
+							<p:column sortBy="#{_pago.documento.nombre}" filterBy="#{_pago.documento.nombre}" styleClass="columnaDTNombreCorto tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_documento}" />
+								</f:facet>
+								<h:outputText value="#{_pago.documento.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_pago.numero}" filterBy="#{_pago.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_numero}" />
+								</f:facet>
+								<h:outputText value="#{_pago.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_pago.fecha}" styleClass="columnaDTFecha tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_fecha}" />
+								</f:facet>
+								<h:outputText value="#{_pago.fecha}">
+									<f:convertDateTime pattern="#{pagoBean.formatoFecha}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column sortBy="#{_pago.empresa.nombreFiscal}" filterBy="#{_pago.empresa.nombreFiscal}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_pago.empresa.nombreFiscal}" />
+							</p:column>
+
+							<p:column sortBy="#{_pago.valor}" styleClass="columnaDTValor tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_pago_valor}" />
+								</f:facet>
+								<h:outputText value="#{_pago.valor}">
+									<f:convertNumber pattern="#{pagoBean.formatoDinero}" />
+								</h:outputText>
+							</p:column>
+
+							<p:column filterBy="#{_pago.asiento.numero}" styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_asiento}" />
+								</f:facet>
+								<h:link rendered="#{not empty _pago.asiento}" target="_blank" outcome="/paginas/financiero/contabilidad/procesos/asientoContable"
+									includeViewParams="true" value="#{_pago.asiento}">
+									<f:param name="idAsiento" value="#{_pago.asiento.idAsiento}" />
+								</h:link>
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell">
+								<f:facet name="header">
+									<h:outputText value="# #{msgs.lbl_pago_cash}" />
+								</f:facet>
+								<h:outputText value="#{_pago.pagoCash.numero}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNumeroDocumento tableCell" filterBy="#{_pago.ordenPagoProveedor.numero}" rendered="#{pagoBean.usaOrdenPago}">
+								<f:facet name="header">
+									<h:outputText value="# #{msgs.lbl_orden_pago_proveedor}" />
+								</f:facet>
+								<h:outputText value="#{_pago.ordenPagoProveedor.numero}" />
+							</p:column>
+
+							<p:column sortBy="#{_pago.estado}" filterBy="#{_pago.estado}" filterOptions="#{cobroBean.listaEstadoItem}"
+								styleClass="columnaDTEstado tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_estado}" />
+								</f:facet>
+								<h:outputText value="#{_pago.estado.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_pago.sucursal.nombre}" filterBy="#{_pago.sucursal.nombre}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_sucursal}" />
+								</f:facet>
+								<h:outputText value="#{_pago.sucursal.nombre}" />
+							</p:column>
+
+							<p:column sortBy="#{_pago.descripcion}" filterBy="#{_pago.descripcion}" styleClass="tableCell">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{_pago.descripcion}" />
+								<!--<p:inputTextarea value="#{_facturaCliente.descripcion}" rows="1" readonly="true" styleClass="input-text-col" />-->
+							</p:column>
+
+							<p:column headerText="#{msgs.btn_procesar}" exportable="false" styleClass="columnaDTAccion tableCell">
+								<center>
+									<p:commandButton icon="ui-icon-gear" action="#{pagoBean.seleccionarPagoAContabilizar}" process="@this"
+										oncomplete="pagosAContabilizarDialog.show()" update=":form:panelPagoContabilizar" disabled="#{_pago.estado != 'APROBADO'}" />
+								</center>
+							</p:column>
+
+							<p:column styleClass="columnaDTCantidad" exportable="false">
+
+								<as2:fileManager target="#{pagoBean.pago}" value="#{_pago}" bean="#{pagoBean}"
+									formatos="/(\.|\/)(pdf|png|xml|jpe?g)$/" actualiza=":form:panelListado" visible="#{_pago.pdf!=null}" />
+
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+
+					<p:separator />
+
+					<ui:include src="/template/auditoriaRapida.xhtml">
+						<ui:param name="fechaCreacion" value="#{pagoBean.pago.fechaCreacion}" />
+						<ui:param name="usuarioCreacion" value="#{pagoBean.pago.usuarioCreacion}" />
+						<ui:param name="fechaModificacion" value="#{pagoBean.pago.fechaModificacion}" />
+						<ui:param name="usuarioModificacion" value="#{pagoBean.pago.usuarioModificacion}" />
+					</ui:include>
+
+				</p:outputPanel>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

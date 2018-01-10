@@ -1,0 +1,131 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes"
+	xmlns:c="http://java.sun.com/jsp/jstl/core">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" enctype="multipart/form-data" id="form">
+
+			<p:outputPanel id="panelContenedor">
+				<p:panel id="panelFiltros" header="#{msgs.lbl_asignar} ( #{msgs.lbl_horario_empleado} )" rendered="#{!asignarHorarioEmpleadoBean.editado}">
+					<h:panelGrid columns="#{asignarHorarioEmpleadoBean.numeroColumnasPanelNuevo}"
+						columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+						<p:outputLabel for="cboDepartamento" value="#{msgs.lbl_departamento_empleado}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{asignarHorarioEmpleadoBean.departamento}" id="cboDepartamento" required="true">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{asignarHorarioEmpleadoBean.listaDepartamento}" var="_departamento" itemLabel="#{_departamento.nombre}"
+								itemValue="#{_departamento}" />
+							<p:ajax listener="#{asignarHorarioEmpleadoBean.init}" process="@this" global="false" update=":form:panelListado" />
+						</p:selectOneMenu>
+
+						<p:spacer />
+						<p:spacer />
+
+						<p:outputLabel for="cboHorarioEmpleado" value="#{msgs.lbl_horario_empleado}:" />
+						<p:selectOneMenu styleClass="input-text" value="#{asignarHorarioEmpleadoBean.horarioEmpleado}" id="cboHorarioEmpleado" required="true">
+							<f:selectItem itemValue="" itemLabel="#{msgs.lbl_seleccione}" />
+							<f:selectItems value="#{asignarHorarioEmpleadoBean.listaHorarioEmpleado}" var="_departamento" itemLabel="#{_departamento.nombre}"
+								itemValue="#{_departamento}" />
+							<p:ajax process="@this" global="false" />
+						</p:selectOneMenu>
+
+						<p:commandButton id="btnAsignarHorarioEmpleado" value="#{msgs.lbl_asignar}" title="#{msgs.lbl_asignar}" process="@this,:form:panelListado"
+							action="#{asignarHorarioEmpleadoBean.asignar}" update=":form:panelListado">
+						</p:commandButton>
+						
+						<h:outputText value="#{msgs.lbl_nota_asignar_horario_empleado}" />
+						
+						
+
+					</h:panelGrid>
+				</p:panel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} ( #{msgs.lbl_empleado} )" rendered="#{!asignarHorarioEmpleadoBean.editado}">
+
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" lazy="true" id="tablaEmpleado" rowIndexVar="secuencia"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{asignarHorarioEmpleadoBean.listaEmpresa}" var="empresa"
+							binding="#{asignarHorarioEmpleadoBean.dtEmpresa}" paginator="true" paginatorPosition="bottom" style="width:100%"
+							rowsPerPageTemplate="#{asignarHorarioEmpleadoBean.numeroFilasPorPagina}" rows="#{asignarHorarioEmpleadoBean.numeroFilas}"
+							selection="#{asignarHorarioEmpleadoBean.listaEmpresasSeleccionadas}" rowKey="#{empresa.id}" sortBy="#{empresa.empleado.apellidos}" sortOrder="ASCENDING"
+							filteredValue="#{asignarHorarioEmpleadoBean.listaEmpresasFiltradas}">
+
+							<p:column styleClass="columnaDTAccion tableCell">
+								<f:facet name="header">
+									<h:outputText value="Nº" />
+								</f:facet>
+								<h:outputText value="#{secuencia+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.tipoIdentificacion.nombre}" filterBy="#{empresa.tipoIdentificacion.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_tipo_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.tipoIdentificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo tableCell" sortBy="#{empresa.identificacion}" filterBy="#{empresa.identificacion}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empresa_identificacion}" />
+								</f:facet>
+								<h:outputText value="#{empresa.identificacion}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{empresa.empleado.apellidos}" filterBy="#{empresa.empleado.apellidos}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_apellios}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.apellidos}" />
+							</p:column>
+
+							<p:column styleClass="tableCell" sortBy="#{empresa.empleado.nombres}" filterBy="#{empresa.empleado.nombres}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_empleado_nombres}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.nombres}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.empleado.cargoEmpleado.nombre}"
+								filterBy="#{empresa.empleado.cargoEmpleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_cargo}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.cargoEmpleado.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTNombre tableCell" sortBy="#{empresa.empleado.horarioEmpleado.nombre}"
+								filterBy="#{empresa.empleado.horarioEmpleado.nombre}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_horario_empleado}" />
+								</f:facet>
+								<h:outputText value="#{empresa.empleado.horarioEmpleado.nombre}" />
+							</p:column>
+
+							<p:column selectionMode="multiple" style="width:16px;text-align:center" />
+
+						</p:dataTable>
+
+					</p:panel>
+
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{asignarHorarioEmpleadoBean.empresa.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{asignarHorarioEmpleadoBean.empresa.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{asignarHorarioEmpleadoBean.empresa.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{asignarHorarioEmpleadoBean.empresa.usuarioModificacion}" />
+				</ui:include>
+
+			</p:outputPanel>
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>

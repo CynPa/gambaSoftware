@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:ui="http://java.sun.com/jsf/facelets" xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:f="http://java.sun.com/jsf/core" xmlns:p="http://primefaces.org/ui" xmlns:as2="http://java.sun.com/jsf/composite/componentes">
+
+<ui:composition template="/template/template.xhtml">
+
+	<ui:define name="contenido">
+
+		<h:form prependId="false" id="form">
+
+			<p:outputPanel id="panelContenedor">
+
+				<as2:toolBar bean="#{iBPClasificacionBean}">
+					<as2:buttonEliminar bean="#{iBPClasificacionBean}">
+						<h:outputText value="#{msgs.lbl_codigo}:" />
+						<h:outputText value="#{iBPClasificacionBean.ibpClasificacion.codigo}" />
+
+						<h:outputText value="#{msgs.lbl_nombre}:" />
+						<h:outputText value="#{iBPClasificacionBean.ibpClasificacion.nombre}" />
+
+					</as2:buttonEliminar>
+
+					<as2:buttonExportaExcel bean="#{iBPClasificacionBean}" tabla=":form:tablaIBPClasificacion" />
+				</as2:toolBar>
+
+
+				<p:outputPanel id="panelNuevo">
+					<p:panel header="#{msgs.lbl_panel_edicion} #{msgs.lbl_ibpClasificacion_panel}" rendered="#{iBPClasificacionBean.editado}">
+						<h:panelGrid id="panelDetalle" columns="#{iBPClasificacionBean.numeroColumnasPanelNuevo}"
+							columnClasses="columnaEtiqueta,columnaValor,columnaEtiqueta,columnaValor">
+
+							<p:outputLabel for="txtCodigo" value="#{msgs.lbl_codigo}:" />
+							<p:inputMask styleClass="input-text" value="#{iBPClasificacionBean.ibpClasificacion.codigo}" id="txtCodigo" mask="99" required="true">
+								<f:validateBean />
+							</p:inputMask>
+
+							<p:outputLabel for="txtNombre" value="#{msgs.lbl_nombre}:" />
+							<p:inputText styleClass="input-text" value="#{iBPClasificacionBean.ibpClasificacion.nombre}" id="txtNombre" required="true">
+								<f:validateBean />
+							</p:inputText>
+
+							<p:outputLabel for="ckActivo" value="#{msgs.lbl_activo}:" />
+							<p:selectBooleanCheckbox id="ckActivo" value="#{iBPClasificacionBean.ibpClasificacion.activo}" />
+
+							<p:outputLabel for="ckPredeterminado" value="#{msgs.lbl_predeterminado}:" />
+							<p:selectBooleanCheckbox id="ckPredeterminado" value="#{iBPClasificacionBean.ibpClasificacion.predeterminado}" />
+
+							<p:outputLabel for="txtDescripcion" value="#{msgs.lbl_descripcion}:" />
+							<p:inputTextarea id="txtDescripcion" styleClass="input-text" value="#{iBPClasificacionBean.ibpClasificacion.descripcion}">
+								<f:validateBean />
+							</p:inputTextarea>
+						</h:panelGrid>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:outputPanel id="panelListado">
+					<p:panel header="#{msgs.lbl_panel_listado} #{msgs.lbl_ibpClasificacion_panel}" rendered="#{!iBPClasificacionBean.editado}">
+
+						<p:dataTable filterDelay="#{sesionControler.retrasoFiltro}" id="tablaIBPClasificacion" rowIndexVar="secuencialIBPClasificacion"
+							emptyMessage="#{msgs.msg_no_hay_datos}" value="#{iBPClasificacionBean.listaIBPClasificacion}" var="ibpClasificacion" paginator="true"
+							paginatorPosition="bottom" style="width:100%" binding="#{iBPClasificacionBean.dataTableIBPClasificacion}"
+							rows="#{iBPClasificacionBean.numeroFilas}" rowsPerPageTemplate="#{iBPClasificacionBean.numeroFilasPorPagina}"
+							selection="#{iBPClasificacionBean.ibpClasificacion}" selectionMode="single" rowKey="#{ibpClasificacion.id}" lazy="true">
+
+							<p:column styleClass="columnaDTAccion" headerText="Nº">
+								<h:outputText value="#{secuencialIBPClasificacion+1}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTCodigo" filterBy="#{ibpClasificacion.codigo}" sortBy="#{ibpClasificacion.codigo}">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_codigo}" />
+								</f:facet>
+								<h:outputText value="#{ibpClasificacion.codigo}" />
+							</p:column>
+
+							<p:column filterBy="#{ibpClasificacion.nombre}" sortBy="#{ibpClasificacion.nombre}" styleClass="columnaDTNombre">
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_nombre}" />
+								</f:facet>
+								<h:outputText value="#{ibpClasificacion.nombre}" />
+							</p:column>
+
+							<p:column styleClass="columnaDTActivo" headerText="#{msgs.lbl_activo}" sortBy="#{ibpClasificacion.activo}">
+								<p:selectBooleanCheckbox value="#{ibpClasificacion.activo}" disabled="true" />
+							</p:column>
+
+							<p:column styleClass="columnaDTPredeterminado" headerText="#{msgs.lbl_predeterminado}">
+								<p:selectBooleanCheckbox value="#{ibpClasificacion.predeterminado}" disabled="true" />
+							</p:column>
+
+							<p:column>
+								<f:facet name="header">
+									<h:outputText value="#{msgs.lbl_descripcion}" />
+								</f:facet>
+								<h:outputText value="#{ibpClasificacion.descripcion}" />
+							</p:column>
+
+						</p:dataTable>
+					</p:panel>
+				</p:outputPanel>
+
+				<p:separator />
+
+				<ui:include src="/template/auditoriaRapida.xhtml">
+					<ui:param name="fechaCreacion" value="#{iBPClasificacionBean.ibpClasificacion.fechaCreacion}" />
+					<ui:param name="usuarioCreacion" value="#{iBPClasificacionBean.ibpClasificacion.usuarioCreacion}" />
+
+					<ui:param name="fechaModificacion" value="#{iBPClasificacionBean.ibpClasificacion.fechaModificacion}" />
+					<ui:param name="usuarioModificacion" value="#{iBPClasificacionBean.ibpClasificacion.usuarioModificacion}" />
+
+				</ui:include>
+
+			</p:outputPanel>
+
+		</h:form>
+	</ui:define>
+</ui:composition>
+</html>
